@@ -16,9 +16,7 @@
     "@feedbackview/shared": "*",
     "@prisma/client": "^5.22.0",
     "bcryptjs": "^2.4.3",
-    "bullmq": "^5.71.0",
     "fastify": "^4.29.1",
-    "ioredis": "^5.10.0",
     "prisma": "^5.22.0",
     "ws": "^8.19.0",
     "zod": "^3.25.76"
