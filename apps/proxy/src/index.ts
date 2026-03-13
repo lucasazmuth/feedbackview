@@ -1,7 +1,7 @@
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import { prisma } from './lib/prisma'
-import { Transform } from 'stream'
+
 import { createProxyHandler } from './proxy-handler'
 
 const app = Fastify({ logger: true })
@@ -42,11 +42,22 @@ app.get('/proxy/:projectId/*', async (request, reply) => {
 })
 
 // Serve tracker.js
-app.get('/tracker.js', async (request, reply) => {
-  const trackerPath = require.resolve('@feedbackview/tracker/dist/tracker.js').catch?.() ||
-    `${__dirname}/../../packages/tracker/dist/tracker.js`
+app.get('/tracker.js', async (_request, reply) => {
+  const fs = await import('fs')
+  const path = await import('path')
+  const possiblePaths = [
+    path.resolve(__dirname, '../../packages/tracker/dist/tracker.js'),
+    path.resolve(__dirname, '../../../packages/tracker/dist/tracker.js'),
+  ]
+  for (const p of possiblePaths) {
+    try {
+      const content = fs.readFileSync(p, 'utf-8')
+      reply.type('application/javascript')
+      return reply.send(content)
+    } catch {}
+  }
   reply.type('application/javascript')
-  return reply.sendFile?.('tracker.js') || reply.send('// tracker placeholder')
+  return reply.send('// tracker not found')
 })
 
 app.listen({ port: Number(process.env.PORT) || 3002, host: '0.0.0.0' }, (err) => {
