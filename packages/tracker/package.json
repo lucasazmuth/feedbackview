@@ -1,0 +1,15 @@
+{
+  "name": "@feedbackview/tracker",
+  "version": "0.0.1",
+  "main": "./dist/tracker.js",
+  "scripts": {
+    "dev": "esbuild src/index.ts --bundle --outfile=dist/tracker.js --watch",
+    "build": "esbuild src/index.ts --bundle --minify --outfile=dist/tracker.js --platform=browser"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "esbuild": "^0.20.2",
+    "rrweb": "^2.0.0-alpha.20",
+    "typescript": "^5.3.0"
+  }
+}
