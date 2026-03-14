@@ -45,6 +45,7 @@ export default function ViewerClient({ projectId }: ViewerClientProps) {
   const [consoleLogs, setConsoleLogs] = useState<ConsoleLog[]>([])
   const [networkLogs, setNetworkLogs] = useState<NetworkLog[]>([])
   const [rrwebEvents, setRrwebEvents] = useState<RRWebEvent[]>([])
+  const [screenshotDataUrl, setScreenshotDataUrl] = useState<string | null>(null)
 
   // Session timer
   useEffect(() => {
@@ -61,9 +62,13 @@ export default function ViewerClient({ projectId }: ViewerClientProps) {
 
     switch (type) {
       case 'CONSOLE_LOG': {
+        // Tracker sends payload.args (array), convert to string message
+        const msg = Array.isArray(payload.args)
+          ? payload.args.map((a: unknown) => (typeof a === 'string' ? a : JSON.stringify(a))).join(' ')
+          : payload.message || ''
         const log: ConsoleLog = {
           level: payload.level || 'log',
-          message: payload.message || '',
+          message: msg,
           timestamp: payload.timestamp,
         }
         setConsoleLogs((prev) => [...prev, log])
@@ -94,6 +99,12 @@ export default function ViewerClient({ projectId }: ViewerClientProps) {
       }
       case 'RRWEB_EVENT': {
         setRrwebEvents((prev) => [...prev, payload])
+        break
+      }
+      case 'SCREENSHOT_RESULT': {
+        if (payload.dataUrl) {
+          setScreenshotDataUrl(payload.dataUrl)
+        }
         break
       }
     }
@@ -148,7 +159,11 @@ export default function ViewerClient({ projectId }: ViewerClientProps) {
 
         {/* Right: Send feedback button */}
         <button
-          onClick={() => setModalOpen(true)}
+          onClick={() => {
+            // Request screenshot from tracker inside iframe before opening modal
+            iframeRef.current?.contentWindow?.postMessage({ type: 'CAPTURE_SCREENSHOT' }, '*')
+            setModalOpen(true)
+          }}
           className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
         >
           Enviar Feedback
@@ -186,6 +201,7 @@ export default function ViewerClient({ projectId }: ViewerClientProps) {
           consoleLogs={consoleLogs}
           networkLogs={networkLogs}
           rrwebEvents={rrwebEvents}
+          screenshotFromTracker={screenshotDataUrl}
           onClose={() => setModalOpen(false)}
         />
       )}

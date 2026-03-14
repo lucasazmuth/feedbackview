@@ -30,6 +30,7 @@ interface FeedbackModalProps {
   consoleLogs: ConsoleLog[]
   networkLogs: NetworkLog[]
   rrwebEvents: RRWebEvent[]
+  screenshotFromTracker?: string | null
   onClose: () => void
 }
 
@@ -48,6 +49,7 @@ export default function FeedbackModal({
   consoleLogs,
   networkLogs,
   rrwebEvents,
+  screenshotFromTracker,
   onClose,
 }: FeedbackModalProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -68,44 +70,17 @@ export default function FeedbackModal({
   const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(null)
   const [rects, setRects] = useState<DrawRect[]>([])
 
-  // Capture screenshot via html2canvas
+  // Use screenshot captured by tracker inside the iframe (cross-origin safe)
   useEffect(() => {
-    async function captureScreenshot() {
-      setCapturing(true)
-      try {
-        // Dynamic import to avoid SSR issues
-        const html2canvas = (await import('html2canvas')).default
-        const iframe = iframeRef.current
-        if (iframe) {
-          try {
-            // Try to capture iframe content - may fail due to cross-origin
-            const canvas = await html2canvas(iframe, {
-              allowTaint: true,
-              useCORS: true,
-              scale: 0.75,
-              logging: false,
-            })
-            setScreenshotDataUrl(canvas.toDataURL('image/jpeg', 0.85))
-          } catch {
-            // Fallback: capture the whole page without iframe content
-            const canvas = await html2canvas(document.body, {
-              scale: 0.5,
-              logging: false,
-              ignoreElements: (el) => el.tagName === 'IFRAME',
-            })
-            setScreenshotDataUrl(canvas.toDataURL('image/jpeg', 0.85))
-          }
-        }
-      } catch (err) {
-        console.error('Screenshot capture failed:', err)
-        setScreenshotDataUrl(null)
-      } finally {
-        setCapturing(false)
-      }
+    if (screenshotFromTracker) {
+      setScreenshotDataUrl(screenshotFromTracker)
+      setCapturing(false)
+    } else {
+      // Wait a bit for the tracker to respond
+      const timeout = setTimeout(() => setCapturing(false), 3000)
+      return () => clearTimeout(timeout)
     }
-
-    captureScreenshot()
-  }, [iframeRef])
+  }, [screenshotFromTracker])
 
   // Draw image on canvas when screenshot is ready
   useEffect(() => {

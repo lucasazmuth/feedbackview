@@ -143,6 +143,24 @@ if (document.readyState === 'loading') {
   startRecording()
 }
 
+// ─── Screenshot capture (requested by parent) ───────────────────────────────
+window.addEventListener('message', async (event) => {
+  if (event.data?.type !== 'CAPTURE_SCREENSHOT') return
+  try {
+    const html2canvas = (await import('html2canvas')).default
+    const canvas = await html2canvas(document.body, {
+      scale: 0.75,
+      logging: false,
+      useCORS: true,
+      allowTaint: true,
+    })
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85)
+    window.parent.postMessage({ source: 'feedbackview-tracker', type: 'SCREENSHOT_RESULT', payload: { dataUrl } }, '*')
+  } catch (err: any) {
+    window.parent.postMessage({ source: 'feedbackview-tracker', type: 'SCREENSHOT_RESULT', payload: { error: err.message } }, '*')
+  }
+})
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function safeSerialize(val: unknown): unknown {
   if (val === null || val === undefined) return val

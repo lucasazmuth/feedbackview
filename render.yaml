@@ -19,7 +19,7 @@ services:
     name: feedbackview-proxy
     runtime: node
     rootDir: .
-    buildCommand: npm install && cd apps/proxy && npx prisma generate && npm run build
+    buildCommand: npm install && cd packages/tracker && npm run build && cd ../../apps/proxy && npx prisma generate && npm run build
     startCommand: cd apps/proxy && npm run start
     envVars:
       - key: DATABASE_URL
