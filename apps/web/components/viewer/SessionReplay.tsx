@@ -8,23 +8,25 @@ interface SessionReplayProps {
 }
 
 export default function SessionReplay({ events }: SessionReplayProps) {
+  const wrapperRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const playerRef = useRef<any>(null)
-  const [playing, setPlaying] = useState(false)
-  const [ready, setReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!containerRef.current || events.length < 2) return
+    if (!containerRef.current || !wrapperRef.current || events.length < 2) return
 
     let mounted = true
 
     async function initPlayer() {
       try {
-        // Dynamic import for rrweb-player (client-only)
         const { default: rrwebPlayer } = await import('rrweb-player')
 
-        if (!mounted || !containerRef.current) return
+        if (!mounted || !containerRef.current || !wrapperRef.current) return
+
+        // Use container's actual width for responsive sizing
+        const width = wrapperRef.current.clientWidth
+        const height = Math.round(width * 9 / 16) // 16:9 aspect ratio
 
         // Clear previous player
         containerRef.current.innerHTML = ''
@@ -33,8 +35,8 @@ export default function SessionReplay({ events }: SessionReplayProps) {
           target: containerRef.current,
           props: {
             events,
-            width: 460,
-            height: 280,
+            width,
+            height,
             autoPlay: false,
             showController: true,
             speedOption: [1, 2, 4, 8],
@@ -42,7 +44,6 @@ export default function SessionReplay({ events }: SessionReplayProps) {
         })
 
         playerRef.current = player
-        if (mounted) setReady(true)
       } catch (err: any) {
         console.error('rrweb-player init error:', err)
         if (mounted) setError('Erro ao carregar o player de replay.')
@@ -77,11 +78,10 @@ export default function SessionReplay({ events }: SessionReplayProps) {
   }
 
   return (
-    <div className="space-y-2">
+    <div ref={wrapperRef} className="space-y-2">
       <div
         ref={containerRef}
-        className="rounded-lg overflow-hidden border border-gray-200 bg-gray-900"
-        style={{ minHeight: '280px' }}
+        className="rounded-lg overflow-hidden border border-gray-200 [&_.rr-player]:!w-full [&_.rr-player__frame]:!w-full"
       />
       <p className="text-xs text-gray-400 text-center">
         {events.length} eventos capturados
