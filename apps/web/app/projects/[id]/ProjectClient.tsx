@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { signOut } from 'next-auth/react'
+import { createClient } from '@/lib/supabase/client'
 import {
   ArrowLeft,
   Copy,
@@ -16,7 +16,6 @@ import {
   Filter,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
-import { api } from '@/lib/api'
 
 interface Feedback {
   id: string
@@ -42,7 +41,6 @@ interface ProjectClientProps {
   feedbacks: Feedback[]
   error: string | null
   userEmail: string
-  accessToken: string
 }
 
 const PROXY_URL = process.env.NEXT_PUBLIC_PROXY_URL || 'http://localhost:3002'
@@ -62,7 +60,6 @@ export default function ProjectClient({
   feedbacks,
   error,
   userEmail,
-  accessToken,
 }: ProjectClientProps) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<'feedbacks' | 'settings'>('feedbacks')
@@ -80,6 +77,13 @@ export default function ProjectClient({
     await navigator.clipboard.writeText(viewerUrl)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  async function handleSignOut() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/auth/login')
+    router.refresh()
   }
 
   const filteredFeedbacks = feedbacks.filter((f) => {
@@ -128,7 +132,7 @@ export default function ProjectClient({
               </div>
             </div>
             <button
-              onClick={() => signOut({ callbackUrl: '/auth/login' })}
+              onClick={handleSignOut}
               className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors"
             >
               <LogOut className="w-4 h-4" />

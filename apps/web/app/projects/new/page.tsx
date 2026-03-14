@@ -5,7 +5,6 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
-import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { api } from '@/lib/api'
@@ -20,7 +19,6 @@ type ProjectForm = z.infer<typeof projectSchema>
 
 export default function NewProjectPage() {
   const router = useRouter()
-  const { data: session } = useSession()
   const [serverError, setServerError] = useState<string | null>(null)
 
   const {
@@ -34,12 +32,7 @@ export default function NewProjectPage() {
   async function onSubmit(data: ProjectForm) {
     setServerError(null)
     try {
-      const token = (session as any)?.accessToken
-      if (!token) {
-        setServerError('Sessão expirada. Faça login novamente.')
-        return
-      }
-      const project = await api.projects.create(token, data)
+      const project = await api.projects.create(data)
       router.push(`/projects/${project.id}`)
     } catch (err: any) {
       setServerError(err.message || 'Erro ao criar projeto.')

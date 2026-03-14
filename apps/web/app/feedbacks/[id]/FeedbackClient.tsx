@@ -38,7 +38,6 @@ interface Feedback {
 interface FeedbackClientProps {
   feedback: Feedback | null
   error: string | null
-  accessToken: string
 }
 
 const STATUS_OPTIONS = [
@@ -97,7 +96,6 @@ function formatDate(dateStr: string) {
 export default function FeedbackClient({
   feedback,
   error,
-  accessToken,
 }: FeedbackClientProps) {
   const [status, setStatus] = useState(feedback?.status ?? 'OPEN')
   const [statusSaving, setStatusSaving] = useState(false)
@@ -120,7 +118,7 @@ export default function FeedbackClient({
     setStatusError(null)
     setStatusSaving(true)
     try {
-      await api.feedbacks.updateStatus(accessToken, feedback!.id, newStatus)
+      await api.feedbacks.updateStatus(feedback!.id, newStatus)
       setStatus(newStatus)
     } catch (err: any) {
       setStatusError('Erro ao atualizar status.')

@@ -1,21 +1,15 @@
-import { auth } from '@/lib/auth'
-import { api } from '@/lib/api'
-import { redirect } from 'next/navigation'
+import { requireUser } from '@/lib/auth'
+import { serverApi } from '@/lib/api.server'
 import DashboardClient from './DashboardClient'
 
 export default async function DashboardPage() {
-  const session = await auth()
-
-  if (!session) {
-    redirect('/auth/login')
-  }
+  const user = await requireUser()
 
   let projects: any[] = []
   let error: string | null = null
 
   try {
-    const token = (session as any).accessToken
-    projects = await api.projects.list(token)
+    projects = await serverApi.projects.list(user.id)
   } catch (err) {
     error = 'Não foi possível carregar os projetos.'
     console.error('Dashboard fetch error:', err)
@@ -25,8 +19,8 @@ export default async function DashboardPage() {
     <DashboardClient
       projects={projects}
       error={error}
-      userEmail={session.user?.email ?? ''}
-      userName={session.user?.name ?? ''}
+      userEmail={user.email ?? ''}
+      userName={user.user_metadata?.name ?? ''}
     />
   )
 }

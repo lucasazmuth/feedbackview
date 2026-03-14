@@ -4,9 +4,9 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
@@ -15,8 +15,6 @@ const registerSchema = z.object({
 })
 
 type RegisterForm = z.infer<typeof registerSchema>
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -33,31 +31,22 @@ export default function RegisterPage() {
   async function onSubmit(data: RegisterForm) {
     setServerError(null)
     try {
-      const res = await fetch(`${API_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+      const supabase = createClient()
+      const { error } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: { name: data.name },
+        },
       })
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: 'Erro ao criar conta' }))
-        setServerError(err.error || 'Erro ao criar conta')
+      if (error) {
+        setServerError(error.message)
         return
       }
 
-      const result = await signIn('credentials', {
-        email: data.email,
-        password: data.password,
-        redirect: false,
-      })
-
-      if (result?.error) {
-        setServerError('Conta criada, mas erro ao entrar. Tente fazer login.')
-        router.push('/auth/login')
-      } else {
-        router.push('/dashboard')
-        router.refresh()
-      }
+      router.push('/dashboard')
+      router.refresh()
     } catch {
       setServerError('Erro de conexão. Verifique sua internet.')
     }
@@ -124,7 +113,7 @@ export default function RegisterPage() {
               <input
                 {...register('password')}
                 type="password"
-                placeholder="Mínimo 6 caracteres"
+                placeholder="Mínimo 8 caracteres"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
               {errors.password && (

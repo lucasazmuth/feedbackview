@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { X, ChevronDown, ChevronRight, Loader2, CheckCircle2 } from 'lucide-react'
 import { api } from '@/lib/api'
 
+
 interface ConsoleLog {
   level: string
   message: string

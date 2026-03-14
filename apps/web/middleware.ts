@@ -1,19 +1,47 @@
-import { auth } from '@/lib/auth'
-import { NextResponse } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
 
-export default auth((req) => {
-  const isLoggedIn = !!req.auth
-  const isAuthPage = req.nextUrl.pathname.startsWith('/auth')
-  const isPublicPage = req.nextUrl.pathname.startsWith('/p/')
+export async function middleware(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({ request })
 
-  if (!isLoggedIn && !isAuthPage && !isPublicPage) {
-    return NextResponse.redirect(new URL('/auth/login', req.url))
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          supabaseResponse = NextResponse.next({ request })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          )
+        },
+      },
+    }
+  )
+
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const isAuthPage = request.nextUrl.pathname.startsWith('/auth')
+  const isPublicPage = request.nextUrl.pathname.startsWith('/p/')
+
+  if (!user && !isAuthPage && !isPublicPage) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/auth/login'
+    return NextResponse.redirect(url)
   }
-  if (isLoggedIn && isAuthPage) {
-    return NextResponse.redirect(new URL('/dashboard', req.url))
+
+  if (user && isAuthPage) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/dashboard'
+    return NextResponse.redirect(url)
   }
-  return NextResponse.next()
-})
+
+  return supabaseResponse
+}
 
 export const config = {
   matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],

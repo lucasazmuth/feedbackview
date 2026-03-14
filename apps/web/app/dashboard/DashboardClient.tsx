@@ -1,8 +1,9 @@
 'use client'
 
-import { signOut } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { PlusCircle, ExternalLink, MessageSquare, ChevronRight, LogOut } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 interface Project {
   id: string
@@ -34,6 +35,15 @@ export default function DashboardClient({
   userEmail,
   userName,
 }: DashboardClientProps) {
+  const router = useRouter()
+
+  async function handleSignOut() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/auth/login')
+    router.refresh()
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -53,7 +63,7 @@ export default function DashboardClient({
                 {userName && <p className="text-xs text-gray-500">{userEmail}</p>}
               </div>
               <button
-                onClick={() => signOut({ callbackUrl: '/auth/login' })}
+                onClick={handleSignOut}
                 className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors"
               >
                 <LogOut className="w-4 h-4" />

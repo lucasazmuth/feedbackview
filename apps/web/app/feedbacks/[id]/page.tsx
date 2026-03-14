@@ -1,6 +1,6 @@
-import { auth } from '@/lib/auth'
-import { api } from '@/lib/api'
-import { redirect, notFound } from 'next/navigation'
+import { requireUser } from '@/lib/auth'
+import { serverApi } from '@/lib/api.server'
+import { notFound } from 'next/navigation'
 import FeedbackClient from './FeedbackClient'
 
 interface PageProps {
@@ -9,20 +9,15 @@ interface PageProps {
 
 export default async function FeedbackPage({ params }: PageProps) {
   const { id } = await params
-  const session = await auth()
+  const user = await requireUser()
 
-  if (!session) {
-    redirect('/auth/login')
-  }
-
-  const token = (session as any).accessToken
   let feedback: any = null
   let error: string | null = null
 
   try {
-    feedback = await api.feedbacks.get(token, id)
+    feedback = await serverApi.feedbacks.get(user.id, id)
   } catch (err: any) {
-    if (err.message?.includes('404') || err.message?.includes('not found')) {
+    if (err.message?.includes('not found') || err.message?.includes('Not found') || err.message?.includes('No rows')) {
       notFound()
     }
     error = 'Não foi possível carregar o feedback.'
@@ -33,5 +28,5 @@ export default async function FeedbackPage({ params }: PageProps) {
     notFound()
   }
 
-  return <FeedbackClient feedback={feedback} error={error} accessToken={token} />
+  return <FeedbackClient feedback={feedback} error={error} />
 }

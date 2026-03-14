@@ -1,6 +1,6 @@
-import { auth } from '@/lib/auth'
-import { api } from '@/lib/api'
-import { redirect, notFound } from 'next/navigation'
+import { requireUser } from '@/lib/auth'
+import { serverApi } from '@/lib/api.server'
+import { notFound } from 'next/navigation'
 import ProjectClient from './ProjectClient'
 
 interface PageProps {
@@ -9,13 +9,7 @@ interface PageProps {
 
 export default async function ProjectPage({ params }: PageProps) {
   const { id } = await params
-  const session = await auth()
-
-  if (!session) {
-    redirect('/auth/login')
-  }
-
-  const token = (session as any).accessToken
+  const user = await requireUser()
 
   let project: any = null
   let feedbacks: any[] = []
@@ -23,11 +17,11 @@ export default async function ProjectPage({ params }: PageProps) {
 
   try {
     [project, feedbacks] = await Promise.all([
-      api.projects.get(token, id),
-      api.projects.feedbacks(token, id),
+      serverApi.projects.get(user.id, id),
+      serverApi.projects.feedbacks(user.id, id),
     ])
   } catch (err: any) {
-    if (err.message?.includes('404') || err.message?.includes('not found')) {
+    if (err.message?.includes('not found') || err.message?.includes('No rows')) {
       notFound()
     }
     error = 'Não foi possível carregar os dados do projeto.'
@@ -43,8 +37,7 @@ export default async function ProjectPage({ params }: PageProps) {
       project={project}
       feedbacks={feedbacks}
       error={error}
-      userEmail={session.user?.email ?? ''}
-      accessToken={token}
+      userEmail={user.email ?? ''}
     />
   )
 }

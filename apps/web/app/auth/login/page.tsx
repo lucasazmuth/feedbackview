@@ -4,9 +4,9 @@ import { useState, Suspense } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { signIn } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
 
 const loginSchema = z.object({
   email: z.string().email('E-mail inválido'),
@@ -31,12 +31,12 @@ function LoginForm() {
 
   async function onSubmit(data: LoginForm) {
     setServerError(null)
-    const result = await signIn('credentials', {
+    const supabase = createClient()
+    const { error } = await supabase.auth.signInWithPassword({
       email: data.email,
       password: data.password,
-      redirect: false,
     })
-    if (result?.error) {
+    if (error) {
       setServerError('E-mail ou senha inválidos.')
     } else {
       router.push(callbackUrl)
@@ -45,7 +45,13 @@ function LoginForm() {
   }
 
   async function handleGoogle() {
-    await signIn('google', { callbackUrl })
+    const supabase = createClient()
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(callbackUrl)}`,
+      },
+    })
   }
 
   return (
