@@ -60,6 +60,30 @@ app.get('/tracker.js', async (_request, reply) => {
   return reply.send('// tracker not found')
 })
 
+// Fallback: handle requests like /assets/... that come from proxied pages.
+// The JS bundle loads images with absolute paths like /assets/image.jpg
+// which miss the /proxy/:projectId/ prefix. Use Referer to find the project.
+app.setNotFoundHandler(async (request, reply) => {
+  const referer = request.headers.referer || ''
+  const match = referer.match(/\/proxy\/([^/]+)/)
+  if (!match) {
+    return reply.code(404).send({ error: 'Not found' })
+  }
+
+  const projectId = match[1]
+  const targetUrl = await getTargetUrl(projectId)
+  if (!targetUrl) {
+    return reply.code(404).send({ error: 'Project not found' })
+  }
+
+  const base = targetUrl.replace(/\/$/, '')
+  const path = request.url.split('?')[0]
+  const queryString = request.url.includes('?') ? '?' + request.url.split('?')[1] : ''
+  const fullUrl = `${base}${path}${queryString}`
+
+  await createProxyHandler(request, reply, fullUrl, projectId)
+})
+
 app.listen({ port: Number(process.env.PORT) || 3002, host: '0.0.0.0' }, (err) => {
   if (err) { app.log.error(err); process.exit(1) }
 })
