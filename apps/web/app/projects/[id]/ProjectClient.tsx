@@ -18,6 +18,7 @@ import {
   Trash2,
   Loader2,
   X,
+  Code2,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { api } from '@/lib/api'
@@ -69,6 +70,7 @@ export default function ProjectClient({
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<'feedbacks' | 'settings'>('feedbacks')
   const [copied, setCopied] = useState(false)
+  const [copiedEmbed, setCopiedEmbed] = useState(false)
   const [typeFilter, setTypeFilter] = useState('')
   const [severityFilter, setSeverityFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
@@ -92,10 +94,23 @@ export default function ProjectClient({
       ? `${window.location.protocol}//${window.location.host}/p/${project?.id}`
       : `http://localhost:3000/p/${project?.id}`
 
+  const appBase =
+    typeof window !== 'undefined'
+      ? `${window.location.protocol}//${window.location.host}`
+      : 'https://feedbackview.vercel.app'
+
+  const embedSnippet = `<script src="${appBase}/embed.js" data-project="${project?.id}"></script>`
+
   async function copyViewerUrl() {
     await navigator.clipboard.writeText(viewerUrl)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  async function copyEmbedSnippet() {
+    await navigator.clipboard.writeText(embedSnippet)
+    setCopiedEmbed(true)
+    setTimeout(() => setCopiedEmbed(false), 2000)
   }
 
   async function handleSignOut() {
@@ -479,6 +494,43 @@ export default function ProjectClient({
                   </div>
                 </div>
               )}
+            </div>
+
+            {/* Embed script */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <div className="flex items-center gap-2 mb-2">
+                <Code2 className="w-5 h-5 text-indigo-600" />
+                <h3 className="font-medium text-gray-900">Script Embed</h3>
+              </div>
+              <p className="text-sm text-gray-500 mb-4">
+                Cole este snippet no HTML do seu site para habilitar o widget de feedback diretamente na página.
+                Ideal para sites que não funcionam bem com o proxy (Flutter, SPAs complexas, sites com auth).
+              </p>
+              <div className="relative">
+                <pre className="bg-gray-900 text-green-400 text-xs rounded-lg p-4 overflow-x-auto font-mono">
+                  {embedSnippet}
+                </pre>
+                <button
+                  onClick={copyEmbedSnippet}
+                  className="absolute top-2 right-2 flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded-md transition-colors"
+                >
+                  {copiedEmbed ? (
+                    <>
+                      <Check className="w-3 h-3" />
+                      Copiado!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3 h-3" />
+                      Copiar
+                    </>
+                  )}
+                </button>
+              </div>
+              <div className="mt-4 space-y-2 text-xs text-gray-500">
+                <p><strong className="text-gray-700">Como funciona:</strong> O script injeta um botão flutuante de feedback no canto inferior direito da página. Ao clicar, o usuário pode enviar bugs, sugestões e elogios com screenshot automático e session replay.</p>
+                <p><strong className="text-gray-700">Vantagens:</strong> Funciona em qualquer site (Flutter, SPAs, sites com autenticação). Sem limitações do proxy.</p>
+              </div>
             </div>
 
             {/* Delete project */}
