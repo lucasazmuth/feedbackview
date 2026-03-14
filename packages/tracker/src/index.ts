@@ -148,11 +148,18 @@ window.addEventListener('message', async (event) => {
   if (event.data?.type !== 'CAPTURE_SCREENSHOT') return
   try {
     const html2canvas = (await import('html2canvas')).default
+    // Capture only the visible viewport, not the entire page
     const canvas = await html2canvas(document.body, {
-      scale: 0.75,
+      scale: 1,
       logging: false,
       useCORS: true,
       allowTaint: true,
+      x: window.scrollX,
+      y: window.scrollY,
+      width: window.innerWidth,
+      height: window.innerHeight,
+      windowWidth: window.innerWidth,
+      windowHeight: window.innerHeight,
     })
     const dataUrl = canvas.toDataURL('image/jpeg', 0.85)
     window.parent.postMessage({ source: 'feedbackview-tracker', type: 'SCREENSHOT_RESULT', payload: { dataUrl } }, '*')

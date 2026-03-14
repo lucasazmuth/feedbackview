@@ -267,13 +267,13 @@ export default function FeedbackModal({
                   <span className="text-sm text-gray-400">Capturando screenshot...</span>
                 </div>
               ) : (
-                <div className="relative rounded-xl overflow-hidden border border-gray-200 bg-gray-100" style={{ maxHeight: '240px' }}>
+                <div className="relative rounded-xl overflow-hidden border border-gray-200 bg-gray-100">
                   {screenshotDataUrl ? (
                     <>
                       <canvas
                         ref={canvasRef}
-                        className="w-full object-contain"
-                        style={{ display: 'block', maxHeight: '240px' }}
+                        className="w-full"
+                        style={{ display: 'block' }}
                       />
                       <canvas
                         ref={overlayCanvasRef}
