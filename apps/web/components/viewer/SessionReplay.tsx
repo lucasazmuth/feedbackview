@@ -24,9 +24,14 @@ export default function SessionReplay({ events }: SessionReplayProps) {
 
         if (!mounted || !containerRef.current || !wrapperRef.current) return
 
-        // Use container's actual width for responsive sizing
+        // Extract original viewport dimensions from rrweb meta event (type 4)
+        const metaEvent = events.find((e: any) => e.type === 4)
+        const origWidth = metaEvent?.data?.width || 1280
+        const origHeight = metaEvent?.data?.height || 720
+
+        // Scale to fit container width, preserving original aspect ratio
         const width = wrapperRef.current.clientWidth
-        const height = Math.round(width * 9 / 16) // 16:9 aspect ratio
+        const height = Math.round(width * origHeight / origWidth)
 
         // Clear previous player
         containerRef.current.innerHTML = ''
