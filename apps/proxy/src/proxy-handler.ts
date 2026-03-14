@@ -130,15 +130,21 @@ function rewriteUrl(url: string, proxyBase: string): string {
 }
 
 function rewriteHtml(html: string, proxyBase: string, projectId: string): string {
-  // Rewrite href, src, action, srcset attributes
-  return html
+  // Rewrite href, src, action attributes
+  html = html
     .replace(/(href|src|action)="([^"]*?)"/gi, (_, attr, url) => `${attr}="${rewriteUrl(url, proxyBase)}"`)
     .replace(/(href|src|action)='([^']*?)'/gi, (_, attr, url) => `${attr}='${rewriteUrl(url, proxyBase)}'`)
-    .replace(/url\(['"]?([^)'"]+)['"]?\)/gi, (_, url) => `url(${rewriteUrl(url, proxyBase)})`)
-    // Rewrite fetch and XHR in inline scripts
-    .replace(/fetch\(['"]([^'"]+)['"]/g, (_, url) => `fetch('${rewriteUrl(url, proxyBase)}'`)
-    .replace(/\.open\(['"](\w+)['"]\s*,\s*['"]([^'"]+)['"]/g, (_, method, url) =>
-      `.open('${method}', '${rewriteUrl(url, proxyBase)}'`)
+
+  // Rewrite CSS url() only in <style> blocks, not in <script> blocks
+  html = html.replace(/<style[\s>][\s\S]*?<\/style>/gi, (styleBlock) =>
+    styleBlock.replace(/url\(['"]?([^)'"]+)['"]?\)/gi, (_, url) => `url(${rewriteUrl(url, proxyBase)})`)
+  )
+
+  // Rewrite inline style attributes
+  html = html.replace(/style="([^"]*)"/gi, (match, styleValue) =>
+    `style="${styleValue.replace(/url\(['"]?([^)'"]+)['"]?\)/gi, (_: string, url: string) => `url(${rewriteUrl(url, proxyBase)})`)}"`)
+
+  return html
 }
 
 function rewriteCss(css: string, proxyBase: string): string {
@@ -147,11 +153,11 @@ function rewriteCss(css: string, proxyBase: string): string {
     .replace(/@import\s+['"]([^'"]+)['"]/gi, (_, url) => `@import '${rewriteUrl(url, proxyBase)}'`)
 }
 
-function rewriteJs(js: string, proxyBase: string): string {
-  return js
-    .replace(/fetch\(['"]([^'"]+)['"]/g, (_, url) => `fetch('${rewriteUrl(url, proxyBase)}'`)
-    .replace(/\.open\(['"](\w+)['"]\s*,\s*['"]([^'"]+)['"]/g, (_, method, url) =>
-      `.open('${method}', '${rewriteUrl(url, proxyBase)}'`)
+function rewriteJs(_js: string, _proxyBase: string): string {
+  // Avoid rewriting JS — naive regex replacement breaks minified code
+  // (e.g. variable names matching patterns, template literals, etc.)
+  // API calls from the proxied site will be handled by the setNotFoundHandler fallback
+  return _js
 }
 
 function injectTracker(html: string, projectId: string): string {

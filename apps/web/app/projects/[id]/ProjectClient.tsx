@@ -14,8 +14,13 @@ import {
   CheckCircle2,
   MessageSquare,
   Filter,
+  Pencil,
+  Trash2,
+  Loader2,
+  X,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
+import { api } from '@/lib/api'
 
 interface Feedback {
   id: string
@@ -68,6 +73,20 @@ export default function ProjectClient({
   const [severityFilter, setSeverityFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
 
+  // Edit state
+  const [editing, setEditing] = useState(false)
+  const [editName, setEditName] = useState(project?.name ?? '')
+  const [editUrl, setEditUrl] = useState(project?.url ?? '')
+  const [editDescription, setEditDescription] = useState(project?.description ?? '')
+  const [editSaving, setEditSaving] = useState(false)
+  const [editError, setEditError] = useState<string | null>(null)
+
+  // Delete state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
   const viewerUrl =
     typeof window !== 'undefined'
       ? `${window.location.protocol}//${window.location.host}/p/${project?.id}`
@@ -97,6 +116,42 @@ export default function ProjectClient({
   const openCount = feedbacks.filter((f) => f.status === 'OPEN').length
   const criticalCount = feedbacks.filter((f) => f.severity === 'CRITICAL').length
   const resolvedCount = feedbacks.filter((f) => f.status === 'RESOLVED').length
+
+  async function handleEditSave() {
+    if (!project) return
+    if (!editName.trim() || !editUrl.trim()) {
+      setEditError('Nome e URL são obrigatórios.')
+      return
+    }
+    setEditError(null)
+    setEditSaving(true)
+    try {
+      await api.projects.update(project.id, {
+        name: editName.trim(),
+        targetUrl: editUrl.trim(),
+        description: editDescription.trim() || undefined,
+      })
+      router.refresh()
+      setEditing(false)
+    } catch (err: any) {
+      setEditError(err.message || 'Erro ao salvar alterações.')
+    } finally {
+      setEditSaving(false)
+    }
+  }
+
+  async function handleDelete() {
+    if (!project) return
+    setDeleteError(null)
+    setDeleting(true)
+    try {
+      await api.projects.delete(project.id)
+      router.push('/dashboard')
+    } catch (err: any) {
+      setDeleteError(err.message || 'Erro ao excluir projeto.')
+      setDeleting(false)
+    }
+  }
 
   if (!project && error) {
     return (
@@ -324,27 +379,160 @@ export default function ProjectClient({
 
         {/* Settings tab */}
         {activeTab === 'settings' && (
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h3 className="font-medium text-gray-900 mb-4">Configurações do Projeto</h3>
-            <div className="space-y-3 text-sm text-gray-500">
-              <div className="flex justify-between py-2 border-b border-gray-100">
-                <span className="font-medium text-gray-700">ID do projeto</span>
-                <code className="text-xs bg-gray-100 px-2 py-0.5 rounded">{project?.id}</code>
+          <div className="space-y-6">
+            {/* Edit project */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-medium text-gray-900">Configurações do Projeto</h3>
+                {!editing && (
+                  <button
+                    onClick={() => setEditing(true)}
+                    className="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-700 transition-colors"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                    Editar
+                  </button>
+                )}
               </div>
-              <div className="flex justify-between py-2 border-b border-gray-100">
-                <span className="font-medium text-gray-700">Nome</span>
-                <span>{project?.name}</span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-gray-100">
-                <span className="font-medium text-gray-700">URL alvo</span>
-                <a href={project?.url} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline truncate max-w-xs">
-                  {project?.url}
-                </a>
-              </div>
-              <div className="flex justify-between py-2">
-                <span className="font-medium text-gray-700">Criado em</span>
-                <span>{project?.createdAt ? formatDate(project.createdAt) : '-'}</span>
-              </div>
+
+              {editing ? (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+                    <input
+                      type="text"
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">URL alvo</label>
+                    <input
+                      type="url"
+                      value={editUrl}
+                      onChange={(e) => setEditUrl(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+                    <textarea
+                      value={editDescription}
+                      onChange={(e) => setEditDescription(e.target.value)}
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                      placeholder="Opcional"
+                    />
+                  </div>
+                  {editError && (
+                    <p className="text-sm text-red-600">{editError}</p>
+                  )}
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={handleEditSave}
+                      disabled={editSaving}
+                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+                    >
+                      {editSaving && <Loader2 className="w-4 h-4 animate-spin" />}
+                      Salvar
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditing(false)
+                        setEditName(project?.name ?? '')
+                        setEditUrl(project?.url ?? '')
+                        setEditDescription(project?.description ?? '')
+                        setEditError(null)
+                      }}
+                      className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3 text-sm text-gray-500">
+                  <div className="flex justify-between py-2 border-b border-gray-100">
+                    <span className="font-medium text-gray-700">ID do projeto</span>
+                    <code className="text-xs bg-gray-100 px-2 py-0.5 rounded">{project?.id}</code>
+                  </div>
+                  <div className="flex justify-between py-2 border-b border-gray-100">
+                    <span className="font-medium text-gray-700">Nome</span>
+                    <span>{project?.name}</span>
+                  </div>
+                  {project?.description && (
+                    <div className="flex justify-between py-2 border-b border-gray-100">
+                      <span className="font-medium text-gray-700">Descrição</span>
+                      <span className="text-right max-w-xs">{project.description}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between py-2 border-b border-gray-100">
+                    <span className="font-medium text-gray-700">URL alvo</span>
+                    <a href={project?.url} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline truncate max-w-xs">
+                      {project?.url}
+                    </a>
+                  </div>
+                  <div className="flex justify-between py-2">
+                    <span className="font-medium text-gray-700">Criado em</span>
+                    <span>{project?.createdAt ? formatDate(project.createdAt) : '-'}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Delete project */}
+            <div className="bg-white rounded-xl border border-red-200 p-6">
+              <h3 className="font-medium text-red-700 mb-2">Zona de Perigo</h3>
+              <p className="text-sm text-gray-500 mb-4">
+                Excluir este projeto removerá permanentemente todos os feedbacks associados. Esta ação não pode ser desfeita.
+              </p>
+
+              {!showDeleteConfirm ? (
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="flex items-center gap-2 px-4 py-2 border border-red-300 text-red-600 hover:bg-red-50 text-sm font-medium rounded-lg transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Excluir projeto
+                </button>
+              ) : (
+                <div className="space-y-3 bg-red-50 rounded-lg p-4">
+                  <p className="text-sm text-red-700 font-medium">
+                    Digite <code className="bg-red-100 px-1.5 py-0.5 rounded text-xs">{project?.name}</code> para confirmar:
+                  </p>
+                  <input
+                    type="text"
+                    value={deleteConfirmText}
+                    onChange={(e) => setDeleteConfirmText(e.target.value)}
+                    placeholder={project?.name}
+                    className="w-full px-3 py-2 border border-red-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                  />
+                  {deleteError && (
+                    <p className="text-sm text-red-600">{deleteError}</p>
+                  )}
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={handleDelete}
+                      disabled={deleting || deleteConfirmText !== project?.name}
+                      className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-300 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+                    >
+                      {deleting && <Loader2 className="w-4 h-4 animate-spin" />}
+                      Confirmar exclusão
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowDeleteConfirm(false)
+                        setDeleteConfirmText('')
+                        setDeleteError(null)
+                      }}
+                      className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

@@ -153,22 +153,30 @@ export default function FeedbackClient({
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left: Screenshot */}
+          {/* Left: Session Replay + details */}
           <div className="lg:col-span-2 space-y-5">
-            {feedback.screenshotUrl ? (
+            {/* Session Replay — hero position */}
+            {feedback.metadata?.rrwebEvents && feedback.metadata.rrwebEvents.length > 0 && (
               <div>
-                <h2 className="text-sm font-medium text-gray-700 mb-2">Screenshot</h2>
+                <h2 className="text-sm font-medium text-gray-700 mb-2">Session Replay</h2>
+                <SessionReplay events={feedback.metadata.rrwebEvents} />
+              </div>
+            )}
+
+            {/* Screenshot (inside accordion) */}
+            <AccordionSection title="Screenshot">
+              {feedback.screenshotUrl ? (
                 <img
                   src={feedback.screenshotUrl}
                   alt="Feedback screenshot"
-                  className="w-full rounded-xl border border-gray-200 shadow-sm"
+                  className="w-full rounded-lg border border-gray-200 shadow-sm"
                 />
-              </div>
-            ) : (
-              <div className="bg-gray-100 rounded-xl h-64 flex items-center justify-center">
-                <p className="text-gray-400 text-sm">Sem screenshot</p>
-              </div>
-            )}
+              ) : (
+                <div className="bg-gray-100 rounded-lg h-48 flex items-center justify-center">
+                  <p className="text-gray-400 text-sm">Sem screenshot</p>
+                </div>
+              )}
+            </AccordionSection>
 
             {/* Comment */}
             <div className="bg-white rounded-xl border border-gray-200 p-5">
@@ -228,13 +236,6 @@ export default function FeedbackClient({
                 </div>
               )}
             </AccordionSection>
-
-            {/* rrweb replay section */}
-            {feedback.metadata?.rrwebEvents && feedback.metadata.rrwebEvents.length > 0 && (
-              <AccordionSection title="Session Replay" count={feedback.metadata.rrwebEvents.length}>
-                <SessionReplay events={feedback.metadata.rrwebEvents} />
-              </AccordionSection>
-            )}
           </div>
 
           {/* Right: Metadata & status */}

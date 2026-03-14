@@ -34,9 +34,15 @@ app.get('/proxy/:projectId/*', async (request, reply) => {
     return reply.code(404).send({ error: 'Project not found' })
   }
 
-  const base = targetUrl.replace(/\/$/, '')
-  const path = wildcard ? `/${wildcard}` : '/'
-  const fullUrl = `${base}${path}${queryString}`
+  let fullUrl: string
+  if (wildcard.startsWith('http://') || wildcard.startsWith('https://')) {
+    // External absolute URL (e.g. cdn.jsdelivr.net, maps.googleapis.com)
+    fullUrl = wildcard + queryString
+  } else {
+    const base = targetUrl.replace(/\/$/, '')
+    const path = wildcard ? `/${wildcard}` : '/'
+    fullUrl = `${base}${path}${queryString}`
+  }
 
   await createProxyHandler(request, reply, fullUrl, projectId)
 })
