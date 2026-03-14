@@ -46,6 +46,7 @@ export default function ViewerClient({ projectId }: ViewerClientProps) {
   const [networkLogs, setNetworkLogs] = useState<NetworkLog[]>([])
   const [rrwebEvents, setRrwebEvents] = useState<RRWebEvent[]>([])
   const [screenshotDataUrl, setScreenshotDataUrl] = useState<string | null>(null)
+  const [realPageUrl, setRealPageUrl] = useState<string | null>(null)
 
   // Session timer
   useEffect(() => {
@@ -104,6 +105,13 @@ export default function ViewerClient({ projectId }: ViewerClientProps) {
       case 'SCREENSHOT_RESULT': {
         if (payload.dataUrl) {
           setScreenshotDataUrl(payload.dataUrl)
+        }
+        break
+      }
+      case 'PAGE_URL':
+      case 'PAGE_CHANGE': {
+        if (payload.url) {
+          setRealPageUrl(payload.url)
         }
         break
       }
@@ -202,6 +210,7 @@ export default function ViewerClient({ projectId }: ViewerClientProps) {
           networkLogs={networkLogs}
           rrwebEvents={rrwebEvents}
           screenshotFromTracker={screenshotDataUrl}
+          pageUrl={realPageUrl}
           onClose={() => setModalOpen(false)}
         />
       )}

@@ -49,6 +49,15 @@ export const api = {
       if (error) throw new Error(error.message)
     },
 
+    async updateComment(id: string, comment: string) {
+      const supabase = createClient()
+      const { error } = await supabase
+        .from('Feedback')
+        .update({ comment })
+        .eq('id', id)
+      if (error) throw new Error(error.message)
+    },
+
     async submit(data: any) {
       const supabase = createClient()
 

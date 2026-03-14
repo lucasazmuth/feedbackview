@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import { ArrowLeft, ChevronDown, ChevronRight, Monitor, Globe, Clock, AlertCircle } from 'lucide-react'
+import { ArrowLeft, ChevronDown, ChevronRight, Monitor, Globe, Clock, AlertCircle, Pencil, Check, X } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { api } from '@/lib/api'
 
@@ -105,6 +105,11 @@ export default function FeedbackClient({
   const [statusSaving, setStatusSaving] = useState(false)
   const [statusError, setStatusError] = useState<string | null>(null)
 
+  const [comment, setComment] = useState(feedback?.comment ?? '')
+  const [editingComment, setEditingComment] = useState(false)
+  const [commentDraft, setCommentDraft] = useState('')
+  const [commentSaving, setCommentSaving] = useState(false)
+
   if (error || !feedback) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -128,6 +133,19 @@ export default function FeedbackClient({
       setStatusError('Erro ao atualizar status.')
     } finally {
       setStatusSaving(false)
+    }
+  }
+
+  async function handleCommentSave() {
+    setCommentSaving(true)
+    try {
+      await api.feedbacks.updateComment(feedback!.id, commentDraft)
+      setComment(commentDraft)
+      setEditingComment(false)
+    } catch {
+      // keep editing open on error
+    } finally {
+      setCommentSaving(false)
     }
   }
 
@@ -158,31 +176,56 @@ export default function FeedbackClient({
             {/* Session Replay — hero position */}
             {feedback.metadata?.rrwebEvents && feedback.metadata.rrwebEvents.length > 0 && (
               <div>
-                <h2 className="text-sm font-medium text-gray-700 mb-2">Feedback</h2>
+                <h2 className="text-sm font-medium text-gray-700 mb-2">Session Replay</h2>
                 <SessionReplay events={feedback.metadata.rrwebEvents} />
               </div>
             )}
 
-            {/* Comment */}
+            {/* Description */}
             <div className="bg-white rounded-xl border border-gray-200 p-5">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Comentário</h3>
-              <p className="text-gray-800 text-sm leading-relaxed">{feedback.comment}</p>
-            </div>
-
-            {/* Screenshot (inside accordion) */}
-            <AccordionSection title="Screenshot">
-              {feedback.screenshotUrl ? (
-                <img
-                  src={feedback.screenshotUrl}
-                  alt="Feedback screenshot"
-                  className="w-full rounded-lg border border-gray-200 shadow-sm"
-                />
-              ) : (
-                <div className="bg-gray-100 rounded-lg h-48 flex items-center justify-center">
-                  <p className="text-gray-400 text-sm">Sem screenshot</p>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-gray-700">Descrição</h3>
+                {!editingComment && (
+                  <button
+                    onClick={() => { setCommentDraft(comment); setEditingComment(true) }}
+                    className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <Pencil className="w-3 h-3" />
+                    Editar
+                  </button>
+                )}
+              </div>
+              {editingComment ? (
+                <div className="space-y-2">
+                  <textarea
+                    value={commentDraft}
+                    onChange={(e) => setCommentDraft(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-vertical min-h-[80px]"
+                    disabled={commentSaving}
+                  />
+                  <div className="flex gap-2 justify-end">
+                    <button
+                      onClick={() => setEditingComment(false)}
+                      disabled={commentSaving}
+                      className="flex items-center gap-1 px-3 py-1.5 text-xs text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-60"
+                    >
+                      <X className="w-3 h-3" />
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={handleCommentSave}
+                      disabled={commentSaving}
+                      className="flex items-center gap-1 px-3 py-1.5 text-xs text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors disabled:opacity-60"
+                    >
+                      <Check className="w-3 h-3" />
+                      {commentSaving ? 'Salvando...' : 'Salvar'}
+                    </button>
+                  </div>
                 </div>
+              ) : (
+                <p className="text-gray-800 text-sm leading-relaxed">{comment}</p>
               )}
-            </AccordionSection>
+            </div>
 
             {/* Console logs accordion */}
             <AccordionSection title="Console Logs" count={consoleLogs.length}>
@@ -266,6 +309,14 @@ export default function FeedbackClient({
             {/* Metadata */}
             <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
               <h3 className="text-sm font-medium text-gray-700">Metadados</h3>
+
+              {feedback.screenshotUrl && (
+                <img
+                  src={feedback.screenshotUrl}
+                  alt="Screenshot"
+                  className="w-full rounded-lg border border-gray-200"
+                />
+              )}
 
               <div className="flex flex-wrap gap-2">
                 <Badge variant={feedback.type as any}>{feedback.type}</Badge>

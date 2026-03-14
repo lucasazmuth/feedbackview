@@ -46,6 +46,7 @@ interface FeedbackModalProps {
   networkLogs: NetworkLog[]
   rrwebEvents: RRWebEvent[]
   screenshotFromTracker?: string | null
+  pageUrl?: string | null
   onClose: () => void
 }
 
@@ -65,6 +66,7 @@ export default function FeedbackModal({
   networkLogs,
   rrwebEvents,
   screenshotFromTracker,
+  pageUrl: pageUrlProp,
   onClose,
 }: FeedbackModalProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -220,7 +222,7 @@ export default function FeedbackModal({
       if (type === 'BUG') payload.severity = severity
       if (finalScreenshot) payload.screenshotBase64 = finalScreenshot
       if (typeof window !== 'undefined') {
-        payload.pageUrl = window.location.href
+        payload.pageUrl = pageUrlProp || window.location.href
         payload.userAgent = navigator.userAgent
       }
 

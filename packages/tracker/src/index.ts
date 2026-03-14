@@ -143,6 +143,9 @@ if (document.readyState === 'loading') {
   startRecording()
 }
 
+// Send initial page URL so parent knows the real page
+send('PAGE_URL', { url: location.href })
+
 // ─── Screenshot capture (requested by parent) ───────────────────────────────
 window.addEventListener('message', async (event) => {
   if (event.data?.type !== 'CAPTURE_SCREENSHOT') return
