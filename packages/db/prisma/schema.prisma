@@ -21,6 +21,7 @@ model Project {
   name        String
   description String?
   targetUrl   String
+  mode        String     @default("proxy")
   ownerId     String
   owner       User       @relation(fields: [ownerId], references: [id])
   createdAt   DateTime   @default(now())

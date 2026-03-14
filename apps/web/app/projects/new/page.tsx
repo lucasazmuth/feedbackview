@@ -7,17 +7,18 @@ import { z } from 'zod'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
-  ArrowLeft,
-  ArrowRight,
-  Loader2,
-  AlertTriangle,
-  CheckCircle2,
-  Info,
-  XCircle,
-  Globe,
-  Code2,
-  Sparkles,
-} from 'lucide-react'
+  Flex,
+  Column,
+  Row,
+  Heading,
+  Text,
+  Button,
+  Card,
+  Input,
+  Textarea,
+  Tag,
+  Icon,
+} from '@once-ui-system/core'
 import { api } from '@/lib/api'
 
 const projectSchema = z.object({
@@ -35,21 +36,27 @@ interface UrlWarning {
   message: string
 }
 
+function SvgIcon({ children, size = 20 }: { children: React.ReactNode; size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      {children}
+    </svg>
+  )
+}
+
 export default function NewProjectPage() {
   const router = useRouter()
 
-  // Step flow: 1 = choose mode, 2 = fill details
   const [step, setStep] = useState(1)
   const [mode, setMode] = useState<Mode | null>(null)
 
-  // URL check state (step 1 - proxy mode)
   const [targetUrl, setTargetUrl] = useState('')
+  const [urlError, setUrlError] = useState<string | null>(null)
   const [urlChecking, setUrlChecking] = useState(false)
   const [urlWarnings, setUrlWarnings] = useState<UrlWarning[]>([])
   const [urlChecked, setUrlChecked] = useState(false)
   const [urlValid, setUrlValid] = useState(false)
 
-  // Step 2 form
   const [serverError, setServerError] = useState<string | null>(null)
   const {
     register,
@@ -61,6 +68,42 @@ export default function NewProjectPage() {
   })
 
   const hasProblems = urlWarnings.some((w) => w.type === 'error' || w.type === 'warning')
+
+  function handleUrlChange(value: string) {
+    setUrlChecked(false)
+    setUrlWarnings([])
+    setUrlError(null)
+    setTargetUrl(value)
+  }
+
+  function handleUrlBlur() {
+    if (!targetUrl.trim()) {
+      setUrlError(null)
+      return
+    }
+
+    let url = targetUrl.trim()
+
+    // Auto-prefix https:// if user typed a domain without protocol
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://' + url
+      setTargetUrl(url)
+    }
+
+    // Validate URL format
+    try {
+      const parsed = new URL(url)
+      if (!parsed.hostname.includes('.')) {
+        setUrlError('URL inválida. Insira um domínio válido (ex: meusite.com.br)')
+      } else {
+        setUrlError(null)
+      }
+    } catch {
+      setUrlError('URL inválida. Insira um domínio válido (ex: meusite.com.br)')
+    }
+  }
+
+  const isUrlValid = targetUrl.startsWith('http') && !urlError
 
   const checkUrl = useCallback(async (url: string) => {
     if (!url || !url.startsWith('http')) return
@@ -98,7 +141,7 @@ export default function NewProjectPage() {
   async function onSubmit(data: ProjectForm) {
     setServerError(null)
     try {
-      const project = await api.projects.create(data)
+      const project = await api.projects.create({ ...data, mode: mode || 'proxy' })
       router.push(`/projects/${project.id}`)
     } catch (err: any) {
       setServerError(err.message || 'Erro ao criar projeto.')
@@ -106,368 +149,536 @@ export default function NewProjectPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Dashboard
-          </Link>
-          <span className="text-gray-300">/</span>
-          <span className="text-sm font-medium text-gray-900">Novo Projeto</span>
-        </div>
-      </header>
+    <Column fillWidth minHeight="100vh" background="surface">
+      {/* Header with step indicator */}
+      <Row
+        as="header"
+        fillWidth
+        vertical="center"
+        paddingX="l"
+        paddingY="m"
+        gap="m"
+        style={{ position: 'sticky', top: 0, zIndex: 10 }}
+        borderBottom="neutral-medium"
+        background="surface"
+      >
+        <Link
+          href="/dashboard"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            fontSize: 14,
+            color: 'var(--neutral-on-background-weak)',
+            textDecoration: 'none',
+            flexShrink: 0,
+          }}
+        >
+          <Icon name="arrowLeft" size="xs" />
+          Projetos
+        </Link>
+        <Text variant="body-default-s" onBackground="neutral-weak" style={{ flexShrink: 0 }}>/</Text>
+        <Text variant="body-default-s" onBackground="neutral-strong" style={{ flexShrink: 0 }}>Novo Projeto</Text>
 
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-10">
-        {/* Step indicator */}
-        <div className="flex items-center gap-3 mb-8">
-          <div className={`flex items-center gap-2 ${step === 1 ? 'text-indigo-600' : 'text-gray-400'}`}>
-            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-              step === 1 ? 'bg-indigo-600 text-white' : step > 1 ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-200 text-gray-500'
-            }`}>
-              {step > 1 ? <CheckCircle2 className="w-4 h-4" /> : '1'}
+        {/* Step indicator in header */}
+        <div style={{ flex: 1 }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div
+            onClick={() => step > 1 && setStep(1)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.375rem',
+              cursor: step > 1 ? 'pointer' : 'default',
+            }}
+          >
+            <div
+              style={{
+                width: 24,
+                height: 24,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: step >= 1 ? 'var(--brand-solid-strong)' : 'var(--neutral-alpha-weak)',
+                color: step >= 1 ? '#fff' : 'var(--neutral-on-background-weak)',
+                fontSize: 11,
+                fontWeight: 600,
+                transition: 'all 0.2s',
+              }}
+            >
+              {step > 1 ? (
+                <SvgIcon size={12}><polyline points="20 6 9 17 4 12" /></SvgIcon>
+              ) : '1'}
             </div>
-            <span className="text-sm font-medium">Modo de integração</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: step === 1 ? 600 : 400, color: step === 1 ? 'var(--neutral-on-background-strong)' : 'var(--neutral-on-background-weak)', whiteSpace: 'nowrap' }}>
+              Integração
+            </span>
           </div>
-          <div className="flex-1 h-px bg-gray-200" />
-          <div className={`flex items-center gap-2 ${step === 2 ? 'text-indigo-600' : 'text-gray-400'}`}>
-            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-              step === 2 ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-500'
-            }`}>
+
+          <div style={{ width: '2rem', height: 2, borderRadius: 1, background: step > 1 ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)', transition: 'background 0.3s' }} />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+            <div
+              style={{
+                width: 24,
+                height: 24,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: step === 2 ? 'var(--brand-solid-strong)' : 'var(--neutral-alpha-weak)',
+                color: step === 2 ? '#fff' : 'var(--neutral-on-background-weak)',
+                fontSize: 11,
+                fontWeight: 600,
+                transition: 'all 0.2s',
+              }}
+            >
               2
             </div>
-            <span className="text-sm font-medium">Dados do projeto</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: step === 2 ? 600 : 400, color: step === 2 ? 'var(--neutral-on-background-strong)' : 'var(--neutral-on-background-weak)', whiteSpace: 'nowrap' }}>
+              Dados do projeto
+            </span>
           </div>
         </div>
+      </Row>
 
-        {/* ─── Step 1: Choose integration mode ─── */}
+      <Column
+        as="main"
+        fillWidth
+        maxWidth={36}
+        paddingX="l"
+        paddingY="xl"
+        gap="xl"
+        style={{ margin: '0 auto' }}
+      >
+
+        {/* Step 1: Choose integration mode */}
         {step === 1 && (
-          <div>
-            <div className="mb-6">
-              <h1 className="text-2xl font-semibold text-gray-900">Como você quer capturar feedbacks?</h1>
-              <p className="text-gray-500 text-sm mt-1">
-                Escolha o modo de integração. Você pode mudar depois nas configurações do projeto.
-              </p>
-            </div>
+          <Column gap="l">
+            <Column gap="8">
+              <Heading variant="heading-strong-l" as="h1">
+                Modo de integração
+              </Heading>
+              <Text variant="body-default-s" onBackground="neutral-weak">
+                Escolha como capturar feedbacks. Você pode alterar depois.
+              </Text>
+            </Column>
 
-            {/* Option cards */}
-            <div className="space-y-4">
-              {/* Proxy mode card */}
-              <div className={`bg-white rounded-2xl border-2 p-5 transition-all ${
-                mode === 'proxy' ? 'border-indigo-500 shadow-sm' : 'border-gray-200 hover:border-gray-300'
-              }`}>
-                <button
-                  type="button"
-                  onClick={() => setMode('proxy')}
-                  className="w-full text-left"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                      mode === 'proxy' ? 'bg-indigo-100' : 'bg-gray-100'
-                    }`}>
-                      <Globe className={`w-5 h-5 ${mode === 'proxy' ? 'text-indigo-600' : 'text-gray-500'}`} />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-gray-900">URL do Site (Proxy)</h3>
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium">Mais rápido</span>
-                      </div>
-                      <p className="text-sm text-gray-500 mt-1">
-                        Cole a URL do site e compartilhe o link de QA. Nenhuma instalação necessária.
-                      </p>
-                      <p className="text-xs text-gray-400 mt-2">
-                        Ideal para sites simples, landing pages, e testes rápidos sem acesso ao código.
-                      </p>
-                    </div>
+            <Column gap="12">
+              {/* Proxy mode */}
+              <div
+                onClick={() => setMode('proxy')}
+                style={{
+                  padding: '1.25rem',
+                  borderRadius: '0.75rem',
+                  border: `2px solid ${mode === 'proxy' ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)'}`,
+                  background: mode === 'proxy' ? 'var(--brand-alpha-weak)' : 'var(--surface-background)',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <div style={{ display: 'flex', gap: '0.875rem', alignItems: 'flex-start' }}>
+                  <div
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: '0.625rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      background: mode === 'proxy' ? 'var(--brand-solid-strong)' : 'var(--neutral-alpha-medium)',
+                      color: mode === 'proxy' ? '#fff' : 'var(--neutral-on-background-weak)',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    <SvgIcon><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></SvgIcon>
                   </div>
-                </button>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                      <span style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)' }}>Link Rápido</span>
+                      <span style={{ fontSize: '0.6875rem', fontWeight: 500, padding: '0.125rem 0.5rem', borderRadius: '1rem', background: 'var(--neutral-alpha-weak)', color: 'var(--neutral-on-background-weak)' }}>Sem instalação</span>
+                    </div>
+                    <p style={{ fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)', margin: 0, lineHeight: 1.5 }}>
+                      Cole a URL do site e compartilhe o link de QA. Nada para instalar.
+                    </p>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', margin: '0.25rem 0 0', opacity: 0.7 }}>
+                      Ideal para sites simples, landing pages e testes rápidos.
+                    </p>
+                  </div>
+                  <div
+                    style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: '50%',
+                      border: `2px solid ${mode === 'proxy' ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)'}`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      marginTop: 2,
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {mode === 'proxy' && (
+                      <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--brand-solid-strong)' }} />
+                    )}
+                  </div>
+                </div>
 
-                {/* URL input (shows when proxy is selected) */}
+                {/* URL input for proxy */}
                 {mode === 'proxy' && (
-                  <div className="mt-4 ml-14">
-                    <div className="flex gap-2">
-                      <input
-                        type="url"
-                        value={targetUrl}
-                        onChange={(e) => {
-                          setTargetUrl(e.target.value)
-                          setUrlChecked(false)
-                          setUrlWarnings([])
-                        }}
-                        placeholder="https://meusite.com.br"
-                        className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => checkUrl(targetUrl)}
-                        disabled={urlChecking || !targetUrl || !targetUrl.startsWith('http')}
-                        className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 flex-shrink-0"
-                      >
-                        {urlChecking ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            Verificando...
-                          </>
-                        ) : (
-                          'Verificar URL'
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--neutral-border-medium)' }}
+                  >
+                    <Column gap="m">
+                      <Row gap="s">
+                        <Flex fillWidth>
+                          <Input
+                            id="proxy-url"
+                            label=""
+                            placeholder="https://meusite.com.br"
+                            value={targetUrl}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUrlChange(e.target.value)}
+                            onBlur={handleUrlBlur}
+                            error={!!urlError}
+                            errorMessage={urlError || undefined}
+                          />
+                        </Flex>
+                        {!(urlChecked && hasProblems) && (
+                          <Button
+                            variant="primary"
+                            size="m"
+                            label={urlChecking ? 'Verificando...' : 'Verificar'}
+                            onClick={() => checkUrl(targetUrl)}
+                            disabled={urlChecking || !isUrlValid}
+                            loading={urlChecking}
+                          />
                         )}
-                      </button>
-                    </div>
+                      </Row>
 
-                    {/* URL check results */}
-                    {urlChecked && urlWarnings.length > 0 && (
-                      <div className="mt-3 space-y-2">
-                        {urlWarnings.map((w, i) => (
-                          <div
-                            key={i}
-                            className={`flex items-start gap-2 p-3 rounded-lg text-sm ${
-                              w.type === 'error'
-                                ? 'bg-red-50 border border-red-200 text-red-700'
-                                : w.type === 'warning'
-                                ? 'bg-amber-50 border border-amber-200 text-amber-700'
-                                : w.type === 'success'
-                                ? 'bg-green-50 border border-green-200 text-green-700'
-                                : 'bg-blue-50 border border-blue-200 text-blue-700'
-                            }`}
-                          >
-                            {w.type === 'error' ? (
-                              <XCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                            ) : w.type === 'warning' ? (
-                              <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                            ) : w.type === 'success' ? (
-                              <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                            ) : (
-                              <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                            )}
-                            <span>{w.message}</span>
-                          </div>
-                        ))}
-
-                        {/* Suggest embed mode if problems detected */}
-                        {hasProblems && (
-                          <div className="flex items-start gap-3 p-4 rounded-xl bg-indigo-50 border border-indigo-200">
-                            <Sparkles className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
-                            <div>
-                              <p className="text-sm font-medium text-indigo-900">
-                                Recomendamos usar o Script Embed para este site
-                              </p>
-                              <p className="text-xs text-indigo-700 mt-1">
-                                O modo Script Embed funciona diretamente no site, sem limitações do proxy.
-                                Basta colar uma linha de código no HTML.
-                              </p>
-                              <button
-                                type="button"
-                                onClick={() => setMode('embed')}
-                                className="mt-3 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors inline-flex items-center gap-1.5"
+                      {urlChecked && urlWarnings.length > 0 && (
+                        <Column gap="s">
+                          {urlWarnings.map((w, i) => {
+                            const colors = {
+                              error: { bg: '#fef2f2', border: '#fecaca', icon: '#dc2626', text: '#991b1b' },
+                              warning: { bg: '#fffbeb', border: '#fde68a', icon: '#d97706', text: '#92400e' },
+                              success: { bg: '#f0fdf4', border: '#bbf7d0', icon: '#16a34a', text: '#166534' },
+                              info: { bg: '#eff6ff', border: '#bfdbfe', icon: '#2563eb', text: '#1e40af' },
+                            }[w.type] || { bg: '#eff6ff', border: '#bfdbfe', icon: '#2563eb', text: '#1e40af' }
+                            return (
+                              <div
+                                key={i}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'flex-start',
+                                  gap: '0.625rem',
+                                  padding: '0.75rem',
+                                  borderRadius: '0.5rem',
+                                  background: colors.bg,
+                                  border: `1px solid ${colors.border}`,
+                                }}
                               >
-                                <Code2 className="w-4 h-4" />
-                                Usar Script Embed
-                              </button>
+                                <SvgIcon size={16}>
+                                  {w.type === 'error' ? (
+                                    <><circle cx="12" cy="12" r="10" stroke={colors.icon} /><line x1="12" y1="8" x2="12" y2="12" stroke={colors.icon} /><line x1="12" y1="16" x2="12.01" y2="16" stroke={colors.icon} /></>
+                                  ) : w.type === 'warning' ? (
+                                    <><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke={colors.icon} /><line x1="12" y1="9" x2="12" y2="13" stroke={colors.icon} /><line x1="12" y1="17" x2="12.01" y2="17" stroke={colors.icon} /></>
+                                  ) : (
+                                    <><circle cx="12" cy="12" r="10" stroke={colors.icon} /><polyline points="16 12 12 8 8 12" stroke={colors.icon} /><line x1="12" y1="16" x2="12" y2="8" stroke={colors.icon} /></>
+                                  )}
+                                </SvgIcon>
+                                <span style={{ fontSize: '0.8125rem', color: colors.text, lineHeight: 1.5, flex: 1 }}>
+                                  {w.message}
+                                </span>
+                              </div>
+                            )
+                          })}
+
+                          {hasProblems && (
+                            <div
+                              style={{
+                                padding: '0.875rem',
+                                borderRadius: '0.625rem',
+                                background: '#f0f4ff',
+                                border: '1px solid #c7d2fe',
+                              }}
+                            >
+                              <div style={{ display: 'flex', gap: '0.625rem', alignItems: 'flex-start' }}>
+                                <SvgIcon size={18}><path d="M12 2l2.4 7.4H22l-6.2 4.5L18.2 21 12 16.5 5.8 21l2.4-7.1L2 9.4h7.6z" stroke="#4f46e5" /></SvgIcon>
+                                <div style={{ flex: 1 }}>
+                                  <p style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#312e81', margin: '0 0 0.25rem' }}>
+                                    Recomendamos usar a Instalação no Site
+                                  </p>
+                                  <p style={{ fontSize: '0.75rem', color: '#4338ca', margin: '0 0 0.625rem', lineHeight: 1.5 }}>
+                                    Este modo funciona diretamente no site, sem limitações.
+                                  </p>
+                                  <Button
+                                    variant="primary"
+                                    size="s"
+                                    prefixIcon="code"
+                                    label="Usar Instalação no Site"
+                                    onClick={() => setMode('embed')}
+                                  />
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
+                          )}
+                        </Column>
+                      )}
 
-                    {/* Continue button */}
-                    {urlChecked && urlValid && !hasProblems && (
-                      <button
-                        type="button"
-                        onClick={() => goToStep2('proxy')}
-                        className="mt-4 w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
-                      >
-                        Continuar
-                        <ArrowRight className="w-4 h-4" />
-                      </button>
-                    )}
-
-                    {/* Allow continuing even with warnings (not errors) */}
-                    {urlChecked && urlValid && hasProblems && !urlWarnings.some((w) => w.type === 'error') && (
-                      <button
-                        type="button"
-                        onClick={() => goToStep2('proxy')}
-                        className="mt-3 text-sm text-gray-500 hover:text-gray-700 transition-colors underline"
-                      >
-                        Continuar mesmo assim com Proxy
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Embed mode card */}
-              <div className={`bg-white rounded-2xl border-2 p-5 transition-all ${
-                mode === 'embed' ? 'border-indigo-500 shadow-sm' : 'border-gray-200 hover:border-gray-300'
-              }`}>
-                <button
-                  type="button"
-                  onClick={() => setMode('embed')}
-                  className="w-full text-left"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                      mode === 'embed' ? 'bg-indigo-100' : 'bg-gray-100'
-                    }`}>
-                      <Code2 className={`w-5 h-5 ${mode === 'embed' ? 'text-indigo-600' : 'text-gray-500'}`} />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-gray-900">Script Embed</h3>
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">Recomendado</span>
-                      </div>
-                      <p className="text-sm text-gray-500 mt-1">
-                        Cole um snippet no HTML do site. Funciona em qualquer lugar, sem limitações.
-                      </p>
-                      <p className="text-xs text-gray-400 mt-2">
-                        Ideal para Flutter, SPAs complexas, sites com autenticação, e ambientes de produção.
-                      </p>
-                    </div>
-                  </div>
-                </button>
-
-                {mode === 'embed' && (
-                  <div className="mt-4 ml-14">
-                    <div className="space-y-3">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                          URL do site <span className="text-gray-400 font-normal">(para referência)</span>
-                        </label>
-                        <input
-                          type="url"
-                          value={targetUrl}
-                          onChange={(e) => setTargetUrl(e.target.value)}
-                          placeholder="https://meusite.com.br"
-                          className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      {urlChecked && urlValid && !hasProblems && (
+                        <Button
+                          variant="primary"
+                          size="m"
+                          fillWidth
+                          label="Continuar"
+                          suffixIcon="arrowRight"
+                          onClick={() => goToStep2('proxy')}
                         />
-                        <p className="mt-1 text-xs text-gray-400">
-                          Usada apenas como referência. O snippet de instalação será exibido após criar o projeto.
-                        </p>
-                      </div>
+                      )}
 
-                      <div className="flex items-start gap-2 p-3 rounded-lg bg-green-50 border border-green-200 text-sm text-green-700">
-                        <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                        <span>
-                          O Script Embed funciona em qualquer site. Após criar o projeto, você receberá o snippet para instalar.
-                        </span>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => goToStep2('embed')}
-                        disabled={!targetUrl || !targetUrl.startsWith('http')}
-                        className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white font-medium rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
-                      >
-                        Continuar
-                        <ArrowRight className="w-4 h-4" />
-                      </button>
-                    </div>
+                      {urlChecked && urlValid && hasProblems && !urlWarnings.some((w) => w.type === 'error') && (
+                        <Button
+                          variant="tertiary"
+                          size="s"
+                          label="Continuar mesmo assim com Proxy"
+                          onClick={() => goToStep2('proxy')}
+                        />
+                      )}
+                    </Column>
                   </div>
                 )}
               </div>
-            </div>
-          </div>
+
+              {/* Embed mode */}
+              <div
+                onClick={() => setMode('embed')}
+                style={{
+                  padding: '1.25rem',
+                  borderRadius: '0.75rem',
+                  border: `2px solid ${mode === 'embed' ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)'}`,
+                  background: mode === 'embed' ? 'var(--brand-alpha-weak)' : 'var(--surface-background)',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <div style={{ display: 'flex', gap: '0.875rem', alignItems: 'flex-start' }}>
+                  <div
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: '0.625rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      background: mode === 'embed' ? 'var(--brand-solid-strong)' : 'var(--neutral-alpha-medium)',
+                      color: mode === 'embed' ? '#fff' : 'var(--neutral-on-background-weak)',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    <SvgIcon><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></SvgIcon>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                      <span style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)' }}>Instalação no Site</span>
+                      <span style={{ fontSize: '0.6875rem', fontWeight: 500, padding: '0.125rem 0.5rem', borderRadius: '1rem', background: 'var(--success-alpha-weak)', color: 'var(--success-on-background-strong)' }}>Recomendado</span>
+                    </div>
+                    <p style={{ fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)', margin: 0, lineHeight: 1.5 }}>
+                      Adicione uma linha de código ao seu site. Funciona em qualquer lugar.
+                    </p>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', margin: '0.25rem 0 0', opacity: 0.7 }}>
+                      Ideal para SPAs, sites com autenticação e produção.
+                    </p>
+                  </div>
+                  <div
+                    style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: '50%',
+                      border: `2px solid ${mode === 'embed' ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)'}`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      marginTop: 2,
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {mode === 'embed' && (
+                      <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--brand-solid-strong)' }} />
+                    )}
+                  </div>
+                </div>
+
+                {/* URL input for embed */}
+                {mode === 'embed' && (
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--neutral-border-medium)' }}
+                  >
+                    <Column gap="m">
+                      <Column gap="xs">
+                        <Input
+                          id="embed-url"
+                          label="URL do site"
+                          placeholder="https://meusite.com.br"
+                          value={targetUrl}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUrlChange(e.target.value)}
+                          onBlur={handleUrlBlur}
+                          error={!!urlError}
+                          errorMessage={urlError || undefined}
+                        />
+                        <Text variant="body-default-xs" onBackground="neutral-weak">
+                          Usada como referência. O snippet será exibido após criar o projeto.
+                        </Text>
+                      </Column>
+
+                      <Button
+                        variant="primary"
+                        size="m"
+                        fillWidth
+                        label="Continuar"
+                        suffixIcon="arrowRight"
+                        onClick={() => goToStep2('embed')}
+                        disabled={!isUrlValid}
+                      />
+                    </Column>
+                  </div>
+                )}
+              </div>
+            </Column>
+          </Column>
         )}
 
-        {/* ─── Step 2: Project details ─── */}
+        {/* Step 2: Project details */}
         {step === 2 && (
-          <div>
-            <div className="mb-6">
-              <h1 className="text-2xl font-semibold text-gray-900">Dados do projeto</h1>
-              <p className="text-gray-500 text-sm mt-1">
-                Preencha as informações do projeto para finalizar.
-              </p>
-            </div>
+          <Column gap="l">
+            <Column gap="8">
+              <Heading variant="heading-strong-l" as="h1">
+                Dados do projeto
+              </Heading>
+              <Text variant="body-default-s" onBackground="neutral-weak">
+                Preencha as informações para finalizar.
+              </Text>
+            </Column>
 
             {/* Mode badge */}
-            <div className="mb-5 flex items-center gap-2">
-              <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full ${
-                mode === 'proxy'
-                  ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                  : 'bg-green-50 text-green-700 border border-green-200'
-              }`}>
-                {mode === 'proxy' ? <Globe className="w-3.5 h-3.5" /> : <Code2 className="w-3.5 h-3.5" />}
-                {mode === 'proxy' ? 'Modo Proxy' : 'Modo Script Embed'}
-              </span>
-              <span className="text-xs text-gray-400 truncate max-w-xs">{targetUrl}</span>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: '0.75rem 1rem',
+                borderRadius: '0.625rem',
+                background: 'var(--neutral-alpha-weak)',
+              }}
+            >
+              <div
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: '0.375rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'var(--brand-solid-strong)',
+                  color: '#fff',
+                  flexShrink: 0,
+                }}
+              >
+                {mode === 'proxy' ? (
+                  <SvgIcon size={14}><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></SvgIcon>
+                ) : (
+                  <SvgIcon size={14}><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></SvgIcon>
+                )}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)' }}>
+                  {mode === 'proxy' ? 'Link Rápido' : 'Instalação no Site'}
+                </span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', marginLeft: '0.5rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {targetUrl}
+                </span>
+              </div>
               <button
-                type="button"
                 onClick={() => setStep(1)}
-                className="text-xs text-indigo-600 hover:text-indigo-700 font-medium ml-auto"
+                style={{
+                  fontSize: '0.75rem',
+                  color: 'var(--brand-on-background-strong)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontWeight: 500,
+                  flexShrink: 0,
+                }}
               >
                 Alterar
               </button>
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-200 p-6">
+            <div
+              style={{
+                padding: '1.5rem',
+                borderRadius: '0.75rem',
+                border: '1px solid var(--neutral-border-medium)',
+                background: 'var(--surface-background)',
+              }}
+            >
               {serverError && (
-                <div className="mb-5 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
-                  {serverError}
+                <div style={{ marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.625rem', padding: '0.75rem', borderRadius: '0.5rem', background: '#fef2f2', border: '1px solid #fecaca' }}>
+                    <SvgIcon size={16}><circle cx="12" cy="12" r="10" stroke="#dc2626" /><line x1="12" y1="8" x2="12" y2="12" stroke="#dc2626" /><line x1="12" y1="16" x2="12.01" y2="16" stroke="#dc2626" /></SvgIcon>
+                    <span style={{ fontSize: '0.8125rem', color: '#991b1b', lineHeight: 1.5, flex: 1 }}>{serverError}</span>
+                  </div>
                 </div>
               )}
 
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+              <Column as="form" gap="m" onSubmit={handleSubmit(onSubmit)}>
                 <input type="hidden" {...register('targetUrl')} />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Nome do projeto <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    {...register('name')}
-                    type="text"
-                    placeholder="Ex: Portal do Cliente"
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    autoFocus
-                  />
-                  {errors.name && (
-                    <p className="mt-1 text-xs text-red-600">{errors.name.message}</p>
-                  )}
-                </div>
+                <Input
+                  id="project-name"
+                  label="Nome do projeto *"
+                  placeholder="Ex: Portal do Cliente"
+                  error={!!errors.name}
+                  errorMessage={errors.name?.message}
+                  autoFocus
+                  {...register('name')}
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Descrição <span className="text-gray-400 font-normal">(opcional)</span>
-                  </label>
-                  <textarea
-                    {...register('description')}
-                    rows={3}
-                    placeholder="Descreva brevemente o que é este projeto..."
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
-                  />
-                </div>
+                <Textarea
+                  id="project-description"
+                  label="Descrição (opcional)"
+                  placeholder="Descreva brevemente o que é este projeto..."
+                  lines={3}
+                  {...register('description')}
+                />
 
-                <div className="flex items-center gap-3 pt-2">
-                  <button
-                    type="button"
+                <Row gap="s" paddingTop="s">
+                  <Button
+                    variant="secondary"
+                    size="m"
+                    label="Voltar"
                     onClick={() => setStep(1)}
-                    className="px-4 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg text-sm hover:bg-gray-50 transition-colors"
-                  >
-                    Voltar
-                  </button>
-                  <button
+                  />
+                  <Button
                     type="submit"
-                    disabled={isSubmitting}
-                    className="flex-1 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-medium rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Criando...
-                      </>
-                    ) : (
-                      'Criar projeto'
-                    )}
-                  </button>
-                </div>
-              </form>
+                    variant="primary"
+                    size="m"
+                    fillWidth
+                    loading={isSubmitting}
+                    label={isSubmitting ? 'Criando...' : 'Criar projeto'}
+                  />
+                </Row>
+              </Column>
             </div>
-          </div>
+          </Column>
         )}
-      </main>
-    </div>
+      </Column>
+    </Column>
   )
 }

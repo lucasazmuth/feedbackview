@@ -56,7 +56,7 @@ export const serverApi = {
       const supabase = await createClient()
       const { data, error } = await supabase
         .from('Feedback')
-        .select('*, Project!inner(ownerId)')
+        .select('*, Project!inner(ownerId, name)')
         .eq('id', id)
         .single()
       if (error) throw new Error(error.message)

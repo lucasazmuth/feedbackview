@@ -3,25 +3,25 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
-import {
-  ArrowLeft,
-  Copy,
-  Check,
-  ExternalLink,
-  LogOut,
-  AlertTriangle,
-  CheckCircle2,
-  MessageSquare,
-  Filter,
-  Pencil,
-  Trash2,
-  Loader2,
-  X,
-  Code2,
-} from 'lucide-react'
-import { Badge } from '@/components/ui/Badge'
 import { api } from '@/lib/api'
+import {
+  Flex,
+  Column,
+  Row,
+  Grid,
+  Heading,
+  Text,
+  Button,
+  IconButton,
+  Card,
+  Input,
+  Textarea,
+  Select,
+  Tag,
+  Icon,
+  Feedback as FeedbackAlert,
+} from '@once-ui-system/core'
+import AppLayout from '@/components/ui/AppLayout'
 
 interface Feedback {
   id: string
@@ -39,6 +39,7 @@ interface Project {
   name: string
   url: string
   description?: string
+  mode?: string
   createdAt: string
 }
 
@@ -59,6 +60,39 @@ function formatDate(dateStr: string) {
     hour: '2-digit',
     minute: '2-digit',
   })
+}
+
+function getTagVariant(value: string): 'brand' | 'danger' | 'warning' | 'success' | 'neutral' | 'info' {
+  const map: Record<string, 'brand' | 'danger' | 'warning' | 'success' | 'neutral' | 'info'> = {
+    BUG: 'danger',
+    SUGGESTION: 'info',
+    QUESTION: 'warning',
+    PRAISE: 'success',
+    CRITICAL: 'danger',
+    HIGH: 'danger',
+    MEDIUM: 'warning',
+    LOW: 'neutral',
+    OPEN: 'warning',
+    IN_PROGRESS: 'info',
+    RESOLVED: 'success',
+    CLOSED: 'neutral',
+  }
+  return map[value] || 'neutral'
+}
+
+function getTypeLabel(type: string) {
+  const map: Record<string, string> = { BUG: 'Bug', SUGGESTION: 'Sugestao', QUESTION: 'Duvida', PRAISE: 'Elogio' }
+  return map[type] || type
+}
+
+function getStatusLabel(status: string) {
+  const map: Record<string, string> = { OPEN: 'Aberto', IN_PROGRESS: 'Em andamento', RESOLVED: 'Resolvido', CLOSED: 'Fechado' }
+  return map[status] || status
+}
+
+function getSeverityLabel(sev: string) {
+  const map: Record<string, string> = { CRITICAL: 'Critico', HIGH: 'Alto', MEDIUM: 'Medio', LOW: 'Baixo' }
+  return map[sev] || sev
 }
 
 export default function ProjectClient({
@@ -82,6 +116,34 @@ export default function ProjectClient({
   const [editDescription, setEditDescription] = useState(project?.description ?? '')
   const [editSaving, setEditSaving] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
+  const [editUrlError, setEditUrlError] = useState<string | null>(null)
+
+  function handleEditUrlChange(value: string) {
+    setEditUrl(value)
+    setEditUrlError(null)
+  }
+
+  function handleEditUrlBlur() {
+    if (!editUrl.trim()) {
+      setEditUrlError(null)
+      return
+    }
+    let url = editUrl.trim()
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://' + url
+      setEditUrl(url)
+    }
+    try {
+      const parsed = new URL(url)
+      if (!parsed.hostname.includes('.')) {
+        setEditUrlError('URL inválida. Exemplo: https://meusite.com.br')
+      } else {
+        setEditUrlError(null)
+      }
+    } catch {
+      setEditUrlError('URL inválida. Exemplo: https://meusite.com.br')
+    }
+  }
 
   // Delete state
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -113,13 +175,6 @@ export default function ProjectClient({
     setTimeout(() => setCopiedEmbed(false), 2000)
   }
 
-  async function handleSignOut() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push('/auth/login')
-    router.refresh()
-  }
-
   const filteredFeedbacks = feedbacks.filter((f) => {
     if (typeFilter && f.type !== typeFilter) return false
     if (severityFilter && f.severity !== severityFilter) return false
@@ -138,7 +193,24 @@ export default function ProjectClient({
       setEditError('Nome e URL são obrigatórios.')
       return
     }
+    // Validate URL
+    let url = editUrl.trim()
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://' + url
+      setEditUrl(url)
+    }
+    try {
+      const parsed = new URL(url)
+      if (!parsed.hostname.includes('.')) {
+        setEditUrlError('URL inválida. Exemplo: https://meusite.com.br')
+        return
+      }
+    } catch {
+      setEditUrlError('URL inválida. Exemplo: https://meusite.com.br')
+      return
+    }
     setEditError(null)
+    setEditUrlError(null)
     setEditSaving(true)
     try {
       await api.projects.update(project.id, {
@@ -149,7 +221,7 @@ export default function ProjectClient({
       router.refresh()
       setEditing(false)
     } catch (err: any) {
-      setEditError(err.message || 'Erro ao salvar alterações.')
+      setEditError(err.message || 'Erro ao salvar alteracoes.')
     } finally {
       setEditSaving(false)
     }
@@ -170,425 +242,686 @@ export default function ProjectClient({
 
   if (!project && error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <Link href="/dashboard" className="text-indigo-600 hover:underline text-sm">
-            Voltar ao dashboard
-          </Link>
-        </div>
-      </div>
+      <AppLayout>
+        <Column fillWidth horizontal="center" vertical="center" style={{ minHeight: '100vh' }}>
+          <Column horizontal="center" gap="m">
+            <Text variant="body-default-m" onBackground="danger-strong">{error}</Text>
+            <Button variant="tertiary" href="/dashboard" label="Voltar ao dashboard" />
+          </Column>
+        </Column>
+      </AppLayout>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <AppLayout>
+      <style>{`.filter-select input { padding-top: 8px !important; padding-bottom: 8px !important; }`}</style>
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <Link
-                href="/dashboard"
-                className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4" />
-              </Link>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-md bg-indigo-600 flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">F</span>
-                </div>
-                <span className="font-bold text-gray-900">FeedbackView</span>
-              </div>
-            </div>
-            <button
-              onClick={handleSignOut}
-              className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Sair</span>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Row
+        as="header"
+        fillWidth
+        paddingX="l"
+        paddingY="m"
+        vertical="center"
+        gap="m"
+        borderBottom="neutral-medium"
+        background="surface"
+        style={{ position: 'sticky', top: 0, zIndex: 10 }}
+      >
+        <Link
+          href="/dashboard"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            fontSize: 14,
+            color: 'var(--neutral-on-background-weak)',
+            textDecoration: 'none',
+            flexShrink: 0,
+          }}
+        >
+          <Icon name="arrowLeft" size="xs" />
+          Projetos
+        </Link>
+        <Text variant="body-default-s" onBackground="neutral-weak" style={{ flexShrink: 0 }}>/</Text>
+        <Text variant="body-default-s" onBackground="neutral-strong" style={{ flexShrink: 0 }}>
+          {project?.name}
+        </Text>
+      </Row>
+      <Column fillWidth maxWidth={72} paddingX="l" paddingY="l" gap="l" style={{ margin: '0 auto' }}>
         {/* Project header */}
-        <div className="mb-6">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-900">{project?.name}</h1>
-              <a
-                href={project?.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-indigo-600 mt-0.5 transition-colors"
+        <Column gap="xs">
+          <Heading variant="heading-strong-xl" as="h1">{project?.name}</Heading>
+          <a
+            href={project?.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ textDecoration: 'none' }}
+          >
+            <Row gap="xs" vertical="center">
+              <Icon name="openLink" size="xs" />
+              <Text variant="body-default-s" onBackground="neutral-weak">{project?.url}</Text>
+            </Row>
+          </a>
+          {project?.description && (
+            <Text variant="body-default-s" onBackground="neutral-weak">{project.description}</Text>
+          )}
+        </Column>
+
+        {/* Viewer URL card */}
+        <Card
+          fillWidth
+          padding="l"
+          radius="l"
+          style={{ background: 'var(--brand-solid-strong)' }}
+        >
+          <Column gap="s">
+            <Row gap="s" vertical="center">
+              <Text
+                variant="label-default-s"
+                style={{ color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.05em' }}
               >
-                <ExternalLink className="w-3 h-3" />
-                {project?.url}
-              </a>
-            </div>
-          </div>
-        </div>
+                {(project?.mode ?? 'proxy') === 'proxy' ? 'Link Rápido' : 'Instalação no Site'}
+              </Text>
+              <span
+                style={{
+                  fontSize: '0.625rem',
+                  fontWeight: 600,
+                  padding: '0.125rem 0.5rem',
+                  borderRadius: '1rem',
+                  background: 'rgba(255,255,255,0.2)',
+                  color: 'rgba(255,255,255,0.85)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.03em',
+                }}
+              >
+                {(project?.mode ?? 'proxy') === 'proxy' ? 'Sem instalação' : 'Recomendado'}
+              </span>
+            </Row>
+            {(project?.mode ?? 'proxy') === 'proxy' ? (
+              <>
+                <Row gap="s" vertical="center">
+                  <Flex
+                    fillWidth
+                    padding="s"
+                    radius="m"
+                    style={{
+                      background: 'rgba(255,255,255,0.15)',
+                      fontFamily: 'monospace',
+                      fontSize: '0.8125rem',
+                      color: 'white',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {viewerUrl}
+                  </Flex>
+                  <Button
+                    variant="secondary"
+                    size="s"
+                    label={copied ? 'Copiado!' : 'Copiar'}
+                    prefixIcon={copied ? 'check' : 'copy'}
+                    onClick={copyViewerUrl}
+                    style={{ flexShrink: 0 }}
+                  />
+                </Row>
+                <Text
+                  variant="body-default-xs"
+                  style={{ color: 'rgba(255,255,255,0.7)' }}
+                >
+                  Compartilhe esta URL com os QAs para começar a capturar feedbacks.
+                </Text>
+              </>
+            ) : (
+              <>
+                <Flex fillWidth style={{ position: 'relative' }}>
+                  <pre
+                    style={{
+                      width: '100%',
+                      background: 'rgba(255,255,255,0.15)',
+                      color: '#4ade80',
+                      fontSize: '0.75rem',
+                      borderRadius: '0.5rem',
+                      padding: '0.75rem',
+                      overflow: 'auto',
+                      fontFamily: 'monospace',
+                      margin: 0,
+                    }}
+                  >
+                    {embedSnippet}
+                  </pre>
+                  <div style={{ position: 'absolute', top: '0.375rem', right: '0.375rem' }}>
+                    <Button
+                      variant="secondary"
+                      size="s"
+                      label={copiedEmbed ? 'Copiado!' : 'Copiar'}
+                      prefixIcon={copiedEmbed ? 'check' : 'copy'}
+                      onClick={copyEmbedSnippet}
+                    />
+                  </div>
+                </Flex>
+                <Text
+                  variant="body-default-xs"
+                  style={{ color: 'rgba(255,255,255,0.7)' }}
+                >
+                  Adicione este código ao HTML do seu site para capturar feedbacks.
+                </Text>
+              </>
+            )}
+          </Column>
+        </Card>
 
-        {/* Viewer URL highlight card */}
-        <div className="bg-indigo-600 rounded-2xl p-5 mb-6 text-white">
-          <p className="text-indigo-200 text-xs font-medium uppercase tracking-wide mb-2">
-            URL do Visualizador QA
-          </p>
-          <div className="flex items-center gap-3">
-            <code className="flex-1 text-sm bg-indigo-700 rounded-lg px-3 py-2 truncate font-mono">
-              {viewerUrl}
-            </code>
-            <button
-              onClick={copyViewerUrl}
-              className="flex items-center gap-1.5 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors flex-shrink-0"
-            >
-              {copied ? (
-                <>
-                  <Check className="w-3.5 h-3.5" />
-                  Copiado!
-                </>
-              ) : (
-                <>
-                  <Copy className="w-3.5 h-3.5" />
-                  Copiar
-                </>
-              )}
-            </button>
-          </div>
-          <p className="text-indigo-200 text-xs mt-2">
-            Compartilhe esta URL com os QAs para começar a capturar feedbacks.
-          </p>
-        </div>
-
-        {/* Metrics row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        {/* Metrics */}
+        <Grid columns={4} gap="m" fillWidth s={{ columns: 2 }}>
           {[
-            { label: 'Total', value: totalCount, icon: MessageSquare, color: 'text-gray-600' },
-            { label: 'Abertos', value: openCount, icon: AlertTriangle, color: 'text-amber-600' },
-            { label: 'Críticos', value: criticalCount, icon: AlertTriangle, color: 'text-red-600' },
-            { label: 'Resolvidos', value: resolvedCount, icon: CheckCircle2, color: 'text-green-600' },
-          ].map(({ label, value, icon: Icon, color }) => (
-            <div key={label} className="bg-white rounded-xl border border-gray-200 p-4">
-              <div className="flex items-center justify-between mb-1">
-                <p className="text-xs text-gray-500">{label}</p>
-                <Icon className={`w-4 h-4 ${color}`} />
-              </div>
-              <p className="text-2xl font-bold text-gray-900">{value}</p>
-            </div>
+            { label: 'Total', value: totalCount, dot: 'var(--neutral-solid-medium)' },
+            { label: 'Abertos', value: openCount, dot: 'var(--warning-solid-strong)' },
+            { label: 'Criticos', value: criticalCount, dot: 'var(--danger-solid-strong)' },
+            { label: 'Resolvidos', value: resolvedCount, dot: 'var(--success-solid-strong)' },
+          ].map(({ label, value, dot }) => (
+            <Card key={label} fillWidth padding="l" radius="l">
+              <Column gap="s">
+                <Row vertical="center" gap="xs">
+                  <div style={{ width: '0.5rem', height: '0.5rem', borderRadius: '50%', background: dot, flexShrink: 0 }} />
+                  <Text variant="body-default-xs" onBackground="neutral-weak">{label}</Text>
+                </Row>
+                <Heading variant="heading-strong-xl" as="h2">{value}</Heading>
+              </Column>
+            </Card>
           ))}
-        </div>
+        </Grid>
 
         {/* Tabs */}
-        <div className="border-b border-gray-200 mb-6">
-          <nav className="flex gap-6">
-            {[
-              { key: 'feedbacks', label: 'Feedbacks' },
-              { key: 'settings', label: 'Configurações' },
-            ].map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key as any)}
-                className={`pb-3 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === tab.key
-                    ? 'border-indigo-600 text-indigo-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-900'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </nav>
-        </div>
+        <Row gap="l" fillWidth style={{ borderBottom: '2px solid var(--neutral-border-medium)' }}>
+          {[
+            { key: 'feedbacks' as const, label: 'Feedbacks', count: totalCount },
+            { key: 'settings' as const, label: 'Configuracoes', count: undefined },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.375rem',
+                paddingBottom: '0.75rem',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                color: activeTab === tab.key ? 'var(--brand-on-background-strong)' : 'var(--neutral-on-background-weak)',
+                background: 'none',
+                border: 'none',
+                borderBottomStyle: 'solid' as const,
+                borderBottomWidth: '2px',
+                borderBottomColor: activeTab === tab.key ? 'var(--brand-solid-strong)' : 'transparent',
+                cursor: 'pointer',
+                marginBottom: '-2px',
+              }}
+            >
+              {tab.label}
+              {tab.count !== undefined && (
+                <span
+                  style={{
+                    fontSize: '0.6875rem',
+                    background: activeTab === tab.key ? 'var(--brand-alpha-weak)' : 'var(--neutral-alpha-weak)',
+                    color: activeTab === tab.key ? 'var(--brand-on-background-strong)' : 'var(--neutral-on-background-weak)',
+                    padding: '0.125rem 0.5rem',
+                    borderRadius: '999px',
+                    fontWeight: 500,
+                  }}
+                >
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          ))}
+        </Row>
 
         {/* Feedbacks tab */}
         {activeTab === 'feedbacks' && (
-          <div>
+          <Column gap="l" fillWidth>
             {/* Filters */}
-            <div className="flex flex-wrap gap-3 mb-5">
-              <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-500">Filtrar:</span>
-              </div>
-              <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="">Todos os tipos</option>
-                <option value="BUG">Bug</option>
-                <option value="SUGGESTION">Sugestão</option>
-                <option value="QUESTION">Dúvida</option>
-                <option value="PRAISE">Elogio</option>
-              </select>
-              <select
-                value={severityFilter}
-                onChange={(e) => setSeverityFilter(e.target.value)}
-                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="">Todas severidades</option>
-                <option value="CRITICAL">Crítico</option>
-                <option value="HIGH">Alto</option>
-                <option value="MEDIUM">Médio</option>
-                <option value="LOW">Baixo</option>
-              </select>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="">Todos os status</option>
-                <option value="OPEN">Aberto</option>
-                <option value="IN_PROGRESS">Em andamento</option>
-                <option value="RESOLVED">Resolvido</option>
-                <option value="CLOSED">Fechado</option>
-              </select>
-            </div>
+            <Row gap="s" vertical="center" wrap>
+              <Row gap="xs" vertical="center">
+                <Icon name="filter" size="xs" />
+                <Text variant="body-default-xs" onBackground="neutral-weak" style={{ fontWeight: 500 }}>Filtrar:</Text>
+              </Row>
+              <Flex className="filter-select" style={{ width: '10rem' }}>
+                <Select
+                  id="type-filter"
+                  label=""
+                  options={[
+                    { value: '', label: 'Todos os tipos' },
+                    { value: 'BUG', label: 'Bug' },
+                    { value: 'SUGGESTION', label: 'Sugestao' },
+                    { value: 'QUESTION', label: 'Duvida' },
+                    { value: 'PRAISE', label: 'Elogio' },
+                  ]}
+                  value={typeFilter}
+                  onSelect={(value) => setTypeFilter(value)}
+                />
+              </Flex>
+              <Flex className="filter-select" style={{ width: '11rem' }}>
+                <Select
+                  id="severity-filter"
+                  label=""
+                  options={[
+                    { value: '', label: 'Todas severidades' },
+                    { value: 'CRITICAL', label: 'Critico' },
+                    { value: 'HIGH', label: 'Alto' },
+                    { value: 'MEDIUM', label: 'Medio' },
+                    { value: 'LOW', label: 'Baixo' },
+                  ]}
+                  value={severityFilter}
+                  onSelect={(value) => setSeverityFilter(value)}
+                />
+              </Flex>
+              <Flex className="filter-select" style={{ width: '10rem' }}>
+                <Select
+                  id="status-filter"
+                  label=""
+                  options={[
+                    { value: '', label: 'Todos os status' },
+                    { value: 'OPEN', label: 'Aberto' },
+                    { value: 'IN_PROGRESS', label: 'Em andamento' },
+                    { value: 'RESOLVED', label: 'Resolvido' },
+                    { value: 'CLOSED', label: 'Fechado' },
+                  ]}
+                  value={statusFilter}
+                  onSelect={(value) => setStatusFilter(value)}
+                />
+              </Flex>
+            </Row>
 
             {filteredFeedbacks.length === 0 ? (
-              <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
-                <MessageSquare className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500 text-sm">
-                  {feedbacks.length === 0
-                    ? 'Nenhum feedback ainda. Compartilhe a URL do visualizador!'
-                    : 'Nenhum feedback com os filtros selecionados.'}
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {filteredFeedbacks.map((feedback) => (
-                  <Link
-                    key={feedback.id}
-                    href={`/feedbacks/${feedback.id}`}
-                    className="block bg-white border border-gray-200 rounded-xl hover:border-indigo-300 hover:shadow-sm transition-all"
+              <Card fillWidth padding="xl" radius="l" style={{ textAlign: 'center' }}>
+                <Column horizontal="center" gap="m" paddingY="l">
+                  <Flex
+                    horizontal="center"
+                    vertical="center"
+                    radius="full"
+                    style={{
+                      width: '3rem',
+                      height: '3rem',
+                      background: 'var(--neutral-alpha-weak)',
+                    }}
                   >
-                    <div className="flex gap-4 p-4">
+                    <Icon name="message" size="m" />
+                  </Flex>
+                  <Text variant="body-default-s" onBackground="neutral-weak">
+                    {feedbacks.length === 0
+                      ? 'Nenhum feedback ainda. Compartilhe a URL do visualizador!'
+                      : 'Nenhum feedback com os filtros selecionados.'}
+                  </Text>
+                </Column>
+              </Card>
+            ) : (
+              <Column gap="s" fillWidth>
+                {filteredFeedbacks.map((feedback) => (
+                  <Card
+                    key={feedback.id}
+                    fillWidth
+                    padding="m"
+                    radius="l"
+                    href={`/feedbacks/${feedback.id}`}
+                    style={{ transition: 'box-shadow 0.15s ease' }}
+                  >
+                    <Row gap="m" vertical="center">
                       {feedback.screenshotUrl && (
-                        <div className="flex-shrink-0">
+                        <Flex style={{ flexShrink: 0 }}>
                           <img
                             src={feedback.screenshotUrl}
                             alt="Screenshot"
-                            className="w-24 h-16 object-cover rounded-lg border border-gray-200"
+                            style={{
+                              width: '5rem',
+                              height: '3.5rem',
+                              objectFit: 'cover',
+                              borderRadius: '0.5rem',
+                              border: '1px solid var(--neutral-border-medium)',
+                            }}
                           />
-                        </div>
+                        </Flex>
                       )}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-2 mb-2">
-                          <Badge variant={feedback.type as any}>{feedback.type}</Badge>
+                      <Column gap="s" fillWidth style={{ minWidth: 0 }}>
+                        <Row gap="xs" wrap vertical="center">
+                          <Tag variant={getTagVariant(feedback.type)} size="s" label={getTypeLabel(feedback.type)} />
                           {feedback.severity && (
-                            <Badge variant={feedback.severity as any}>{feedback.severity}</Badge>
+                            <Tag variant={getTagVariant(feedback.severity)} size="s" label={getSeverityLabel(feedback.severity)} />
                           )}
-                          <Badge variant={feedback.status as any}>{feedback.status}</Badge>
-                        </div>
-                        <p className="text-sm text-gray-700 line-clamp-2">{feedback.comment}</p>
-                        <p className="text-xs text-gray-400 mt-1.5">{formatDate(feedback.createdAt)}</p>
-                      </div>
-                    </div>
-                  </Link>
+                          <Tag variant={getTagVariant(feedback.status)} size="s" label={getStatusLabel(feedback.status)} />
+                        </Row>
+                        <Text
+                          variant="body-default-s"
+                          style={{
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          {feedback.comment}
+                        </Text>
+                        <Row gap="s" vertical="center">
+                          <Icon name="clock" size="xs" />
+                          <Text variant="body-default-xs" onBackground="neutral-weak">
+                            {formatDate(feedback.createdAt)}
+                          </Text>
+                          {feedback.pageUrl && (
+                            <>
+                              <Text variant="body-default-xs" onBackground="neutral-weak">|</Text>
+                              <Text
+                                variant="body-default-xs"
+                                onBackground="neutral-weak"
+                                style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '15rem' }}
+                              >
+                                {feedback.pageUrl}
+                              </Text>
+                            </>
+                          )}
+                        </Row>
+                      </Column>
+                      <Icon name="chevronRight" size="s" />
+                    </Row>
+                  </Card>
                 ))}
-              </div>
+              </Column>
             )}
-          </div>
+          </Column>
         )}
 
         {/* Settings tab */}
         {activeTab === 'settings' && (
-          <div className="space-y-6">
+          <Column gap="l" fillWidth>
             {/* Edit project */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-medium text-gray-900">Configurações do Projeto</h3>
-                {!editing && (
-                  <button
-                    onClick={() => setEditing(true)}
-                    className="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-700 transition-colors"
-                  >
-                    <Pencil className="w-3.5 h-3.5" />
-                    Editar
-                  </button>
-                )}
-              </div>
+            <Card fillWidth padding="l" radius="l">
+              <Column gap="m" fillWidth>
+                <Row horizontal="between" vertical="center" fillWidth>
+                  <Heading variant="heading-strong-s" as="h3">Configuracoes do Projeto</Heading>
+                  {!editing && (
+                    <Button
+                      variant="tertiary"
+                      size="s"
+                      label="Editar"
+                      prefixIcon="edit"
+                      onClick={() => setEditing(true)}
+                    />
+                  )}
+                </Row>
 
-              {editing ? (
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nome</label>
-                    <input
-                      type="text"
+                {editing ? (
+                  <Column gap="m" fillWidth>
+                    <Input
+                      id="edit-name"
+                      label="Nome"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">URL alvo</label>
-                    <input
-                      type="url"
+                    <Input
+                      id="edit-url"
+                      label="URL alvo"
+                      placeholder="https://meusite.com.br"
                       value={editUrl}
-                      onChange={(e) => setEditUrl(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      onChange={(e) => handleEditUrlChange(e.target.value)}
+                      onBlur={handleEditUrlBlur}
+                      error={!!editUrlError}
+                      errorMessage={editUrlError || undefined}
                     />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
-                    <textarea
+                    <Textarea
+                      id="edit-description"
+                      label="Descricao"
                       value={editDescription}
                       onChange={(e) => setEditDescription(e.target.value)}
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                      lines={3}
                       placeholder="Opcional"
                     />
-                  </div>
-                  {editError && (
-                    <p className="text-sm text-red-600">{editError}</p>
-                  )}
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={handleEditSave}
-                      disabled={editSaving}
-                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
-                    >
-                      {editSaving && <Loader2 className="w-4 h-4 animate-spin" />}
-                      Salvar
-                    </button>
-                    <button
-                      onClick={() => {
-                        setEditing(false)
-                        setEditName(project?.name ?? '')
-                        setEditUrl(project?.url ?? '')
-                        setEditDescription(project?.description ?? '')
-                        setEditError(null)
-                      }}
-                      className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                    >
-                      Cancelar
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-3 text-sm text-gray-500">
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="font-medium text-gray-700">ID do projeto</span>
-                    <code className="text-xs bg-gray-100 px-2 py-0.5 rounded">{project?.id}</code>
-                  </div>
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="font-medium text-gray-700">Nome</span>
-                    <span>{project?.name}</span>
-                  </div>
-                  {project?.description && (
-                    <div className="flex justify-between py-2 border-b border-gray-100">
-                      <span className="font-medium text-gray-700">Descrição</span>
-                      <span className="text-right max-w-xs">{project.description}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between py-2 border-b border-gray-100">
-                    <span className="font-medium text-gray-700">URL alvo</span>
-                    <a href={project?.url} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline truncate max-w-xs">
-                      {project?.url}
-                    </a>
-                  </div>
-                  <div className="flex justify-between py-2">
-                    <span className="font-medium text-gray-700">Criado em</span>
-                    <span>{project?.createdAt ? formatDate(project.createdAt) : '-'}</span>
-                  </div>
-                </div>
-              )}
-            </div>
+                    {editError && (
+                      <FeedbackAlert variant="danger">{editError}</FeedbackAlert>
+                    )}
+                    <Row gap="s">
+                      <Button
+                        variant="primary"
+                        size="m"
+                        label="Salvar"
+                        loading={editSaving}
+                        onClick={handleEditSave}
+                      />
+                      <Button
+                        variant="tertiary"
+                        size="m"
+                        label="Cancelar"
+                        onClick={() => {
+                          setEditing(false)
+                          setEditName(project?.name ?? '')
+                          setEditUrl(project?.url ?? '')
+                          setEditDescription(project?.description ?? '')
+                          setEditError(null)
+                          setEditUrlError(null)
+                        }}
+                      />
+                    </Row>
+                  </Column>
+                ) : (
+                  <Column gap="0" fillWidth>
+                    {[
+                      { label: 'ID do projeto', value: project?.id, mono: true },
+                      { label: 'Nome', value: project?.name },
+                      ...(project?.description ? [{ label: 'Descricao', value: project.description }] : []),
+                      { label: 'URL alvo', value: project?.url, link: true },
+                      { label: 'Criado em', value: project?.createdAt ? formatDate(project.createdAt) : '-' },
+                    ].map((row, i, arr) => (
+                      <Row
+                        key={row.label}
+                        horizontal="between"
+                        vertical="center"
+                        paddingY="s"
+                        paddingX="xs"
+                        fillWidth
+                        style={i < arr.length - 1 ? { borderBottom: '1px solid var(--neutral-border-medium)' } : {}}
+                      >
+                        <Text variant="body-default-s" style={{ fontWeight: 500 }}>{row.label}</Text>
+                        {row.mono ? (
+                          <Text
+                            variant="body-default-xs"
+                            style={{
+                              background: 'var(--neutral-alpha-weak)',
+                              padding: '2px 8px',
+                              borderRadius: '4px',
+                              fontFamily: 'monospace',
+                            }}
+                          >
+                            {row.value}
+                          </Text>
+                        ) : row.link ? (
+                          <a href={String(row.value)} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                            <Text
+                              variant="body-default-s"
+                              onBackground="brand-strong"
+                              style={{ maxWidth: '20rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                            >
+                              {row.value}
+                            </Text>
+                          </a>
+                        ) : (
+                          <Text variant="body-default-s" onBackground="neutral-weak" style={{ textAlign: 'right', maxWidth: '20rem' }}>
+                            {row.value}
+                          </Text>
+                        )}
+                      </Row>
+                    ))}
+                  </Column>
+                )}
+              </Column>
+            </Card>
 
-            {/* Embed script */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-              <div className="flex items-center gap-2 mb-2">
-                <Code2 className="w-5 h-5 text-indigo-600" />
-                <h3 className="font-medium text-gray-900">Script Embed</h3>
-              </div>
-              <p className="text-sm text-gray-500 mb-4">
-                Cole este snippet no HTML do seu site para habilitar o widget de feedback diretamente na página.
-                Ideal para sites que não funcionam bem com o proxy (Flutter, SPAs complexas, sites com auth).
-              </p>
-              <div className="relative">
-                <pre className="bg-gray-900 text-green-400 text-xs rounded-lg p-4 overflow-x-auto font-mono">
-                  {embedSnippet}
-                </pre>
-                <button
-                  onClick={copyEmbedSnippet}
-                  className="absolute top-2 right-2 flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded-md transition-colors"
-                >
-                  {copiedEmbed ? (
-                    <>
-                      <Check className="w-3 h-3" />
-                      Copiado!
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3 h-3" />
-                      Copiar
-                    </>
-                  )}
-                </button>
-              </div>
-              <div className="mt-4 space-y-2 text-xs text-gray-500">
-                <p><strong className="text-gray-700">Como funciona:</strong> O script injeta um botão flutuante de feedback no canto inferior direito da página. Ao clicar, o usuário pode enviar bugs, sugestões e elogios com screenshot automático e session replay.</p>
-                <p><strong className="text-gray-700">Vantagens:</strong> Funciona em qualquer site (Flutter, SPAs, sites com autenticação). Sem limitações do proxy.</p>
-              </div>
-            </div>
+            {/* Shared URL — only for proxy mode */}
+            {(project?.mode ?? 'proxy') === 'proxy' && (
+              <Card fillWidth padding="l" radius="l">
+                <Column gap="m" fillWidth>
+                  <Row gap="s" vertical="center">
+                    <Icon name="link" size="m" />
+                    <Heading variant="heading-strong-s" as="h3">URL Compartilhada</Heading>
+                  </Row>
+                  <Text variant="body-default-s" onBackground="neutral-weak">
+                    Envie esta URL para os QAs acessarem o visualizador e enviarem feedbacks.
+                  </Text>
+                  <Row gap="s" vertical="center" fillWidth>
+                    <Flex
+                      fillWidth
+                      padding="s"
+                      radius="m"
+                      style={{
+                        background: 'var(--neutral-alpha-weak)',
+                        fontFamily: 'monospace',
+                        fontSize: '0.8125rem',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {viewerUrl}
+                    </Flex>
+                    <Button
+                      variant="secondary"
+                      size="s"
+                      label={copied ? 'Copiado!' : 'Copiar'}
+                      prefixIcon={copied ? 'check' : 'copy'}
+                      onClick={copyViewerUrl}
+                      style={{ flexShrink: 0 }}
+                    />
+                  </Row>
+                  <Row gap="xs" vertical="center">
+                    <Tag variant="neutral" size="s" label="Link Rápido" />
+                    <Text variant="body-default-xs" onBackground="neutral-weak">
+                      Os QAs acessam o site via link compartilhado, sem precisar instalar nada.
+                    </Text>
+                  </Row>
+                </Column>
+              </Card>
+            )}
+
+            {/* Embed script — only for embed mode */}
+            {(project?.mode ?? 'proxy') === 'embed' && (
+              <Card fillWidth padding="l" radius="l">
+                <Column gap="m" fillWidth>
+                <Row gap="s" vertical="center">
+                  <Icon name="code" size="m" />
+                  <Heading variant="heading-strong-s" as="h3">Instalação no Site</Heading>
+                </Row>
+                <Text variant="body-default-s" onBackground="neutral-weak">
+                  Adicione este código ao HTML do seu site para habilitar o widget de feedback diretamente na página.
+                </Text>
+                <Flex fillWidth style={{ position: 'relative' }}>
+                  <pre
+                    style={{
+                      width: '100%',
+                      background: 'var(--neutral-solid-strong)',
+                      color: '#4ade80',
+                      fontSize: '0.75rem',
+                      borderRadius: '0.5rem',
+                      padding: '1rem',
+                      overflow: 'auto',
+                      fontFamily: 'monospace',
+                      margin: 0,
+                    }}
+                  >
+                    {embedSnippet}
+                  </pre>
+                  <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem' }}>
+                    <Button
+                      variant="secondary"
+                      size="s"
+                      label={copiedEmbed ? 'Copiado!' : 'Copiar'}
+                      prefixIcon={copiedEmbed ? 'check' : 'copy'}
+                      onClick={copyEmbedSnippet}
+                    />
+                  </div>
+                </Flex>
+                <Column gap="xs">
+                  <Text variant="body-default-xs" onBackground="neutral-weak">
+                    <strong>Como funciona:</strong> Um botão flutuante de feedback aparece no canto inferior direito da página.
+                  </Text>
+                  <Text variant="body-default-xs" onBackground="neutral-weak">
+                    <strong>Vantagens:</strong> Funciona em qualquer site, incluindo aplicações com login e páginas dinâmicas.
+                  </Text>
+                </Column>
+              </Column>
+            </Card>
+            )}
 
             {/* Delete project */}
-            <div className="bg-white rounded-xl border border-red-200 p-6">
-              <h3 className="font-medium text-red-700 mb-2">Zona de Perigo</h3>
-              <p className="text-sm text-gray-500 mb-4">
-                Excluir este projeto removerá permanentemente todos os feedbacks associados. Esta ação não pode ser desfeita.
-              </p>
+            <Card
+              fillWidth
+              padding="l"
+              radius="l"
+              style={{ border: '1px solid var(--danger-border-strong)' }}
+            >
+              <Column gap="m" fillWidth>
+                <Heading variant="heading-strong-s" as="h3">
+                  <Text onBackground="danger-strong">Zona de Perigo</Text>
+                </Heading>
+                <Text variant="body-default-s" onBackground="neutral-weak">
+                  Excluir este projeto removera permanentemente todos os feedbacks associados. Esta acao nao pode ser desfeita.
+                </Text>
 
-              {!showDeleteConfirm ? (
-                <button
-                  onClick={() => setShowDeleteConfirm(true)}
-                  className="flex items-center gap-2 px-4 py-2 border border-red-300 text-red-600 hover:bg-red-50 text-sm font-medium rounded-lg transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Excluir projeto
-                </button>
-              ) : (
-                <div className="space-y-3 bg-red-50 rounded-lg p-4">
-                  <p className="text-sm text-red-700 font-medium">
-                    Digite <code className="bg-red-100 px-1.5 py-0.5 rounded text-xs">{project?.name}</code> para confirmar:
-                  </p>
-                  <input
-                    type="text"
-                    value={deleteConfirmText}
-                    onChange={(e) => setDeleteConfirmText(e.target.value)}
-                    placeholder={project?.name}
-                    className="w-full px-3 py-2 border border-red-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-                  />
-                  {deleteError && (
-                    <p className="text-sm text-red-600">{deleteError}</p>
-                  )}
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={handleDelete}
-                      disabled={deleting || deleteConfirmText !== project?.name}
-                      className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-300 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
-                    >
-                      {deleting && <Loader2 className="w-4 h-4 animate-spin" />}
-                      Confirmar exclusão
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowDeleteConfirm(false)
-                        setDeleteConfirmText('')
-                        setDeleteError(null)
-                      }}
-                      className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                    >
-                      Cancelar
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+                {!showDeleteConfirm ? (
+                  <Flex>
+                    <Button
+                      variant="danger"
+                      size="m"
+                      label="Excluir projeto"
+                      prefixIcon="delete"
+                      onClick={() => setShowDeleteConfirm(true)}
+                    />
+                  </Flex>
+                ) : (
+                  <Card
+                    fillWidth
+                    padding="m"
+                    radius="m"
+                    style={{ background: 'var(--danger-alpha-weak)' }}
+                  >
+                    <Column gap="s" fillWidth>
+                      <Text variant="body-default-s" onBackground="danger-strong" style={{ fontWeight: 500 }}>
+                        Digite <code style={{ background: 'var(--danger-alpha-medium)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.75rem' }}>{project?.name}</code> para confirmar:
+                      </Text>
+                      <Input
+                        id="delete-confirm"
+                        label=""
+                        value={deleteConfirmText}
+                        onChange={(e) => setDeleteConfirmText(e.target.value)}
+                        placeholder={project?.name}
+                      />
+                      {deleteError && (
+                        <FeedbackAlert variant="danger">{deleteError}</FeedbackAlert>
+                      )}
+                      <Row gap="s">
+                        <Button
+                          variant="danger"
+                          size="m"
+                          label="Confirmar exclusao"
+                          loading={deleting}
+                          onClick={handleDelete}
+                          disabled={deleting || deleteConfirmText !== project?.name}
+                        />
+                        <Button
+                          variant="tertiary"
+                          size="m"
+                          label="Cancelar"
+                          onClick={() => {
+                            setShowDeleteConfirm(false)
+                            setDeleteConfirmText('')
+                            setDeleteError(null)
+                          }}
+                        />
+                      </Row>
+                    </Column>
+                  </Card>
+                )}
+              </Column>
+            </Card>
+          </Column>
         )}
-      </main>
-    </div>
+      </Column>
+    </AppLayout>
   )
 }

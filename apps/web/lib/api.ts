@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/client'
 // Client-side API (for client components)
 export const api = {
   projects: {
-    async create(data: { name: string; description?: string; targetUrl: string }) {
+    async create(data: { name: string; description?: string; targetUrl: string; mode?: string }) {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
@@ -15,6 +15,7 @@ export const api = {
           name: data.name,
           description: data.description || null,
           targetUrl: data.targetUrl,
+          mode: data.mode || 'proxy',
           ownerId: user.id,
         })
         .select()

@@ -1,9 +1,20 @@
 'use client'
 
+import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { PlusCircle, ExternalLink, MessageSquare, ChevronRight, LogOut } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import {
+  Flex,
+  Column,
+  Row,
+  Grid,
+  Heading,
+  Text,
+  Button,
+  Tag,
+  Icon,
+  IconButton,
+} from '@once-ui-system/core'
+import AppLayout from '@/components/ui/AppLayout'
 
 interface Project {
   id: string
@@ -25,7 +36,6 @@ function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: 'short',
-    year: 'numeric',
   })
 }
 
@@ -36,138 +46,301 @@ export default function DashboardClient({
   userName,
 }: DashboardClientProps) {
   const router = useRouter()
+  const [showFilter, setShowFilter] = useState(false)
+  const [filterStatus, setFilterStatus] = useState<'all' | 'open' | 'none'>('all')
+  const [sortBy, setSortBy] = useState<'recent' | 'name' | 'feedbacks'>('recent')
+  const [search, setSearch] = useState('')
 
-  async function handleSignOut() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push('/auth/login')
-    router.refresh()
-  }
+  const filteredProjects = useMemo(() => {
+    let result = [...projects]
+
+    if (search.trim()) {
+      const q = search.trim().toLowerCase()
+      result = result.filter((p) => p.name.toLowerCase().includes(q) || p.url.toLowerCase().includes(q))
+    }
+
+    if (filterStatus === 'open') {
+      result = result.filter((p) => (p.openFeedbackCount ?? 0) > 0)
+    } else if (filterStatus === 'none') {
+      result = result.filter((p) => (p.openFeedbackCount ?? 0) === 0)
+    }
+
+    if (sortBy === 'name') {
+      result.sort((a, b) => a.name.localeCompare(b.name))
+    } else if (sortBy === 'feedbacks') {
+      result.sort((a, b) => (b.openFeedbackCount ?? 0) - (a.openFeedbackCount ?? 0))
+    } else {
+      result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    }
+
+    return result
+  }, [projects, search, filterStatus, sortBy])
+
+  const hasActiveFilter = filterStatus !== 'all' || sortBy !== 'recent'
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center">
-                <span className="text-white font-bold text-xs">F</span>
-              </div>
-              <span className="font-bold text-gray-900">FeedbackView</span>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <div className="text-right hidden sm:block">
-                <p className="text-sm font-medium text-gray-900">{userName || userEmail}</p>
-                {userName && <p className="text-xs text-gray-500">{userEmail}</p>}
-              </div>
-              <button
-                onClick={handleSignOut}
-                className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-                <span className="hidden sm:inline">Sair</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main content */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <AppLayout>
+      <Column as="main" fillWidth maxWidth={72} paddingX="l" paddingY="xl" gap="l" style={{ margin: '0 auto' }}>
         {/* Page header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">Projetos</h1>
-            <p className="text-gray-500 text-sm mt-0.5">
+        <Row fillWidth horizontal="between" vertical="center">
+          <Column gap="xs">
+            <Heading variant="heading-strong-l">Projetos</Heading>
+            <Text variant="body-default-s" onBackground="neutral-weak">
               {projects.length === 0
                 ? 'Nenhum projeto ainda'
                 : `${projects.length} projeto${projects.length !== 1 ? 's' : ''}`}
-            </p>
-          </div>
-          <Link
-            href="/projects/new"
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors"
-          >
-            <PlusCircle className="w-4 h-4" />
-            Novo Projeto
-          </Link>
-        </div>
+            </Text>
+          </Column>
+          <Row gap="s" vertical="center">
+            <div style={{ position: 'relative' }}>
+              <IconButton
+                icon="filter"
+                variant={hasActiveFilter ? 'primary' : 'secondary'}
+                size="m"
+                onClick={() => setShowFilter(!showFilter)}
+                tooltip="Filtrar projetos"
+              />
+              {showFilter && (
+                <>
+                  <div
+                    style={{ position: 'fixed', inset: 0, zIndex: 199 }}
+                    onClick={() => setShowFilter(false)}
+                  />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 'calc(100% + 0.5rem)',
+                      right: 0,
+                      zIndex: 200,
+                      background: 'var(--surface-background)',
+                      border: '1px solid var(--neutral-border-medium)',
+                      borderRadius: '0.75rem',
+                      padding: '1rem',
+                      width: '16rem',
+                      boxShadow: '0 4px 24px rgba(0,0,0,0.1)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '1rem',
+                    }}
+                  >
+                    <Text variant="label-default-s" onBackground="neutral-strong">Status</Text>
+                    <div style={{ display: 'flex', gap: '0.375rem' }}>
+                      {([['all', 'Todos'], ['open', 'Com abertos'], ['none', 'Sem abertos']] as const).map(([val, label]) => (
+                        <button
+                          key={val}
+                          onClick={() => setFilterStatus(val)}
+                          style={{
+                            padding: '0.375rem 0.625rem',
+                            borderRadius: '0.375rem',
+                            border: '1px solid',
+                            borderColor: filterStatus === val ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)',
+                            background: filterStatus === val ? 'var(--brand-solid-strong)' : 'transparent',
+                            color: filterStatus === val ? '#fff' : 'var(--neutral-on-background-weak)',
+                            fontSize: '0.75rem',
+                            fontWeight: filterStatus === val ? 600 : 400,
+                            cursor: 'pointer',
+                            transition: 'all 0.15s',
+                          }}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+
+                    <Text variant="label-default-s" onBackground="neutral-strong">Ordenar por</Text>
+                    <div style={{ display: 'flex', gap: '0.375rem' }}>
+                      {([['recent', 'Recentes'], ['name', 'Nome'], ['feedbacks', 'Feedbacks']] as const).map(([val, label]) => (
+                        <button
+                          key={val}
+                          onClick={() => setSortBy(val)}
+                          style={{
+                            padding: '0.375rem 0.625rem',
+                            borderRadius: '0.375rem',
+                            border: '1px solid',
+                            borderColor: sortBy === val ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)',
+                            background: sortBy === val ? 'var(--brand-solid-strong)' : 'transparent',
+                            color: sortBy === val ? '#fff' : 'var(--neutral-on-background-weak)',
+                            fontSize: '0.75rem',
+                            fontWeight: sortBy === val ? 600 : 400,
+                            cursor: 'pointer',
+                            transition: 'all 0.15s',
+                          }}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {hasActiveFilter && (
+                      <button
+                        onClick={() => { setFilterStatus('all'); setSortBy('recent') }}
+                        style={{
+                          padding: '0.375rem',
+                          border: 'none',
+                          background: 'transparent',
+                          color: 'var(--brand-on-background-strong)',
+                          fontSize: '0.75rem',
+                          cursor: 'pointer',
+                          textAlign: 'center',
+                        }}
+                      >
+                        Limpar filtros
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+            <Button
+              variant="primary"
+              prefixIcon="plus"
+              size="m"
+              href="/projects/new"
+            >
+              Novo Projeto
+            </Button>
+          </Row>
+        </Row>
 
         {/* Error state */}
         {error && (
-          <div className="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
-            {error}
-          </div>
+          <Row
+            fillWidth
+            padding="m"
+            radius="l"
+            background="danger-weak"
+            border="danger-medium"
+          >
+            <Text variant="body-default-s" onBackground="danger-strong">
+              {error}
+            </Text>
+          </Row>
         )}
 
         {/* Empty state */}
         {projects.length === 0 && !error && (
-          <div className="text-center py-20">
-            <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center mx-auto mb-4">
-              <MessageSquare className="w-8 h-8 text-indigo-400" />
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum projeto ainda</h3>
-            <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
+          <Column fillWidth horizontal="center" vertical="center" paddingY="xl" gap="m">
+            <Flex
+              horizontal="center"
+              vertical="center"
+              radius="l"
+              padding="l"
+              background="brand-weak"
+            >
+              <Icon name="message" size="l" />
+            </Flex>
+            <Heading variant="heading-strong-m">Nenhum projeto ainda</Heading>
+            <Text
+              variant="body-default-s"
+              onBackground="neutral-weak"
+              align="center"
+              style={{ maxWidth: '24rem' }}
+            >
               Crie seu primeiro projeto para começar a capturar feedbacks com screenshot e session
               replay.
-            </p>
-            <Link
+            </Text>
+            <Button
+              variant="primary"
+              prefixIcon="plus"
+              size="m"
               href="/projects/new"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-sm transition-colors"
             >
-              <PlusCircle className="w-4 h-4" />
               Criar primeiro projeto
-            </Link>
+            </Button>
+          </Column>
+        )}
+
+        {/* Search */}
+        {projects.length > 0 && (
+          <div style={{ position: 'relative', width: '100%' }}>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="var(--neutral-on-background-weak)"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Buscar projeto por nome ou URL..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '0.625rem 0.75rem 0.625rem 2.25rem',
+                borderRadius: '0.5rem',
+                border: '1px solid var(--neutral-border-medium)',
+                background: 'var(--surface-background)',
+                color: 'var(--neutral-on-background-strong)',
+                fontSize: '0.875rem',
+                outline: 'none',
+                transition: 'border-color 0.15s',
+              }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--brand-solid-strong)' }}
+              onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--neutral-border-medium)' }}
+            />
           </div>
         )}
 
         {/* Projects grid */}
-        {projects.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {projects.map((project) => {
+        {filteredProjects.length > 0 && (
+          <Grid fillWidth columns={3} gap="m" s={{ columns: 1 }} m={{ columns: 2 }}>
+            {filteredProjects.map((project) => {
               const openCount = project.openFeedbackCount ?? project._count?.feedbacks ?? 0
               return (
-                <Link
+                <Column
                   key={project.id}
-                  href={`/projects/${project.id}`}
-                  className="bg-white border border-gray-200 rounded-xl p-5 hover:border-indigo-300 hover:shadow-md transition-all group"
+                  fillWidth
+                  padding="m"
+                  gap="s"
+                  radius="l"
+                  border="neutral-medium"
+                  background="surface"
+                  onClick={() => router.push(`/projects/${project.id}`)}
+                  style={{ justifyContent: 'space-between', cursor: 'pointer', minHeight: '8rem' }}
                 >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 truncate group-hover:text-indigo-600 transition-colors">
-                        {project.name}
-                      </h3>
-                      <div className="flex items-center gap-1 mt-0.5">
-                        <ExternalLink className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                        <p className="text-xs text-gray-400 truncate">{project.url}</p>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-indigo-400 transition-colors flex-shrink-0 mt-0.5" />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <div
-                        className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                          openCount > 0
-                            ? 'bg-amber-50 text-amber-700'
-                            : 'bg-gray-100 text-gray-500'
-                        }`}
+                  <Column gap="xs" style={{ minWidth: 0 }}>
+                    <Row fillWidth horizontal="between" vertical="center">
+                      <Heading
+                        variant="heading-strong-m"
+                        style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}
                       >
-                        <MessageSquare className="w-3 h-3" />
-                        {openCount} aberto{openCount !== 1 ? 's' : ''}
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-400">{formatDate(project.createdAt)}</p>
-                  </div>
-                </Link>
+                        {project.name}
+                      </Heading>
+                      <Icon name="chevronRight" size="s" style={{ flexShrink: 0 }} />
+                    </Row>
+                    <Text
+                      variant="body-default-xs"
+                      onBackground="neutral-weak"
+                      style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                    >
+                      {project.url}
+                    </Text>
+                  </Column>
+
+                  <Row fillWidth vertical="center" gap="s" style={{ marginTop: 'auto' }}>
+                    <Tag
+                      variant={openCount > 0 ? 'warning' : 'neutral'}
+                      size="s"
+                      label={`${openCount} aberto${openCount !== 1 ? 's' : ''}`}
+                    />
+                    <Text variant="body-default-xs" onBackground="neutral-weak" style={{ whiteSpace: 'nowrap' }}>
+                      {formatDate(project.createdAt)}
+                    </Text>
+                  </Row>
+                </Column>
               )
             })}
-          </div>
+          </Grid>
         )}
-      </main>
-    </div>
+      </Column>
+    </AppLayout>
   )
 }

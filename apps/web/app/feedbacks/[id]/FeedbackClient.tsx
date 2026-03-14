@@ -3,9 +3,24 @@
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import { ArrowLeft, ChevronDown, ChevronRight, Monitor, Globe, Clock, AlertCircle, Pencil, Check, X } from 'lucide-react'
-import { Badge } from '@/components/ui/Badge'
+import {
+  Flex,
+  Column,
+  Row,
+  Heading,
+  Text,
+  Button,
+  IconButton,
+  Card,
+  Textarea,
+  Select,
+  Tag,
+  Icon,
+  Feedback as FeedbackAlert,
+  Spinner,
+} from '@once-ui-system/core'
 import { api } from '@/lib/api'
+import AppLayout from '@/components/ui/AppLayout'
 
 const SessionReplay = dynamic(() => import('@/components/viewer/SessionReplay'), { ssr: false })
 
@@ -37,6 +52,7 @@ interface Feedback {
   consoleLogs?: ConsoleLog[]
   networkLogs?: NetworkLog[]
   metadata?: { rrwebEvents?: any[] } | null
+  Project?: { ownerId: string; name: string } | null
 }
 
 interface FeedbackClientProps {
@@ -51,39 +67,45 @@ const STATUS_OPTIONS = [
   { value: 'CLOSED', label: 'Fechado' },
 ]
 
-function AccordionSection({
-  title,
-  count,
-  children,
-}: {
-  title: string
-  count?: number
-  children: React.ReactNode
-}) {
-  const [open, setOpen] = useState(false)
-  return (
-    <div className="border border-gray-200 rounded-xl overflow-hidden">
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
-      >
-        <span className="text-sm font-medium text-gray-700">
-          {title}
-          {count !== undefined && (
-            <span className="ml-2 px-1.5 py-0.5 bg-gray-200 text-gray-600 text-xs rounded-full">
-              {count}
-            </span>
-          )}
-        </span>
-        {open ? (
-          <ChevronDown className="w-4 h-4 text-gray-400" />
-        ) : (
-          <ChevronRight className="w-4 h-4 text-gray-400" />
-        )}
-      </button>
-      {open && <div className="p-4 bg-white">{children}</div>}
-    </div>
-  )
+function getTypeLabel(type: string) {
+  const map: Record<string, string> = { BUG: 'Bug', SUGGESTION: 'Sugestao', QUESTION: 'Duvida', PRAISE: 'Elogio' }
+  return map[type] || type
+}
+
+function getStatusLabel(status: string) {
+  const map: Record<string, string> = { OPEN: 'Aberto', IN_PROGRESS: 'Em andamento', RESOLVED: 'Resolvido', CLOSED: 'Fechado' }
+  return map[status] || status
+}
+
+function getSeverityLabel(sev: string) {
+  const map: Record<string, string> = { CRITICAL: 'Critico', HIGH: 'Alto', MEDIUM: 'Medio', LOW: 'Baixo' }
+  return map[sev] || sev
+}
+
+function getTypeTagVariant(type: string): 'brand' | 'danger' | 'info' | 'neutral' {
+  switch (type) {
+    case 'BUG': return 'danger'
+    case 'SUGGESTION': return 'info'
+    default: return 'neutral'
+  }
+}
+
+function getSeverityTagVariant(severity: string): 'danger' | 'warning' | 'neutral' {
+  switch (severity) {
+    case 'CRITICAL':
+    case 'HIGH': return 'danger'
+    case 'MEDIUM': return 'warning'
+    default: return 'neutral'
+  }
+}
+
+function getStatusTagVariant(status: string): 'warning' | 'info' | 'success' | 'neutral' {
+  switch (status) {
+    case 'OPEN': return 'warning'
+    case 'IN_PROGRESS': return 'info'
+    case 'RESOLVED': return 'success'
+    default: return 'neutral'
+  }
 }
 
 function formatDate(dateStr: string) {
@@ -93,7 +115,6 @@ function formatDate(dateStr: string) {
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-    second: '2-digit',
   })
 }
 
@@ -109,17 +130,21 @@ export default function FeedbackClient({
   const [editingComment, setEditingComment] = useState(false)
   const [commentDraft, setCommentDraft] = useState('')
   const [commentSaving, setCommentSaving] = useState(false)
+  const [networkLogsOpen, setNetworkLogsOpen] = useState(false)
+  const [consoleLogsOpen, setConsoleLogsOpen] = useState(false)
 
   if (error || !feedback) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error || 'Feedback não encontrado.'}</p>
-          <Link href="/dashboard" className="text-indigo-600 hover:underline text-sm">
-            Voltar ao dashboard
-          </Link>
-        </div>
-      </div>
+      <AppLayout>
+        <Flex fillWidth style={{ minHeight: '100vh' }} horizontal="center" vertical="center">
+          <Column horizontal="center" gap="m">
+            <FeedbackAlert variant="danger">{error || 'Feedback nao encontrado.'}</FeedbackAlert>
+            <Link href="/dashboard">
+              <Button variant="tertiary" size="s" label="Voltar ao dashboard" />
+            </Link>
+          </Column>
+        </Flex>
+      </AppLayout>
     )
   }
 
@@ -129,7 +154,7 @@ export default function FeedbackClient({
     try {
       await api.feedbacks.updateStatus(feedback!.id, newStatus)
       setStatus(newStatus)
-    } catch (err: any) {
+    } catch {
       setStatusError('Erro ao atualizar status.')
     } finally {
       setStatusSaving(false)
@@ -153,222 +178,331 @@ export default function FeedbackClient({
   const networkLogs = feedback.networkLogs ?? []
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <AppLayout>
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
-          <Link
-            href={`/projects/${feedback.projectId}`}
-            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Projeto
-          </Link>
-          <span className="text-gray-300">/</span>
-          <span className="text-sm font-medium text-gray-900 truncate">Feedback #{feedback.id.slice(0, 8)}</span>
-        </div>
-      </header>
+      <Row
+        as="header"
+        fillWidth
+        paddingX="l"
+        paddingY="m"
+        vertical="center"
+        gap="m"
+        borderBottom="neutral-medium"
+        background="surface"
+        style={{ position: 'sticky', top: 0, zIndex: 10 }}
+      >
+        <Link
+          href={`/projects/${feedback.projectId}`}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            fontSize: 14,
+            color: 'var(--neutral-on-background-weak)',
+            textDecoration: 'none',
+            flexShrink: 0,
+          }}
+        >
+          <Icon name="arrowLeft" size="xs" />
+          {feedback.Project?.name || 'Projeto'}
+        </Link>
+        <Text variant="body-default-s" onBackground="neutral-weak" style={{ flexShrink: 0 }}>/</Text>
+        <Tag variant={getTypeTagVariant(feedback.type)} size="s" label={getTypeLabel(feedback.type)} />
+        <Text
+          variant="body-default-s"
+          onBackground="neutral-strong"
+          style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '20rem', flexShrink: 0 }}
+        >
+          {comment || 'Sem descricao'}
+        </Text>
+      </Row>
+      <Column fillWidth paddingX="l" paddingY="l" gap="m">
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left: Session Replay + details */}
-          <div className="lg:col-span-2 space-y-5">
-            {/* Session Replay — hero position */}
+      <style>{`#status-select { padding-top: 8px !important; padding-bottom: 8px !important; }`}</style>
+      <Flex fillWidth>
+        <Row
+          fillWidth
+          maxWidth={72}
+          gap="l"
+          style={{ alignItems: 'flex-start' }}
+        >
+          {/* Left column */}
+          <Column gap="l" fillWidth style={{ flex: 2, minWidth: 0 }}>
+            {/* Session Replay */}
             {feedback.metadata?.rrwebEvents && feedback.metadata.rrwebEvents.length > 0 && (
-              <div>
-                <h2 className="text-sm font-medium text-gray-700 mb-2">Session Replay</h2>
+              <Card fillWidth radius="l" style={{ overflow: 'hidden', padding: 0 }}>
                 <SessionReplay events={feedback.metadata.rrwebEvents} />
-              </div>
+              </Card>
+            )}
+
+            {/* Screenshot (if no replay) */}
+            {feedback.screenshotUrl && !(feedback.metadata?.rrwebEvents && feedback.metadata.rrwebEvents.length > 0) && (
+              <Card fillWidth padding="l" radius="l">
+                <Column gap="s">
+                  <Heading variant="heading-strong-s">Screenshot</Heading>
+                  <img
+                    src={feedback.screenshotUrl}
+                    alt="Screenshot"
+                    style={{ width: '100%', borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)' }}
+                  />
+                </Column>
+              </Card>
             )}
 
             {/* Description */}
-            <div className="bg-white rounded-xl border border-gray-200 p-5">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-medium text-gray-700">Descrição</h3>
-                {!editingComment && (
-                  <button
-                    onClick={() => { setCommentDraft(comment); setEditingComment(true) }}
-                    className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors"
-                  >
-                    <Pencil className="w-3 h-3" />
-                    Editar
-                  </button>
+            <Card fillWidth padding="l" radius="l">
+              <Column gap="s">
+                <Row fillWidth horizontal="between" vertical="center">
+                  <Heading variant="heading-strong-s">Descricao</Heading>
+                  {!editingComment && (
+                    <IconButton
+                      icon="edit"
+                      variant="tertiary"
+                      size="s"
+                      tooltip="Editar"
+                      onClick={() => { setCommentDraft(comment); setEditingComment(true) }}
+                    />
+                  )}
+                </Row>
+                {editingComment ? (
+                  <Column gap="s">
+                    <Textarea
+                      id="comment-edit"
+                      label="Descricao"
+                      value={commentDraft}
+                      lines={4}
+                      resize="vertical"
+                      onChange={(e) => setCommentDraft(e.target.value)}
+                      disabled={commentSaving}
+                    />
+                    <Row gap="s" horizontal="end">
+                      <Button
+                        variant="secondary"
+                        size="s"
+                        label="Cancelar"
+                        onClick={() => setEditingComment(false)}
+                        disabled={commentSaving}
+                      />
+                      <Button
+                        variant="primary"
+                        size="s"
+                        label="Salvar"
+                        onClick={handleCommentSave}
+                        loading={commentSaving}
+                      />
+                    </Row>
+                  </Column>
+                ) : (
+                  <Text variant="body-default-s" style={{ whiteSpace: 'pre-wrap' }}>{comment}</Text>
                 )}
-              </div>
-              {editingComment ? (
-                <div className="space-y-2">
-                  <textarea
-                    value={commentDraft}
-                    onChange={(e) => setCommentDraft(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-vertical min-h-[80px]"
-                    disabled={commentSaving}
-                  />
-                  <div className="flex gap-2 justify-end">
-                    <button
-                      onClick={() => setEditingComment(false)}
-                      disabled={commentSaving}
-                      className="flex items-center gap-1 px-3 py-1.5 text-xs text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-60"
-                    >
-                      <X className="w-3 h-3" />
-                      Cancelar
-                    </button>
-                    <button
-                      onClick={handleCommentSave}
-                      disabled={commentSaving}
-                      className="flex items-center gap-1 px-3 py-1.5 text-xs text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors disabled:opacity-60"
-                    >
-                      <Check className="w-3 h-3" />
-                      {commentSaving ? 'Salvando...' : 'Salvar'}
-                    </button>
+              </Column>
+            </Card>
+
+            {/* Network Logs */}
+            {networkLogs.length > 0 && (
+              <Card fillWidth padding="0" radius="l" style={{ overflow: 'hidden' }}>
+                <Column fillWidth>
+                  <div
+                    onClick={() => setNetworkLogsOpen(!networkLogsOpen)}
+                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', cursor: 'pointer' }}
+                  >
+                    <Heading variant="heading-strong-s">Network Logs ({networkLogs.length})</Heading>
+                    <Icon name="chevronDown" size="xs" style={{ transform: networkLogsOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }} />
                   </div>
-                </div>
-              ) : (
-                <p className="text-gray-800 text-sm leading-relaxed">{comment}</p>
-              )}
-            </div>
-
-            {/* Console logs accordion */}
-            <AccordionSection title="Console Logs" count={consoleLogs.length}>
-              {consoleLogs.length === 0 ? (
-                <p className="text-gray-400 text-sm">Nenhum log de console capturado.</p>
-              ) : (
-                <pre className="text-xs font-mono bg-gray-900 text-green-400 rounded-lg p-4 overflow-auto max-h-64 whitespace-pre-wrap">
-                  {JSON.stringify(consoleLogs, null, 2)}
-                </pre>
-              )}
-            </AccordionSection>
-
-            {/* Network logs accordion */}
-            <AccordionSection title="Network Logs" count={networkLogs.length}>
-              {networkLogs.length === 0 ? (
-                <p className="text-gray-400 text-sm">Nenhum log de rede capturado.</p>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="border-b border-gray-100">
-                        <th className="text-left py-2 pr-3 font-medium text-gray-500">Método</th>
-                        <th className="text-left py-2 pr-3 font-medium text-gray-500">URL</th>
-                        <th className="text-left py-2 pr-3 font-medium text-gray-500">Status</th>
-                        <th className="text-left py-2 font-medium text-gray-500">Duração</th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                  {networkLogsOpen && (
+                    <div style={{ maxHeight: '28rem', overflowY: 'auto' }}>
                       {networkLogs.map((log, i) => (
-                        <tr key={i} className="border-b border-gray-50">
-                          <td className="py-1.5 pr-3 font-mono font-bold text-indigo-600">{log.method}</td>
-                          <td className="py-1.5 pr-3 text-gray-600 max-w-[200px] truncate">{log.url}</td>
-                          <td className="py-1.5 pr-3">
-                            <span
-                              className={`px-1.5 py-0.5 rounded font-mono ${
-                                log.status && log.status >= 400
-                                  ? 'bg-red-100 text-red-700'
-                                  : 'bg-green-100 text-green-700'
-                              }`}
-                            >
-                              {log.status ?? '-'}
-                            </span>
-                          </td>
-                          <td className="py-1.5 text-gray-500">
-                            {log.duration != null ? `${log.duration}ms` : '-'}
-                          </td>
-                        </tr>
+                        <div
+                          key={i}
+                          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderTop: '1px solid var(--neutral-border-medium)' }}
+                        >
+                          <Tag
+                            variant={log.status && log.status >= 400 ? 'danger' : 'success'}
+                            size="s"
+                            label={String(log.status ?? '-')}
+                          />
+                          <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '0.75rem', flexShrink: 0 }}>{log.method}</span>
+                          <span
+                            style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}
+                            title={log.url}
+                          >{log.url}</span>
+                          {log.duration != null && (
+                            <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', flexShrink: 0 }}>{log.duration}ms</span>
+                          )}
+                        </div>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </AccordionSection>
-          </div>
+                    </div>
+                  )}
+                </Column>
+              </Card>
+            )}
 
-          {/* Right: Metadata & status */}
-          <div className="space-y-4">
+            {/* Console Logs */}
+            {consoleLogs.length > 0 && (
+              <Card fillWidth padding="0" radius="l" style={{ overflow: 'hidden' }}>
+                <Column fillWidth>
+                  <div
+                    onClick={() => setConsoleLogsOpen(!consoleLogsOpen)}
+                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', cursor: 'pointer' }}
+                  >
+                    <Heading variant="heading-strong-s">Console Logs ({consoleLogs.length})</Heading>
+                    <Icon name="chevronDown" size="xs" style={{ transform: consoleLogsOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }} />
+                  </div>
+                  {consoleLogsOpen && (
+                    <div style={{ maxHeight: '28rem', overflowY: 'auto' }}>
+                      {consoleLogs.map((log, i) => {
+                        const level = log.level?.toUpperCase() ?? 'LOG'
+                        const variant = level === 'ERROR' ? 'danger' : level === 'WARN' ? 'warning' : 'info'
+                        return (
+                          <div
+                            key={i}
+                            style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', padding: '0.5rem 1rem', borderTop: '1px solid var(--neutral-border-medium)' }}
+                          >
+                            <Tag
+                              variant={variant as any}
+                              size="s"
+                              label={level}
+                              style={{ flexShrink: 0 }}
+                            />
+                            <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', wordBreak: 'break-word', flex: 1, minWidth: 0 }}>
+                              {log.message}
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </Column>
+              </Card>
+            )}
+
+          </Column>
+
+          {/* Right sidebar */}
+          <Column gap="m" style={{ flex: 1, minWidth: '16rem', maxWidth: '20rem', position: 'sticky', top: '1.5rem' }}>
             {/* Status */}
-            <div className="bg-white rounded-xl border border-gray-200 p-4">
-              <h3 className="text-sm font-medium text-gray-700 mb-3">Status</h3>
-              <select
-                value={status}
-                onChange={(e) => handleStatusChange(e.target.value)}
-                disabled={statusSaving}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
-              >
-                {STATUS_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-              {statusSaving && (
-                <p className="text-xs text-gray-400 mt-1">Salvando...</p>
-              )}
-              {statusError && (
-                <p className="text-xs text-red-600 mt-1">{statusError}</p>
-              )}
-            </div>
+            <Card fillWidth padding="l" radius="l">
+              <Column gap="m">
+                <Row horizontal="between" vertical="center">
+                  <Heading variant="heading-strong-s">Status</Heading>
+                  <Tag variant={getStatusTagVariant(status)} size="s" label={getStatusLabel(status)} />
+                </Row>
+                <Select
+                  id="status-select"
+                  label=""
+                  options={STATUS_OPTIONS}
+                  value={status}
+                  onSelect={handleStatusChange}
+                />
+                {statusSaving && (
+                  <Row gap="xs" vertical="center">
+                    <Spinner size="s" />
+                    <Text variant="body-default-xs" onBackground="neutral-weak">Salvando...</Text>
+                  </Row>
+                )}
+                {statusError && (
+                  <FeedbackAlert variant="danger">{statusError}</FeedbackAlert>
+                )}
+              </Column>
+            </Card>
 
             {/* Metadata */}
-            <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">Metadados</h3>
+            <Card fillWidth padding="l" radius="l">
+              <Column gap="m">
+                <Heading variant="heading-strong-s">Detalhes</Heading>
 
-              {feedback.screenshotUrl && (
-                <img
-                  src={feedback.screenshotUrl}
-                  alt="Screenshot"
-                  className="w-full rounded-lg border border-gray-200"
-                />
-              )}
-
-              <div className="flex flex-wrap gap-2">
-                <Badge variant={feedback.type as any}>{feedback.type}</Badge>
-                {feedback.severity && (
-                  <Badge variant={feedback.severity as any}>{feedback.severity}</Badge>
+                {/* Screenshot in sidebar (when replay exists, show thumb here) */}
+                {feedback.screenshotUrl && feedback.metadata?.rrwebEvents && feedback.metadata.rrwebEvents.length > 0 && (
+                  <img
+                    src={feedback.screenshotUrl}
+                    alt="Screenshot"
+                    style={{ width: '100%', borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)' }}
+                  />
                 )}
-              </div>
 
-              {feedback.pageUrl && (
-                <div>
-                  <p className="text-xs text-gray-400 mb-0.5">Página</p>
-                  <a
-                    href={feedback.pageUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-indigo-600 hover:underline break-all"
-                  >
-                    {feedback.pageUrl}
-                  </a>
-                </div>
-              )}
+                {/* Tags */}
+                <Column gap="xs">
+                  <Text variant="label-default-s" onBackground="neutral-weak">Tipo e Severidade</Text>
+                  <Row gap="xs" wrap>
+                    <Tag variant={getTypeTagVariant(feedback.type)} size="m" label={getTypeLabel(feedback.type)} />
+                    {feedback.severity && (
+                      <Tag variant={getSeverityTagVariant(feedback.severity)} size="m" label={getSeverityLabel(feedback.severity)} />
+                    )}
+                  </Row>
+                </Column>
 
-              <div>
-                <p className="text-xs text-gray-400 mb-0.5">Data</p>
-                <div className="flex items-center gap-1">
-                  <Clock className="w-3 h-3 text-gray-400" />
-                  <p className="text-xs text-gray-600">{formatDate(feedback.createdAt)}</p>
-                </div>
-              </div>
+                {/* Page URL */}
+                {feedback.pageUrl && (
+                  <Column gap="xs">
+                    <Text variant="label-default-s" onBackground="neutral-weak">Pagina</Text>
+                    <a
+                      href={feedback.pageUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        fontSize: '0.75rem',
+                        wordBreak: 'break-all',
+                        color: 'var(--brand-on-background-strong)',
+                        textDecoration: 'underline',
+                        textUnderlineOffset: '2px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.25rem',
+                      }}
+                    >
+                      {feedback.pageUrl}
+                      <Icon name="openLink" size="xs" style={{ flexShrink: 0 }} />
+                    </a>
+                  </Column>
+                )}
 
-              {feedback.userAgent && (
-                <div>
-                  <p className="text-xs text-gray-400 mb-0.5">User Agent</p>
-                  <div className="flex items-start gap-1">
-                    <Monitor className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
-                    <p className="text-xs text-gray-600 break-all">{feedback.userAgent}</p>
-                  </div>
-                </div>
-              )}
-            </div>
+                {/* Date */}
+                <Column gap="xs">
+                  <Text variant="label-default-s" onBackground="neutral-weak">Data</Text>
+                  <Row gap="xs" vertical="center">
+                    <Icon name="clock" size="xs" />
+                    <Text variant="body-default-xs">{formatDate(feedback.createdAt)}</Text>
+                  </Row>
+                </Column>
 
-            {/* Comments placeholder */}
-            <div className="bg-white rounded-xl border border-gray-200 p-4">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Comentários</h3>
-              <div className="bg-gray-50 rounded-lg p-3 text-center">
-                <AlertCircle className="w-5 h-5 text-gray-300 mx-auto mb-1" />
-                <p className="text-xs text-gray-400">Em breve</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
+                {/* User Agent */}
+                {feedback.userAgent && (
+                  <Column gap="xs">
+                    <Text variant="label-default-s" onBackground="neutral-weak">Navegador</Text>
+                    <Text variant="body-default-xs" style={{ wordBreak: 'break-all' }}>{feedback.userAgent}</Text>
+                  </Column>
+                )}
+
+                {/* Captured Events Summary */}
+                <Column gap="xs">
+                  <Text variant="label-default-s" onBackground="neutral-weak">Eventos Capturados</Text>
+                  <Column gap="xs">
+                    <Row gap="xs" vertical="center">
+                      <Icon name="monitor" size="xs" />
+                      <Text variant="body-default-xs">
+                        {feedback.metadata?.rrwebEvents?.length ?? 0} eventos de sessao
+                      </Text>
+                    </Row>
+                    <Row gap="xs" vertical="center">
+                      <Icon name="message" size="xs" />
+                      <Text variant="body-default-xs">
+                        {consoleLogs.length} console log{consoleLogs.length !== 1 ? 's' : ''}
+                      </Text>
+                    </Row>
+                    <Row gap="xs" vertical="center">
+                      <Icon name="openLink" size="xs" />
+                      <Text variant="body-default-xs">
+                        {networkLogs.length} requisicao{networkLogs.length !== 1 ? 'es' : ''} de rede
+                      </Text>
+                    </Row>
+                  </Column>
+                </Column>
+              </Column>
+            </Card>
+          </Column>
+        </Row>
+      </Flex>
+      </Column>
+    </AppLayout>
   )
 }

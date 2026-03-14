@@ -345,15 +345,67 @@ function createWidget() {
       color: #dc2626;
     }
 
-    .fv-logs-summary {
+    .fv-logs-section {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .fv-logs-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: #f9fafb;
+      cursor: pointer;
+      transition: background 0.15s;
+      user-select: none;
+    }
+    .fv-logs-header:hover { background: #f3f4f6; }
+    .fv-logs-header span { font-size: 13px; font-weight: 500; color: #374151; }
+    .fv-logs-header svg { width: 16px; height: 16px; color: #9ca3af; transition: transform 0.2s; }
+    .fv-logs-header.open svg { transform: rotate(180deg); }
+    .fv-logs-list { max-height: 180px; overflow-y: auto; }
+    .fv-log-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      border-top: 1px solid #f3f4f6;
+    }
+    .fv-log-row-console { align-items: flex-start; }
+    .fv-log-tag {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 16px;
+    }
+    .fv-tag-success { background: #dcfce7; color: #15803d; }
+    .fv-tag-danger { background: #fee2e2; color: #b91c1c; }
+    .fv-tag-warning { background: #fef9c3; color: #a16207; }
+    .fv-tag-info { background: #dbeafe; color: #1d4ed8; }
+    .fv-tag-neutral { background: #e0e7ff; color: #4338ca; }
+    .fv-log-method { flex-shrink: 0; font-family: monospace; font-size: 11px; font-weight: 700; color: #374151; }
+    .fv-log-url { font-family: monospace; font-size: 11px; color: #6b7280; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+    .fv-log-duration { flex-shrink: 0; font-family: monospace; font-size: 11px; color: #9ca3af; }
+    .fv-log-message { font-family: monospace; font-size: 11px; color: #6b7280; word-break: break-word; flex: 1; min-width: 0; }
+    .fv-events-summary {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       font-size: 12px;
       color: #6b7280;
       padding: 10px 14px;
       background: #f9fafb;
       border: 1px solid #e5e7eb;
       border-radius: 8px;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
+    .fv-events-summary .fv-log-tag { margin-right: 2px; }
 
     .fv-footer {
       padding: 16px 20px;
@@ -568,11 +620,69 @@ function createWidget() {
       severityField.style.display = typeSelect.value === 'BUG' ? 'block' : 'none'
     })
 
-    // Logs summary
-    const logsSummary = document.createElement('div')
-    logsSummary.className = 'fv-logs-summary'
-    logsSummary.textContent = `${consoleLogs.length} log(s) de console · ${networkLogs.length} requisição(ões) · ${rrwebEvents.length} evento(s) de replay`
-    body.appendChild(logsSummary)
+    // Network Logs section
+    if (networkLogs.length > 0) {
+      const netSection = document.createElement('div')
+      netSection.className = 'fv-logs-section'
+      const netHeader = document.createElement('div')
+      netHeader.className = 'fv-logs-header'
+      netHeader.innerHTML = `<span>Network Logs (${networkLogs.length})</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`
+      const netList = document.createElement('div')
+      netList.className = 'fv-logs-list'
+      netList.style.display = 'none'
+      networkLogs.forEach((log) => {
+        const row = document.createElement('div')
+        row.className = 'fv-log-row'
+        const tagClass = log.status >= 400 ? 'fv-tag-danger' : 'fv-tag-success'
+        row.innerHTML = `<span class="fv-log-tag ${tagClass}">${log.status || '-'}</span><span class="fv-log-method">${log.method}</span><span class="fv-log-url" title="${log.url.replace(/"/g, '&quot;')}">${log.url}</span>${log.duration ? `<span class="fv-log-duration">${log.duration}ms</span>` : ''}`
+        netList.appendChild(row)
+      })
+      netHeader.addEventListener('click', () => {
+        const open = netList.style.display !== 'none'
+        netList.style.display = open ? 'none' : 'block'
+        netHeader.classList.toggle('open', !open)
+      })
+      netSection.appendChild(netHeader)
+      netSection.appendChild(netList)
+      body.appendChild(netSection)
+    }
+
+    // Console Logs section
+    if (consoleLogs.length > 0) {
+      const conSection = document.createElement('div')
+      conSection.className = 'fv-logs-section'
+      const conHeader = document.createElement('div')
+      conHeader.className = 'fv-logs-header'
+      conHeader.innerHTML = `<span>Console Logs (${consoleLogs.length})</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`
+      const conList = document.createElement('div')
+      conList.className = 'fv-logs-list'
+      conList.style.display = 'none'
+      consoleLogs.forEach((log) => {
+        const row = document.createElement('div')
+        row.className = 'fv-log-row fv-log-row-console'
+        const level = log.level.toUpperCase()
+        const tagClass = level === 'ERROR' ? 'fv-tag-danger' : level === 'WARN' ? 'fv-tag-warning' : 'fv-tag-info'
+        const msg = Array.isArray(log.args) ? log.args.map((a: unknown) => typeof a === 'string' ? a : JSON.stringify(a)).join(' ') : ''
+        row.innerHTML = `<span class="fv-log-tag ${tagClass}">${level}</span><span class="fv-log-message">${msg.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>`
+        conList.appendChild(row)
+      })
+      conHeader.addEventListener('click', () => {
+        const open = conList.style.display !== 'none'
+        conList.style.display = open ? 'none' : 'block'
+        conHeader.classList.toggle('open', !open)
+      })
+      conSection.appendChild(conHeader)
+      conSection.appendChild(conList)
+      body.appendChild(conSection)
+    }
+
+    // Session replay events summary
+    if (rrwebEvents.length > 0) {
+      const evSummary = document.createElement('div')
+      evSummary.className = 'fv-events-summary'
+      evSummary.innerHTML = `<span class="fv-log-tag fv-tag-neutral">${rrwebEvents.length}</span> eventos de session replay capturados`
+      body.appendChild(evSummary)
+    }
 
     // Server error placeholder
     const serverError = document.createElement('div')

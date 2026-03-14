@@ -7,6 +7,17 @@ import { z } from 'zod'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import {
+  Flex,
+  Column,
+  Heading,
+  Text,
+  Input,
+  PasswordInput,
+  Button,
+  Card,
+  Feedback,
+} from '@once-ui-system/core'
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
@@ -53,88 +64,97 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md">
+    <Flex fillWidth minHeight="100vh" horizontal="center" vertical="center" padding="m">
+      <Column maxWidth={28} gap="l" fillWidth>
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
-              <span className="text-white font-bold text-sm">F</span>
-            </div>
-            <span className="text-xl font-bold text-gray-900">FeedbackView</span>
-          </div>
-          <p className="text-gray-500 text-sm">QA com captura em tempo real</p>
-        </div>
+        <Column horizontal="center" gap="4">
+          <Flex horizontal="center" vertical="center" gap="8">
+            <Flex
+              horizontal="center"
+              vertical="center"
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                background: 'var(--brand-strong)',
+                color: 'var(--static-white)',
+                fontWeight: 700,
+                fontSize: 14,
+              }}
+            >
+              Q
+            </Flex>
+            <Text variant="heading-strong-m">Qbug</Text>
+          </Flex>
+          <Text variant="body-default-s" onBackground="neutral-weak">
+            QA com captura em tempo real
+          </Text>
+        </Column>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
-          <h1 className="text-2xl font-semibold text-gray-900 mb-1">Criar conta</h1>
-          <p className="text-gray-500 text-sm mb-6">
-            Já tem conta?{' '}
-            <Link href="/auth/login" className="text-indigo-600 hover:underline font-medium">
-              Entrar
-            </Link>
-          </p>
+        <Card padding="l" radius="l" direction="column" gap="m">
+          <Column gap="4">
+            <Heading variant="heading-strong-l" as="h1">
+              Criar conta
+            </Heading>
+            <Text variant="body-default-s" onBackground="neutral-weak">
+              Já tem conta?{' '}
+              <Link href="/auth/login" style={{ color: 'var(--brand-strong)', fontWeight: 500 }}>
+                Entrar
+              </Link>
+            </Text>
+          </Column>
 
           {serverError && (
-            <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
-              {serverError}
-            </div>
+            <Feedback variant="danger">{serverError}</Feedback>
           )}
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nome</label>
-              <input
-                {...register('name')}
-                type="text"
-                placeholder="Seu nome completo"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              />
-              {errors.name && (
-                <p className="mt-1 text-xs text-red-600">{errors.name.message}</p>
-              )}
-            </div>
+          <Column as="form" gap="m" onSubmit={handleSubmit(onSubmit)}>
+            <Input
+              id="name"
+              label="Nome"
+              placeholder="Seu nome completo"
+              error={!!errors.name}
+              errorMessage={errors.name?.message}
+              {...register('name')}
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">E-mail</label>
-              <input
-                {...register('email')}
-                type="email"
-                placeholder="voce@empresa.com"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              />
-              {errors.email && (
-                <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>
-              )}
-            </div>
+            <Input
+              id="email"
+              label="E-mail"
+              placeholder="voce@empresa.com"
+              error={!!errors.email}
+              errorMessage={errors.email?.message}
+              {...register('email')}
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
-              <input
-                {...register('password')}
-                type="password"
-                placeholder="Mínimo 8 caracteres"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              />
-              {errors.password && (
-                <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>
-              )}
-            </div>
+            <PasswordInput
+              id="password"
+              label="Senha"
+              placeholder="Mínimo 8 caracteres"
+              error={!!errors.password}
+              errorMessage={errors.password?.message}
+              {...register('password')}
+            />
 
-            <button
+            <Button
               type="submit"
-              disabled={isSubmitting}
-              className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-medium rounded-lg text-sm transition-colors"
-            >
-              {isSubmitting ? 'Criando conta...' : 'Criar conta grátis'}
-            </button>
-          </form>
+              variant="primary"
+              size="l"
+              fillWidth
+              loading={isSubmitting}
+              label={isSubmitting ? 'Criando conta...' : 'Criar conta grátis'}
+            />
+          </Column>
 
-          <p className="mt-4 text-xs text-gray-400 text-center">
+          <Text
+            variant="body-default-s"
+            onBackground="neutral-weak"
+            align="center"
+          >
             Ao criar uma conta, você concorda com nossos termos de uso.
-          </p>
-        </div>
-      </div>
-    </div>
+          </Text>
+        </Card>
+      </Column>
+    </Flex>
   )
 }

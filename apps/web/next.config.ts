@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  sassOptions: {
+    compiler: "modern" as any,
+    silenceDeprecations: ["legacy-js-api"],
+  },
   async headers() {
     return [
       {

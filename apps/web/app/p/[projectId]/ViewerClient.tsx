@@ -135,9 +135,9 @@ export default function ViewerClient({ projectId }: ViewerClientProps) {
         {/* Logo */}
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-md bg-indigo-500 flex items-center justify-center">
-            <span className="text-white font-bold text-xs">F</span>
+            <span className="text-white font-bold text-xs">Q</span>
           </div>
-          <span className="text-white font-semibold text-sm hidden sm:block">FeedbackView</span>
+          <span className="text-white font-semibold text-sm hidden sm:block">Qbug</span>
         </div>
 
         {/* Center: timer + status */}

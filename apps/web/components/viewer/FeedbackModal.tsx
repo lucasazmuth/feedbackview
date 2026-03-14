@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { X, ChevronDown, ChevronRight, Loader2, CheckCircle2 } from 'lucide-react'
+import { X, ChevronDown, Loader2, CheckCircle2 } from 'lucide-react'
 import { api } from '@/lib/api'
 
 // Trim rrweb events but always preserve the most recent full snapshot (type 2)
@@ -79,7 +79,8 @@ export default function FeedbackModal({
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
-  const [logsOpen, setLogsOpen] = useState(false)
+  const [networkLogsOpen, setNetworkLogsOpen] = useState(false)
+  const [consoleLogsOpen, setConsoleLogsOpen] = useState(false)
   const [commentError, setCommentError] = useState<string | null>(null)
 
   // Drawing state
@@ -371,32 +372,77 @@ export default function FeedbackModal({
                 </div>
               )}
 
-              {/* Captured logs accordion */}
-              <div className="border border-gray-200 rounded-xl overflow-hidden">
-                <button
-                  onClick={() => setLogsOpen(!logsOpen)}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
-                >
-                  <span className="text-sm font-medium text-gray-700">
-                    Logs capturados
-                    <span className="ml-2 text-xs text-gray-500">
-                      {consoleLogs.length} console · {networkLogs.length} rede · {rrwebEvents.length} eventos
+              {/* Network Logs */}
+              {networkLogs.length > 0 && (
+                <div className="border border-gray-200 rounded-xl overflow-hidden">
+                  <button
+                    onClick={() => setNetworkLogsOpen(!networkLogsOpen)}
+                    className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                  >
+                    <span className="text-sm font-medium text-gray-700">
+                      Network Logs ({networkLogs.length})
                     </span>
-                  </span>
-                  {logsOpen ? (
-                    <ChevronDown className="w-4 h-4 text-gray-400" />
-                  ) : (
-                    <ChevronRight className="w-4 h-4 text-gray-400" />
+                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${networkLogsOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {networkLogsOpen && (
+                    <div className="max-h-48 overflow-y-auto">
+                      {networkLogs.map((log, i) => (
+                        <div key={i} className="flex items-center gap-2 px-4 py-1.5 border-t border-gray-100">
+                          <span className={`shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                            log.status && log.status >= 400 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                          }`}>
+                            {log.status ?? '-'}
+                          </span>
+                          <span className="shrink-0 font-mono text-[11px] font-bold text-gray-700">{log.method}</span>
+                          <span className="font-mono text-[11px] text-gray-500 truncate flex-1 min-w-0" title={log.url}>{log.url}</span>
+                          {log.duration != null && (
+                            <span className="shrink-0 font-mono text-[11px] text-gray-400">{log.duration}ms</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   )}
-                </button>
-                {logsOpen && (
-                  <div className="p-3 bg-white text-xs text-gray-500 space-y-1">
-                    <p>{consoleLogs.length} log(s) de console</p>
-                    <p>{networkLogs.length} requisição(ões) de rede</p>
-                    <p>{rrwebEvents.length} evento(s) de session replay</p>
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
+
+              {/* Console Logs */}
+              {consoleLogs.length > 0 && (
+                <div className="border border-gray-200 rounded-xl overflow-hidden">
+                  <button
+                    onClick={() => setConsoleLogsOpen(!consoleLogsOpen)}
+                    className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                  >
+                    <span className="text-sm font-medium text-gray-700">
+                      Console Logs ({consoleLogs.length})
+                    </span>
+                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${consoleLogsOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {consoleLogsOpen && (
+                    <div className="max-h-48 overflow-y-auto">
+                      {consoleLogs.map((log, i) => {
+                        const level = log.level?.toUpperCase() ?? 'LOG'
+                        const colors = level === 'ERROR' ? 'bg-red-100 text-red-700' : level === 'WARN' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700'
+                        return (
+                          <div key={i} className="flex items-start gap-2 px-4 py-1.5 border-t border-gray-100">
+                            <span className={`shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold ${colors}`}>
+                              {level}
+                            </span>
+                            <span className="font-mono text-[11px] text-gray-500 break-words flex-1 min-w-0">{log.message}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Session replay events summary */}
+              {rrwebEvents.length > 0 && (
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl">
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-700">{rrwebEvents.length}</span>
+                  <span className="text-xs text-gray-500">eventos de session replay capturados</span>
+                </div>
+              )}
 
               {/* Submit error */}
               {submitError && (
