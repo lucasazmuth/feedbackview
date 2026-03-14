@@ -30,8 +30,10 @@ export default function SessionReplay({ events }: SessionReplayProps) {
         const origHeight = metaEvent?.data?.height || 720
 
         // Scale to fit container width, preserving original aspect ratio
+        // Cap height at 500px
         const width = wrapperRef.current.clientWidth
-        const height = Math.round(width * origHeight / origWidth)
+        const rawHeight = Math.round(width * origHeight / origWidth)
+        const height = Math.min(rawHeight, 500)
 
         // Clear previous player
         containerRef.current.innerHTML = ''

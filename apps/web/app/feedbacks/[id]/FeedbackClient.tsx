@@ -158,10 +158,16 @@ export default function FeedbackClient({
             {/* Session Replay — hero position */}
             {feedback.metadata?.rrwebEvents && feedback.metadata.rrwebEvents.length > 0 && (
               <div>
-                <h2 className="text-sm font-medium text-gray-700 mb-2">Session Replay</h2>
+                <h2 className="text-sm font-medium text-gray-700 mb-2">Feedback</h2>
                 <SessionReplay events={feedback.metadata.rrwebEvents} />
               </div>
             )}
+
+            {/* Comment */}
+            <div className="bg-white rounded-xl border border-gray-200 p-5">
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Comentário</h3>
+              <p className="text-gray-800 text-sm leading-relaxed">{feedback.comment}</p>
+            </div>
 
             {/* Screenshot (inside accordion) */}
             <AccordionSection title="Screenshot">
@@ -177,12 +183,6 @@ export default function FeedbackClient({
                 </div>
               )}
             </AccordionSection>
-
-            {/* Comment */}
-            <div className="bg-white rounded-xl border border-gray-200 p-5">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Comentário</h3>
-              <p className="text-gray-800 text-sm leading-relaxed">{feedback.comment}</p>
-            </div>
 
             {/* Console logs accordion */}
             <AccordionSection title="Console Logs" count={consoleLogs.length}>
