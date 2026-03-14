@@ -1,10 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { ArrowLeft, ChevronDown, ChevronRight, Monitor, Globe, Clock, AlertCircle } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { api } from '@/lib/api'
+
+const SessionReplay = dynamic(() => import('@/components/viewer/SessionReplay'), { ssr: false })
 
 interface NetworkLog {
   method: string
@@ -33,6 +36,7 @@ interface Feedback {
   projectId: string
   consoleLogs?: ConsoleLog[]
   networkLogs?: NetworkLog[]
+  metadata?: { rrwebEvents?: any[] } | null
 }
 
 interface FeedbackClientProps {
@@ -226,23 +230,9 @@ export default function FeedbackClient({
             </AccordionSection>
 
             {/* rrweb replay section */}
-            {feedback.replayUrl && (
-              <AccordionSection title="Session Replay">
-                <div className="bg-indigo-50 rounded-lg p-4 text-center">
-                  <p className="text-sm text-indigo-700 font-medium mb-1">Replay disponível</p>
-                  <p className="text-xs text-indigo-500 mb-3">
-                    O player rrweb requer carregamento no lado do cliente.
-                  </p>
-                  <a
-                    href={feedback.replayUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:underline font-medium"
-                  >
-                    <Globe className="w-3 h-3" />
-                    Ver dados raw do replay
-                  </a>
-                </div>
+            {feedback.metadata?.rrwebEvents && feedback.metadata.rrwebEvents.length > 0 && (
+              <AccordionSection title="Session Replay" count={feedback.metadata.rrwebEvents.length}>
+                <SessionReplay events={feedback.metadata.rrwebEvents} />
               </AccordionSection>
             )}
           </div>
