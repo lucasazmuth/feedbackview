@@ -154,38 +154,30 @@ function rewriteJs(js: string, proxyBase: string): string {
 
 function injectTracker(html: string, projectId: string): string {
   const proxyPath = `/proxy/${projectId}`
-  // Override History API so SPA routers see "/" instead of "/proxy/:id/"
-  const historyOverride = `<script>
+  // Must run BEFORE any other script so SPA router sees "/"
+  const routerFix = `<script>
 (function(){
   var base = "${proxyPath}";
-  // Override pushState/replaceState to prepend proxy base
-  var origPush = history.pushState.bind(history);
-  var origReplace = history.replaceState.bind(history);
-  history.pushState = function(s,t,u){
-    if(u && typeof u==='string' && u.startsWith('/') && !u.startsWith(base)){
-      u = base + u;
-    }
-    return origPush(s,t,u);
-  };
-  history.replaceState = function(s,t,u){
-    if(u && typeof u==='string' && u.startsWith('/') && !u.startsWith(base)){
-      u = base + u;
-    }
-    return origReplace(s,t,u);
-  };
-  // Make location.pathname appear as "/" to the SPA
-  if(window.location.pathname.startsWith(base)){
-    origReplace(null,'',base+'/');
+  // Immediately rewrite URL to "/" so SPA router initializes on root
+  var p = window.location.pathname;
+  if(p.startsWith(base)){
+    var newPath = p.slice(base.length) || '/';
+    window.history.replaceState(null, '', newPath + window.location.search + window.location.hash);
   }
+  // Intercept future navigations to add proxy prefix back for server requests
+  var origPush = window.history.pushState.bind(window.history);
+  var origReplace = window.history.replaceState.bind(window.history);
+  window.history.pushState = function(s,t,u){ return origPush(s,t,u); };
+  window.history.replaceState = function(s,t,u){ return origReplace(s,t,u); };
 })();
 </script>`
   const trackerScript = `<script src="${TRACKER_URL}" data-project="${projectId}" data-proxy-base="${PROXY_BASE}/proxy/${projectId}"></script>`
-  const inject = historyOverride + trackerScript
-  if (html.includes('</head>')) {
-    return html.replace('</head>', `${inject}\n</head>`)
+  // Inject router fix at the very top of <head> (before other scripts)
+  if (html.includes('<head>')) {
+    return html.replace('<head>', `<head>${routerFix}${trackerScript}`)
   }
-  if (html.includes('<body')) {
-    return html.replace('<body', `${inject}<body`)
+  if (html.includes('<head ')) {
+    return html.replace(/<head([^>]*)>/, `<head$1>${routerFix}${trackerScript}`)
   }
-  return inject + html
+  return routerFix + trackerScript + html
 }

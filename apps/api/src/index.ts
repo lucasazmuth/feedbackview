@@ -17,7 +17,15 @@ app.setErrorHandler((error, _request, reply) => {
 })
 
 app.register(cors, {
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: (origin, cb) => {
+    const allowed = process.env.FRONTEND_URL || 'http://localhost:3000'
+    // Allow main domain, Vercel preview deploys, and no-origin requests
+    if (!origin || origin === allowed || origin.endsWith('.vercel.app')) {
+      cb(null, true)
+    } else {
+      cb(null, false)
+    }
+  },
   credentials: true,
 })
 
