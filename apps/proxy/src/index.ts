@@ -62,15 +62,18 @@ app.get('/tracker.js', async (_request, reply) => {
 
 // Fallback: handle requests like /assets/... that come from proxied pages.
 // The JS bundle loads images with absolute paths like /assets/image.jpg
-// which miss the /proxy/:projectId/ prefix. Use Referer to find the project.
+// which miss the /proxy/:projectId/ prefix.
+// Try Referer first, then fall back to __fv_pid cookie (set when serving HTML).
+// The cookie fallback is needed because routerFix uses replaceState to remove
+// /proxy/ID from the URL, so Referer no longer contains the project ID.
 app.setNotFoundHandler(async (request, reply) => {
   const referer = request.headers.referer || ''
-  const match = referer.match(/\/proxy\/([^/]+)/)
-  if (!match) {
+  const refMatch = referer.match(/\/proxy\/([^/]+)/)
+  const cookieMatch = (request.headers.cookie || '').match(/__fv_pid=([^;]+)/)
+  const projectId = refMatch?.[1] || cookieMatch?.[1]
+  if (!projectId) {
     return reply.code(404).send({ error: 'Not found' })
   }
-
-  const projectId = match[1]
   const targetUrl = await getTargetUrl(projectId)
   if (!targetUrl) {
     return reply.code(404).send({ error: 'Project not found' })

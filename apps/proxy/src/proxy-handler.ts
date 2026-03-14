@@ -94,6 +94,8 @@ export async function createProxyHandler(
     let html = await decodeResponse(res)
     html = rewriteHtml(html, proxyBase, projectId)
     html = injectTracker(html, projectId)
+    // Set cookie so the notFoundHandler can resolve assets after replaceState removes /proxy/ID from URL
+    reply.header('Set-Cookie', `__fv_pid=${projectId}; Path=/; SameSite=None; Secure`)
     return reply.type('text/html').send(html)
   }
 
