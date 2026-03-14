@@ -153,12 +153,39 @@ function rewriteJs(js: string, proxyBase: string): string {
 }
 
 function injectTracker(html: string, projectId: string): string {
+  const proxyPath = `/proxy/${projectId}`
+  // Override History API so SPA routers see "/" instead of "/proxy/:id/"
+  const historyOverride = `<script>
+(function(){
+  var base = "${proxyPath}";
+  // Override pushState/replaceState to prepend proxy base
+  var origPush = history.pushState.bind(history);
+  var origReplace = history.replaceState.bind(history);
+  history.pushState = function(s,t,u){
+    if(u && typeof u==='string' && u.startsWith('/') && !u.startsWith(base)){
+      u = base + u;
+    }
+    return origPush(s,t,u);
+  };
+  history.replaceState = function(s,t,u){
+    if(u && typeof u==='string' && u.startsWith('/') && !u.startsWith(base)){
+      u = base + u;
+    }
+    return origReplace(s,t,u);
+  };
+  // Make location.pathname appear as "/" to the SPA
+  if(window.location.pathname.startsWith(base)){
+    origReplace(null,'',base+'/');
+  }
+})();
+</script>`
   const trackerScript = `<script src="${TRACKER_URL}" data-project="${projectId}" data-proxy-base="${PROXY_BASE}/proxy/${projectId}"></script>`
+  const inject = historyOverride + trackerScript
   if (html.includes('</head>')) {
-    return html.replace('</head>', `${trackerScript}\n</head>`)
+    return html.replace('</head>', `${inject}\n</head>`)
   }
   if (html.includes('<body')) {
-    return html.replace('<body', `${trackerScript}<body`)
+    return html.replace('<body', `${inject}<body`)
   }
-  return trackerScript + html
+  return inject + html
 }
