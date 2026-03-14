@@ -4,6 +4,21 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { X, ChevronDown, ChevronRight, Loader2, CheckCircle2 } from 'lucide-react'
 import { api } from '@/lib/api'
 
+// Trim rrweb events but always preserve the most recent full snapshot (type 2)
+function trimRrwebForSubmit(events: RRWebEvent[], max: number): RRWebEvent[] {
+  if (events.length <= max) return events
+  let lastSnapshotIdx = -1
+  for (let i = events.length - 1; i >= 0; i--) {
+    if (events[i].type === 2) {
+      lastSnapshotIdx = i
+      break
+    }
+  }
+  if (lastSnapshotIdx > 0) {
+    return events.slice(lastSnapshotIdx)
+  }
+  return events.slice(-max)
+}
 
 interface ConsoleLog {
   level: string
@@ -200,7 +215,7 @@ export default function FeedbackModal({
         comment: comment.trim(),
         consoleLogs,
         networkLogs,
-        rrwebEvents: rrwebEvents.slice(-200), // limit payload size
+        rrwebEvents: trimRrwebForSubmit(rrwebEvents, 200),
       }
       if (type === 'BUG') payload.severity = severity
       if (finalScreenshot) payload.screenshotBase64 = finalScreenshot

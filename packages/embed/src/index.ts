@@ -99,11 +99,32 @@ function maskPasswordFields() {
 }
 
 // rrweb session recording
+// rrweb event type 2 = FullSnapshot — must always be preserved for replay to work.
+// When trimming, find the last full snapshot and discard everything before it (up to limit).
+function trimRrwebEvents() {
+  if (rrwebEvents.length <= MAX_RRWEB_EVENTS) return
+  // Find index of most recent full snapshot (type 2)
+  let lastSnapshotIdx = -1
+  for (let i = rrwebEvents.length - 1; i >= 0; i--) {
+    if (rrwebEvents[i].type === 2) {
+      lastSnapshotIdx = i
+      break
+    }
+  }
+  if (lastSnapshotIdx > 0) {
+    // Keep from the last snapshot onward
+    rrwebEvents.splice(0, lastSnapshotIdx)
+  } else {
+    // No snapshot found or it's already at 0 — just trim oldest
+    rrwebEvents.splice(0, rrwebEvents.length - MAX_RRWEB_EVENTS)
+  }
+}
+
 function startRecording() {
   record({
     emit(event) {
       rrwebEvents.push(event as RRWebEvent)
-      if (rrwebEvents.length > MAX_RRWEB_EVENTS) rrwebEvents.shift()
+      trimRrwebEvents()
     },
     maskInputOptions: { password: true },
     blockClass: 'feedback-ignore',
