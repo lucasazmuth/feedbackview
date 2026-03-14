@@ -10,6 +10,7 @@ import { createClient } from '@/lib/supabase/client'
 import {
   Flex,
   Column,
+  Row,
   Heading,
   Text,
   Input,
@@ -17,11 +18,17 @@ import {
   Button,
   Card,
   Feedback,
+  Logo,
+  Select,
 } from '@once-ui-system/core'
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
-  email: z.string().email('E-mail inválido'),
+  email: z.string().email('E-mail invalido'),
+  company: z.string().min(2, 'Nome da empresa deve ter pelo menos 2 caracteres'),
+  phone: z.string().min(14, 'Telefone invalido').max(15, 'Telefone invalido'),
+  cep: z.string().length(9, 'CEP invalido'),
+  teamSize: z.string().min(1, 'Selecione o tamanho da equipe'),
   password: z.string().min(8, 'Senha deve ter pelo menos 8 caracteres'),
 })
 
@@ -34,10 +41,24 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
   })
+
+  function maskPhone(value: string) {
+    const digits = value.replace(/\D/g, '').slice(0, 11)
+    if (digits.length <= 2) return `(${digits}`
+    if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
+  }
+
+  function maskCep(value: string) {
+    const digits = value.replace(/\D/g, '').slice(0, 8)
+    if (digits.length <= 5) return digits
+    return `${digits.slice(0, 5)}-${digits.slice(5)}`
+  }
 
   async function onSubmit(data: RegisterForm) {
     setServerError(null)
@@ -47,7 +68,13 @@ export default function RegisterPage() {
         email: data.email,
         password: data.password,
         options: {
-          data: { name: data.name },
+          data: {
+            name: data.name,
+            company: data.company,
+            phone: data.phone.replace(/\D/g, ''),
+            cep: data.cep.replace(/\D/g, ''),
+            team_size: data.teamSize,
+          },
         },
       })
 
@@ -59,48 +86,110 @@ export default function RegisterPage() {
       router.push('/dashboard')
       router.refresh()
     } catch {
-      setServerError('Erro de conexão. Verifique sua internet.')
+      setServerError('Erro de conexao. Verifique sua internet.')
     }
   }
 
   return (
-    <Flex fillWidth minHeight="100vh" horizontal="center" vertical="center" padding="m">
-      <Column maxWidth={28} gap="l" fillWidth>
-        {/* Logo */}
-        <Column horizontal="center" gap="4">
-          <Flex horizontal="center" vertical="center" gap="8">
-            <Flex
-              horizontal="center"
-              vertical="center"
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                background: 'var(--brand-strong)',
-                color: 'var(--static-white)',
-                fontWeight: 700,
-                fontSize: 14,
-              }}
-            >
+    <Flex fillWidth style={{ minHeight: '100vh' }}>
+      {/* Left branding panel */}
+      <Flex
+        style={{
+          flex: 1,
+          background: 'var(--brand-solid-strong)',
+          position: 'sticky',
+          top: 0,
+          height: '100vh',
+          overflow: 'hidden',
+        }}
+        className="auth-brand-panel"
+      >
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'radial-gradient(circle at 30% 70%, rgba(255,255,255,0.08) 0%, transparent 60%), radial-gradient(circle at 70% 20%, rgba(255,255,255,0.05) 0%, transparent 50%)',
+        }} />
+        <Column
+          fillWidth
+          gap="xl"
+          padding="xl"
+          horizontal="start"
+          vertical="center"
+          style={{ position: 'relative', zIndex: 1 }}
+        >
+          <Row gap="s" vertical="center">
+            <div style={{
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              background: 'rgba(255,255,255,0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#fff',
+              fontWeight: 800,
+              fontSize: 18,
+            }}>
               Q
-            </Flex>
-            <Text variant="heading-strong-m">Qbug</Text>
-          </Flex>
-          <Text variant="body-default-s" onBackground="neutral-weak">
-            QA com captura em tempo real
-          </Text>
-        </Column>
+            </div>
+            <span style={{ color: '#fff', fontWeight: 700, fontSize: '1.25rem' }}>Qbug</span>
+          </Row>
 
-        <Card padding="l" radius="l" direction="column" gap="m">
-          <Column gap="4">
-            <Heading variant="heading-strong-l" as="h1">
-              Criar conta
-            </Heading>
+          <Column gap="m" style={{ maxWidth: '24rem' }}>
+            <h2 style={{ color: '#fff', fontSize: '2rem', fontWeight: 700, lineHeight: 1.2, margin: 0 }}>
+              Comece a capturar bugs hoje
+            </h2>
+            <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '1rem', lineHeight: 1.6, margin: 0 }}>
+              Configure em menos de 1 minuto. Sem cartao de credito.
+            </p>
+          </Column>
+
+          <Column gap="m" style={{ maxWidth: '22rem' }}>
+            {[
+              { svg: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>, text: 'Setup em 1 minuto' },
+              { svg: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>, text: 'Gratis para comecar' },
+              { svg: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>, text: 'Convide toda sua equipe' },
+            ].map((item) => (
+              <Row key={item.text} gap="s" vertical="center">
+                <div style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  background: 'rgba(255,255,255,0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}>
+                  {item.svg}
+                </div>
+                <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.875rem' }}>{item.text}</span>
+              </Row>
+            ))}
+          </Column>
+        </Column>
+      </Flex>
+
+      {/* Right form panel */}
+      <Flex
+        horizontal="center"
+        style={{ flex: 1, minWidth: 0, padding: '3rem 2rem 4rem' }}
+      >
+        <Column maxWidth={24} fillWidth gap="xl">
+          {/* Mobile logo */}
+          <Column horizontal="center" gap="4" className="auth-mobile-logo">
+            <Logo size="m" />
             <Text variant="body-default-s" onBackground="neutral-weak">
-              Já tem conta?{' '}
-              <Link href="/auth/login" style={{ color: 'var(--brand-strong)', fontWeight: 500 }}>
-                Entrar
-              </Link>
+              QA com captura em tempo real
+            </Text>
+          </Column>
+
+          <Column gap="4">
+            <Heading variant="display-strong-s" as="h1">
+              Criar sua conta
+            </Heading>
+            <Text variant="body-default-m" onBackground="neutral-weak">
+              Comece a capturar feedbacks em minutos
             </Text>
           </Column>
 
@@ -108,7 +197,7 @@ export default function RegisterPage() {
             <Feedback variant="danger">{serverError}</Feedback>
           )}
 
-          <Column as="form" gap="m" onSubmit={handleSubmit(onSubmit)}>
+          <Column as="form" gap="m" onSubmit={handleSubmit(onSubmit)} fillWidth>
             <Input
               id="name"
               label="Nome"
@@ -121,16 +210,70 @@ export default function RegisterPage() {
             <Input
               id="email"
               label="E-mail"
+              type="email"
               placeholder="voce@empresa.com"
               error={!!errors.email}
               errorMessage={errors.email?.message}
               {...register('email')}
             />
 
+            <Input
+              id="company"
+              label="Nome da empresa"
+              placeholder="Sua empresa"
+              error={!!errors.company}
+              errorMessage={errors.company?.message}
+              {...register('company')}
+            />
+
+            <Row gap="m" fillWidth>
+              <Input
+                id="phone"
+                label="Telefone"
+                type="tel"
+                placeholder="(11) 99999-9999"
+                error={!!errors.phone}
+                errorMessage={errors.phone?.message}
+                {...register('phone', {
+                  onChange: (e) => {
+                    const formatted = maskPhone(e.target.value)
+                    setValue('phone', formatted, { shouldValidate: false })
+                  },
+                })}
+              />
+              <Input
+                id="cep"
+                label="CEP"
+                placeholder="00000-000"
+                error={!!errors.cep}
+                errorMessage={errors.cep?.message}
+                {...register('cep', {
+                  onChange: (e) => {
+                    const formatted = maskCep(e.target.value)
+                    setValue('cep', formatted, { shouldValidate: false })
+                  },
+                })}
+              />
+            </Row>
+
+            <Select
+              id="teamSize"
+              label="Tamanho da equipe"
+              options={[
+                { value: '1-5', label: '1 a 5 pessoas' },
+                { value: '6-20', label: '6 a 20 pessoas' },
+                { value: '21-50', label: '21 a 50 pessoas' },
+                { value: '51+', label: 'Mais de 50 pessoas' },
+              ]}
+              error={!!errors.teamSize}
+              errorMessage={errors.teamSize?.message}
+              {...register('teamSize')}
+            />
+
             <PasswordInput
               id="password"
               label="Senha"
-              placeholder="Mínimo 8 caracteres"
+              placeholder="Minimo 8 caracteres"
               error={!!errors.password}
               errorMessage={errors.password?.message}
               {...register('password')}
@@ -142,19 +285,22 @@ export default function RegisterPage() {
               size="l"
               fillWidth
               loading={isSubmitting}
-              label={isSubmitting ? 'Criando conta...' : 'Criar conta grátis'}
+              label={isSubmitting ? 'Criando conta...' : 'Criar conta gratis'}
             />
           </Column>
 
-          <Text
-            variant="body-default-s"
-            onBackground="neutral-weak"
-            align="center"
-          >
-            Ao criar uma conta, você concorda com nossos termos de uso.
+          <Text variant="body-default-xs" onBackground="neutral-weak" align="center">
+            Ao criar uma conta, voce concorda com nossos termos de uso.
           </Text>
-        </Card>
-      </Column>
+
+          <Text variant="body-default-s" onBackground="neutral-weak" align="center">
+            Ja tem conta?{' '}
+            <Link href="/auth/login" style={{ color: 'var(--brand-on-background-strong)', fontWeight: 600, textDecoration: 'none' }}>
+              Entrar
+            </Link>
+          </Text>
+        </Column>
+      </Flex>
     </Flex>
   )
 }

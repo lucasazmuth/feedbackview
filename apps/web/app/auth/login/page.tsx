@@ -10,19 +10,20 @@ import { createClient } from '@/lib/supabase/client'
 import {
   Flex,
   Column,
+  Row,
   Heading,
   Text,
   Input,
   PasswordInput,
   Button,
-  Logo,
   Card,
   Feedback,
   Spinner,
+  Logo,
 } from '@once-ui-system/core'
 
 const loginSchema = z.object({
-  email: z.string().email('E-mail inválido'),
+  email: z.string().email('E-mail invalido'),
   password: z.string().min(8, 'Senha deve ter pelo menos 8 caracteres'),
 })
 
@@ -50,44 +51,113 @@ function LoginFormContent() {
       password: data.password,
     })
     if (error) {
-      setServerError('E-mail ou senha inválidos.')
+      setServerError('E-mail ou senha invalidos.')
     } else {
       router.push(callbackUrl)
       router.refresh()
     }
   }
 
-  async function handleGoogle() {
-    const supabase = createClient()
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(callbackUrl)}`,
-      },
-    })
-  }
-
   return (
-    <Flex fillWidth minHeight="100vh" horizontal="center" vertical="center" padding="m">
-      <Column maxWidth={28} fillWidth gap="l">
-        {/* Logo */}
-        <Column horizontal="center" gap="4">
-          <Logo size="m" />
-          <Text variant="body-default-s" onBackground="neutral-weak">
-            QA com captura em tempo real
-          </Text>
-        </Column>
+    <Flex fillWidth style={{ minHeight: '100vh' }}>
+      {/* Left branding panel */}
+      <Flex
+        style={{
+          flex: 1,
+          background: 'var(--brand-solid-strong)',
+          position: 'sticky',
+          top: 0,
+          height: '100vh',
+          overflow: 'hidden',
+        }}
+        className="auth-brand-panel"
+      >
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'radial-gradient(circle at 30% 70%, rgba(255,255,255,0.08) 0%, transparent 60%), radial-gradient(circle at 70% 20%, rgba(255,255,255,0.05) 0%, transparent 50%)',
+        }} />
+        <Column
+          fillWidth
+          gap="xl"
+          padding="xl"
+          horizontal="start"
+          vertical="center"
+          style={{ position: 'relative', zIndex: 1 }}
+        >
+          <Row gap="s" vertical="center">
+            <div style={{
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              background: 'rgba(255,255,255,0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#fff',
+              fontWeight: 800,
+              fontSize: 18,
+            }}>
+              Q
+            </div>
+            <span style={{ color: '#fff', fontWeight: 700, fontSize: '1.25rem' }}>Qbug</span>
+          </Row>
 
-        <Card padding="l" gap="l" direction="column">
-          <Column gap="4">
-            <Heading variant="heading-strong-l" as="h1">
-              Entrar
-            </Heading>
+          <Column gap="m" style={{ maxWidth: '24rem' }}>
+            <h2 style={{ color: '#fff', fontSize: '2rem', fontWeight: 700, lineHeight: 1.2, margin: 0 }}>
+              QA com captura em tempo real
+            </h2>
+            <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '1rem', lineHeight: 1.6, margin: 0 }}>
+              Screenshot, session replay e logs capturados automaticamente em cada feedback.
+            </p>
+          </Column>
+
+          <Column gap="m" style={{ maxWidth: '22rem' }}>
+            {[
+              { svg: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg>, text: 'Session replay completo' },
+              { svg: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>, text: 'Screenshot com anotacoes' },
+              { svg: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></svg>, text: 'Console e network logs' },
+            ].map((item) => (
+              <Row key={item.text} gap="s" vertical="center">
+                <div style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  background: 'rgba(255,255,255,0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}>
+                  {item.svg}
+                </div>
+                <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.875rem' }}>{item.text}</span>
+              </Row>
+            ))}
+          </Column>
+        </Column>
+      </Flex>
+
+      {/* Right form panel */}
+      <Flex
+        horizontal="center"
+        style={{ flex: 1, minWidth: 0, overflowY: 'auto', maxHeight: '100vh', padding: '3rem 2rem' }}
+      >
+        <Column maxWidth={24} fillWidth gap="xl">
+          {/* Mobile logo */}
+          <Column horizontal="center" gap="4" className="auth-mobile-logo">
+            <Logo size="m" />
             <Text variant="body-default-s" onBackground="neutral-weak">
-              Não tem conta?{' '}
-              <Link href="/auth/register">
-                Criar conta
-              </Link>
+              QA com captura em tempo real
+            </Text>
+          </Column>
+
+          <Column gap="4">
+            <Heading variant="display-strong-s" as="h1">
+              Bem-vindo de volta
+            </Heading>
+            <Text variant="body-default-m" onBackground="neutral-weak">
+              Entre na sua conta para continuar
             </Text>
           </Column>
 
@@ -125,24 +195,14 @@ function LoginFormContent() {
             />
           </Column>
 
-          <Flex fillWidth horizontal="center" gap="m" vertical="center">
-            <Flex style={{ flex: 1, height: 1, background: 'var(--neutral-border-medium)' }} />
-            <Text variant="body-default-s" onBackground="neutral-weak">
-              ou continue com
-            </Text>
-            <Flex style={{ flex: 1, height: 1, background: 'var(--neutral-border-medium)' }} />
-          </Flex>
-
-          <Button
-            variant="secondary"
-            size="l"
-            fillWidth
-            label="Google"
-            prefixIcon="google"
-            onClick={handleGoogle}
-          />
-        </Card>
-      </Column>
+          <Text variant="body-default-s" onBackground="neutral-weak" align="center">
+            Nao tem conta?{' '}
+            <Link href="/auth/register" style={{ color: 'var(--brand-on-background-strong)', fontWeight: 600, textDecoration: 'none' }}>
+              Criar conta gratis
+            </Link>
+          </Text>
+        </Column>
+      </Flex>
     </Flex>
   )
 }
