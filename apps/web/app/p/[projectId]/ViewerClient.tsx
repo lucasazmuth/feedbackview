@@ -28,6 +28,7 @@ interface RRWebEvent {
 
 interface ViewerClientProps {
   projectId: string
+  widgetColor?: string
 }
 
 function formatTime(seconds: number): string {
@@ -37,7 +38,7 @@ function formatTime(seconds: number): string {
   return [h, m, s].map((v) => String(v).padStart(2, '0')).join(':')
 }
 
-export default function ViewerClient({ projectId }: ViewerClientProps) {
+export default function ViewerClient({ projectId, widgetColor = '#4f46e5' }: ViewerClientProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [errorCount, setErrorCount] = useState(0)
@@ -172,7 +173,8 @@ export default function ViewerClient({ projectId }: ViewerClientProps) {
             iframeRef.current?.contentWindow?.postMessage({ type: 'CAPTURE_SCREENSHOT' }, '*')
             setModalOpen(true)
           }}
-          className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
+          className="px-3 py-1.5 text-white text-sm font-medium rounded-lg transition-colors"
+          style={{ background: widgetColor }}
         >
           Enviar Feedback
         </button>

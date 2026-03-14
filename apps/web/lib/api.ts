@@ -24,7 +24,7 @@ export const api = {
       return project
     },
 
-    async update(id: string, data: { name?: string; description?: string; targetUrl?: string }) {
+    async update(id: string, data: { name?: string; description?: string; targetUrl?: string; widgetPosition?: string; widgetColor?: string }) {
       const supabase = createClient()
       const { error } = await supabase
         .from('Project')

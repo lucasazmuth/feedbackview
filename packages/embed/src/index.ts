@@ -13,6 +13,17 @@ if (!PROJECT_ID) {
   console.warn('[FeedbackView] Missing data-project attribute on embed script.')
 }
 
+// ─── Widget config (fetched from server) ────────────────────────────────────
+interface WidgetConfig {
+  widgetPosition: string
+  widgetColor: string
+}
+
+const DEFAULT_CONFIG: WidgetConfig = {
+  widgetPosition: 'bottom-right',
+  widgetColor: '#4f46e5',
+}
+
 // ─── Data collection ─────────────────────────────────────────────────────────
 interface ConsoleLog { level: string; args: unknown[]; timestamp: number }
 interface NetworkLog { method: string; url: string; status: number; duration: number }
@@ -175,8 +186,60 @@ function safeSerialize(val: unknown): unknown {
   }
 }
 
+// ─── Fetch widget config from server ────────────────────────────────────────
+async function fetchConfig(): Promise<WidgetConfig> {
+  if (!PROJECT_ID || !API_BASE) return DEFAULT_CONFIG
+  try {
+    const res = await originalFetch(`${API_BASE}/api/projects/${PROJECT_ID}/config`)
+    if (!res.ok) return DEFAULT_CONFIG
+    const data = await res.json()
+    return {
+      widgetPosition: data.widgetPosition || DEFAULT_CONFIG.widgetPosition,
+      widgetColor: data.widgetColor && /^#[0-9a-fA-F]{6}$/.test(data.widgetColor) ? data.widgetColor : DEFAULT_CONFIG.widgetColor,
+    }
+  } catch {
+    return DEFAULT_CONFIG
+  }
+}
+
+// ─── Position helpers ───────────────────────────────────────────────────────
+function getPositionCSS(position: string) {
+  switch (position) {
+    case 'top-left': return 'top: 24px; left: 24px;'
+    case 'top-right': return 'top: 24px; right: 24px;'
+    case 'bottom-left': return 'bottom: 24px; left: 24px;'
+    default: return 'bottom: 24px; right: 24px;'
+  }
+}
+
+function getPanelSide(position: string) {
+  return position.includes('left') ? 'left' : 'right'
+}
+
+// ─── Hex color to rgba helper ───────────────────────────────────────────────
+function hexToRgba(hex: string, alpha: number) {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
+function darkenHex(hex: string, amount: number) {
+  const r = Math.max(0, parseInt(hex.slice(1, 3), 16) - amount)
+  const g = Math.max(0, parseInt(hex.slice(3, 5), 16) - amount)
+  const b = Math.max(0, parseInt(hex.slice(5, 7), 16) - amount)
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
+}
+
+function lightenHex(hex: string, amount: number) {
+  const r = Math.min(255, parseInt(hex.slice(1, 3), 16) + amount)
+  const g = Math.min(255, parseInt(hex.slice(3, 5), 16) + amount)
+  const b = Math.min(255, parseInt(hex.slice(5, 7), 16) + amount)
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
+}
+
 // ─── Widget UI (Shadow DOM) ──────────────────────────────────────────────────
-function createWidget() {
+function createWidget(config: WidgetConfig) {
   const host = document.createElement('div')
   host.id = 'feedbackview-embed'
   host.classList.add('feedback-ignore')
@@ -184,22 +247,29 @@ function createWidget() {
 
   const shadow = host.attachShadow({ mode: 'closed' })
 
+  const color = config.widgetColor
+  const colorHover = darkenHex(color, 20)
+  const colorDisabled = lightenHex(color, 80)
+  const panelSide = getPanelSide(config.widgetPosition)
+  const panelSideOpposite = panelSide === 'left' ? 'right' : 'left'
+  const panelTransformHidden = panelSide === 'left' ? 'translateX(-100%)' : 'translateX(100%)'
+  const panelShadowDir = panelSide === 'left' ? '4px' : '-4px'
+
   const style = document.createElement('style')
   style.textContent = `
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
 
     .fv-trigger {
       position: fixed;
-      bottom: 24px;
-      right: 24px;
+      ${getPositionCSS(config.widgetPosition)}
       width: 56px;
       height: 56px;
       border-radius: 50%;
-      background: #4f46e5;
+      background: ${color};
       color: white;
       border: none;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+      box-shadow: 0 4px 12px ${hexToRgba(color, 0.4)};
       display: flex;
       align-items: center;
       justify-content: center;
@@ -208,7 +278,7 @@ function createWidget() {
     }
     .fv-trigger:hover {
       transform: scale(1.08);
-      box-shadow: 0 6px 20px rgba(79, 70, 229, 0.5);
+      box-shadow: 0 6px 20px ${hexToRgba(color, 0.5)};
     }
     .fv-trigger svg { width: 24px; height: 24px; }
 
@@ -224,17 +294,18 @@ function createWidget() {
 
     .fv-panel {
       position: fixed;
-      right: 0;
+      ${panelSide}: 0;
+      ${panelSideOpposite}: auto;
       top: 0;
       height: 100%;
-      width: 420px;
+      width: 520px;
       max-width: 100vw;
       background: #fff;
       z-index: 2147483647;
       display: flex;
       flex-direction: column;
-      box-shadow: -4px 0 24px rgba(0,0,0,0.15);
-      transform: translateX(100%);
+      box-shadow: ${panelShadowDir} 0 24px rgba(0,0,0,0.15);
+      transform: ${panelTransformHidden};
       transition: transform 0.3s ease;
     }
     .fv-panel.open { transform: translateX(0); }
@@ -266,37 +337,76 @@ function createWidget() {
     .fv-body {
       flex: 1;
       overflow-y: auto;
-      padding: 20px;
     }
 
-    .fv-screenshot {
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid #e5e7eb;
-      background: #f9fafb;
-      margin-bottom: 16px;
-      position: relative;
-    }
-    .fv-screenshot img {
-      width: 100%;
-      display: block;
-    }
-    .fv-screenshot-loading {
-      height: 160px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #9ca3af;
-      font-size: 13px;
+    .fv-screenshot-section {
+      padding: 20px;
+      border-bottom: 1px solid #f3f4f6;
     }
     .fv-screenshot-label {
       font-size: 13px;
       font-weight: 500;
       color: #374151;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
     }
+    .fv-screenshot-label .fv-hint {
+      font-size: 12px;
+      font-weight: 400;
+      color: #9ca3af;
+    }
+    .fv-screenshot {
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid #e5e7eb;
+      background: #f3f4f6;
+      position: relative;
+    }
+    .fv-screenshot canvas {
+      width: 100%;
+      display: block;
+    }
+    .fv-screenshot .fv-overlay-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      cursor: crosshair;
+    }
+    .fv-screenshot-loading {
+      height: 192px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: #9ca3af;
+      font-size: 13px;
+    }
+    .fv-screenshot-loading .fv-spin-icon {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #d1d5db;
+      border-top-color: #9ca3af;
+      border-radius: 50%;
+      animation: fv-spin 0.6s linear infinite;
+    }
+    .fv-clear-annotations {
+      margin-top: 8px;
+      background: none;
+      border: none;
+      font-size: 12px;
+      color: #ef4444;
+      cursor: pointer;
+      padding: 0;
+      font-family: inherit;
+    }
+    .fv-clear-annotations:hover { color: #b91c1c; }
 
-    .fv-field { margin-bottom: 16px; }
+    .fv-form-section {
+      padding: 20px;
+    }
+    .fv-form-section > * + * { margin-top: 16px; }
+
+    .fv-field {}
     .fv-label {
       display: block;
       font-size: 13px;
@@ -319,8 +429,8 @@ function createWidget() {
       color: #111827;
     }
     .fv-textarea:focus {
-      border-color: #4f46e5;
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+      border-color: ${color};
+      box-shadow: 0 0 0 3px ${hexToRgba(color, 0.1)};
     }
 
     .fv-select {
@@ -335,8 +445,8 @@ function createWidget() {
       cursor: pointer;
     }
     .fv-select:focus {
-      border-color: #4f46e5;
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+      border-color: ${color};
+      box-shadow: 0 0 0 3px ${hexToRgba(color, 0.1)};
     }
 
     .fv-error-msg {
@@ -415,7 +525,7 @@ function createWidget() {
     .fv-submit {
       width: 100%;
       padding: 10px 16px;
-      background: #4f46e5;
+      background: ${color};
       color: white;
       border: none;
       border-radius: 8px;
@@ -428,8 +538,8 @@ function createWidget() {
       justify-content: center;
       gap: 8px;
     }
-    .fv-submit:hover { background: #4338ca; }
-    .fv-submit:disabled { background: #a5b4fc; cursor: not-allowed; }
+    .fv-submit:hover { background: ${colorHover}; }
+    .fv-submit:disabled { background: ${colorDisabled}; cursor: not-allowed; }
 
     .fv-success {
       flex: 1;
@@ -493,6 +603,51 @@ function createWidget() {
   let isSubmitting = false
   let submitted = false
 
+  // Drawing annotation state
+  let baseCanvas: HTMLCanvasElement | null = null
+  let overlayCanvas: HTMLCanvasElement | null = null
+  let drawingRects: { x: number; y: number; w: number; h: number }[] = []
+  let isDrawing = false
+  let drawStartPos: { x: number; y: number } | null = null
+
+  function getCanvasPos(e: MouseEvent): { x: number; y: number } {
+    if (!overlayCanvas) return { x: 0, y: 0 }
+    const rect = overlayCanvas.getBoundingClientRect()
+    const scaleX = overlayCanvas.width / rect.width
+    const scaleY = overlayCanvas.height / rect.height
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY,
+    }
+  }
+
+  function redrawOverlay(currentRect?: { x: number; y: number; w: number; h: number }) {
+    if (!overlayCanvas) return
+    const ctx = overlayCanvas.getContext('2d')
+    if (!ctx) return
+    ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height)
+    ctx.strokeStyle = '#ef4444'
+    ctx.lineWidth = 3
+    ctx.fillStyle = 'rgba(239, 68, 68, 0.1)'
+    const allRects = [...drawingRects, ...(currentRect ? [currentRect] : [])]
+    allRects.forEach((r) => {
+      ctx.fillRect(r.x, r.y, r.w, r.h)
+      ctx.strokeRect(r.x, r.y, r.w, r.h)
+    })
+  }
+
+  function getFinalScreenshot(): string | null {
+    if (!baseCanvas) return screenshotUrl
+    const merged = document.createElement('canvas')
+    merged.width = baseCanvas.width
+    merged.height = baseCanvas.height
+    const ctx = merged.getContext('2d')
+    if (!ctx) return screenshotUrl
+    ctx.drawImage(baseCanvas, 0, 0)
+    if (overlayCanvas) ctx.drawImage(overlayCanvas, 0, 0)
+    return merged.toDataURL('image/jpeg', 0.85)
+  }
+
   // Icons
   const msgIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`
   const closeIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`
@@ -549,25 +704,101 @@ function createWidget() {
     body.className = 'fv-body'
     panel.appendChild(body)
 
-    // Screenshot
+    // ── Screenshot section ──
+    const ssSection = document.createElement('div')
+    ssSection.className = 'fv-screenshot-section'
+
     const ssLabel = document.createElement('div')
     ssLabel.className = 'fv-screenshot-label'
-    ssLabel.textContent = 'Screenshot'
-    body.appendChild(ssLabel)
+    ssLabel.innerHTML = 'Screenshot <span class="fv-hint">(arraste para destacar áreas)</span>'
+    ssSection.appendChild(ssLabel)
 
     const ssContainer = document.createElement('div')
     ssContainer.className = 'fv-screenshot'
     if (isCapturing) {
-      ssContainer.innerHTML = '<div class="fv-screenshot-loading">Capturando screenshot...</div>'
+      ssContainer.innerHTML = '<div class="fv-screenshot-loading"><div class="fv-spin-icon"></div><span>Capturando screenshot...</span></div>'
     } else if (screenshotUrl) {
-      const img = document.createElement('img')
+      // Base canvas
+      baseCanvas = document.createElement('canvas')
+      ssContainer.appendChild(baseCanvas)
+
+      // Overlay canvas for annotations
+      overlayCanvas = document.createElement('canvas')
+      overlayCanvas.className = 'fv-overlay-canvas'
+      ssContainer.appendChild(overlayCanvas)
+
+      // Load screenshot into base canvas
+      const img = new Image()
+      img.onload = () => {
+        if (!baseCanvas || !overlayCanvas) return
+        baseCanvas.width = img.naturalWidth
+        baseCanvas.height = img.naturalHeight
+        const ctx = baseCanvas.getContext('2d')
+        if (ctx) ctx.drawImage(img, 0, 0)
+        overlayCanvas.width = img.naturalWidth
+        overlayCanvas.height = img.naturalHeight
+        // Redraw any existing annotations
+        redrawOverlay()
+      }
       img.src = screenshotUrl
-      img.alt = 'Screenshot'
-      ssContainer.appendChild(img)
+
+      // Mouse events for drawing
+      overlayCanvas.addEventListener('mousedown', (e: MouseEvent) => {
+        isDrawing = true
+        drawStartPos = getCanvasPos(e)
+      })
+      overlayCanvas.addEventListener('mousemove', (e: MouseEvent) => {
+        if (!isDrawing || !drawStartPos) return
+        const pos = getCanvasPos(e)
+        const currentRect = {
+          x: Math.min(drawStartPos.x, pos.x),
+          y: Math.min(drawStartPos.y, pos.y),
+          w: Math.abs(pos.x - drawStartPos.x),
+          h: Math.abs(pos.y - drawStartPos.y),
+        }
+        redrawOverlay(currentRect)
+      })
+      overlayCanvas.addEventListener('mouseup', (e: MouseEvent) => {
+        if (!isDrawing || !drawStartPos) return
+        const pos = getCanvasPos(e)
+        const newRect = {
+          x: Math.min(drawStartPos.x, pos.x),
+          y: Math.min(drawStartPos.y, pos.y),
+          w: Math.abs(pos.x - drawStartPos.x),
+          h: Math.abs(pos.y - drawStartPos.y),
+        }
+        if (newRect.w > 5 && newRect.h > 5) {
+          drawingRects.push(newRect)
+          redrawOverlay()
+          // Update clear button visibility
+          const clearBtn = ssSection.querySelector('.fv-clear-annotations') as HTMLElement
+          if (clearBtn) clearBtn.style.display = 'inline'
+        }
+        isDrawing = false
+        drawStartPos = null
+      })
     } else {
-      ssContainer.innerHTML = '<div class="fv-screenshot-loading">Screenshot não disponível</div>'
+      ssContainer.innerHTML = '<div class="fv-screenshot-loading"><span>Screenshot não disponível</span></div>'
     }
-    body.appendChild(ssContainer)
+    ssSection.appendChild(ssContainer)
+
+    // Clear annotations button
+    const clearBtn = document.createElement('button')
+    clearBtn.className = 'fv-clear-annotations'
+    clearBtn.style.display = drawingRects.length > 0 ? 'inline' : 'none'
+    clearBtn.textContent = `Limpar marcações (${drawingRects.length})`
+    clearBtn.addEventListener('click', () => {
+      drawingRects = []
+      redrawOverlay()
+      clearBtn.style.display = 'none'
+    })
+    ssSection.appendChild(clearBtn)
+
+    body.appendChild(ssSection)
+
+    // ── Form fields section ──
+    const formSection = document.createElement('div')
+    formSection.className = 'fv-form-section'
 
     // Comment
     const commentField = document.createElement('div')
@@ -576,14 +807,14 @@ function createWidget() {
     const textarea = document.createElement('textarea')
     textarea.className = 'fv-textarea'
     textarea.rows = 4
-    textarea.placeholder = 'Descreva o problema ou sugestão... (mínimo 10 caracteres)'
+    textarea.placeholder = 'Descreva o problema ou sugestão em detalhes... (mínimo 10 caracteres)'
     textarea.id = 'fv-comment'
     commentField.appendChild(textarea)
     const commentError = document.createElement('div')
     commentError.className = 'fv-error-msg'
     commentError.style.display = 'none'
     commentField.appendChild(commentError)
-    body.appendChild(commentField)
+    formSection.appendChild(commentField)
 
     // Type
     const typeField = document.createElement('div')
@@ -597,7 +828,7 @@ function createWidget() {
         <option value="PRAISE">Elogio</option>
       </select>
     `
-    body.appendChild(typeField)
+    formSection.appendChild(typeField)
 
     // Severity
     const severityField = document.createElement('div')
@@ -612,10 +843,10 @@ function createWidget() {
         <option value="CRITICAL">Crítica</option>
       </select>
     `
-    body.appendChild(severityField)
+    formSection.appendChild(severityField)
 
     // Toggle severity visibility based on type
-    const typeSelect = body.querySelector('#fv-type') as HTMLSelectElement
+    const typeSelect = formSection.querySelector('#fv-type') as HTMLSelectElement
     typeSelect.addEventListener('change', () => {
       severityField.style.display = typeSelect.value === 'BUG' ? 'block' : 'none'
     })
@@ -644,7 +875,7 @@ function createWidget() {
       })
       netSection.appendChild(netHeader)
       netSection.appendChild(netList)
-      body.appendChild(netSection)
+      formSection.appendChild(netSection)
     }
 
     // Console Logs section
@@ -673,7 +904,7 @@ function createWidget() {
       })
       conSection.appendChild(conHeader)
       conSection.appendChild(conList)
-      body.appendChild(conSection)
+      formSection.appendChild(conSection)
     }
 
     // Session replay events summary
@@ -681,7 +912,7 @@ function createWidget() {
       const evSummary = document.createElement('div')
       evSummary.className = 'fv-events-summary'
       evSummary.innerHTML = `<span class="fv-log-tag fv-tag-neutral">${rrwebEvents.length}</span> eventos de session replay capturados`
-      body.appendChild(evSummary)
+      formSection.appendChild(evSummary)
     }
 
     // Server error placeholder
@@ -689,7 +920,9 @@ function createWidget() {
     serverError.className = 'fv-server-error'
     serverError.style.display = 'none'
     serverError.id = 'fv-server-error'
-    body.appendChild(serverError)
+    formSection.appendChild(serverError)
+
+    body.appendChild(formSection)
 
     // Footer
     const footer = document.createElement('div')
@@ -790,8 +1023,9 @@ function createWidget() {
       payload.severity = severityEl?.value || 'MEDIUM'
     }
 
-    if (screenshotUrl) {
-      payload.screenshotBase64 = screenshotUrl
+    const finalScreenshot = getFinalScreenshot()
+    if (finalScreenshot) {
+      payload.screenshotBase64 = finalScreenshot
     }
 
     try {
@@ -826,8 +1060,13 @@ function createWidget() {
 }
 
 // Initialize widget
+async function init() {
+  const config = await fetchConfig()
+  createWidget(config)
+}
+
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', createWidget)
+  document.addEventListener('DOMContentLoaded', init)
 } else {
-  createWidget()
+  init()
 }

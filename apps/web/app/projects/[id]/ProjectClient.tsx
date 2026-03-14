@@ -40,6 +40,8 @@ interface Project {
   url: string
   description?: string
   mode?: string
+  widgetPosition?: string
+  widgetColor?: string
   createdAt: string
 }
 
@@ -117,6 +119,27 @@ export default function ProjectClient({
   const [editSaving, setEditSaving] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
   const [editUrlError, setEditUrlError] = useState<string | null>(null)
+
+  // Widget appearance state
+  const [widgetPosition, setWidgetPosition] = useState(project?.widgetPosition || 'bottom-right')
+  const [widgetColor, setWidgetColor] = useState(project?.widgetColor || '#4f46e5')
+  const [appearanceSaving, setAppearanceSaving] = useState(false)
+  const [appearanceMsg, setAppearanceMsg] = useState<{ type: 'success' | 'danger'; text: string } | null>(null)
+
+  async function handleAppearanceSave() {
+    if (!project) return
+    setAppearanceSaving(true)
+    setAppearanceMsg(null)
+    try {
+      await api.projects.update(project.id, { widgetPosition, widgetColor })
+      setAppearanceMsg({ type: 'success', text: 'Aparencia atualizada com sucesso!' })
+      router.refresh()
+    } catch (err: any) {
+      setAppearanceMsg({ type: 'danger', text: err.message || 'Erro ao salvar.' })
+    } finally {
+      setAppearanceSaving(false)
+    }
+  }
 
   function handleEditUrlChange(value: string) {
     setEditUrl(value)
@@ -750,6 +773,180 @@ export default function ProjectClient({
                     ))}
                   </Column>
                 )}
+              </Column>
+            </Card>
+
+            {/* Widget appearance */}
+            <Card fillWidth padding="l" radius="l">
+              <Column gap="m" fillWidth>
+                <Row gap="s" vertical="center">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" /></svg>
+                  <Heading variant="heading-strong-s" as="h3">Aparencia do Widget</Heading>
+                </Row>
+                <Text variant="body-default-s" onBackground="neutral-weak">
+                  Personalize a posicao e cor do botao de feedback que aparece no site.
+                </Text>
+
+                {appearanceMsg && (
+                  <FeedbackAlert variant={appearanceMsg.type}>{appearanceMsg.text}</FeedbackAlert>
+                )}
+
+                <Row gap="l" fillWidth wrap>
+                  {/* Position selector */}
+                  <Column gap="s" style={{ flex: 1, minWidth: '12rem' }}>
+                    <Text variant="label-default-s" onBackground="neutral-strong">Posicao</Text>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                      {([
+                        { value: 'top-left', label: 'Superior esq.' },
+                        { value: 'top-right', label: 'Superior dir.' },
+                        { value: 'bottom-left', label: 'Inferior esq.' },
+                        { value: 'bottom-right', label: 'Inferior dir.' },
+                      ] as const).map((pos) => (
+                        <button
+                          key={pos.value}
+                          onClick={() => setWidgetPosition(pos.value)}
+                          style={{
+                            position: 'relative',
+                            height: '4.5rem',
+                            borderRadius: '0.5rem',
+                            border: `2px solid ${widgetPosition === pos.value ? widgetColor : 'var(--neutral-border-medium)'}`,
+                            background: widgetPosition === pos.value ? `${widgetColor}08` : 'var(--surface-background)',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          <div style={{
+                            position: 'absolute',
+                            ...(pos.value.includes('top') ? { top: 6 } : { bottom: 6 }),
+                            ...(pos.value.includes('left') ? { left: 6 } : { right: 6 }),
+                            width: 14,
+                            height: 14,
+                            borderRadius: '50%',
+                            background: widgetPosition === pos.value ? widgetColor : 'var(--neutral-solid-medium)',
+                            transition: 'background 0.15s',
+                          }} />
+                          <span style={{
+                            position: 'absolute',
+                            bottom: 4,
+                            left: 0,
+                            right: 0,
+                            textAlign: 'center',
+                            fontSize: '0.625rem',
+                            color: widgetPosition === pos.value ? widgetColor : 'var(--neutral-on-background-weak)',
+                            fontWeight: widgetPosition === pos.value ? 600 : 400,
+                          }}>
+                            {pos.label}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </Column>
+
+                  {/* Color picker + Preview */}
+                  <Column gap="s" style={{ flex: 1, minWidth: '14rem' }}>
+                    <Text variant="label-default-s" onBackground="neutral-strong">Cor do widget</Text>
+                    <Row gap="s" vertical="center">
+                      <label
+                        style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: '0.5rem',
+                          background: widgetColor,
+                          border: '2px solid var(--neutral-border-medium)',
+                          cursor: 'pointer',
+                          overflow: 'hidden',
+                          flexShrink: 0,
+                          position: 'relative',
+                        }}
+                      >
+                        <input
+                          type="color"
+                          value={widgetColor}
+                          onChange={(e) => setWidgetColor(e.target.value)}
+                          style={{
+                            position: 'absolute',
+                            inset: 0,
+                            opacity: 0,
+                            cursor: 'pointer',
+                            width: '100%',
+                            height: '100%',
+                          }}
+                        />
+                      </label>
+                      <input
+                        type="text"
+                        value={widgetColor}
+                        onChange={(e) => {
+                          const v = e.target.value
+                          if (v.match(/^#[0-9a-fA-F]{0,6}$/)) setWidgetColor(v)
+                        }}
+                        onBlur={() => {
+                          if (!widgetColor.match(/^#[0-9a-fA-F]{6}$/)) setWidgetColor('#4f46e5')
+                        }}
+                        style={{
+                          width: '7rem',
+                          padding: '0.5rem 0.75rem',
+                          borderRadius: '0.5rem',
+                          border: '1px solid var(--neutral-border-medium)',
+                          background: 'var(--surface-background)',
+                          color: 'var(--neutral-on-background-strong)',
+                          fontSize: '0.8125rem',
+                          fontFamily: 'monospace',
+                          outline: 'none',
+                        }}
+                      />
+                    </Row>
+
+                    {/* Live preview */}
+                    <Text variant="label-default-s" onBackground="neutral-strong" style={{ marginTop: '0.25rem' }}>Preview</Text>
+                    <div style={{
+                      position: 'relative',
+                      width: '100%',
+                      height: '10rem',
+                      borderRadius: '0.75rem',
+                      border: '1px solid var(--neutral-border-medium)',
+                      background: '#f9fafb',
+                      overflow: 'hidden',
+                    }}>
+                      {/* Mock page content */}
+                      <div style={{ padding: '0.75rem' }}>
+                        <div style={{ height: 8, width: '60%', background: '#e5e7eb', borderRadius: 4, marginBottom: 6 }} />
+                        <div style={{ height: 6, width: '80%', background: '#e5e7eb', borderRadius: 3, marginBottom: 4 }} />
+                        <div style={{ height: 6, width: '45%', background: '#e5e7eb', borderRadius: 3 }} />
+                      </div>
+                      {/* Widget button preview */}
+                      <div style={{
+                        position: 'absolute',
+                        ...(widgetPosition.includes('top') ? { top: 10 } : { bottom: 10 }),
+                        ...(widgetPosition.includes('left') ? { left: 10 } : { right: 10 }),
+                        width: 28,
+                        height: 28,
+                        borderRadius: '50%',
+                        background: widgetColor,
+                        boxShadow: `0 2px 8px ${widgetColor}66`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.3s ease',
+                      }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </Column>
+                </Row>
+
+                <Row horizontal="end" fillWidth>
+                  <Button
+                    variant="primary"
+                    size="m"
+                    label={appearanceSaving ? 'Salvando...' : 'Salvar aparencia'}
+                    loading={appearanceSaving}
+                    onClick={handleAppearanceSave}
+                  />
+                </Row>
               </Column>
             </Card>
 
