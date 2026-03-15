@@ -19,28 +19,9 @@ export default function Sidebar() {
   const router = useRouter()
   const { collapsed, setCollapsed } = useSidebarContext()
   const { orgs, currentOrg, switchOrg } = useOrg()
-  const [notifCount, setNotifCount] = useState(0)
   const [wsDropdownOpen, setWsDropdownOpen] = useState(false)
   const [wsSearch, setWsSearch] = useState('')
   const dropdownRef = useRef<HTMLDivElement>(null)
-
-  const fetchNotifCount = useCallback(async () => {
-    try {
-      const res = await fetch('/api/notifications')
-      if (res.ok) {
-        const data = await res.json()
-        setNotifCount(data.count || 0)
-      }
-    } catch {
-      // ignore
-    }
-  }, [])
-
-  useEffect(() => {
-    fetchNotifCount()
-    const interval = setInterval(fetchNotifCount, 30000)
-    return () => clearInterval(interval)
-  }, [fetchNotifCount])
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -101,12 +82,6 @@ export default function Sidebar() {
   const SIDEBAR_WIDTH = '15rem'
 
   const bottomNavItems = [
-    {
-      label: 'Notificações',
-      href: '/notifications',
-      icon: <SvgIcon><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></SvgIcon>,
-      badge: notifCount,
-    },
     {
       label: 'Planos',
       href: '/plans',

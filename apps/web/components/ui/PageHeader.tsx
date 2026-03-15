@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useOrg } from '@/contexts/OrgContext'
+import UpgradeModal from './UpgradeModal'
 
 const PLAN_LABELS: Record<string, string> = {
   FREE: 'Free',
@@ -72,6 +73,7 @@ export default function PageHeader() {
   const [userName, setUserName] = useState('')
   const [userEmail, setUserEmail] = useState('')
   const [notifCount, setNotifCount] = useState(0)
+  const [showUpgrade, setShowUpgrade] = useState(false)
 
   useEffect(() => {
     async function fetchUser() {
@@ -186,7 +188,7 @@ export default function PageHeader() {
         {/* Upgrade */}
         {plan === 'FREE' && (
           <button
-            onClick={() => router.push('/plans')}
+            onClick={() => setShowUpgrade(true)}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -248,6 +250,13 @@ export default function PageHeader() {
           {initials}
         </div>
       </div>
+
+      {showUpgrade && (
+        <UpgradeModal
+          currentPlan={(plan as 'FREE' | 'PRO' | 'BUSINESS') || 'FREE'}
+          onClose={() => setShowUpgrade(false)}
+        />
+      )}
     </header>
   )
 }

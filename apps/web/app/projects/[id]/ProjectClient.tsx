@@ -136,6 +136,32 @@ export default function ProjectClient({
   const [editError, setEditError] = useState<string | null>(null)
   const [editUrlError, setEditUrlError] = useState<string | null>(null)
 
+  // Connection check state
+  const [connectionStatus, setConnectionStatus] = useState<'idle' | 'checking' | 'connected' | 'not-connected'>('idle')
+  const [localEmbedLastSeen, setLocalEmbedLastSeen] = useState(project?.embedLastSeenAt ?? null)
+
+  async function checkConnection() {
+    if (!project) return
+    setConnectionStatus('checking')
+    try {
+      const res = await fetch(`/api/projects/${project.id}/status`)
+      if (res.ok) {
+        const data = await res.json()
+        if (data.embedLastSeenAt) {
+          setLocalEmbedLastSeen(data.embedLastSeenAt)
+          setConnectionStatus('connected')
+        } else {
+          setConnectionStatus('not-connected')
+        }
+      } else {
+        setConnectionStatus('not-connected')
+      }
+    } catch {
+      setConnectionStatus('not-connected')
+    }
+    setTimeout(() => setConnectionStatus('idle'), 4000)
+  }
+
   // Widget appearance state
   const [widgetPosition, setWidgetPosition] = useState(project?.widgetPosition || 'bottom-right')
   const [widgetColor, setWidgetColor] = useState(project?.widgetColor || '#4f46e5')
@@ -198,6 +224,7 @@ export default function ProjectClient({
   }, [])
 
   const viewerUrl = origin ? `${origin}/p/${project?.id}` : ''
+  const displayUrl = project?.mode === 'embed' && project?.targetUrl ? project.targetUrl : viewerUrl
   const appBase = origin
 
   const embedSnippet = `<script src="${appBase}/embed.js" data-project="${project?.id}"></script>`
@@ -218,7 +245,7 @@ export default function ProjectClient({
   }
 
   async function copyViewerUrl() {
-    await clipboardCopy(viewerUrl)
+    await clipboardCopy(displayUrl)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -356,7 +383,7 @@ export default function ProjectClient({
               <Heading variant="heading-strong-l" as="h1">{project?.name}</Heading>
               {(() => {
                 const mode = project?.mode ?? 'proxy'
-                const lastSeen = project?.embedLastSeenAt
+                const lastSeen = localEmbedLastSeen
 
                 // For proxy mode: connected = has feedbacks
                 if (mode === 'proxy') {
@@ -434,7 +461,7 @@ export default function ProjectClient({
                 )
               })()}
             </Row>
-            {viewerUrl && (
+            {displayUrl && (
               <Row gap="s" vertical="center">
                 <Text
                   variant="body-default-xs"
@@ -447,7 +474,7 @@ export default function ProjectClient({
                     maxWidth: '24rem',
                   }}
                 >
-                  {viewerUrl}
+                  {displayUrl}
                 </Text>
                 <button
                   onClick={copyViewerUrl}
@@ -498,6 +525,127 @@ export default function ProjectClient({
             </div>
           </Row>
         </Row>
+
+        {/* Setup banner — prominent call-to-action above tabs */}
+        {(() => {
+          const mode = project?.mode ?? 'proxy'
+          const isEmbed = mode === 'embed'
+          const hasEmbed = !!localEmbedLastSeen
+          const hasReports = totalCount > 0
+
+          const steps = isEmbed
+            ? [
+                { key: 'create', label: 'Criar projeto', done: true },
+                { key: 'install', label: 'Adicionar script ao site', done: hasEmbed },
+                { key: 'connect', label: 'Widget conectado', done: hasEmbed },
+                { key: 'report', label: 'Primeiro report recebido', done: hasReports },
+              ]
+            : [
+                { key: 'create', label: 'Criar projeto', done: true },
+                { key: 'share', label: 'Compartilhar link', done: hasReports },
+                { key: 'report', label: 'Primeiro report recebido', done: hasReports },
+              ]
+
+          const completedCount = steps.filter((s) => s.done).length
+          const allDone = completedCount === steps.length
+          if (allDone) return null
+
+          const currentStep = steps.find((s, i) => !s.done && (i === 0 || steps[i - 1].done))
+
+          // Determine CTA
+          let ctaLabel = ''
+          let ctaAction: (() => void) | null = null
+          if (currentStep?.key === 'install') {
+            ctaLabel = 'Ver instruções'
+            ctaAction = () => setActiveTab('settings')
+          } else if (currentStep?.key === 'share') {
+            ctaLabel = 'Copiar link'
+            ctaAction = () => { copyViewerUrl() }
+          } else if (currentStep?.key === 'connect') {
+            ctaLabel = 'Verificar conexão'
+            ctaAction = () => setActiveTab('settings')
+          }
+
+          return (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '1rem',
+                padding: '0.875rem 1.25rem',
+                borderRadius: '0.75rem',
+                background: 'var(--brand-alpha-weak)',
+                border: '1px solid var(--brand-border-medium)',
+              }}
+            >
+              {/* Progress ring */}
+              <div style={{ position: 'relative', width: 40, height: 40, flexShrink: 0 }}>
+                <svg width="40" height="40" viewBox="0 0 40 40">
+                  <circle cx="20" cy="20" r="16" fill="none" stroke="var(--neutral-alpha-weak)" strokeWidth="3" />
+                  <circle
+                    cx="20" cy="20" r="16" fill="none"
+                    stroke="var(--brand-solid-strong)" strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeDasharray={`${(completedCount / steps.length) * 100.5} 100.5`}
+                    transform="rotate(-90 20 20)"
+                  />
+                </svg>
+                <span style={{
+                  position: 'absolute', inset: 0,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '0.6875rem', fontWeight: 700,
+                  color: 'var(--brand-on-background-strong)',
+                }}>
+                  {completedCount}/{steps.length}
+                </span>
+              </div>
+              {/* Text */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  fontSize: '0.875rem', fontWeight: 600,
+                  color: 'var(--neutral-on-background-strong)',
+                  marginBottom: 2,
+                }}>
+                  {currentStep?.label || 'Configure seu projeto'}
+                </div>
+                <div style={{
+                  fontSize: '0.75rem',
+                  color: 'var(--neutral-on-background-weak)',
+                }}>
+                  {isEmbed && currentStep?.key === 'install'
+                    ? 'Adicione o script embed ao HTML do seu site para ativar o widget.'
+                    : isEmbed && currentStep?.key === 'connect'
+                    ? 'Aguardando o widget se conectar ao seu site...'
+                    : !isEmbed && currentStep?.key === 'share'
+                    ? 'Compartilhe a URL com sua equipe para começarem a enviar reports.'
+                    : currentStep?.key === 'report'
+                    ? 'Envie o primeiro report de teste para validar a configuração.'
+                    : 'Complete as etapas para começar a receber reports.'}
+                </div>
+              </div>
+              {/* CTA */}
+              {ctaAction && (
+                <button
+                  onClick={ctaAction}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    borderRadius: '0.5rem',
+                    border: 'none',
+                    background: 'var(--brand-solid-strong)',
+                    color: '#fff',
+                    fontSize: '0.8125rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0,
+                  }}
+                >
+                  {ctaLabel}
+                </button>
+              )}
+            </div>
+          )
+        })()}
 
         {/* Tabs */}
         <Row gap="l" fillWidth style={{ borderBottom: '2px solid var(--neutral-border-medium)' }}>
@@ -950,7 +1098,7 @@ export default function ProjectClient({
             {(() => {
               const mode = project?.mode ?? 'proxy'
               const isEmbed = mode === 'embed'
-              const hasEmbed = !!project?.embedLastSeenAt
+              const hasEmbed = !!localEmbedLastSeen
               const hasReports = totalCount > 0
 
               const steps = isEmbed
@@ -1062,14 +1210,155 @@ export default function ProjectClient({
                                 {step.label}
                               </Text>
                               {isCurrent && isEmbed && step.label === 'Adicionar script ao site' && (
-                                <Text variant="body-default-xs" onBackground="neutral-weak" style={{ marginTop: 4 }}>
-                                  Copie o código abaixo e adicione ao HTML do seu site.
-                                </Text>
+                                <div style={{ marginTop: 8 }}>
+                                  <pre
+                                    style={{
+                                      width: '100%',
+                                      background: 'var(--neutral-solid-strong)',
+                                      color: '#4ade80',
+                                      fontSize: '0.6875rem',
+                                      borderRadius: '0.375rem',
+                                      padding: '0.5rem 0.75rem',
+                                      overflow: 'auto',
+                                      fontFamily: 'monospace',
+                                      margin: 0,
+                                      whiteSpace: 'pre-wrap',
+                                      wordBreak: 'break-all',
+                                    }}
+                                  >
+                                    {embedSnippet}
+                                  </pre>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); copyEmbedSnippet() }}
+                                    style={{
+                                      marginTop: 6,
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '0.25rem',
+                                      padding: '0.25rem 0.625rem',
+                                      borderRadius: '0.375rem',
+                                      border: '1px solid var(--neutral-border-medium)',
+                                      background: 'var(--surface-background)',
+                                      color: copiedEmbed ? 'var(--success-on-background-strong)' : 'var(--neutral-on-background-strong)',
+                                      fontSize: '0.6875rem',
+                                      fontWeight: 500,
+                                      cursor: 'pointer',
+                                    }}
+                                  >
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      {copiedEmbed ? (
+                                        <polyline points="20 6 9 17 4 12" />
+                                      ) : (
+                                        <>
+                                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                                        </>
+                                      )}
+                                    </svg>
+                                    {copiedEmbed ? 'Copiado!' : 'Copiar'}
+                                  </button>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); checkConnection() }}
+                                    disabled={connectionStatus === 'checking'}
+                                    style={{
+                                      marginTop: 6,
+                                      marginLeft: 6,
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '0.25rem',
+                                      padding: '0.25rem 0.625rem',
+                                      borderRadius: '0.375rem',
+                                      border: '1px solid var(--neutral-border-medium)',
+                                      background: connectionStatus === 'connected'
+                                        ? 'var(--success-alpha-weak)'
+                                        : connectionStatus === 'not-connected'
+                                        ? 'var(--danger-alpha-weak)'
+                                        : 'var(--surface-background)',
+                                      color: connectionStatus === 'connected'
+                                        ? 'var(--success-on-background-strong)'
+                                        : connectionStatus === 'not-connected'
+                                        ? 'var(--danger-on-background-strong)'
+                                        : 'var(--neutral-on-background-strong)',
+                                      fontSize: '0.6875rem',
+                                      fontWeight: 500,
+                                      cursor: connectionStatus === 'checking' ? 'wait' : 'pointer',
+                                      transition: 'all 0.15s',
+                                    }}
+                                  >
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      {connectionStatus === 'connected' ? (
+                                        <polyline points="20 6 9 17 4 12" />
+                                      ) : connectionStatus === 'not-connected' ? (
+                                        <>
+                                          <line x1="18" y1="6" x2="6" y2="18" />
+                                          <line x1="6" y1="6" x2="18" y2="18" />
+                                        </>
+                                      ) : (
+                                        <>
+                                          <path d="M5 12.55a11 11 0 0 1 14.08 0" />
+                                          <path d="M1.42 9a16 16 0 0 1 21.16 0" />
+                                          <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+                                          <line x1="12" y1="20" x2="12.01" y2="20" />
+                                        </>
+                                      )}
+                                    </svg>
+                                    {connectionStatus === 'checking'
+                                      ? 'Verificando...'
+                                      : connectionStatus === 'connected'
+                                      ? 'Conectado!'
+                                      : connectionStatus === 'not-connected'
+                                      ? 'Não detectado'
+                                      : 'Verificar conexão'}
+                                  </button>
+                                </div>
                               )}
                               {isCurrent && !isEmbed && step.label === 'Compartilhar link com a equipe' && (
-                                <Text variant="body-default-xs" onBackground="neutral-weak" style={{ marginTop: 4 }}>
-                                  Copie o link abaixo e envie para sua equipe de QA.
-                                </Text>
+                                <div style={{ marginTop: 8 }}>
+                                  <div
+                                    style={{
+                                      width: '100%',
+                                      background: 'var(--neutral-alpha-weak)',
+                                      fontSize: '0.6875rem',
+                                      borderRadius: '0.375rem',
+                                      padding: '0.5rem 0.75rem',
+                                      fontFamily: 'monospace',
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                      whiteSpace: 'nowrap',
+                                    }}
+                                  >
+                                    {viewerUrl}
+                                  </div>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); copyViewerUrl() }}
+                                    style={{
+                                      marginTop: 6,
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '0.25rem',
+                                      padding: '0.25rem 0.625rem',
+                                      borderRadius: '0.375rem',
+                                      border: '1px solid var(--neutral-border-medium)',
+                                      background: 'var(--surface-background)',
+                                      color: copied ? 'var(--success-on-background-strong)' : 'var(--neutral-on-background-strong)',
+                                      fontSize: '0.6875rem',
+                                      fontWeight: 500,
+                                      cursor: 'pointer',
+                                    }}
+                                  >
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      {copied ? (
+                                        <polyline points="20 6 9 17 4 12" />
+                                      ) : (
+                                        <>
+                                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                                          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                                        </>
+                                      )}
+                                    </svg>
+                                    {copied ? 'Copiado!' : 'Copiar'}
+                                  </button>
+                                </div>
                               )}
                             </div>
                           </div>
@@ -1080,112 +1369,6 @@ export default function ProjectClient({
                 </Card>
               )
             })()}
-
-            {/* Integration / Viewer URL card */}
-            <Card
-              fillWidth
-              padding="l"
-              radius="l"
-              style={{ background: 'var(--brand-solid-strong)' }}
-            >
-              <Column gap="s">
-                <Row gap="s" vertical="center">
-                  <Text
-                    variant="label-default-s"
-                    style={{ color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.05em' }}
-                  >
-                    {(project?.mode ?? 'proxy') === 'proxy' ? 'Link Rápido' : 'Instalação no Site'}
-                  </Text>
-                  <span
-                    style={{
-                      fontSize: '0.625rem',
-                      fontWeight: 600,
-                      padding: '0.125rem 0.5rem',
-                      borderRadius: '1rem',
-                      background: 'rgba(255,255,255,0.2)',
-                      color: 'rgba(255,255,255,0.85)',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.03em',
-                    }}
-                  >
-                    {(project?.mode ?? 'proxy') === 'proxy' ? 'Sem instalação' : 'Recomendado'}
-                  </span>
-                </Row>
-                {(project?.mode ?? 'proxy') === 'proxy' ? (
-                  <>
-                    <Row gap="s" vertical="center">
-                      <Flex
-                        fillWidth
-                        padding="s"
-                        radius="m"
-                        style={{
-                          background: 'rgba(255,255,255,0.15)',
-                          fontFamily: 'monospace',
-                          fontSize: '0.8125rem',
-                          color: 'white',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {viewerUrl}
-                      </Flex>
-                      <Button
-                        variant="secondary"
-                        size="s"
-                        label={copied ? 'Copiado!' : 'Copiar'}
-                        prefixIcon={copied ? 'check' : 'copy'}
-                        onClick={copyViewerUrl}
-                        style={{ flexShrink: 0 }}
-                      />
-                    </Row>
-                    <Text
-                      variant="body-default-xs"
-                      style={{ color: 'rgba(255,255,255,0.7)' }}
-                    >
-                      Compartilhe esta URL com os QAs para começar a capturar reports.
-                    </Text>
-                  </>
-                ) : (
-                  <>
-                    <Flex fillWidth direction="column" gap="s">
-                      <pre
-                        style={{
-                          width: '100%',
-                          background: 'rgba(255,255,255,0.15)',
-                          color: '#4ade80',
-                          fontSize: '0.75rem',
-                          borderRadius: '0.5rem',
-                          padding: '0.75rem',
-                          overflow: 'auto',
-                          fontFamily: 'monospace',
-                          margin: 0,
-                          whiteSpace: 'pre-wrap',
-                          wordBreak: 'break-all',
-                        }}
-                      >
-                        {embedSnippet}
-                      </pre>
-                      <Flex fillWidth horizontal="end">
-                        <Button
-                          variant="secondary"
-                          size="s"
-                          label={copiedEmbed ? 'Copiado!' : 'Copiar'}
-                          prefixIcon={copiedEmbed ? 'check' : 'copy'}
-                          onClick={copyEmbedSnippet}
-                        />
-                      </Flex>
-                    </Flex>
-                    <Text
-                      variant="body-default-xs"
-                      style={{ color: 'rgba(255,255,255,0.7)' }}
-                    >
-                      Adicione este código ao HTML do seu site para capturar reports.
-                    </Text>
-                  </>
-                )}
-              </Column>
-            </Card>
 
             {/* Edit project */}
             <Card fillWidth padding="l" radius="l">

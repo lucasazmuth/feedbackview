@@ -70,9 +70,11 @@ export const api = {
     },
 
     async delete(id: string) {
-      const supabase = createClient()
-      const { error } = await supabase.from('Project').delete().eq('id', id)
-      if (error) throw new Error(error.message)
+      const res = await fetch(`/api/projects/${id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Erro ao excluir projeto')
+      }
     },
   },
 
