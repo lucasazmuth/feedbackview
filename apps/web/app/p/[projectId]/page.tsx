@@ -17,15 +17,19 @@ export default async function PublicViewerPage({ params }: PageProps) {
 
   let widgetColor = '#4f46e5'
   let widgetPosition = 'bottom-right'
+  let widgetStyle = 'text'
+  let widgetText = 'Reportar Bug'
   try {
     const { data } = await supabase
       .from('Project')
-      .select('widgetColor, widgetPosition')
+      .select('widgetColor, widgetPosition, widgetStyle, widgetText')
       .eq('id', projectId)
       .single()
     if (data?.widgetColor) widgetColor = data.widgetColor
     if (data?.widgetPosition) widgetPosition = data.widgetPosition
+    if (data?.widgetStyle) widgetStyle = data.widgetStyle
+    if (data?.widgetText) widgetText = data.widgetText
   } catch {}
 
-  return <ViewerClient projectId={projectId} widgetColor={widgetColor} widgetPosition={widgetPosition} />
+  return <ViewerClient projectId={projectId} widgetColor={widgetColor} widgetPosition={widgetPosition} widgetStyle={widgetStyle} widgetText={widgetText} />
 }

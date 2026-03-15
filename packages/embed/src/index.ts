@@ -2,7 +2,7 @@
 // Injected via <script src="https://app.feedbackview.com/embed.js" data-project="ID"></script>
 // Collects console, network, errors, rrweb session replay + shows feedback UI
 
-import { record } from 'rrweb'
+import { record, Replayer } from 'rrweb'
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 const SCRIPT_EL = (document.currentScript as HTMLScriptElement | null)
@@ -115,25 +115,61 @@ function maskPasswordFields() {
 // When trimming, find the last full snapshot and discard everything before it (up to limit).
 function trimRrwebEvents() {
   if (rrwebEvents.length <= MAX_RRWEB_EVENTS) return
-  // Find index of most recent full snapshot (type 2)
+
+  // Strategy: keep Meta+Snapshot pair + most recent incremental events,
+  // then normalize timestamps to close any time gap.
+
+  // Find the last full snapshot (type 2)
   let lastSnapshotIdx = -1
   for (let i = rrwebEvents.length - 1; i >= 0; i--) {
-    if (rrwebEvents[i].type === 2) {
-      lastSnapshotIdx = i
-      break
-    }
+    if (rrwebEvents[i].type === 2) { lastSnapshotIdx = i; break }
   }
-  if (lastSnapshotIdx > 0) {
-    // Keep from the last snapshot onward
-    rrwebEvents.splice(0, lastSnapshotIdx)
+
+  if (lastSnapshotIdx >= 0) {
+    // Find the Meta event (type 4) before the snapshot
+    let metaIdx = lastSnapshotIdx
+    for (let i = lastSnapshotIdx - 1; i >= 0; i--) {
+      if (rrwebEvents[i].type === 4) { metaIdx = i; break }
+    }
+
+    // Keep: Meta, Snapshot, then the most recent incremental events
+    const headerEvents = rrwebEvents.slice(metaIdx, lastSnapshotIdx + 1) // Meta + Snapshot
+    const tailEvents = rrwebEvents.slice(lastSnapshotIdx + 1)            // all after snapshot
+    const maxTail = MAX_RRWEB_EVENTS - headerEvents.length
+    const keptTail = tailEvents.length > maxTail ? tailEvents.slice(tailEvents.length - maxTail) : tailEvents
+
+    // Normalize timestamps: close the gap between snapshot and first kept incremental event
+    if (keptTail.length > 0 && headerEvents.length > 0) {
+      const snapshotTs = headerEvents[headerEvents.length - 1].timestamp
+      const firstTailTs = keptTail[0].timestamp
+      const gap = firstTailTs - snapshotTs
+      // Only normalize if there's a significant gap (> 2s)
+      if (gap > 2000) {
+        const offset = gap - 100 // leave 100ms gap between snapshot and first event
+        for (const evt of keptTail) {
+          evt.timestamp -= offset
+        }
+      }
+    }
+
+    // Replace array contents
+    rrwebEvents.length = 0
+    rrwebEvents.push(...headerEvents, ...keptTail)
   } else {
-    // No snapshot found or it's already at 0 — just trim oldest
+    // No snapshot — just keep most recent events
     rrwebEvents.splice(0, rrwebEvents.length - MAX_RRWEB_EVENTS)
   }
 }
 
+let stopRecording: (() => void) | null = null
+
 function startRecording() {
-  record({
+  // If already recording, stop first
+  if (stopRecording) {
+    stopRecording()
+    stopRecording = null
+  }
+  stopRecording = record({
     emit(event) {
       rrwebEvents.push(event as RRWebEvent)
       trimRrwebEvents()
@@ -141,8 +177,20 @@ function startRecording() {
     maskInputOptions: { password: true },
     blockClass: 'feedback-ignore',
     ignoreClass: 'feedback-ignore',
-  })
+  }) || null
   maskPasswordFields()
+}
+
+function pauseRecording() {
+  if (stopRecording) {
+    stopRecording()
+    stopRecording = null
+  }
+}
+
+function clearAndRestartRecording() {
+  rrwebEvents.length = 0
+  startRecording()
 }
 
 if (document.readyState === 'loading') {
@@ -326,7 +374,7 @@ function createWidget(config: WidgetConfig) {
       ${panelSideOpposite}: auto;
       top: 0;
       height: 100%;
-      width: 520px;
+      width: 920px;
       max-width: 100vw;
       background: #fff;
       z-index: 2147483647;
@@ -364,71 +412,209 @@ function createWidget(config: WidgetConfig) {
 
     .fv-body {
       flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+    .fv-body-form {
+      flex: 1;
+      min-width: 0;
       overflow-y: auto;
     }
+    .fv-preview-panel {
+      width: 380px;
+      flex-shrink: 0;
+      border-left: 1px solid #e5e7eb;
+      background: #f9fafb;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    @media (max-width: 768px) {
+      .fv-preview-panel { display: none !important; }
+    }
+    .fv-preview-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 16px;
+    }
+    .fv-preview-card {
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .fv-preview-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 6;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .fv-preview-section-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+    .fv-preview-text {
+      font-size: 13px;
+      color: #374151;
+      line-height: 1.6;
+      margin: 0;
+      white-space: pre-wrap;
+    }
+    .fv-preview-placeholder {
+      font-size: 13px;
+      color: #d1d5db;
+      font-style: italic;
+      margin: 0;
+    }
+    .fv-preview-meta {
+      border-top: 1px solid #f3f4f6;
+      padding-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .fv-preview-meta-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+    .fv-preview-meta-icon {
+      color: #9ca3af;
+      flex-shrink: 0;
+    }
 
-    .fv-screenshot-section {
+    .fv-replay-section {
       padding: 20px;
       border-bottom: 1px solid #f3f4f6;
     }
-    .fv-screenshot-label {
+    .fv-replay-label {
       font-size: 13px;
       font-weight: 500;
       color: #374151;
       margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    .fv-screenshot-label .fv-hint {
+    .fv-replay-label .fv-hint {
       font-size: 12px;
       font-weight: 400;
       color: #9ca3af;
     }
-    .fv-screenshot {
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid #e5e7eb;
-      background: #f3f4f6;
+    .fv-replay-info {
       position: relative;
-      max-height: 240px;
-    }
-    .fv-screenshot canvas {
-      width: 100%;
-      display: block;
-    }
-    .fv-screenshot .fv-overlay-canvas {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      cursor: crosshair;
-    }
-    .fv-screenshot-loading {
-      height: 192px;
-      display: flex;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 1.5px solid #9ca3af;
+      font-size: 10px;
+      font-weight: 600;
       color: #9ca3af;
-      font-size: 13px;
+      cursor: help;
+      margin-left: 2px;
+      flex-shrink: 0;
     }
-    .fv-screenshot-loading .fv-spin-icon {
+    .fv-replay-info:hover {
+      border-color: #6b7280;
+      color: #6b7280;
+    }
+    .fv-replay-tooltip {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      color: #f1f5f9;
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 1.5;
+      padding: 8px 12px;
+      border-radius: 8px;
+      width: 240px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 10;
+      pointer-events: none;
+    }
+    .fv-replay-tooltip::after {
+      content: '';
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-bottom-color: #1e293b;
+    }
+    .fv-replay-info:hover .fv-replay-tooltip {
+      display: block;
+    }
+    @keyframes fv-pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .fv-replay-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ef4444;
+      animation: fv-pulse-dot 1.5s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    .fv-replay-card {
+      border-radius: 12px;
+      border: 1px solid #1e293b;
+      background: #0f172a;
+      overflow: hidden;
+    }
+    .replayer-wrapper {
+      position: relative;
+    }
+    .replayer-mouse {
+      position: absolute;
       width: 20px;
       height: 20px;
-      border: 2px solid #d1d5db;
-      border-top-color: #9ca3af;
-      border-radius: 50%;
-      animation: fv-spin 0.6s linear infinite;
+      transition: left 0.05s linear, top 0.05s linear;
+      background-size: contain;
+      background-position: center center;
+      background-repeat: no-repeat;
+      background-image: url('data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9JzMwMHB4JyB3aWR0aD0nMzAwcHgnICBmaWxsPSIjMDAwMDAwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGRhdGEtbmFtZT0iTGF5ZXIgMSIgdmlld0JveD0iMCAwIDUwIDUwIiB4PSIwcHgiIHk9IjBweCI+PHRpdGxlPkRlc2lnbl90bnA8L3RpdGxlPjxwYXRoIGQ9Ik00OC43MSw0Mi45MUwzNC4wOCwyOC4yOSw0NC4zMywxOEExLDEsMCwwLDAsNDQsMTYuMzlMMi4zNSwxLjA2QTEsMSwwLDAsMCwxLjA2LDIuMzVMMTYuMzksNDRhMSwxLDAsMCwwLDEuNjUuMzZMMjguMjksMzQuMDgsNDIuOTEsNDguNzFhMSwxLDAsMCwwLDEuNDEsMGw0LjM4LTQuMzhBMSwxLDAsMCwwLDQ4LjcxLDQyLjkxWm0tNS4wOSwzLjY3TDI5LDMyYTEsMSwwLDAsMC0xLjQxLDBsLTkuODUsOS44NUwzLjY5LDMuNjlsMzguMTIsMTRMMzIsMjcuNThBMSwxLDAsMCwwLDMyLDI5TDQ2LjU5LDQzLjYyWiI+PC9wYXRoPjwvc3ZnPg==');
+      border-color: transparent;
     }
-    .fv-clear-annotations {
-      margin-top: 8px;
-      background: none;
-      border: none;
-      font-size: 12px;
-      color: #ef4444;
-      cursor: pointer;
-      padding: 0;
-      font-family: inherit;
+    .replayer-mouse::after {
+      content: '';
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      background: rgb(73, 80, 246);
+      border-radius: 100%;
+      transform: translate(-50%, -50%);
+      opacity: 0.3;
     }
-    .fv-clear-annotations:hover { color: #b91c1c; }
+    .replayer-mouse.active::after {
+      animation: click 0.2s ease-in-out 1;
+    }
+    .replayer-mouse-tail {
+      position: absolute;
+      pointer-events: none;
+    }
+    @keyframes click {
+      0% { opacity: 0.3; width: 20px; height: 20px; }
+      50% { opacity: 0.5; width: 10px; height: 10px; }
+    }
 
     .fv-form-section {
       padding: 20px;
@@ -467,7 +653,7 @@ function createWidget(config: WidgetConfig) {
       border: 1px solid #d1d5db;
       border-radius: 8px;
       font-size: 13px;
-      resize: none;
+      resize: vertical;
       outline: none;
       transition: border-color 0.15s, box-shadow 0.15s;
       font-family: inherit;
@@ -764,7 +950,7 @@ function createWidget(config: WidgetConfig) {
   const hiddenTrigger = SCRIPT_EL?.dataset.hiddenTrigger === 'true' || SCRIPT_EL?.getAttribute('data-hidden-trigger') === 'true'
   const trigger = document.createElement('button')
   trigger.className = hiddenTrigger ? 'fv-trigger fv-trigger-hidden' : 'fv-trigger'
-  trigger.innerHTML = `<span class="fv-trigger-brand">QBugs</span><span class="fv-trigger-label">Reportar</span>`
+  trigger.innerHTML = `<span class="fv-trigger-brand">Reportar</span><span class="fv-trigger-label">Bug</span>`
   trigger.title = 'Enviar feedback'
   shadow.appendChild(trigger)
 
@@ -807,105 +993,244 @@ function createWidget(config: WidgetConfig) {
     header.appendChild(closeBtn)
     panel.appendChild(header)
 
-    // Body
+    // Body (two-column layout)
     const body = document.createElement('div')
     body.className = 'fv-body'
     panel.appendChild(body)
 
-    // ── Screenshot section ──
-    const ssSection = document.createElement('div')
-    ssSection.className = 'fv-screenshot-section'
+    const bodyForm = document.createElement('div')
+    bodyForm.className = 'fv-body-form'
+    body.appendChild(bodyForm)
 
-    const ssLabel = document.createElement('div')
-    ssLabel.className = 'fv-screenshot-label'
-    ssLabel.innerHTML = 'Screenshot <span class="fv-hint">(arraste para destacar áreas)</span>'
-    ssSection.appendChild(ssLabel)
+    // ── Session Replay section ──
+    const replaySection = document.createElement('div')
+    replaySection.className = 'fv-replay-section'
 
-    const ssContainer = document.createElement('div')
-    ssContainer.className = 'fv-screenshot'
-    if (isCapturing) {
-      ssContainer.innerHTML = '<div class="fv-screenshot-loading"><div class="fv-spin-icon"></div><span>Capturando screenshot...</span></div>'
-    } else if (screenshotUrl) {
-      // Base canvas
-      baseCanvas = document.createElement('canvas')
-      ssContainer.appendChild(baseCanvas)
+    const replayLabel = document.createElement('div')
+    replayLabel.className = 'fv-replay-label'
+    replayLabel.innerHTML = '<span class="fv-replay-dot"></span> Session Replay <span class="fv-hint">(gravação automática)</span> <span class="fv-replay-info">!<span class="fv-replay-tooltip">A sessão é gravada automaticamente enquanto você navega. Ao abrir o report, os últimos segundos de interação são capturados. Campos sensíveis como senhas ficam borrados automaticamente.</span></span>'
+    replaySection.appendChild(replayLabel)
 
-      // Overlay canvas for annotations
-      overlayCanvas = document.createElement('canvas')
-      overlayCanvas.className = 'fv-overlay-canvas'
-      ssContainer.appendChild(overlayCanvas)
+    const replayCard = document.createElement('div')
+    replayCard.className = 'fv-replay-card'
+    replayCard.style.background = '#0f172a'
+    replayCard.style.padding = '0'
+    replayCard.style.overflow = 'hidden'
 
-      // Load screenshot into base canvas
-      const img = new Image()
-      img.onload = () => {
-        if (!baseCanvas || !overlayCanvas) return
-        baseCanvas.width = img.naturalWidth
-        baseCanvas.height = img.naturalHeight
-        const ctx = baseCanvas.getContext('2d')
-        if (ctx) ctx.drawImage(img, 0, 0)
-        overlayCanvas.width = img.naturalWidth
-        overlayCanvas.height = img.naturalHeight
-        // Redraw any existing annotations
-        redrawOverlay()
-      }
-      img.src = screenshotUrl
+    // Player container
+    const playerContainer = document.createElement('div')
+    playerContainer.className = 'fv-replay-player'
+    playerContainer.style.cssText = 'width:100%;min-height:200px;position:relative;'
+    replayCard.appendChild(playerContainer)
 
-      // Mouse events for drawing
-      overlayCanvas.addEventListener('mousedown', (e: MouseEvent) => {
-        isDrawing = true
-        drawStartPos = getCanvasPos(e)
-      })
-      overlayCanvas.addEventListener('mousemove', (e: MouseEvent) => {
-        if (!isDrawing || !drawStartPos) return
-        const pos = getCanvasPos(e)
-        const currentRect = {
-          x: Math.min(drawStartPos.x, pos.x),
-          y: Math.min(drawStartPos.y, pos.y),
-          w: Math.abs(pos.x - drawStartPos.x),
-          h: Math.abs(pos.y - drawStartPos.y),
-        }
-        redrawOverlay(currentRect)
-      })
-      overlayCanvas.addEventListener('mouseup', (e: MouseEvent) => {
-        if (!isDrawing || !drawStartPos) return
-        const pos = getCanvasPos(e)
-        const newRect = {
-          x: Math.min(drawStartPos.x, pos.x),
-          y: Math.min(drawStartPos.y, pos.y),
-          w: Math.abs(pos.x - drawStartPos.x),
-          h: Math.abs(pos.y - drawStartPos.y),
-        }
-        if (newRect.w > 5 && newRect.h > 5) {
-          drawingRects.push(newRect)
-          redrawOverlay()
-          // Update clear button visibility and text
-          const clearBtn = ssSection.querySelector('.fv-clear-annotations') as HTMLElement
-          if (clearBtn) {
-            clearBtn.style.display = 'inline'
-            clearBtn.textContent = `Limpar marcações (${drawingRects.length})`
+    // Mount rrweb Replayer
+    const hasSnapshot = rrwebEvents.some(e => e.type === 2)
+    const hasMeta = rrwebEvents.some(e => e.type === 4)
+    if (hasSnapshot && hasMeta && rrwebEvents.length >= 2) {
+      try {
+        const containerWidth = 440
+        const playerHeight = Math.round(containerWidth * 0.56)
+
+        const replayer = new Replayer(rrwebEvents as any, {
+          root: playerContainer,
+          skipInactive: true,
+          showWarning: false,
+          showDebug: false,
+          blockClass: 'fv-no-replay',
+          speed: 1,
+        })
+
+        // Render first frame (makes iframe visible) and scale to fit
+        replayer.pause(0)
+        setTimeout(() => {
+          const replayerWrapper = playerContainer.querySelector('.replayer-wrapper') as HTMLElement
+          if (replayerWrapper) {
+            const actualWidth = playerContainer.offsetWidth || 440
+            const iframe = replayerWrapper.querySelector('iframe')
+            if (iframe) {
+              const iframeWidth = iframe.offsetWidth || 1024
+              const scale = actualWidth / iframeWidth
+              const scaledHeight = Math.round(actualWidth * 0.56)
+              replayerWrapper.style.transform = `scale(${scale})`
+              replayerWrapper.style.transformOrigin = 'top left'
+              replayerWrapper.style.width = `${iframeWidth}px`
+              replayerWrapper.style.height = `${scaledHeight / scale}px`
+              playerContainer.style.height = `${scaledHeight}px`
+              playerContainer.style.overflow = 'hidden'
+            }
           }
+        }, 200)
+
+        // Player controls with timeline
+        const totalMs = rrwebEvents[rrwebEvents.length - 1].timestamp - rrwebEvents[0].timestamp
+        const fmtTime = (ms: number) => {
+          const s = Math.floor(ms / 1000)
+          const m = Math.floor(s / 60)
+          const rem = s % 60
+          return m > 0 ? `${m}:${String(rem).padStart(2, '0')}` : `0:${String(rem).padStart(2, '0')}`
         }
-        isDrawing = false
-        drawStartPos = null
-      })
+
+        const controls = document.createElement('div')
+        controls.className = 'fv-replay-controls'
+        controls.style.cssText = 'display:flex;flex-direction:column;gap:8px;background:#fff;padding:10px 12px;border-top:1px solid #e5e7eb;'
+
+        // Timeline row
+        const timelineRow = document.createElement('div')
+        timelineRow.style.cssText = 'cursor:pointer;height:6px;display:flex;align-items:center;border-radius:3px;background:#e5e7eb;position:relative;'
+        const timelineFill = document.createElement('div')
+        timelineFill.style.cssText = 'height:100%;width:0%;background:#111827;border-radius:3px;transition:width 0.1s linear;'
+        const timelineThumb = document.createElement('div')
+        timelineThumb.style.cssText = 'position:absolute;top:50%;width:14px;height:14px;background:#111827;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 1px 3px rgba(0,0,0,0.15);border:2px solid #fff;left:0%;'
+        timelineRow.appendChild(timelineFill)
+        timelineRow.appendChild(timelineThumb)
+
+        // Click/drag on timeline to seek
+        const seekTo = (e: MouseEvent) => {
+          const rect = timelineRow.getBoundingClientRect()
+          const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+          const targetMs = Math.round(pct * totalMs)
+          // play(offset) then immediately pause() to force the Replayer to rebuild DOM at that point
+          replayer.play(targetMs)
+          requestAnimationFrame(() => {
+            if (!isPlaying) replayer.pause()
+          })
+          timelineFill.style.width = `${pct * 100}%`
+          timelineThumb.style.left = `${pct * 100}%`
+          currentTimeSpan.textContent = fmtTime(targetMs)
+        }
+        timelineRow.addEventListener('click', seekTo)
+        let isDragging = false
+        timelineRow.addEventListener('mousedown', (e) => {
+          isDragging = true
+          seekTo(e)
+        })
+        // Use panelContainer for drag events (Shadow DOM doesn't propagate to document)
+        panelContainer.addEventListener('mousemove', (e: Event) => {
+          if (isDragging) seekTo(e as MouseEvent)
+        })
+        panelContainer.addEventListener('mouseup', () => { isDragging = false })
+
+        controls.appendChild(timelineRow)
+
+        // Bottom row: play, time, speed
+        const bottomRow = document.createElement('div')
+        bottomRow.style.cssText = 'display:flex;align-items:center;justify-content:space-between;'
+
+        let isPlaying = false
+        const playSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v14.72a1 1 0 0 0 1.5.86l11-7.36a1 1 0 0 0 0-1.72l-11-7.36A1 1 0 0 0 8 5.14z"/></svg>'
+        const pauseSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>'
+
+        const leftControls = document.createElement('div')
+        leftControls.style.cssText = 'display:flex;align-items:center;gap:10px;'
+
+        const playBtn = document.createElement('button')
+        playBtn.style.cssText = 'display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;border:none;background:#111827;color:#fff;cursor:pointer;transition:opacity 0.15s;'
+        playBtn.innerHTML = playSvg
+        playBtn.addEventListener('click', () => {
+          if (isPlaying) {
+            replayer.pause()
+            playBtn.innerHTML = playSvg
+          } else {
+            // Use getCurrentTime to resume from correct position
+            const currentMs = replayer.getCurrentTime() || 0
+            // If at end, restart from beginning
+            if (currentMs >= totalMs - 100) {
+              replayer.play(0)
+            } else {
+              replayer.play(currentMs)
+            }
+            playBtn.innerHTML = pauseSvg
+          }
+          isPlaying = !isPlaying
+        })
+        leftControls.appendChild(playBtn)
+
+        // Current time / total time
+        const timeDisplay = document.createElement('span')
+        timeDisplay.style.cssText = 'font-size:11px;color:#6b7280;font-family:monospace;white-space:nowrap;'
+        const currentTimeSpan = document.createElement('span')
+        currentTimeSpan.textContent = fmtTime(0)
+        const timeSep = document.createTextNode(' / ')
+        const totalTimeSpan = document.createElement('span')
+        totalTimeSpan.textContent = fmtTime(totalMs)
+        timeDisplay.appendChild(currentTimeSpan)
+        timeDisplay.appendChild(timeSep)
+        timeDisplay.appendChild(totalTimeSpan)
+        leftControls.appendChild(timeDisplay)
+        bottomRow.appendChild(leftControls)
+
+        // Speed selector (individual buttons like detail page)
+        const rightControls = document.createElement('div')
+        rightControls.style.cssText = 'display:flex;align-items:center;gap:2px;'
+        const speeds = [1, 2, 4, 8]
+        let currentSpeed = 1
+        const speedBtns: HTMLButtonElement[] = []
+
+        function updateSpeedBtns() {
+          speedBtns.forEach(b => {
+            const s = parseInt(b.dataset.speed!)
+            if (s === currentSpeed) {
+              b.style.background = '#111827'
+              b.style.color = '#fff'
+              b.style.fontWeight = '600'
+            } else {
+              b.style.background = 'transparent'
+              b.style.color = '#9ca3af'
+              b.style.fontWeight = '400'
+            }
+          })
+        }
+
+        speeds.forEach(s => {
+          const btn = document.createElement('button')
+          btn.dataset.speed = String(s)
+          btn.style.cssText = 'border:none;cursor:pointer;padding:3px 7px;border-radius:6px;font-size:11px;transition:all 0.15s;'
+          btn.textContent = `${s}x`
+          btn.addEventListener('click', () => {
+            currentSpeed = s
+            replayer.setConfig({ speed: s })
+            updateSpeedBtns()
+          })
+          speedBtns.push(btn)
+          rightControls.appendChild(btn)
+        })
+        updateSpeedBtns()
+        bottomRow.appendChild(rightControls)
+
+        controls.appendChild(bottomRow)
+        replayCard.appendChild(controls)
+
+        // Update timeline progress during playback
+        const startTs = rrwebEvents[0].timestamp
+        let progressTimer: ReturnType<typeof setInterval> | null = null
+        const updateProgress = () => {
+          try {
+            const meta = replayer.getMetaData()
+            const currentPlayerTime = replayer.getCurrentTime()
+            if (currentPlayerTime !== undefined && totalMs > 0) {
+              const pct = Math.min(1, Math.max(0, currentPlayerTime / totalMs))
+              timelineFill.style.width = `${pct * 100}%`
+              timelineThumb.style.left = `${pct * 100}%`
+              currentTimeSpan.textContent = fmtTime(currentPlayerTime)
+              // Auto-pause at end
+              if (currentPlayerTime >= totalMs && isPlaying) {
+                isPlaying = false
+                playBtn.innerHTML = playSvg
+                replayer.pause(totalMs)
+              }
+            }
+          } catch (_) {}
+        }
+        progressTimer = setInterval(updateProgress, 100)
+      } catch (err) {
+        playerContainer.innerHTML = '<div style="padding:20px;text-align:center;color:#9ca3af;font-size:13px;">Gravando sessão...</div>'
+      }
     } else {
-      ssContainer.innerHTML = '<div class="fv-screenshot-loading"><span>Screenshot não disponível</span></div>'
+      playerContainer.innerHTML = '<div style="padding:20px;text-align:center;color:#9ca3af;font-size:13px;">Gravando sessão...</div>'
     }
-    ssSection.appendChild(ssContainer)
 
-    // Clear annotations button
-    const clearBtn = document.createElement('button')
-    clearBtn.className = 'fv-clear-annotations'
-    clearBtn.style.display = drawingRects.length > 0 ? 'inline' : 'none'
-    clearBtn.textContent = `Limpar marcações (${drawingRects.length})`
-    clearBtn.addEventListener('click', () => {
-      drawingRects = []
-      redrawOverlay()
-      clearBtn.style.display = 'none'
-    })
-    ssSection.appendChild(clearBtn)
-
-    body.appendChild(ssSection)
+    replaySection.appendChild(replayCard)
+    bodyForm.appendChild(replaySection)
 
     // ── Form fields section ──
     const formSection = document.createElement('div')
@@ -952,11 +1277,18 @@ function createWidget(config: WidgetConfig) {
 
     const typeBtnGroup = document.createElement('div')
     typeBtnGroup.style.cssText = 'display:flex;gap:6px;'
+    // SVG icons for type buttons (14px, black, stroke-based)
+    const typeIcons: Record<string, string> = {
+      BUG: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2l1.88 1.88"/><path d="M14.12 3.88L16 2"/><path d="M9 7.13v-1a3.003 3.003 0 116 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 014-4h4a4 4 0 014 4v3c0 3.3-2.7 6-6 6"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/></svg>`,
+      SUGGESTION: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 006 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>`,
+      QUESTION: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>`,
+      PRAISE: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"/><path d="M15 5.88L14 10h5.83a2 2 0 011.92 2.56l-2.33 8A2 2 0 0117.5 22H4a2 2 0 01-2-2v-8a2 2 0 012-2h2.76a2 2 0 001.79-1.11L12 2a3.13 3.13 0 013 3.88z"/></svg>`,
+    }
     const typeOptions = [
-      { value: 'BUG', label: '🐛 Bug' },
-      { value: 'SUGGESTION', label: '💡 Sugestão' },
-      { value: 'QUESTION', label: '❓ Dúvida' },
-      { value: 'PRAISE', label: '👏 Elogio' },
+      { value: 'BUG', label: 'Bug' },
+      { value: 'SUGGESTION', label: 'Sugestão' },
+      { value: 'QUESTION', label: 'Dúvida' },
+      { value: 'PRAISE', label: 'Elogio' },
     ]
     const typeLabels: Record<string, string> = { BUG: 'Bug', SUGGESTION: 'Sugestão', QUESTION: 'Dúvida', PRAISE: 'Elogio' }
     const typeBtns: HTMLButtonElement[] = []
@@ -976,12 +1308,14 @@ function createWidget(config: WidgetConfig) {
       const btn = document.createElement('button')
       btn.type = 'button'
       btn.dataset.value = opt.value
-      btn.textContent = opt.label
-      btn.style.cssText = `flex:1;padding:8px 4px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;transition:all 0.15s;border:1px solid #d1d5db;background:#fff;color:#374151;`
+      btn.innerHTML = `${typeIcons[opt.value] || ''} ${opt.label}`
+      btn.style.cssText = `flex:1;padding:8px 4px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;transition:all 0.15s;border:1px solid #d1d5db;background:#fff;color:#374151;display:inline-flex;align-items:center;justify-content:center;gap:4px;`
       btn.addEventListener('click', () => {
         typeHidden.value = opt.value
         updateTypeBtns(opt.value)
         severityField.style.display = opt.value === 'BUG' ? 'block' : 'none'
+        const bugFields = panel.querySelector('#fv-bug-fields') as HTMLElement
+        if (bugFields) bugFields.style.display = opt.value === 'BUG' ? 'block' : 'none'
         const submitBtn = panel.querySelector('#fv-submit-btn') as HTMLButtonElement
         if (submitBtn && PROJECT_ID !== 'demo') submitBtn.textContent = `Enviar ${typeLabels[opt.value] || 'Bug'}`
       })
@@ -1041,6 +1375,54 @@ function createWidget(config: WidgetConfig) {
     severityField.appendChild(sevBtnGroup)
     formSection.appendChild(severityField)
     updateSevBtns('MEDIUM')
+
+    // ── Bug-specific fields (steps, expected, actual) ──
+    const bugFieldsContainer = document.createElement('div')
+    bugFieldsContainer.id = 'fv-bug-fields'
+    bugFieldsContainer.style.display = typeHidden.value === 'BUG' ? 'block' : 'none'
+
+    // Steps to reproduce
+    const stepsField = document.createElement('div')
+    stepsField.className = 'fv-field'
+    stepsField.innerHTML = `<label class="fv-label">Passos para reproduzir</label>`
+    const stepsTextarea = document.createElement('textarea')
+    stepsTextarea.className = 'fv-textarea'
+    stepsTextarea.rows = 3
+    stepsTextarea.placeholder = '1. Abra a página X\n2. Clique em Y\n3. Observe Z'
+    stepsTextarea.id = 'fv-steps'
+    stepsField.appendChild(stepsTextarea)
+    bugFieldsContainer.appendChild(stepsField)
+
+    // Expected & Actual results (side by side)
+    const resultsRow = document.createElement('div')
+    resultsRow.style.cssText = 'display:flex;gap:12px;margin-top:16px;'
+
+    const expectedField = document.createElement('div')
+    expectedField.className = 'fv-field'
+    expectedField.style.flex = '1'
+    expectedField.innerHTML = `<label class="fv-label">Resultado esperado</label>`
+    const expectedTextarea = document.createElement('textarea')
+    expectedTextarea.className = 'fv-textarea'
+    expectedTextarea.rows = 3
+    expectedTextarea.placeholder = 'O que deveria acontecer...'
+    expectedTextarea.id = 'fv-expected'
+    expectedField.appendChild(expectedTextarea)
+    resultsRow.appendChild(expectedField)
+
+    const actualField = document.createElement('div')
+    actualField.className = 'fv-field'
+    actualField.style.flex = '1'
+    actualField.innerHTML = `<label class="fv-label">Resultado real</label>`
+    const actualTextarea = document.createElement('textarea')
+    actualTextarea.className = 'fv-textarea'
+    actualTextarea.rows = 3
+    actualTextarea.placeholder = 'O que aconteceu de fato...'
+    actualTextarea.id = 'fv-actual'
+    actualField.appendChild(actualTextarea)
+    resultsRow.appendChild(actualField)
+
+    bugFieldsContainer.appendChild(resultsRow)
+    formSection.appendChild(bugFieldsContainer)
 
     // Attachments
     const attachField = document.createElement('div')
@@ -1156,14 +1538,6 @@ function createWidget(config: WidgetConfig) {
       formSection.appendChild(conSection)
     }
 
-    // Session replay events summary
-    if (rrwebEvents.length > 0) {
-      const evSummary = document.createElement('div')
-      evSummary.className = 'fv-events-summary'
-      evSummary.innerHTML = `<span class="fv-log-tag fv-tag-neutral">${rrwebEvents.length}</span> eventos de session replay capturados`
-      formSection.appendChild(evSummary)
-    }
-
     // Server error placeholder
     const serverError = document.createElement('div')
     serverError.className = 'fv-server-error'
@@ -1171,7 +1545,272 @@ function createWidget(config: WidgetConfig) {
     serverError.id = 'fv-server-error'
     formSection.appendChild(serverError)
 
-    body.appendChild(formSection)
+    bodyForm.appendChild(formSection)
+
+    // ── Live Preview Panel ──
+    const previewPanel = document.createElement('div')
+    previewPanel.className = 'fv-preview-panel'
+    previewPanel.id = 'fv-preview-panel'
+
+    const previewLabel = document.createElement('div')
+    previewLabel.className = 'fv-preview-label'
+    previewLabel.textContent = 'Preview'
+    previewPanel.appendChild(previewLabel)
+
+    const previewCard = document.createElement('div')
+    previewCard.className = 'fv-preview-card'
+    previewCard.id = 'fv-preview-card'
+    previewPanel.appendChild(previewCard)
+
+    body.appendChild(previewPanel)
+
+    // Helper to parse environment from userAgent
+    function parseEnvironment() {
+      const ua = navigator.userAgent
+      let os = 'Unknown OS'
+      if (ua.includes('Mac OS X')) {
+        const v = ua.match(/Mac OS X ([\d_]+)/)
+        os = 'macOS' + (v ? ' ' + v[1].replace(/_/g, '.') : '')
+      } else if (ua.includes('Windows NT')) {
+        const v = ua.match(/Windows NT ([\d.]+)/)
+        const map: Record<string, string> = { '10.0': '10/11', '6.3': '8.1', '6.2': '8', '6.1': '7' }
+        os = 'Windows' + (v ? ' ' + (map[v[1]] || v[1]) : '')
+      } else if (ua.includes('Linux')) os = 'Linux'
+      else if (ua.includes('Android')) os = 'Android'
+      else if (ua.includes('iOS') || ua.includes('iPhone')) os = 'iOS'
+
+      let browser = 'Unknown Browser'
+      if (ua.includes('Edg/')) { const v = ua.match(/Edg\/([\d.]+)/); browser = 'Edge' + (v ? ' ' + v[1] : '') }
+      else if (ua.includes('Chrome/')) { const v = ua.match(/Chrome\/([\d.]+)/); browser = 'Chrome' + (v ? ' ' + v[1] : '') }
+      else if (ua.includes('Firefox/')) { const v = ua.match(/Firefox\/([\d.]+)/); browser = 'Firefox' + (v ? ' ' + v[1] : '') }
+      else if (ua.includes('Safari/') && !ua.includes('Chrome')) { const v = ua.match(/Version\/([\d.]+)/); browser = 'Safari' + (v ? ' ' + v[1] : '') }
+
+      const viewport = `${window.innerWidth} × ${window.innerHeight}`
+      return { os, browser, viewport }
+    }
+
+    const env = parseEnvironment()
+    const typeColorMap: Record<string, { bg: string; color: string }> = {
+      BUG: { bg: '#fef2f2', color: '#dc2626' },
+      SUGGESTION: { bg: '#fffbeb', color: '#d97706' },
+      QUESTION: { bg: '#eff6ff', color: '#2563eb' },
+      PRAISE: { bg: '#f0fdf4', color: '#16a34a' },
+    }
+    const sevColorMap: Record<string, string> = { LOW: '#22c55e', MEDIUM: '#f59e0b', HIGH: '#f97316', CRITICAL: '#ef4444' }
+    const sevLabelMap: Record<string, string> = { LOW: 'Baixa', MEDIUM: 'Média', HIGH: 'Alta', CRITICAL: 'Crítica' }
+    const typeIconSmall: Record<string, string> = {
+      BUG: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2l1.88 1.88"/><path d="M14.12 3.88L16 2"/><path d="M9 7.13v-1a3.003 3.003 0 116 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 014-4h4a4 4 0 014 4v3c0 3.3-2.7 6-6 6"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/></svg>`,
+      SUGGESTION: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 006 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>`,
+      QUESTION: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>`,
+      PRAISE: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"/><path d="M15 5.88L14 10h5.83a2 2 0 011.92 2.56l-2.33 8A2 2 0 0117.5 22H4a2 2 0 01-2-2v-8a2 2 0 012-2h2.76a2 2 0 001.79-1.11L12 2a3.13 3.13 0 013 3.88z"/></svg>`,
+    }
+
+    function updatePreview() {
+      const card = previewCard
+      if (!card) return
+      card.innerHTML = ''
+
+      const currentType = typeHidden.value
+      const currentSev = sevHidden.value
+      const titleVal = titleInput.value.trim()
+      const commentVal = textarea.value.trim()
+      const stepsVal = stepsTextarea.value.trim()
+      const expectedVal = expectedTextarea.value.trim()
+      const actualVal = actualTextarea.value.trim()
+      const tc = typeColorMap[currentType] || typeColorMap.BUG
+
+      // Type badge
+      const badgeWrap = document.createElement('div')
+      const badge = document.createElement('span')
+      badge.style.cssText = `display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:600;background:${tc.bg};color:${tc.color};`
+      badge.innerHTML = `${typeIconSmall[currentType] || typeIconSmall.BUG} ${typeLabels[currentType] || 'Bug'}`
+      badgeWrap.appendChild(badge)
+      card.appendChild(badgeWrap)
+
+      // Title
+      const titleEl = document.createElement('h3')
+      titleEl.style.cssText = 'font-size:18px;font-weight:700;color:#111827;margin:0;line-height:1.3;'
+      if (titleVal) {
+        titleEl.textContent = titleVal
+      } else {
+        titleEl.innerHTML = '<span style="color:#d1d5db;font-style:italic;font-weight:400;font-size:14px;">Sem título</span>'
+      }
+      card.appendChild(titleEl)
+
+      // Description
+      if (commentVal) {
+        const descWrap = document.createElement('div')
+        const descLabel = document.createElement('div')
+        descLabel.className = 'fv-preview-section-title'
+        descLabel.textContent = 'Descrição'
+        descWrap.appendChild(descLabel)
+        const descText = document.createElement('p')
+        descText.className = 'fv-preview-text'
+        descText.textContent = commentVal
+        descWrap.appendChild(descText)
+        card.appendChild(descWrap)
+      } else {
+        const placeholder = document.createElement('p')
+        placeholder.className = 'fv-preview-placeholder'
+        placeholder.textContent = 'Aguardando descrição...'
+        card.appendChild(placeholder)
+      }
+
+      // Steps to reproduce
+      if (currentType === 'BUG' && stepsVal) {
+        const stepsWrap = document.createElement('div')
+        const stepsLabel = document.createElement('div')
+        stepsLabel.className = 'fv-preview-section-title'
+        stepsLabel.textContent = 'Passos para reproduzir'
+        stepsWrap.appendChild(stepsLabel)
+        const stepsList = document.createElement('div')
+        stepsList.style.cssText = 'font-size:13px;color:#374151;line-height:1.6;'
+        stepsVal.split('\n').filter((l: string) => l.trim()).forEach((line: string, i: number) => {
+          const row = document.createElement('div')
+          row.style.cssText = 'display:flex;gap:6px;margin-bottom:2px;'
+          row.innerHTML = `<span style="color:#9ca3af;font-weight:500;flex-shrink:0;">${i + 1}.</span><span>${line.replace(/^\d+[\.\)]\s*/, '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>`
+          stepsList.appendChild(row)
+        })
+        stepsWrap.appendChild(stepsList)
+        card.appendChild(stepsWrap)
+      }
+
+      // Expected result
+      if (currentType === 'BUG' && expectedVal) {
+        const expWrap = document.createElement('div')
+        const expLabel = document.createElement('div')
+        expLabel.style.cssText = 'font-size:12px;font-weight:600;color:#16a34a;margin-bottom:4px;'
+        expLabel.textContent = 'Resultado esperado'
+        expWrap.appendChild(expLabel)
+        const expText = document.createElement('p')
+        expText.className = 'fv-preview-text'
+        expText.textContent = expectedVal
+        expWrap.appendChild(expText)
+        card.appendChild(expWrap)
+      }
+
+      // Actual result
+      if (currentType === 'BUG' && actualVal) {
+        const actWrap = document.createElement('div')
+        const actLabel = document.createElement('div')
+        actLabel.style.cssText = 'font-size:12px;font-weight:600;color:#dc2626;margin-bottom:4px;'
+        actLabel.textContent = 'Resultado real'
+        actWrap.appendChild(actLabel)
+        const actText = document.createElement('p')
+        actText.className = 'fv-preview-text'
+        actText.textContent = actualVal
+        actWrap.appendChild(actText)
+        card.appendChild(actWrap)
+      }
+
+      // Screenshot thumbnail
+      {
+        const ssWrap = document.createElement('div')
+        const ssLbl = document.createElement('div')
+        ssLbl.className = 'fv-preview-section-title'
+        ssLbl.textContent = 'Screenshot'
+        ssWrap.appendChild(ssLbl)
+
+        const capturingEl = document.createElement('div')
+        capturingEl.className = 'fv-preview-capturing'
+        capturingEl.style.cssText = 'padding:12px;text-align:center;font-size:12px;color:#9ca3af;background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;display:' + (screenshotUrl ? 'none' : 'block') + ';'
+        capturingEl.textContent = 'Capturando screenshot...'
+        ssWrap.appendChild(capturingEl)
+
+        const ssImg = document.createElement('img')
+        ssImg.className = 'fv-preview-screenshot'
+        ssImg.alt = 'Screenshot'
+        ssImg.style.cssText = 'width:100%;border-radius:8px;border:1px solid #e5e7eb;display:' + (screenshotUrl ? 'block' : 'none') + ';'
+        if (screenshotUrl) ssImg.src = screenshotUrl
+        ssWrap.appendChild(ssImg)
+        card.appendChild(ssWrap)
+      }
+
+      // Priority
+      if (currentType === 'BUG') {
+        const priWrap = document.createElement('div')
+        priWrap.style.cssText = 'display:flex;align-items:center;gap:8px;'
+        const priLabel = document.createElement('span')
+        priLabel.style.cssText = 'font-size:12px;font-weight:600;color:#6b7280;'
+        priLabel.textContent = 'Prioridade'
+        priWrap.appendChild(priLabel)
+        const priVal = document.createElement('span')
+        const sc = sevColorMap[currentSev] || '#f59e0b'
+        priVal.style.cssText = `display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background:${sc}15;color:${sc};`
+        priVal.textContent = sevLabelMap[currentSev] || 'Média'
+        priWrap.appendChild(priVal)
+        card.appendChild(priWrap)
+      }
+
+      // Metadata section
+      const meta = document.createElement('div')
+      meta.className = 'fv-preview-meta'
+
+      // Source URL
+      const urlRow = document.createElement('div')
+      urlRow.className = 'fv-preview-meta-row'
+      urlRow.innerHTML = `<span class="fv-preview-meta-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg></span><span style="color:#2563eb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${window.location.href.replace(/</g, '&lt;')}</span>`
+      meta.appendChild(urlRow)
+
+      // OS + Browser
+      if (env.os) {
+        const osRow = document.createElement('div')
+        osRow.className = 'fv-preview-meta-row'
+        osRow.innerHTML = `<span class="fv-preview-meta-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span><span style="color:#374151;">${env.os} • ${env.browser}</span>`
+        meta.appendChild(osRow)
+      }
+
+      // Viewport
+      if (env.viewport) {
+        const vpRow = document.createElement('div')
+        vpRow.className = 'fv-preview-meta-row'
+        vpRow.innerHTML = `<span class="fv-preview-meta-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3H3v18h18V3z"/><path d="M21 9H3"/><path d="M9 21V9"/></svg></span><span style="color:#374151;">${env.viewport}</span>`
+        meta.appendChild(vpRow)
+      }
+
+      // Console logs summary
+      if (consoleLogs.length > 0) {
+        const errors = consoleLogs.filter(l => l.level === 'error').length
+        const warnings = consoleLogs.filter(l => l.level === 'warn').length
+        const logRow = document.createElement('div')
+        logRow.className = 'fv-preview-meta-row'
+        let logText = ''
+        if (errors > 0) logText += `<span style="color:#dc2626;font-weight:500;">${errors} error${errors !== 1 ? 's' : ''}</span>`
+        if (warnings > 0) logText += `${logText ? ' ' : ''}<span style="color:#d97706;font-weight:500;">${warnings} warning${warnings !== 1 ? 's' : ''}</span>`
+        if (!errors && !warnings) logText = `<span style="color:#374151;">${consoleLogs.length} log${consoleLogs.length !== 1 ? 's' : ''}</span>`
+        logRow.innerHTML = `<span class="fv-preview-meta-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span><span style="display:flex;gap:8px;">${logText}</span>`
+        meta.appendChild(logRow)
+      }
+
+      // Network logs summary
+      if (networkLogs.length > 0) {
+        const failed = networkLogs.filter(l => l.status >= 400).length
+        const netRow = document.createElement('div')
+        netRow.className = 'fv-preview-meta-row'
+        netRow.innerHTML = `<span class="fv-preview-meta-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></span><span style="color:#374151;">${networkLogs.length} request${networkLogs.length !== 1 ? 's' : ''}${failed > 0 ? ` <span style="color:#dc2626;">(${failed} failed)</span>` : ''}</span>`
+        meta.appendChild(netRow)
+      }
+
+      card.appendChild(meta)
+    }
+
+    // Initial preview render
+    updatePreview()
+
+    // Attach input listeners for live preview updates
+    titleInput.addEventListener('input', updatePreview)
+    textarea.addEventListener('input', updatePreview)
+    stepsTextarea.addEventListener('input', updatePreview)
+    expectedTextarea.addEventListener('input', updatePreview)
+    actualTextarea.addEventListener('input', updatePreview)
+
+    // Also update preview on type/severity changes — patch into existing click handlers
+    const origTypeClickHandlers = typeBtns.map((btn) => {
+      const origHandler = () => { updatePreview() }
+      btn.addEventListener('click', origHandler)
+      return origHandler
+    })
+    sevBtns.forEach((btn) => btn.addEventListener('click', updatePreview))
 
     // Footer
     const isDemo = PROJECT_ID === 'demo'
@@ -1186,7 +1825,7 @@ function createWidget(config: WidgetConfig) {
 
     const powered = document.createElement('div')
     powered.className = 'fv-powered'
-    powered.innerHTML = 'Powered by <a href="https://feedbackview.com" target="_blank">QBugs</a>'
+    powered.innerHTML = 'Powered by <a href="https://feedbackview.com" target="_blank">Report Bug</a>'
     footer.appendChild(powered)
     panel.appendChild(footer)
   }
@@ -1252,6 +1891,9 @@ function createWidget(config: WidgetConfig) {
   }
 
   async function open() {
+    // Pause recording — we only want events from before the modal opened
+    pauseRecording()
+
     isOpen = true
     submitted = false
     isCapturing = true
@@ -1259,17 +1901,28 @@ function createWidget(config: WidgetConfig) {
     trigger.style.display = 'none'
     renderPanel()
 
-    // Capture screenshot
+    // Capture screenshot and update only the preview screenshot area (avoid full re-render)
     const ss = await captureScreenshot()
     screenshotUrl = ss
     isCapturing = false
-    renderPanel()
+    // Update screenshot in preview panel without re-rendering the whole modal
+    const previewImg = shadow.querySelector('.fv-preview-screenshot') as HTMLImageElement
+    const previewCapturing = shadow.querySelector('.fv-preview-capturing') as HTMLElement
+    if (previewImg && ss) {
+      previewImg.src = ss
+      previewImg.style.display = 'block'
+    }
+    if (previewCapturing) {
+      previewCapturing.style.display = 'none'
+    }
   }
 
   function close() {
     isOpen = false
     trigger.style.display = 'flex'
     renderPanel()
+    // Clear events and restart recording for the next report
+    clearAndRestartRecording()
   }
 
   async function handleSubmit() {
@@ -1277,6 +1930,9 @@ function createWidget(config: WidgetConfig) {
     const commentEl = shadow.querySelector('#fv-comment') as HTMLTextAreaElement
     const typeEl = shadow.querySelector('#fv-type') as HTMLInputElement
     const severityEl = shadow.querySelector('#fv-severity') as HTMLInputElement
+    const stepsEl = shadow.querySelector('#fv-steps') as HTMLTextAreaElement
+    const expectedEl = shadow.querySelector('#fv-expected') as HTMLTextAreaElement
+    const actualEl = shadow.querySelector('#fv-actual') as HTMLTextAreaElement
     const submitBtn = shadow.querySelector('#fv-submit-btn') as HTMLButtonElement
     const serverErrorEl = shadow.querySelector('#fv-server-error') as HTMLElement
     const commentErrorEl = commentEl?.parentElement?.querySelector('.fv-error-msg') as HTMLElement
@@ -1315,6 +1971,16 @@ function createWidget(config: WidgetConfig) {
 
     if (feedbackType === 'BUG') {
       payload.severity = severityEl?.value || 'MEDIUM'
+      const steps = stepsEl?.value?.trim()
+      const expected = expectedEl?.value?.trim()
+      const actual = actualEl?.value?.trim()
+      if (steps || expected || actual) {
+        payload.metadata = {
+          ...(steps ? { stepsToReproduce: steps } : {}),
+          ...(expected ? { expectedResult: expected } : {}),
+          ...(actual ? { actualResult: actual } : {}),
+        }
+      }
     }
 
     const finalScreenshot = getFinalScreenshot()

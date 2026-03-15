@@ -8,7 +8,7 @@ import {
 } from '@once-ui-system/core'
 
 export const metadata = {
-  title: 'Política de Privacidade — QBugs',
+  title: 'Política de Privacidade — Report Bug',
 }
 
 export default function PrivacidadePage() {
@@ -27,7 +27,7 @@ export default function PrivacidadePage() {
         style={{ position: 'sticky', top: 0, zIndex: 50 }}
       >
         <Link href="/" style={{ textDecoration: 'none' }}>
-          <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '1.25rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-strong)' }}>QBugs</span>
+          <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '1.25rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-strong)' }}>Report Bug</span>
         </Link>
       </Row>
 
@@ -53,7 +53,7 @@ export default function PrivacidadePage() {
 
             <Heading variant="heading-strong-m" as="h2">3. Session Replay e Screenshots</Heading>
             <Text variant="body-default-m" onBackground="neutral-weak" style={{ lineHeight: 1.7 }}>
-              O QBugs captura session replays e screenshots para facilitar a reprodução de bugs. Campos sensíveis como senhas são automaticamente mascarados nas gravações. As capturas são armazenadas de forma segura e acessíveis apenas aos membros do projeto autorizado.
+              O Report Bug captura session replays e screenshots para facilitar a reprodução de bugs. Campos sensíveis como senhas são automaticamente mascarados nas gravações. As capturas são armazenadas de forma segura e acessíveis apenas aos membros do projeto autorizado.
             </Text>
 
             <Heading variant="heading-strong-m" as="h2">4. Armazenamento e Segurança</Heading>
@@ -104,7 +104,7 @@ export default function PrivacidadePage() {
       <Flex as="footer" fillWidth horizontal="center" borderTop="neutral-medium" background="surface">
         <Row maxWidth={64} fillWidth paddingX="l" paddingY="m" horizontal="between" vertical="center">
           <Row gap="xs" vertical="center">
-            <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '0.8rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-weak)' }}>QBugs</span>
+            <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '0.8rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-weak)' }}>Report Bug</span>
             <Text variant="body-default-xs" onBackground="neutral-weak">&copy; {new Date().getFullYear()}</Text>
           </Row>
           <Row gap="m">

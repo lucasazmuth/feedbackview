@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Flex,
@@ -15,6 +15,7 @@ import {
   IconButton,
 } from '@once-ui-system/core'
 import AppLayout from '@/components/ui/AppLayout'
+import { getPlanLimits, getUsageWarning, type Plan, type Role, type Usage } from '@/lib/limits'
 
 interface Project {
   id: string
@@ -46,6 +47,30 @@ export default function DashboardClient({
   userName,
 }: DashboardClientProps) {
   const router = useRouter()
+  const [usageWarning, setUsageWarning] = useState<string | null>(null)
+  useEffect(() => {
+    async function fetchUsage() {
+      try {
+        const res = await fetch('/api/billing/subscription')
+        if (!res.ok) return
+        const data = await res.json()
+        const plan = (data.organization?.plan || 'FREE') as Plan
+        const role = (data.role || 'MEMBER') as Role
+        const usage: Usage = {
+          projectCount: data.usage?.projectCount || 0,
+          memberCount: data.usage?.memberCount || 0,
+          reportsThisMonth: data.usage?.reportsThisMonth || 0,
+        }
+        const limits = getPlanLimits(plan)
+        const warning = getUsageWarning(usage, limits, role)
+        setUsageWarning(warning)
+      } catch {
+        // ignore
+      }
+    }
+    fetchUsage()
+  }, [])
+
   const [showFilter, setShowFilter] = useState(false)
   const [filterStatus, setFilterStatus] = useState<'all' | 'open' | 'none'>('all')
   const [sortBy, setSortBy] = useState<'recent' | 'name' | 'feedbacks'>('recent')
@@ -202,6 +227,30 @@ export default function DashboardClient({
           </Row>
         </Row>
 
+        {/* Usage warning banner */}
+        {usageWarning && (
+          <Row
+            fillWidth
+            padding="m"
+            radius="l"
+            background="warning-weak"
+            border="warning-medium"
+            horizontal="between"
+            vertical="center"
+          >
+            <Text variant="body-default-s" onBackground="warning-strong">
+              {usageWarning}
+            </Text>
+            <Button
+              variant="secondary"
+              size="s"
+              href="/plans"
+            >
+              Ver planos
+            </Button>
+          </Row>
+        )}
+
         {/* Error state */}
         {error && (
           <Row
@@ -220,15 +269,6 @@ export default function DashboardClient({
         {/* Empty state */}
         {projects.length === 0 && !error && (
           <Column fillWidth horizontal="center" vertical="center" paddingY="xl" gap="m">
-            <Flex
-              horizontal="center"
-              vertical="center"
-              radius="l"
-              padding="l"
-              background="brand-weak"
-            >
-              <Icon name="message" size="l" />
-            </Flex>
             <Heading variant="heading-strong-m">Nenhum projeto ainda</Heading>
             <Text
               variant="body-default-s"
@@ -239,14 +279,6 @@ export default function DashboardClient({
               Crie seu primeiro projeto para começar a capturar reports com screenshot e session
               replay.
             </Text>
-            <Button
-              variant="primary"
-              prefixIcon="plus"
-              size="m"
-              href="/projects/new"
-            >
-              Criar primeiro projeto
-            </Button>
           </Column>
         )}
 

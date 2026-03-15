@@ -123,6 +123,8 @@ export default function ProjectClient({
   // Widget appearance state
   const [widgetPosition, setWidgetPosition] = useState(project?.widgetPosition || 'bottom-right')
   const [widgetColor, setWidgetColor] = useState(project?.widgetColor || '#4f46e5')
+  const [widgetStyle, setWidgetStyle] = useState(project?.widgetStyle || 'text')
+  const [widgetText, setWidgetText] = useState(project?.widgetText || 'Reportar Bug')
   const [appearanceSaving, setAppearanceSaving] = useState(false)
   const [appearanceMsg, setAppearanceMsg] = useState<{ type: 'success' | 'danger'; text: string } | null>(null)
 
@@ -131,7 +133,7 @@ export default function ProjectClient({
     setAppearanceSaving(true)
     setAppearanceMsg(null)
     try {
-      await api.projects.update(project.id, { widgetPosition, widgetColor })
+      await api.projects.update(project.id, { widgetPosition, widgetColor, widgetStyle, widgetText })
       setAppearanceMsg({ type: 'success', text: 'Aparência atualizada com sucesso!' })
       router.refresh()
     } catch (err: any) {
@@ -406,12 +408,12 @@ export default function ProjectClient({
                   variant="body-default-xs"
                   style={{ color: 'rgba(255,255,255,0.7)' }}
                 >
-                  Compartilhe esta URL com os QAs para começar a capturar feedbacks.
+                  Compartilhe esta URL com os QAs para começar a capturar reports.
                 </Text>
               </>
             ) : (
               <>
-                <Flex fillWidth style={{ position: 'relative' }}>
+                <Flex fillWidth direction="column" gap="s">
                   <pre
                     style={{
                       width: '100%',
@@ -423,11 +425,13 @@ export default function ProjectClient({
                       overflow: 'auto',
                       fontFamily: 'monospace',
                       margin: 0,
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-all',
                     }}
                   >
                     {embedSnippet}
                   </pre>
-                  <div style={{ position: 'absolute', top: '0.375rem', right: '0.375rem' }}>
+                  <Flex fillWidth horizontal="end">
                     <Button
                       variant="secondary"
                       size="s"
@@ -435,13 +439,13 @@ export default function ProjectClient({
                       prefixIcon={copiedEmbed ? 'check' : 'copy'}
                       onClick={copyEmbedSnippet}
                     />
-                  </div>
+                  </Flex>
                 </Flex>
                 <Text
                   variant="body-default-xs"
                   style={{ color: 'rgba(255,255,255,0.7)' }}
                 >
-                  Adicione este código ao HTML do seu site para capturar feedbacks.
+                  Adicione este código ao HTML do seu site para capturar reports.
                 </Text>
               </>
             )}
@@ -471,7 +475,7 @@ export default function ProjectClient({
         {/* Tabs */}
         <Row gap="l" fillWidth style={{ borderBottom: '2px solid var(--neutral-border-medium)' }}>
           {[
-            { key: 'feedbacks' as const, label: 'Caixa de entrada', count: totalCount },
+            { key: 'feedbacks' as const, label: 'Reports', count: totalCount },
             { key: 'settings' as const, label: 'Configurações', count: undefined },
           ].map((tab) => (
             <button
@@ -571,7 +575,7 @@ export default function ProjectClient({
 
             {filteredFeedbacks.length === 0 ? (
               <Card fillWidth padding="xl" radius="l" style={{ textAlign: 'center' }}>
-                <Column horizontal="center" gap="m" paddingY="l">
+                <Column fillWidth horizontal="center" gap="m" paddingY="l">
                   <Flex
                     horizontal="center"
                     vertical="center"
@@ -586,8 +590,8 @@ export default function ProjectClient({
                   </Flex>
                   <Text variant="body-default-s" onBackground="neutral-weak">
                     {feedbacks.length === 0
-                      ? 'Nenhum feedback ainda. Compartilhe a URL do visualizador!'
-                      : 'Nenhum feedback com os filtros selecionados.'}
+                      ? 'Nenhum report ainda. Compartilhe a URL do visualizador!'
+                      : 'Nenhum report com os filtros selecionados.'}
                   </Text>
                 </Column>
               </Card>
@@ -797,159 +801,284 @@ export default function ProjectClient({
                   <Heading variant="heading-strong-s" as="h3">Aparência do Widget</Heading>
                 </Row>
                 <Text variant="body-default-s" onBackground="neutral-weak">
-                  Personalize a posição e cor do botão de feedback que aparece no site.
+                  Personalize como o botão de feedback aparecerá no seu site.
                 </Text>
 
                 {appearanceMsg && (
                   <FeedbackAlert variant={appearanceMsg.type}>{appearanceMsg.text}</FeedbackAlert>
                 )}
 
-                <Row gap="l" fillWidth wrap>
-                  {/* Position selector */}
-                  <Column gap="s" style={{ flex: 1, minWidth: '12rem' }}>
-                    <Text variant="label-default-s" onBackground="neutral-strong">Posição</Text>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                      {([
-                        { value: 'top-left', label: 'Superior esq.' },
-                        { value: 'top-right', label: 'Superior dir.' },
-                        { value: 'bottom-left', label: 'Inferior esq.' },
-                        { value: 'bottom-right', label: 'Inferior dir.' },
-                      ] as const).map((pos) => (
-                        <button
-                          key={pos.value}
-                          onClick={() => setWidgetPosition(pos.value)}
-                          style={{
-                            position: 'relative',
-                            height: '4.5rem',
-                            borderRadius: '0.5rem',
-                            border: `2px solid ${widgetPosition === pos.value ? widgetColor : 'var(--neutral-border-medium)'}`,
-                            background: widgetPosition === pos.value ? `${widgetColor}08` : 'var(--surface-background)',
-                            cursor: 'pointer',
-                            transition: 'all 0.15s',
-                            overflow: 'hidden',
-                          }}
-                        >
-                          <div style={{
-                            position: 'absolute',
-                            ...(pos.value.includes('top') ? { top: 6 } : { bottom: 6 }),
-                            ...(pos.value.includes('left') ? { left: 6 } : { right: 6 }),
-                            width: 14,
-                            height: 14,
-                            borderRadius: '50%',
-                            background: widgetPosition === pos.value ? widgetColor : 'var(--neutral-solid-medium)',
-                            transition: 'background 0.15s',
-                          }} />
-                          <span style={{
-                            position: 'absolute',
-                            bottom: 4,
-                            left: 0,
-                            right: 0,
-                            textAlign: 'center',
-                            fontSize: '0.625rem',
-                            color: widgetPosition === pos.value ? widgetColor : 'var(--neutral-on-background-weak)',
-                            fontWeight: widgetPosition === pos.value ? 600 : 400,
-                          }}>
-                            {pos.label}
-                          </span>
-                        </button>
-                      ))}
+                <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
+                  {/* Controls */}
+                  <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                    {/* Widget style */}
+                    <div>
+                      <Text variant="label-default-s" onBackground="neutral-strong" style={{ marginBottom: '0.5rem', display: 'block' }}>Estilo do botão</Text>
+                      <div style={{ display: 'flex', gap: '0.75rem' }}>
+                        {(['text', 'icon'] as const).map((s) => (
+                          <div
+                            key={s}
+                            onClick={() => setWidgetStyle(s)}
+                            style={{
+                              flex: 1,
+                              padding: '1rem',
+                              borderRadius: '0.75rem',
+                              border: `2px solid ${widgetStyle === s ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)'}`,
+                              background: widgetStyle === s ? 'var(--brand-alpha-weak)' : 'var(--surface-background)',
+                              cursor: 'pointer',
+                              textAlign: 'center',
+                              transition: 'all 0.15s',
+                            }}
+                          >
+                            <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'center' }}>
+                              {s === 'text' ? (
+                                <div style={{ height: 32, paddingLeft: 12, paddingRight: 14, borderRadius: 16, background: widgetColor, color: '#fff', display: 'inline-flex', alignItems: 'center', fontSize: 11, fontWeight: 600, gap: 4 }}>
+                                  {widgetText}
+                                </div>
+                              ) : (
+                                <div style={{ width: 36, height: 36, borderRadius: '50%', background: widgetColor, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <ellipse cx="12" cy="15" rx="5" ry="6" />
+                                    <circle cx="12" cy="7" r="3" />
+                                    <path d="M5 9L2 7M19 9l3-2M5 15H2M19 15h3M5 19l-2 2M19 19l2 2" strokeLinecap="round" />
+                                  </svg>
+                                </div>
+                              )}
+                            </div>
+                            <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)' }}>
+                              {s === 'text' ? 'Texto' : 'Ícone'}
+                            </span>
+                            <p style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', margin: '0.25rem 0 0' }}>
+                              {s === 'text' ? 'Botão com texto personalizado' : 'Botão circular com ícone'}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </Column>
 
-                  {/* Color picker + Preview */}
-                  <Column gap="s" style={{ flex: 1, minWidth: '14rem' }}>
-                    <Text variant="label-default-s" onBackground="neutral-strong">Cor do widget</Text>
-                    <Row gap="s" vertical="center">
-                      <label
-                        style={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: '0.5rem',
-                          background: widgetColor,
-                          border: '2px solid var(--neutral-border-medium)',
-                          cursor: 'pointer',
-                          overflow: 'hidden',
-                          flexShrink: 0,
-                          position: 'relative',
-                        }}
-                      >
+                    {/* Widget text (only for text style) */}
+                    {widgetStyle === 'text' && (
+                      <div>
+                        <Text variant="label-default-s" onBackground="neutral-strong" style={{ marginBottom: '0.5rem', display: 'block' }}>Texto do botão</Text>
                         <input
-                          type="color"
-                          value={widgetColor}
-                          onChange={(e) => setWidgetColor(e.target.value)}
+                          type="text"
+                          value={widgetText}
+                          onChange={(e) => setWidgetText(e.target.value.slice(0, 30))}
+                          placeholder="Reportar Bug"
                           style={{
-                            position: 'absolute',
-                            inset: 0,
-                            opacity: 0,
-                            cursor: 'pointer',
                             width: '100%',
-                            height: '100%',
+                            padding: '0.625rem 0.75rem',
+                            borderRadius: '0.5rem',
+                            border: '1px solid var(--neutral-border-medium)',
+                            background: 'var(--surface-background)',
+                            color: 'var(--neutral-on-background-strong)',
+                            fontSize: '0.875rem',
+                            outline: 'none',
                           }}
                         />
-                      </label>
-                      <input
-                        type="text"
-                        value={widgetColor}
-                        onChange={(e) => {
-                          const v = e.target.value
-                          if (v.match(/^#[0-9a-fA-F]{0,6}$/)) setWidgetColor(v)
-                        }}
-                        onBlur={() => {
-                          if (!widgetColor.match(/^#[0-9a-fA-F]{6}$/)) setWidgetColor('#4f46e5')
-                        }}
-                        style={{
-                          width: '7rem',
-                          padding: '0.5rem 0.75rem',
-                          borderRadius: '0.5rem',
-                          border: '1px solid var(--neutral-border-medium)',
-                          background: 'var(--surface-background)',
-                          color: 'var(--neutral-on-background-strong)',
-                          fontSize: '0.8125rem',
-                          fontFamily: 'monospace',
-                          outline: 'none',
-                        }}
-                      />
-                    </Row>
-
-                    {/* Live preview */}
-                    <Text variant="label-default-s" onBackground="neutral-strong" style={{ marginTop: '0.25rem' }}>Preview</Text>
-                    <div style={{
-                      position: 'relative',
-                      width: '100%',
-                      height: '10rem',
-                      borderRadius: '0.75rem',
-                      border: '1px solid var(--neutral-border-medium)',
-                      background: '#f9fafb',
-                      overflow: 'hidden',
-                    }}>
-                      {/* Mock page content */}
-                      <div style={{ padding: '0.75rem' }}>
-                        <div style={{ height: 8, width: '60%', background: '#e5e7eb', borderRadius: 4, marginBottom: 6 }} />
-                        <div style={{ height: 6, width: '80%', background: '#e5e7eb', borderRadius: 3, marginBottom: 4 }} />
-                        <div style={{ height: 6, width: '45%', background: '#e5e7eb', borderRadius: 3 }} />
+                        <span style={{ fontSize: '0.6875rem', color: 'var(--neutral-on-background-weak)', marginTop: '0.25rem', display: 'block' }}>{widgetText.length}/30</span>
                       </div>
-                      {/* Widget button preview */}
-                      <div style={{
-                        position: 'absolute',
-                        ...(widgetPosition.includes('top') ? { top: 8 } : { bottom: 8 }),
-                        ...(widgetPosition.includes('left') ? { left: 8 } : { right: 8 }),
-                        height: 20,
-                        paddingLeft: 6,
-                        paddingRight: 8,
-                        borderRadius: 10,
-                        background: widgetColor,
-                        boxShadow: `0 2px 8px ${widgetColor}66`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 3,
-                        transition: 'all 0.3s ease',
-                      }}>
-                        <span style={{ color: '#fff', fontSize: 7, fontWeight: 700, whiteSpace: 'nowrap', lineHeight: 1 }}>QBugs Reportar</span>
+                    )}
+
+                    {/* Widget position */}
+                    <div>
+                      <Text variant="label-default-s" onBackground="neutral-strong" style={{ marginBottom: '0.5rem', display: 'block' }}>Posição</Text>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                        {[
+                          { value: 'top-left', label: 'Superior esquerda' },
+                          { value: 'top-right', label: 'Superior direita' },
+                          { value: 'bottom-left', label: 'Inferior esquerda' },
+                          { value: 'bottom-right', label: 'Inferior direita' },
+                        ].map((pos) => (
+                          <button
+                            key={pos.value}
+                            onClick={() => setWidgetPosition(pos.value)}
+                            style={{
+                              padding: '0.625rem',
+                              borderRadius: '0.5rem',
+                              border: `2px solid ${widgetPosition === pos.value ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)'}`,
+                              background: widgetPosition === pos.value ? 'var(--brand-alpha-weak)' : 'transparent',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem',
+                              transition: 'all 0.15s',
+                            }}
+                          >
+                            <div style={{
+                              width: 24,
+                              height: 18,
+                              borderRadius: 3,
+                              border: '1px solid var(--neutral-border-medium)',
+                              position: 'relative',
+                              flexShrink: 0,
+                            }}>
+                              <div style={{
+                                width: 5,
+                                height: 5,
+                                borderRadius: '50%',
+                                background: widgetPosition === pos.value ? 'var(--brand-solid-strong)' : 'var(--neutral-on-background-weak)',
+                                position: 'absolute',
+                                ...(pos.value.includes('top') ? { top: 2 } : { bottom: 2 }),
+                                ...(pos.value.includes('left') ? { left: 2 } : { right: 2 }),
+                              }} />
+                            </div>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-strong)', fontWeight: widgetPosition === pos.value ? 600 : 400 }}>
+                              {pos.label}
+                            </span>
+                          </button>
+                        ))}
                       </div>
                     </div>
-                  </Column>
-                </Row>
+
+                    {/* Widget color */}
+                    <div>
+                      <Text variant="label-default-s" onBackground="neutral-strong" style={{ marginBottom: '0.5rem', display: 'block' }}>Cor</Text>
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                        {['#4f46e5', '#dc2626', '#16a34a', '#d97706', '#0ea5e9', '#8b5cf6', '#ec4899', '#1e293b'].map((c) => (
+                          <button
+                            key={c}
+                            onClick={() => setWidgetColor(c)}
+                            style={{
+                              width: 32,
+                              height: 32,
+                              borderRadius: '50%',
+                              background: c,
+                              border: widgetColor === c ? '3px solid var(--neutral-on-background-strong)' : '2px solid transparent',
+                              cursor: 'pointer',
+                              outline: widgetColor === c ? '2px solid var(--surface-background)' : 'none',
+                              outlineOffset: -4,
+                              transition: 'all 0.15s',
+                            }}
+                          />
+                        ))}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', marginLeft: '0.25rem' }}>
+                          <input
+                            type="color"
+                            value={widgetColor}
+                            onChange={(e) => setWidgetColor(e.target.value)}
+                            style={{ width: 32, height: 32, border: 'none', borderRadius: '50%', cursor: 'pointer', padding: 0 }}
+                          />
+                          <input
+                            type="text"
+                            value={widgetColor}
+                            onChange={(e) => { if (/^#[0-9a-fA-F]{0,6}$/.test(e.target.value)) setWidgetColor(e.target.value) }}
+                            style={{
+                              width: '5.5rem',
+                              padding: '0.375rem 0.5rem',
+                              borderRadius: '0.375rem',
+                              border: '1px solid var(--neutral-border-medium)',
+                              fontSize: '0.75rem',
+                              fontFamily: 'monospace',
+                              color: 'var(--neutral-on-background-strong)',
+                              background: 'var(--surface-background)',
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Live preview */}
+                  <div style={{ width: 280, flexShrink: 0 }}>
+                    <Text variant="label-default-s" onBackground="neutral-strong" style={{ marginBottom: '0.5rem', display: 'block' }}>Preview</Text>
+                    <div style={{
+                      borderRadius: '0.75rem',
+                      border: '1px solid var(--neutral-border-medium)',
+                      overflow: 'hidden',
+                      background: 'var(--surface-background)',
+                    }}>
+                      {/* Mock browser bar */}
+                      <div style={{
+                        padding: '0.5rem 0.75rem',
+                        background: 'var(--neutral-alpha-weak)',
+                        borderBottom: '1px solid var(--neutral-border-medium)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                      }}>
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ff5f57' }} />
+                          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#febc2e' }} />
+                          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#28c840' }} />
+                        </div>
+                        <div style={{
+                          flex: 1,
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '0.25rem',
+                          background: 'var(--surface-background)',
+                          fontSize: '0.625rem',
+                          color: 'var(--neutral-on-background-weak)',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}>
+                          {project?.targetUrl || 'https://meusite.com.br'}
+                        </div>
+                      </div>
+
+                      {/* Mock page content */}
+                      <div style={{ position: 'relative', height: 200, background: '#f8fafc', padding: '1.5rem' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                          <div style={{ width: '60%', height: 12, borderRadius: 4, background: '#e2e8f0' }} />
+                          <div style={{ width: '90%', height: 8, borderRadius: 3, background: '#e2e8f0' }} />
+                          <div style={{ width: '75%', height: 8, borderRadius: 3, background: '#e2e8f0' }} />
+                          <div style={{ width: '40%', height: 8, borderRadius: 3, background: '#e2e8f0' }} />
+                          <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
+                            <div style={{ width: '45%', height: 40, borderRadius: 6, background: '#e2e8f0' }} />
+                            <div style={{ width: '45%', height: 40, borderRadius: 6, background: '#e2e8f0' }} />
+                          </div>
+                        </div>
+
+                        {/* Widget preview */}
+                        <div style={{
+                          position: 'absolute',
+                          ...(widgetPosition.includes('top') ? { top: 10 } : { bottom: 10 }),
+                          ...(widgetPosition.includes('left') ? { left: 10 } : { right: 10 }),
+                          transition: 'all 0.3s ease',
+                        }}>
+                          {widgetStyle === 'icon' ? (
+                            <div style={{
+                              width: 36,
+                              height: 36,
+                              borderRadius: '50%',
+                              background: widgetColor,
+                              color: '#fff',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              boxShadow: `0 4px 12px ${widgetColor}66`,
+                            }}>
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                                <ellipse cx="12" cy="15" rx="5" ry="6" />
+                                <circle cx="12" cy="7" r="3" />
+                                <path d="M5 9L2 7M19 9l3-2M5 15H2M19 15h3M5 19l-2 2M19 19l2 2" strokeLinecap="round" />
+                              </svg>
+                            </div>
+                          ) : (
+                            <div style={{
+                              height: 28,
+                              paddingLeft: 10,
+                              paddingRight: 12,
+                              borderRadius: 14,
+                              background: widgetColor,
+                              color: '#fff',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              fontSize: 10,
+                              fontWeight: 600,
+                              fontFamily: 'system-ui, -apple-system, sans-serif',
+                              boxShadow: `0 4px 12px ${widgetColor}66`,
+                              whiteSpace: 'nowrap',
+                            }}>
+                              {widgetText || 'Reportar Bug'}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
                 <Row horizontal="end" fillWidth>
                   <Button
@@ -1020,7 +1149,7 @@ export default function ProjectClient({
                 <Text variant="body-default-s" onBackground="neutral-weak">
                   Adicione este código ao HTML do seu site para habilitar o widget de feedback diretamente na página.
                 </Text>
-                <Flex fillWidth style={{ position: 'relative' }}>
+                <Flex fillWidth direction="column" gap="s">
                   <pre
                     style={{
                       width: '100%',
@@ -1032,11 +1161,13 @@ export default function ProjectClient({
                       overflow: 'auto',
                       fontFamily: 'monospace',
                       margin: 0,
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-all',
                     }}
                   >
                     {embedSnippet}
                   </pre>
-                  <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem' }}>
+                  <Flex fillWidth horizontal="end">
                     <Button
                       variant="secondary"
                       size="s"
@@ -1044,7 +1175,7 @@ export default function ProjectClient({
                       prefixIcon={copiedEmbed ? 'check' : 'copy'}
                       onClick={copyEmbedSnippet}
                     />
-                  </div>
+                  </Flex>
                 </Flex>
                 <Column gap="xs">
                   <Text variant="body-default-xs" onBackground="neutral-weak">

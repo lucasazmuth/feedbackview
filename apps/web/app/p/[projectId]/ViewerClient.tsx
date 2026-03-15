@@ -30,9 +30,11 @@ interface ViewerClientProps {
   projectId: string
   widgetColor?: string
   widgetPosition?: string
+  widgetStyle?: string
+  widgetText?: string
 }
 
-export default function ViewerClient({ projectId, widgetColor = '#4f46e5', widgetPosition = 'bottom-right' }: ViewerClientProps) {
+export default function ViewerClient({ projectId, widgetColor = '#4f46e5', widgetPosition = 'bottom-right', widgetStyle = 'text', widgetText = 'Reportar Bug' }: ViewerClientProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [consoleLogs, setConsoleLogs] = useState<ConsoleLog[]>([])
@@ -80,7 +82,36 @@ export default function ViewerClient({ projectId, widgetColor = '#4f46e5', widge
         break
       }
       case 'RRWEB_EVENT': {
-        setRrwebEvents((prev) => [...prev, payload])
+        setRrwebEvents((prev) => {
+          const next = [...prev, payload]
+          const MAX = 200
+          if (next.length <= MAX) return next
+          // Keep Meta(4)+Snapshot(2) pair + most recent incremental events
+          let snapIdx = -1
+          for (let i = next.length - 1; i >= 0; i--) {
+            if (next[i].type === 2) { snapIdx = i; break }
+          }
+          if (snapIdx < 0) return next.slice(-MAX)
+          let metaIdx = snapIdx
+          for (let i = snapIdx - 1; i >= 0; i--) {
+            if (next[i].type === 4) { metaIdx = i; break }
+          }
+          const header = next.slice(metaIdx, snapIdx + 1)
+          const tail = next.slice(snapIdx + 1)
+          const maxTail = MAX - header.length
+          const keptTail = tail.length > maxTail ? tail.slice(tail.length - maxTail) : tail
+          // Normalize timestamps to close gap
+          if (keptTail.length > 0) {
+            const snapTs = header[header.length - 1].timestamp
+            const firstTs = keptTail[0].timestamp
+            const gap = firstTs - snapTs
+            if (gap > 2000) {
+              const offset = gap - 100
+              for (const e of keptTail) e.timestamp -= offset
+            }
+          }
+          return [...header, ...keptTail]
+        })
         break
       }
       case 'SCREENSHOT_RESULT': {
@@ -140,10 +171,9 @@ export default function ViewerClient({ projectId, widgetColor = '#4f46e5', widge
           className="fixed z-[2147483646] flex items-center justify-center text-white border-none cursor-pointer transition-all duration-200"
           style={{
             ...positionStyle,
-            height: 40,
-            paddingLeft: 14,
-            paddingRight: 16,
-            borderRadius: 20,
+            ...(widgetStyle === 'icon'
+              ? { width: 48, height: 48, borderRadius: '50%', padding: 0 }
+              : { height: 40, paddingLeft: 14, paddingRight: 16, borderRadius: 20 }),
             background: widgetColor,
             boxShadow: isHovered
               ? `0 6px 20px ${widgetColor}80`
@@ -156,7 +186,13 @@ export default function ViewerClient({ projectId, widgetColor = '#4f46e5', widge
             letterSpacing: '-0.01em',
           }}
         >
-          QBugs Reportar
+          {widgetStyle === 'icon' ? (
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <ellipse cx="12" cy="15" rx="5" ry="6" />
+              <circle cx="12" cy="7" r="3" />
+              <path d="M5 9L2 7M19 9l3-2M5 15H2M19 15h3M5 19l-2 2M19 19l2 2" strokeLinecap="round" />
+            </svg>
+          ) : widgetText}
         </button>
       )}
 

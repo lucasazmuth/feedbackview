@@ -15,7 +15,7 @@ export function useSidebarContext() {
 }
 
 const EXPANDED_WIDTH = '15rem'
-const COLLAPSED_WIDTH = '4rem'
+const COLLAPSED_WIDTH = '3.5rem'
 
 const STORAGE_KEY = 'sidebar-collapsed'
 

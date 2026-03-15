@@ -51,7 +51,7 @@ interface Feedback {
   projectId: string
   consoleLogs?: ConsoleLog[]
   networkLogs?: NetworkLog[]
-  metadata?: { rrwebEvents?: any[] } | null
+  metadata?: { rrwebEvents?: any[]; stepsToReproduce?: string; expectedResult?: string; actualResult?: string } | null
   Project?: { ownerId: string; name: string } | null
 }
 
@@ -138,7 +138,7 @@ export default function FeedbackClient({
       <AppLayout>
         <Flex fillWidth style={{ minHeight: '100vh' }} horizontal="center" vertical="center">
           <Column horizontal="center" gap="m">
-            <FeedbackAlert variant="danger">{error || 'Feedback não encontrado.'}</FeedbackAlert>
+            <FeedbackAlert variant="danger">{error || 'Report não encontrado.'}</FeedbackAlert>
             <Link href="/dashboard">
               <Button variant="tertiary" size="s" label="Voltar ao dashboard" />
             </Link>
@@ -297,6 +297,32 @@ export default function FeedbackClient({
                 )}
               </Column>
             </Card>
+
+            {/* Steps to Reproduce / Expected / Actual */}
+            {(feedback.metadata?.stepsToReproduce || feedback.metadata?.expectedResult || feedback.metadata?.actualResult) && (
+              <Card fillWidth padding="l" radius="l">
+                <Column gap="m">
+                  {feedback.metadata?.stepsToReproduce && (
+                    <Column gap="xs">
+                      <Heading variant="heading-strong-s">Passos para reproduzir</Heading>
+                      <Text variant="body-default-s" style={{ whiteSpace: 'pre-wrap' }}>{feedback.metadata.stepsToReproduce}</Text>
+                    </Column>
+                  )}
+                  {feedback.metadata?.expectedResult && (
+                    <Column gap="xs">
+                      <Heading variant="heading-strong-s">Resultado esperado</Heading>
+                      <Text variant="body-default-s" style={{ whiteSpace: 'pre-wrap' }}>{feedback.metadata.expectedResult}</Text>
+                    </Column>
+                  )}
+                  {feedback.metadata?.actualResult && (
+                    <Column gap="xs">
+                      <Heading variant="heading-strong-s">Resultado real</Heading>
+                      <Text variant="body-default-s" style={{ whiteSpace: 'pre-wrap' }}>{feedback.metadata.actualResult}</Text>
+                    </Column>
+                  )}
+                </Column>
+              </Card>
+            )}
 
             {/* Network Logs */}
             {networkLogs.length > 0 && (

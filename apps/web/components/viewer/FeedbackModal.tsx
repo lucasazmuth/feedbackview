@@ -3,21 +3,52 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { X, ChevronDown, Loader2, CheckCircle2 } from 'lucide-react'
 import { api } from '@/lib/api'
+import 'rrweb-player/dist/style.css'
 
-// Trim rrweb events but always preserve the most recent full snapshot (type 2)
+// Trim rrweb events: keep Meta+Snapshot + most recent incremental events,
+// then normalize timestamps to close any time gap (prevents frozen replay).
 function trimRrwebForSubmit(events: RRWebEvent[], max: number): RRWebEvent[] {
   if (events.length <= max) return events
+
+  // Find the last full snapshot (type 2)
   let lastSnapshotIdx = -1
   for (let i = events.length - 1; i >= 0; i--) {
-    if (events[i].type === 2) {
-      lastSnapshotIdx = i
-      break
+    if (events[i].type === 2) { lastSnapshotIdx = i; break }
+  }
+
+  if (lastSnapshotIdx < 0) return events.slice(-max)
+
+  // Find Meta event (type 4) before snapshot
+  let metaIdx = lastSnapshotIdx
+  for (let i = lastSnapshotIdx - 1; i >= 0; i--) {
+    if (events[i].type === 4) { metaIdx = i; break }
+  }
+
+  const headerEvents = events.slice(metaIdx, lastSnapshotIdx + 1)
+  const tailEvents = events.slice(lastSnapshotIdx + 1)
+  const maxTail = max - headerEvents.length
+  const keptTail = tailEvents.length > maxTail ? tailEvents.slice(tailEvents.length - maxTail) : tailEvents
+
+  // Deep copy to avoid mutating original state
+  const result = [
+    ...headerEvents.map(e => ({ ...e })),
+    ...keptTail.map(e => ({ ...e })),
+  ]
+
+  // Normalize timestamps: close gap between snapshot and first incremental event
+  if (result.length > headerEvents.length) {
+    const snapshotTs = result[headerEvents.length - 1].timestamp
+    const firstTailTs = result[headerEvents.length].timestamp
+    const gap = firstTailTs - snapshotTs
+    if (gap > 2000) {
+      const offset = gap - 100
+      for (let i = headerEvents.length; i < result.length; i++) {
+        result[i].timestamp -= offset
+      }
     }
   }
-  if (lastSnapshotIdx > 0) {
-    return events.slice(lastSnapshotIdx)
-  }
-  return events.slice(-max)
+
+  return result
 }
 
 interface ConsoleLog {
@@ -75,6 +106,8 @@ export default function FeedbackModal({
 }: FeedbackModalProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null)
+  const replayContainerRef = useRef<HTMLDivElement>(null)
+  const replayPlayerRef = useRef<any>(null)
   const [screenshotDataUrl, setScreenshotDataUrl] = useState<string | null>(null)
   const [capturing, setCapturing] = useState(true)
   const [title, setTitle] = useState('')
@@ -88,6 +121,9 @@ export default function FeedbackModal({
   const [consoleLogsOpen, setConsoleLogsOpen] = useState(false)
   const [commentError, setCommentError] = useState<string | null>(null)
   const [attachments, setAttachments] = useState<{ name: string; type: string; data: string }[]>([])
+  const [stepsToReproduce, setStepsToReproduce] = useState('')
+  const [expectedResult, setExpectedResult] = useState('')
+  const [actualResult, setActualResult] = useState('')
 
   // Drawing state
   const [isDrawing, setIsDrawing] = useState(false)
@@ -125,6 +161,53 @@ export default function FeedbackModal({
     }
     img.src = screenshotDataUrl
   }, [screenshotDataUrl])
+
+  // Mount rrweb player for session replay video
+  useEffect(() => {
+    const container = replayContainerRef.current
+    if (!container || rrwebEvents.length < 2) return
+    // Need at least one full snapshot (type 2) for the player to work
+    const hasSnapshot = rrwebEvents.some(e => e.type === 2)
+    if (!hasSnapshot) return
+
+    let player: any = null
+    ;(async () => {
+      try {
+        const { default: rrwebPlayer } = await import('rrweb-player')
+
+        // Clear container before mounting
+        container.innerHTML = ''
+
+        const containerWidth = container.offsetWidth || 440
+        const playerHeight = Math.round(containerWidth * 0.56) // ~16:9
+
+        player = new rrwebPlayer({
+          target: container,
+          props: {
+            events: rrwebEvents as any,
+            width: containerWidth,
+            height: playerHeight,
+            autoPlay: false,
+            showController: true,
+            speedOption: [1, 2, 4, 8],
+            skipInactive: true,
+          },
+        })
+        // Render first frame so the iframe becomes visible
+        player.goto(0)
+        replayPlayerRef.current = player
+      } catch (err) {
+        console.warn('Failed to load rrweb-player:', err)
+      }
+    })()
+
+    return () => {
+      if (player && typeof player.$destroy === 'function') {
+        player.$destroy()
+      }
+      replayPlayerRef.current = null
+    }
+  }, [rrwebEvents])
 
   // Redraw overlay rects
   const redrawOverlay = useCallback(
@@ -218,6 +301,11 @@ export default function FeedbackModal({
 
     try {
       const finalScreenshot = getFinalScreenshot()
+      const metadata: any = {}
+      if (stepsToReproduce.trim()) metadata.stepsToReproduce = stepsToReproduce.trim()
+      if (expectedResult.trim()) metadata.expectedResult = expectedResult.trim()
+      if (actualResult.trim()) metadata.actualResult = actualResult.trim()
+
       const payload: any = {
         projectId,
         type,
@@ -227,6 +315,7 @@ export default function FeedbackModal({
         networkLogs,
         rrwebEvents: trimRrwebForSubmit(rrwebEvents, 200),
         attachments: attachments.length > 0 ? attachments : undefined,
+        ...(Object.keys(metadata).length > 0 ? { metadata } : {}),
       }
       if (type === 'BUG') payload.severity = severity
       if (finalScreenshot) payload.screenshotBase64 = finalScreenshot
@@ -247,6 +336,43 @@ export default function FeedbackModal({
     }
   }
 
+  // Parse user agent for environment info
+  function parseEnvironment() {
+    if (typeof navigator === 'undefined') return { os: '', browser: '', viewport: '' }
+    const ua = navigator.userAgent
+    let os = 'Unknown OS'
+    if (ua.includes('Mac OS X')) {
+      const v = ua.match(/Mac OS X ([\d_]+)/)
+      os = 'macOS' + (v ? ' ' + v[1].replace(/_/g, '.') : '')
+    } else if (ua.includes('Windows NT')) {
+      const v = ua.match(/Windows NT ([\d.]+)/)
+      const map: Record<string, string> = { '10.0': '10/11', '6.3': '8.1', '6.2': '8', '6.1': '7' }
+      os = 'Windows' + (v ? ' ' + (map[v[1]] || v[1]) : '')
+    } else if (ua.includes('Linux')) os = 'Linux'
+    else if (ua.includes('Android')) os = 'Android'
+    else if (ua.includes('iOS') || ua.includes('iPhone')) os = 'iOS'
+
+    let browser = 'Unknown Browser'
+    if (ua.includes('Edg/')) { const v = ua.match(/Edg\/([\d.]+)/); browser = 'Edge' + (v ? ' ' + v[1] : '') }
+    else if (ua.includes('Chrome/')) { const v = ua.match(/Chrome\/([\d.]+)/); browser = 'Chrome' + (v ? ' ' + v[1] : '') }
+    else if (ua.includes('Firefox/')) { const v = ua.match(/Firefox\/([\d.]+)/); browser = 'Firefox' + (v ? ' ' + v[1] : '') }
+    else if (ua.includes('Safari/') && !ua.includes('Chrome')) { const v = ua.match(/Version\/([\d.]+)/); browser = 'Safari' + (v ? ' ' + v[1] : '') }
+
+    const viewport = typeof window !== 'undefined' ? `${window.innerWidth} × ${window.innerHeight}` : ''
+    return { os, browser, viewport }
+  }
+
+  const env = parseEnvironment()
+
+  const typeLabels: Record<string, string> = { BUG: 'Bug', SUGGESTION: 'Sugestão', QUESTION: 'Dúvida', PRAISE: 'Elogio' }
+  const typeEmojis: Record<string, string> = { BUG: '🐛', SUGGESTION: '💡', QUESTION: '❓', PRAISE: '👏' }
+  const severityLabels: Record<string, { label: string; color: string }> = {
+    LOW: { label: 'Baixa', color: '#22c55e' },
+    MEDIUM: { label: 'Média', color: '#f59e0b' },
+    HIGH: { label: 'Alta', color: '#f97316' },
+    CRITICAL: { label: 'Crítica', color: '#ef4444' },
+  }
+
   // Shared styles matching embed CSS exactly
   const S = {
     font: { fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" },
@@ -257,6 +383,7 @@ export default function FeedbackModal({
 
   return (
     <>
+      <style>{`@media (max-width: 768px) { .preview-panel { display: none !important; } }`}</style>
       {/* Backdrop */}
       <div
         className="fixed inset-0 z-40"
@@ -270,7 +397,7 @@ export default function FeedbackModal({
         style={{
           ...S.font,
           [panelSide === 'left' ? 'left' : 'right']: 0,
-          width: 520,
+          width: 920,
           maxWidth: '100vw',
           background: '#fff',
           zIndex: 2147483647,
@@ -297,52 +424,45 @@ export default function FeedbackModal({
             <p style={{ fontSize: 14, color: '#6b7280' }}>Obrigado pela contribuição.</p>
           </div>
         ) : (
-          <div style={{ flex: 1, overflowY: 'auto' }}>
-            {/* Screenshot section */}
+          <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+          {/* Form column */}
+          <div style={{ flex: 1, minWidth: 0, overflowY: 'auto' }}>
+            {/* Session Replay section */}
             <div style={{ padding: 20, borderBottom: '1px solid #f3f4f6' }}>
-              <div style={{ fontSize: 13, fontWeight: 500, color: '#374151', marginBottom: 12 }}>
-                Screenshot{' '}
+              <div style={{ fontSize: 13, fontWeight: 500, color: '#374151', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444', animation: 'fv-pulse-dot 1.5s ease-in-out infinite', flexShrink: 0 }} />
+                Session Replay{' '}
                 <span style={{ fontSize: 12, fontWeight: 400, color: '#9ca3af' }}>
-                  (arraste para destacar áreas)
+                  (gravação automática)
                 </span>
               </div>
+              <style>{`@keyframes fv-pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }`}</style>
 
-              {capturing ? (
-                <div style={{ height: 192, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#f3f4f6', borderRadius: 12, border: '1px solid #e5e7eb' }}>
-                  <Loader2 style={{ width: 20, height: 20, color: '#9ca3af' }} className="animate-spin" />
-                  <span style={{ fontSize: 13, color: '#9ca3af' }}>Capturando screenshot...</span>
+              <div style={{ borderRadius: 12, border: '1px solid #e5e7eb', background: '#0f172a', overflow: 'hidden' }}>
+                {/* rrweb Player */}
+                <div
+                  ref={replayContainerRef}
+                  style={{ width: '100%', minHeight: 220 }}
+                />
+                {rrwebEvents.length < 2 && (
+                  <div style={{ padding: 20, textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>
+                    Gravando sessão...
+                  </div>
+                )}
+                {/* Stats bar */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px', background: '#1e293b', fontSize: 11, color: '#94a3b8' }}>
+                  <span>{rrwebEvents.length} eventos</span>
+                  <span>
+                    {(() => {
+                      const ec = rrwebEvents.length
+                      if (ec < 2) return '0s'
+                      const sec = Math.round((rrwebEvents[ec - 1].timestamp - rrwebEvents[0].timestamp) / 1000)
+                      return sec >= 60 ? `${Math.floor(sec / 60)}m ${sec % 60}s` : `${sec}s`
+                    })()}
+                  </span>
+                  <span style={{ color: '#dcfce7' }}>Será enviado com o report</span>
                 </div>
-              ) : (
-                <div style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', border: '1px solid #e5e7eb', background: '#f3f4f6' }}>
-                  {screenshotDataUrl ? (
-                    <>
-                      <canvas
-                        ref={canvasRef}
-                        style={{ width: '100%', display: 'block' }}
-                      />
-                      <canvas
-                        ref={overlayCanvasRef}
-                        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', cursor: 'crosshair' }}
-                        onMouseDown={handleMouseDown}
-                        onMouseMove={handleMouseMove}
-                        onMouseUp={handleMouseUp}
-                      />
-                    </>
-                  ) : (
-                    <div style={{ height: 192, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <span style={{ fontSize: 13, color: '#9ca3af' }}>Screenshot não disponível</span>
-                    </div>
-                  )}
-                </div>
-              )}
-              {rects.length > 0 && (
-                <button
-                  onClick={() => { setRects([]); redrawOverlay([]) }}
-                  style={{ marginTop: 8, background: 'none', border: 'none', fontSize: 12, color: '#ef4444', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}
-                >
-                  Limpar marcações ({rects.length})
-                </button>
-              )}
+              </div>
             </div>
 
             {/* Form fields */}
@@ -436,6 +556,52 @@ export default function FeedbackModal({
                         {label}
                       </button>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Steps to reproduce (BUG only) */}
+              {type === 'BUG' && (
+                <div>
+                  <label style={S.label}>Passos para reproduzir</label>
+                  <textarea
+                    value={stepsToReproduce}
+                    onChange={(e) => setStepsToReproduce(e.target.value)}
+                    rows={3}
+                    placeholder={"1. Abra a página X\n2. Clique em Y\n3. Observe o erro Z"}
+                    style={{ ...S.input, resize: 'vertical' as const }}
+                    onFocus={(e) => { e.target.style.borderColor = widgetColor; e.target.style.boxShadow = `0 0 0 3px ${widgetColor}1a` }}
+                    onBlur={(e) => { e.target.style.borderColor = '#d1d5db'; e.target.style.boxShadow = 'none' }}
+                  />
+                </div>
+              )}
+
+              {/* Expected vs Actual (BUG only) */}
+              {type === 'BUG' && (
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <div style={{ flex: 1 }}>
+                    <label style={S.label}>Resultado esperado</label>
+                    <textarea
+                      value={expectedResult}
+                      onChange={(e) => setExpectedResult(e.target.value)}
+                      rows={3}
+                      placeholder="O que deveria acontecer..."
+                      style={{ ...S.input, resize: 'vertical' as const }}
+                      onFocus={(e) => { e.target.style.borderColor = widgetColor; e.target.style.boxShadow = `0 0 0 3px ${widgetColor}1a` }}
+                      onBlur={(e) => { e.target.style.borderColor = '#d1d5db'; e.target.style.boxShadow = 'none' }}
+                    />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label style={S.label}>Resultado real</label>
+                    <textarea
+                      value={actualResult}
+                      onChange={(e) => setActualResult(e.target.value)}
+                      rows={3}
+                      placeholder="O que realmente aconteceu..."
+                      style={{ ...S.input, resize: 'vertical' as const }}
+                      onFocus={(e) => { e.target.style.borderColor = widgetColor; e.target.style.boxShadow = `0 0 0 3px ${widgetColor}1a` }}
+                      onBlur={(e) => { e.target.style.borderColor = '#d1d5db'; e.target.style.boxShadow = 'none' }}
+                    />
                   </div>
                 </div>
               )}
@@ -551,14 +717,6 @@ export default function FeedbackModal({
                 </div>
               )}
 
-              {/* Session replay events summary */}
-              {rrwebEvents.length > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#6b7280', padding: '10px 14px', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8 }}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', padding: '1px 6px', borderRadius: 4, fontSize: 10, fontWeight: 700, lineHeight: '16px', background: '#e0e7ff', color: '#4338ca' }}>{rrwebEvents.length}</span>
-                  eventos de session replay capturados
-                </div>
-              )}
-
               {/* Submit error */}
               {submitError && (
                 <div style={{ padding: '10px 14px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, color: '#dc2626', fontSize: 13 }}>
@@ -566,6 +724,152 @@ export default function FeedbackModal({
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Live Preview Panel */}
+          <div style={{ width: 380, flexShrink: 0, borderLeft: '1px solid #e5e7eb', background: '#f9fafb', overflowY: 'auto', padding: 20 }}
+            className="preview-panel"
+          >
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase' as const, letterSpacing: '0.05em', marginBottom: 16 }}>Preview</div>
+
+            <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* Type badge */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 600,
+                  background: type === 'BUG' ? '#fef2f2' : type === 'SUGGESTION' ? '#fffbeb' : type === 'QUESTION' ? '#eff6ff' : '#f0fdf4',
+                  color: type === 'BUG' ? '#dc2626' : type === 'SUGGESTION' ? '#d97706' : type === 'QUESTION' ? '#2563eb' : '#16a34a',
+                }}>
+                  {typeEmojis[type]} {typeLabels[type]}
+                </span>
+              </div>
+
+              {/* Title */}
+              <h3 style={{ fontSize: 18, fontWeight: 700, color: '#111827', margin: 0, lineHeight: 1.3 }}>
+                {title.trim() || <span style={{ color: '#d1d5db', fontStyle: 'italic', fontWeight: 400, fontSize: 14 }}>Sem título</span>}
+              </h3>
+
+              {/* Description */}
+              {comment.trim() ? (
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 4 }}>Descrição</div>
+                  <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' as const }}>{comment}</p>
+                </div>
+              ) : (
+                <p style={{ fontSize: 13, color: '#d1d5db', fontStyle: 'italic', margin: 0 }}>Aguardando descrição...</p>
+              )}
+
+              {/* Steps to reproduce */}
+              {type === 'BUG' && stepsToReproduce.trim() && (
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 4 }}>Passos para reproduzir</div>
+                  <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>
+                    {stepsToReproduce.split('\n').filter(l => l.trim()).map((line, i) => (
+                      <div key={i} style={{ display: 'flex', gap: 6, marginBottom: 2 }}>
+                        <span style={{ color: '#9ca3af', fontWeight: 500, flexShrink: 0 }}>{i + 1}.</span>
+                        <span>{line.replace(/^\d+[\.\)]\s*/, '')}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Expected result */}
+              {type === 'BUG' && expectedResult.trim() && (
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: '#16a34a', marginBottom: 4 }}>Resultado esperado</div>
+                  <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' as const }}>{expectedResult}</p>
+                </div>
+              )}
+
+              {/* Actual result */}
+              {type === 'BUG' && actualResult.trim() && (
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: '#dc2626', marginBottom: 4 }}>Resultado real</div>
+                  <p style={{ fontSize: 13, color: '#374151', lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' as const }}>{actualResult}</p>
+                </div>
+              )}
+
+              {/* Screenshot thumbnail */}
+              {screenshotDataUrl && (
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 4 }}>Screenshot</div>
+                  <img src={screenshotDataUrl} alt="Screenshot" style={{ width: '100%', borderRadius: 8, border: '1px solid #e5e7eb' }} />
+                </div>
+              )}
+
+              {/* Priority */}
+              {type === 'BUG' && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: '#6b7280' }}>Prioridade</span>
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600,
+                    background: `${severityLabels[severity].color}15`,
+                    color: severityLabels[severity].color,
+                  }}>
+                    ⚡ {severityLabels[severity].label}
+                  </span>
+                </div>
+              )}
+
+              {/* Metadata section */}
+              <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {/* Source URL */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}>
+                  <span style={{ color: '#9ca3af', flexShrink: 0 }}>🔗</span>
+                  <span style={{ color: '#2563eb', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>
+                    {pageUrlProp || (typeof window !== 'undefined' ? window.location.href : '')}
+                  </span>
+                </div>
+
+                {/* OS */}
+                {env.os && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}>
+                    <span style={{ color: '#9ca3af', flexShrink: 0 }}>🖥️</span>
+                    <span style={{ color: '#374151' }}>{env.os} • {env.browser}</span>
+                  </div>
+                )}
+
+                {/* Viewport */}
+                {env.viewport && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}>
+                    <span style={{ color: '#9ca3af', flexShrink: 0 }}>📐</span>
+                    <span style={{ color: '#374151' }}>{env.viewport}</span>
+                  </div>
+                )}
+
+                {/* Console logs summary */}
+                {consoleLogs.length > 0 && (() => {
+                  const errors = consoleLogs.filter(l => l.level?.toLowerCase() === 'error').length
+                  const warnings = consoleLogs.filter(l => l.level?.toLowerCase() === 'warn').length
+                  return (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}>
+                      <span style={{ color: '#9ca3af', flexShrink: 0 }}>⚠️</span>
+                      <span style={{ display: 'flex', gap: 8 }}>
+                        {errors > 0 && <span style={{ color: '#dc2626', fontWeight: 500 }}>{errors} error{errors !== 1 ? 's' : ''}</span>}
+                        {warnings > 0 && <span style={{ color: '#d97706', fontWeight: 500 }}>{warnings} warning{warnings !== 1 ? 's' : ''}</span>}
+                        {errors === 0 && warnings === 0 && <span style={{ color: '#374151' }}>{consoleLogs.length} log{consoleLogs.length !== 1 ? 's' : ''}</span>}
+                      </span>
+                    </div>
+                  )
+                })()}
+
+                {/* Network logs summary */}
+                {networkLogs.length > 0 && (() => {
+                  const failedReqs = networkLogs.filter(l => l.status && l.status >= 400).length
+                  return (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}>
+                      <span style={{ color: '#9ca3af', flexShrink: 0 }}>🌐</span>
+                      <span style={{ color: '#374151' }}>
+                        {networkLogs.length} request{networkLogs.length !== 1 ? 's' : ''}
+                        {failedReqs > 0 && <span style={{ color: '#dc2626', marginLeft: 4 }}>({failedReqs} failed)</span>}
+                      </span>
+                    </div>
+                  )
+                })()}
+              </div>
+            </div>
+          </div>
           </div>
         )}
 
@@ -589,7 +893,7 @@ export default function FeedbackModal({
             <p style={{ textAlign: 'center', marginTop: 8, fontSize: 11, color: '#9ca3af' }}>
               Powered by{' '}
               <a href="https://feedbackview.com" target="_blank" rel="noopener noreferrer" style={{ color: '#6b7280', textDecoration: 'none' }}>
-                QBugs
+                Report Bug
               </a>
             </p>
           </div>

@@ -1,31 +1,40 @@
 import { createClient } from '@/lib/supabase/client'
+import { checkProjectLimit, getPlanLimits, type Plan, type Role, type Usage } from '@/lib/limits'
 
 // Client-side API (for client components)
 export const api = {
   projects: {
-    async create(data: { name: string; description?: string; targetUrl: string; mode?: string }) {
+    async create(data: { name: string; description?: string; targetUrl: string; mode?: string; widgetStyle?: string; widgetText?: string; widgetPosition?: string; widgetColor?: string }) {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      // Check project limit via organization
+      // Get membership with role and org plan info
       const { data: membership } = await supabase
         .from('TeamMember')
-        .select('organizationId, organization:Organization(maxProjects)')
+        .select('organizationId, role, organization:Organization(plan)')
         .eq('userId', user.id)
-        .eq('role', 'OWNER')
+        .eq('status', 'ACTIVE')
+        .order('role', { ascending: true })
+        .limit(1)
         .single()
 
       if (membership?.organization) {
-        const org = membership.organization as unknown as { maxProjects: number }
-        if (org.maxProjects > 0) {
+        const org = membership.organization as unknown as { plan: string }
+        const plan = (org.plan || 'FREE') as Plan
+        const role = membership.role as Role
+        const limits = getPlanLimits(plan)
+
+        if (limits.maxProjects !== -1) {
           const { count } = await supabase
             .from('Project')
             .select('id', { count: 'exact', head: true })
             .eq('organizationId', membership.organizationId)
 
-          if (count !== null && count >= org.maxProjects) {
-            throw new Error(`Limite de ${org.maxProjects} projeto(s) atingido. Faça upgrade do plano.`)
+          const usage: Usage = { projectCount: count || 0, memberCount: 0, reportsThisMonth: 0 }
+          const check = checkProjectLimit(usage, limits, role)
+          if (!check.allowed) {
+            throw new Error(check.reason || 'Limite de projetos atingido.')
           }
         }
       }
@@ -38,6 +47,10 @@ export const api = {
           description: data.description || null,
           targetUrl: data.targetUrl,
           mode: data.mode || 'proxy',
+          widgetStyle: data.widgetStyle || 'text',
+          widgetText: data.widgetText || 'Reportar Bug',
+          widgetPosition: data.widgetPosition || 'bottom-right',
+          widgetColor: data.widgetColor || '#4f46e5',
           ownerId: user.id,
           organizationId: membership?.organizationId || null,
         })
@@ -47,7 +60,7 @@ export const api = {
       return project
     },
 
-    async update(id: string, data: { name?: string; description?: string; targetUrl?: string; widgetPosition?: string; widgetColor?: string }) {
+    async update(id: string, data: { name?: string; description?: string; targetUrl?: string; widgetPosition?: string; widgetColor?: string; widgetStyle?: string; widgetText?: string }) {
       const supabase = createClient()
       const { error } = await supabase
         .from('Project')
@@ -149,7 +162,14 @@ export const api = {
         networkLogs: data.networkLogs || null,
         pageUrl: data.pageUrl || null,
         userAgent: data.userAgent || null,
-        metadata: data.rrwebEvents ? { rrwebEvents: data.rrwebEvents } : null,
+        metadata: (() => {
+          const m: any = {}
+          if (data.rrwebEvents) m.rrwebEvents = data.rrwebEvents
+          if (data.metadata?.stepsToReproduce) m.stepsToReproduce = data.metadata.stepsToReproduce
+          if (data.metadata?.expectedResult) m.expectedResult = data.metadata.expectedResult
+          if (data.metadata?.actualResult) m.actualResult = data.metadata.actualResult
+          return Object.keys(m).length > 0 ? m : null
+        })(),
         attachmentUrls: attachmentUrls.length > 0 ? attachmentUrls : null,
       })
       if (error) throw new Error(error.message)

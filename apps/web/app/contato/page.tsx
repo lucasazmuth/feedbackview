@@ -9,7 +9,7 @@ import {
 } from '@once-ui-system/core'
 
 export const metadata = {
-  title: 'Contato — QBugs',
+  title: 'Contato — Report Bug',
 }
 
 export default function ContatoPage() {
@@ -28,7 +28,7 @@ export default function ContatoPage() {
         style={{ position: 'sticky', top: 0, zIndex: 50 }}
       >
         <Link href="/" style={{ textDecoration: 'none' }}>
-          <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '1.25rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-strong)' }}>QBugs</span>
+          <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '1.25rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-strong)' }}>Report Bug</span>
         </Link>
       </Row>
 
@@ -54,7 +54,7 @@ export default function ContatoPage() {
                   <Text variant="body-default-m" style={{ fontWeight: 600 }}>E-mail</Text>
                 </Row>
                 <Text variant="body-default-s" onBackground="neutral-weak">
-                  contato@qbugs.com.br
+                  contato@reportbug.pro
                 </Text>
               </Column>
             </Card>
@@ -96,7 +96,7 @@ export default function ContatoPage() {
       <Flex as="footer" fillWidth horizontal="center" borderTop="neutral-medium" background="surface">
         <Row maxWidth={64} fillWidth paddingX="l" paddingY="m" horizontal="between" vertical="center">
           <Row gap="xs" vertical="center">
-            <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '0.8rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-weak)' }}>QBugs</span>
+            <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '0.8rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-weak)' }}>Report Bug</span>
             <Text variant="body-default-xs" onBackground="neutral-weak">&copy; {new Date().getFullYear()}</Text>
           </Row>
           <Row gap="m">

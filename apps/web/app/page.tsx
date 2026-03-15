@@ -81,12 +81,12 @@ const steps = [
 
 const faqs = [
   {
-    question: 'O QBugs é gratuito?',
+    question: 'O Report Bug é gratuito?',
     answer: 'Sim! Oferecemos um plano gratuito para começar, sem necessidade de cartão de crédito. Você pode criar projetos, receber reports e usar todas as funcionalidades principais sem custo.',
   },
   {
     question: 'Como funciona a captura de session replay?',
-    answer: 'O QBugs usa a biblioteca rrweb para gravar as interações do usuário em tempo real. Cada ação (clique, scroll, digitação) é capturada e pode ser reproduzida como um vídeo, permitindo que você veja exatamente o que aconteceu antes do bug.',
+    answer: 'O Report Bug usa a biblioteca rrweb para gravar as interações do usuário em tempo real. Cada ação (clique, scroll, digitação) é capturada e pode ser reproduzida como um vídeo, permitindo que você veja exatamente o que aconteceu antes do bug.',
   },
   {
     question: 'Preciso instalar algo no meu site?',
@@ -98,7 +98,7 @@ const faqs = [
   },
   {
     question: 'Funciona com React, Next.js, Vue?',
-    answer: 'Sim! O QBugs funciona com qualquer tecnologia web. O script embed é framework-agnóstico e o modo de link compartilhado funciona com qualquer URL acessível.',
+    answer: 'Sim! O Report Bug funciona com qualquer tecnologia web. O script embed é framework-agnóstico e o modo de link compartilhado funciona com qualquer URL acessível.',
   },
   {
     question: 'Quantos membros da equipe posso convidar?',
@@ -106,8 +106,8 @@ const faqs = [
   },
 ]
 
-const viewerUrl = 'https://app.qbugs.com.br/p/seu-projeto-id'
-const embedSnippet = '<script src="https://app.qbugs.com.br/embed.js"\n  data-project="SEU_PROJECT_ID">\n</script>'
+const viewerUrl = 'https://app.reportbug.pro/p/seu-projeto-id'
+const embedSnippet = '<script src="https://app.reportbug.pro/embed.js"\n  data-project="SEU_PROJECT_ID">\n</script>'
 
 export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null)
@@ -153,7 +153,7 @@ export default function LandingPage() {
         style={{ position: 'sticky', top: 0, zIndex: 50 }}
       >
         <Row gap="s" vertical="center">
-          <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '1.25rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-strong)' }}>QBugs</span>
+          <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '1.25rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-strong)' }}>Report Bug</span>
         </Row>
         <Row gap="s" vertical="center">
           {isLoggedIn ? (
@@ -592,7 +592,7 @@ export default function LandingPage() {
               Funciona com qualquer stack
             </Heading>
             <Text variant="body-default-m" onBackground="neutral-weak" style={{ maxWidth: '36rem' }}>
-              O QBugs é compatível com todas as tecnologias web e mobile modernas. Basta adicionar uma linha de código e pronto.
+              O Report Bug é compatível com todas as tecnologias web e mobile modernas. Basta adicionar uma linha de código e pronto.
             </Text>
           </Column>
 
@@ -712,9 +712,9 @@ export default function LandingPage() {
                   ))}
                 </Column>
 
-                <div style={{ marginTop: '0.5rem', padding: '0.75rem', borderRadius: '0.75rem', background: 'var(--brand-solid-strong)', color: 'white', textAlign: 'center', fontWeight: 600, fontSize: '0.95rem', opacity: 0.6, cursor: 'not-allowed' }}>
-                  Em breve
-                </div>
+                <a href={isLoggedIn ? '/plans' : '/auth/register'} style={{ textDecoration: 'none', marginTop: '0.5rem' }}>
+                  <Button variant="primary" size="l" label="Fazer upgrade" fillWidth />
+                </a>
               </Column>
             </div>
 
@@ -752,9 +752,9 @@ export default function LandingPage() {
                   ))}
                 </Column>
 
-                <div style={{ marginTop: '0.5rem', padding: '0.75rem', borderRadius: '0.75rem', background: 'var(--neutral-on-background-strong)', color: 'white', textAlign: 'center', fontWeight: 600, fontSize: '0.95rem', opacity: 0.6, cursor: 'not-allowed' }}>
-                  Em breve
-                </div>
+                <a href={isLoggedIn ? '/plans' : '/auth/register'} style={{ textDecoration: 'none', marginTop: '0.5rem' }}>
+                  <Button variant="secondary" size="l" label="Fazer upgrade" fillWidth />
+                </a>
               </Column>
             </div>
           </div>
@@ -770,7 +770,7 @@ export default function LandingPage() {
               Perguntas frequentes
             </Heading>
             <Text variant="body-default-m" onBackground="neutral-weak" style={{ maxWidth: '32rem' }}>
-              Tudo que você precisa saber sobre o QBugs.
+              Tudo que você precisa saber sobre o Report Bug.
             </Text>
           </Column>
 
@@ -895,7 +895,7 @@ export default function LandingPage() {
           vertical="center"
         >
           <Row gap="xs" vertical="center">
-            <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '0.8rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-weak)' }}>QBugs</span>
+            <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '0.8rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-weak)' }}>Report Bug</span>
             <Text variant="body-default-xs" onBackground="neutral-weak">
               &copy; {new Date().getFullYear()}
             </Text>
@@ -935,7 +935,7 @@ export default function LandingPage() {
 
       {/* Embed widget for demo */}
       <Script
-        src="/embed.js?v=8"
+        src="/embed.js?v=33"
         data-project="demo"
         data-hidden-trigger="true"
         strategy="afterInteractive"

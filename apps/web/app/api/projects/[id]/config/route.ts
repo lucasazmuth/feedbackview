@@ -26,7 +26,7 @@ export async function GET(
 
     const { data: project, error } = await supabase
       .from('Project')
-      .select('widgetPosition, widgetColor')
+      .select('widgetPosition, widgetColor, widgetStyle, widgetText')
       .eq('id', id)
       .single()
 
@@ -37,6 +37,8 @@ export async function GET(
     return corsJson({
       widgetPosition: project.widgetPosition || 'bottom-right',
       widgetColor: project.widgetColor || '#4f46e5',
+      widgetStyle: project.widgetStyle || 'text',
+      widgetText: project.widgetText || 'Reportar Bug',
     })
   } catch (err: any) {
     return corsJson({ error: err.message || 'Internal server error' }, 500)

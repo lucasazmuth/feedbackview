@@ -10,6 +10,9 @@ app.register(cors, { origin: '*' })
 
 // Cache project targetUrl in memory for performance
 const projectCache = new Map<string, { targetUrl: string; expires: number }>()
+// Track recently active projectIds so the notFoundHandler can resolve assets
+// when cookies are blocked (e.g. iframe cross-origin) and Referer has no /proxy/<id>
+let lastActiveProjectId: string | null = null
 
 async function getTargetUrl(projectId: string): Promise<string | null> {
   const cached = projectCache.get(projectId)
@@ -44,6 +47,7 @@ app.get('/proxy/:projectId/*', async (request, reply) => {
     fullUrl = `${base}${path}${queryString}`
   }
 
+  lastActiveProjectId = projectId
   await createProxyHandler(request, reply, fullUrl, projectId)
 })
 
@@ -76,7 +80,10 @@ app.setNotFoundHandler(async (request, reply) => {
   const referer = request.headers.referer || ''
   const refMatch = referer.match(/\/proxy\/([^/]+)/)
   const cookieMatch = (request.headers.cookie || '').match(/__fv_pid=([^;]+)/)
-  const projectId = refMatch?.[1] || cookieMatch?.[1]
+  // Fallback chain: Referer /proxy/<id> → cookie → last active project
+  // lastActiveProjectId handles the case where cookies are blocked (iframe cross-origin)
+  // and replaceState removed /proxy/<id> from the URL/Referer
+  const projectId = refMatch?.[1] || cookieMatch?.[1] || lastActiveProjectId
   if (!projectId) {
     return reply.code(404).send({ error: 'Not found' })
   }
