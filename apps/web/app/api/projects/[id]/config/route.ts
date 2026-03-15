@@ -35,12 +35,11 @@ export async function GET(
     }
 
     // Record embed ping (fire-and-forget, non-blocking)
-    supabase
+    void supabase
       .from('Project')
       .update({ embedLastSeenAt: new Date().toISOString() })
       .eq('id', id)
       .then(() => {})
-      .catch(() => {})
 
     return corsJson({
       widgetPosition: project.widgetPosition || 'bottom-right',

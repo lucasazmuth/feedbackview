@@ -41,8 +41,6 @@ export async function DELETE(
       .delete()
       .eq('userId', user.id)
       .containedBy('metadata', { projectId: id })
-      .then(() => {})
-      .catch(() => {})
 
     // Delete the project
     const { error } = await supabaseAdmin.from('Project').delete().eq('id', id)
