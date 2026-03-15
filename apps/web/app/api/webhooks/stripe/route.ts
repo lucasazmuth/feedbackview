@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { stripe, priceIdToPlan, priceIdToPeriod } from '@/lib/stripe'
 import { getPlanLimits, type Plan } from '@/lib/limits'
+import { createNotification, getOrgOwnerUserId } from '@/lib/notifications'
 import Stripe from 'stripe'
 
 const supabase = createClient(
@@ -49,6 +50,19 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       planExpiresAt: new Date((subscription as unknown as { current_period_end: number }).current_period_end * 1000).toISOString(),
     })
     .eq('id', orgId)
+
+  // Notify workspace owner about plan activation
+  const ownerUserId = await getOrgOwnerUserId(orgId)
+  if (ownerUserId) {
+    const { data: org } = await supabase.from('Organization').select('name').eq('id', orgId).single()
+    createNotification({
+      userId: ownerUserId,
+      type: 'PLAN_ACTIVATED',
+      title: `Plano ${plan} ativado`,
+      message: org?.name ? `Plano atualizado em ${org.name}` : 'Plano atualizado no workspace',
+      metadata: { orgId, plan },
+    })
+  }
 }
 
 async function handleInvoicePaid(invoice: Stripe.Invoice) {
@@ -99,6 +113,19 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
       planExpiresAt: new Date((subscription as unknown as { current_period_end: number }).current_period_end * 1000).toISOString(),
     })
     .eq('id', orgId)
+
+  // Notify workspace owner about plan update
+  const ownerUserId = await getOrgOwnerUserId(orgId)
+  if (ownerUserId) {
+    const { data: org } = await supabase.from('Organization').select('name').eq('id', orgId).single()
+    createNotification({
+      userId: ownerUserId,
+      type: 'PLAN_ACTIVATED',
+      title: `Plano atualizado para ${plan}`,
+      message: org?.name ? `Plano atualizado em ${org.name}` : 'Plano atualizado no workspace',
+      metadata: { orgId, plan },
+    })
+  }
 }
 
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
@@ -111,6 +138,13 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   const { data: org } = await query
   if (!org) return
 
+  // Get current plan before downgrade
+  const { data: currentOrg } = await supabase
+    .from('Organization')
+    .select('plan, name')
+    .eq('id', org.id)
+    .single()
+
   const freeUpdates = getOrgUpdatesForPlan('FREE')
 
   await supabase
@@ -122,6 +156,20 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
       stripeSubscriptionId: null,
     })
     .eq('id', org.id)
+
+  // Notify workspace owner about plan expiration
+  const ownerUserId = await getOrgOwnerUserId(org.id)
+  if (ownerUserId) {
+    createNotification({
+      userId: ownerUserId,
+      type: 'PLAN_EXPIRED',
+      title: 'Assinatura cancelada',
+      message: currentOrg?.name
+        ? `Plano revertido para Free em ${currentOrg.name}`
+        : 'Plano revertido para Free',
+      metadata: { orgId: org.id, previousPlan: currentOrg?.plan || null },
+    })
+  }
 }
 
 export async function POST(req: NextRequest) {

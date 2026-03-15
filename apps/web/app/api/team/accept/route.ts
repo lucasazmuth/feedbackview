@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
+import { createNotification, getOrgOwnerUserId } from '@/lib/notifications'
 
 const supabaseAdmin = createSupabaseClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -55,6 +56,29 @@ export async function POST(req: NextRequest) {
     if (updateError) {
       console.error('Error accepting invite:', updateError)
       return NextResponse.json({ error: 'Erro ao aceitar convite.' }, { status: 500 })
+    }
+
+    // Notify workspace owner about new member
+    const ownerUserId = await getOrgOwnerUserId(invite.organizationId)
+    if (ownerUserId && ownerUserId !== user.id) {
+      const { data: org } = await supabaseAdmin
+        .from('Organization')
+        .select('name')
+        .eq('id', invite.organizationId)
+        .single()
+
+      const memberName = user.user_metadata?.name || user.email || invite.inviteEmail || 'Alguém'
+      createNotification({
+        userId: ownerUserId,
+        type: 'MEMBER_JOINED',
+        title: `${memberName} entrou no workspace`,
+        message: org?.name ? `Novo membro em ${org.name}` : 'Novo membro no workspace',
+        metadata: {
+          memberEmail: user.email || invite.inviteEmail,
+          orgId: invite.organizationId,
+          orgName: org?.name || null,
+        },
+      })
     }
 
     return NextResponse.json({ status: 'ACTIVE', organizationId: invite.organizationId })

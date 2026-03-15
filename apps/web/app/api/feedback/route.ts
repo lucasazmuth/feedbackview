@@ -144,31 +144,6 @@ export async function POST(req: NextRequest) {
       return corsJson({ error: insertError.message }, 500)
     }
 
-    // Create notification for project owner (fire-and-forget)
-    const typeLabels: Record<string, string> = {
-      BUG: 'Bug',
-      SUGGESTION: 'Sugestão',
-      QUESTION: 'Pergunta',
-      PRAISE: 'Elogio',
-    }
-    const typeLabel = typeLabels[data.type] || data.type
-    void supabase
-      .from('Notification')
-      .insert({
-        userId: project.ownerId,
-        type: 'NEW_FEEDBACK',
-        title: `Novo ${typeLabel} em ${project.name}`,
-        message: data.title?.trim() || data.comment.trim().slice(0, 120),
-        metadata: {
-          feedbackId,
-          projectId: data.projectId,
-          projectName: project.name,
-          feedbackType: data.type,
-          severity: data.severity || null,
-        },
-      })
-      .then(() => {})
-
     return corsJson({ success: true })
   } catch (err: any) {
     return corsJson({ error: err.message || 'Internal server error' }, 500)

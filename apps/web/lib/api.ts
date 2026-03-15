@@ -5,59 +5,14 @@ import { checkProjectLimit, getPlanLimits, type Plan, type Role, type Usage } fr
 export const api = {
   projects: {
     async create(data: { name: string; description?: string; targetUrl: string; mode?: string; widgetStyle?: string; widgetText?: string; widgetPosition?: string; widgetColor?: string }) {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not authenticated')
-
-      // Get membership with role and org plan info
-      const { data: membership } = await supabase
-        .from('TeamMember')
-        .select('organizationId, role, organization:Organization(plan)')
-        .eq('userId', user.id)
-        .eq('status', 'ACTIVE')
-        .order('role', { ascending: true })
-        .limit(1)
-        .single()
-
-      if (membership?.organization) {
-        const org = membership.organization as unknown as { plan: string }
-        const plan = (org.plan || 'FREE') as Plan
-        const role = membership.role as Role
-        const limits = getPlanLimits(plan)
-
-        if (limits.maxProjects !== -1) {
-          const { count } = await supabase
-            .from('Project')
-            .select('id', { count: 'exact', head: true })
-            .eq('organizationId', membership.organizationId)
-
-          const usage: Usage = { projectCount: count || 0, memberCount: 0, reportsThisMonth: 0 }
-          const check = checkProjectLimit(usage, limits, role)
-          if (!check.allowed) {
-            throw new Error(check.reason || 'Limite de projetos atingido.')
-          }
-        }
-      }
-
-      const { data: project, error } = await supabase
-        .from('Project')
-        .insert({
-          id: crypto.randomUUID(),
-          name: data.name,
-          description: data.description || null,
-          targetUrl: data.targetUrl,
-          mode: data.mode || 'proxy',
-          widgetStyle: data.widgetStyle || 'text',
-          widgetText: data.widgetText || 'Reportar Bug',
-          widgetPosition: data.widgetPosition || 'bottom-right',
-          widgetColor: data.widgetColor || '#4f46e5',
-          ownerId: user.id,
-          organizationId: membership?.organizationId || null,
-        })
-        .select()
-        .single()
-      if (error) throw new Error(error.message)
-      return project
+      const res = await fetch('/api/projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.error || 'Erro ao criar projeto')
+      return result
     },
 
     async update(id: string, data: { name?: string; description?: string; targetUrl?: string; widgetPosition?: string; widgetColor?: string; widgetStyle?: string; widgetText?: string }) {
@@ -80,12 +35,15 @@ export const api = {
 
   feedbacks: {
     async updateStatus(id: string, status: string) {
-      const supabase = createClient()
-      const { error } = await supabase
-        .from('Feedback')
-        .update({ status })
-        .eq('id', id)
-      if (error) throw new Error(error.message)
+      const res = await fetch(`/api/feedbacks/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Erro ao atualizar status')
+      }
     },
 
     async updateComment(id: string, comment: string) {

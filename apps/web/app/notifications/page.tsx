@@ -26,8 +26,13 @@ interface Notification {
     feedbackId?: string
     projectId?: string
     projectName?: string
-    feedbackType?: string
-    severity?: string
+    orgId?: string
+    orgName?: string
+    memberEmail?: string
+    plan?: string
+    previousPlan?: string
+    oldStatus?: string
+    newStatus?: string
   }
   read?: boolean
   createdAt?: string
@@ -40,18 +45,93 @@ const ROLE_LABELS: Record<string, string> = {
   VIEWER: 'Visualizador',
 }
 
-const TYPE_ICONS: Record<string, string> = {
-  BUG: '🐛',
-  SUGGESTION: '💡',
-  QUESTION: '❓',
-  PRAISE: '⭐',
+const TYPE_CONFIG: Record<string, { icon: React.ReactNode; color: string }> = {
+  STATUS_CHANGE: {
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="23 4 23 10 17 10" />
+        <polyline points="1 20 1 14 7 14" />
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+      </svg>
+    ),
+    color: '#3b82f6',
+  },
+  PROJECT_CREATED: {
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+        <line x1="12" y1="11" x2="12" y2="17" />
+        <line x1="9" y1="14" x2="15" y2="14" />
+      </svg>
+    ),
+    color: '#8b5cf6',
+  },
+  EMBED_CONNECTED: {
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+      </svg>
+    ),
+    color: '#10b981',
+  },
+  MEMBER_JOINED: {
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="8.5" cy="7" r="4" />
+        <line x1="20" y1="8" x2="20" y2="14" />
+        <line x1="23" y1="11" x2="17" y2="11" />
+      </svg>
+    ),
+    color: '#22c55e',
+  },
+  MEMBER_LEFT: {
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="8.5" cy="7" r="4" />
+        <line x1="23" y1="11" x2="17" y2="11" />
+      </svg>
+    ),
+    color: '#ef4444',
+  },
+  PLAN_ACTIVATED: {
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+      </svg>
+    ),
+    color: '#f59e0b',
+  },
+  PLAN_EXPIRED: {
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+        <line x1="12" y1="9" x2="12" y2="13" />
+        <line x1="12" y1="17" x2="12.01" y2="17" />
+      </svg>
+    ),
+    color: '#ef4444',
+  },
 }
 
-const SEVERITY_COLORS: Record<string, string> = {
-  CRITICAL: '#dc2626',
-  HIGH: '#ea580c',
-  MEDIUM: '#ca8a04',
-  LOW: '#65a30d',
+function getNotifRoute(notif: Notification): string | null {
+  switch (notif.type) {
+    case 'STATUS_CHANGE':
+      return notif.metadata?.feedbackId ? `/feedbacks/${notif.metadata.feedbackId}` : null
+    case 'PROJECT_CREATED':
+    case 'EMBED_CONNECTED':
+      return notif.metadata?.projectId ? `/projects/${notif.metadata.projectId}` : null
+    case 'MEMBER_JOINED':
+    case 'MEMBER_LEFT':
+      return '/team'
+    case 'PLAN_ACTIVATED':
+    case 'PLAN_EXPIRED':
+      return '/plans'
+    default:
+      return null
+  }
 }
 
 function timeAgo(dateStr: string): string {
@@ -90,7 +170,7 @@ export default function NotificationsPage() {
     fetchNotifications()
   }, [fetchNotifications])
 
-  // Mark feedback notifications as read on mount
+  // Mark non-invite notifications as read on mount
   useEffect(() => {
     if (notifications.length === 0) return
     const unreadIds = notifications
@@ -155,14 +235,13 @@ export default function NotificationsPage() {
     }
   }
 
-  const handleFeedbackClick = (notif: Notification) => {
-    if (notif.metadata?.feedbackId) {
-      router.push(`/feedbacks/${notif.metadata.feedbackId}`)
-    }
+  const handleNotifClick = (notif: Notification) => {
+    const route = getNotifRoute(notif)
+    if (route) router.push(route)
   }
 
   const invites = notifications.filter((n) => n.type === 'INVITE')
-  const feedbackNotifs = notifications.filter((n) => n.type !== 'INVITE')
+  const activityNotifs = notifications.filter((n) => n.type !== 'INVITE')
 
   if (loading) {
     return (
@@ -197,7 +276,7 @@ export default function NotificationsPage() {
         <Column gap="xs">
           <Heading variant="heading-strong-l">Notificações</Heading>
           <Text variant="body-default-s" onBackground="neutral-weak">
-            Convites e avisos da plataforma
+            Convites e atividade da plataforma
           </Text>
         </Column>
 
@@ -274,20 +353,20 @@ export default function NotificationsPage() {
               </Column>
             )}
 
-            {/* Feedback notifications section */}
-            {feedbackNotifs.length > 0 && (
+            {/* Activity section */}
+            {activityNotifs.length > 0 && (
               <Column fillWidth gap="s">
                 <Text variant="label-default-s" onBackground="neutral-weak" style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Reports recebidos
+                  Atividade
                 </Text>
-                {feedbackNotifs.map((notif) => {
-                  const icon = TYPE_ICONS[notif.metadata?.feedbackType || ''] || '📋'
-                  const severityColor = SEVERITY_COLORS[notif.metadata?.severity || '']
+                {activityNotifs.map((notif) => {
+                  const config = TYPE_CONFIG[notif.type]
+                  const route = getNotifRoute(notif)
 
                   return (
                     <div
                       key={notif.id}
-                      onClick={() => handleFeedbackClick(notif)}
+                      onClick={() => handleNotifClick(notif)}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -296,20 +375,27 @@ export default function NotificationsPage() {
                         borderRadius: '0.75rem',
                         border: '1px solid var(--neutral-border-medium)',
                         background: notif.read ? 'var(--surface-background)' : 'var(--neutral-alpha-weak)',
-                        cursor: 'pointer',
+                        cursor: route ? 'pointer' : 'default',
                         transition: 'background 0.15s',
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--neutral-alpha-weak)' }}
+                      onMouseEnter={(e) => { if (route) e.currentTarget.style.background = 'var(--neutral-alpha-weak)' }}
                       onMouseLeave={(e) => { e.currentTarget.style.background = notif.read ? 'var(--surface-background)' : 'var(--neutral-alpha-weak)' }}
                     >
                       {/* Icon */}
                       <div style={{
                         width: 36, height: 36, borderRadius: 8,
-                        background: 'var(--neutral-alpha-weak)',
+                        background: config ? `${config.color}18` : 'var(--neutral-alpha-weak)',
+                        color: config?.color || 'var(--neutral-on-background-weak)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '1.1rem', flexShrink: 0,
+                        flexShrink: 0,
                       }}>
-                        {icon}
+                        {config?.icon || (
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="12" />
+                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                          </svg>
+                        )}
                       </div>
 
                       {/* Content */}
@@ -329,36 +415,30 @@ export default function NotificationsPage() {
                             }} />
                           )}
                         </div>
-                        <span style={{
-                          fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)',
-                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                          display: 'block',
-                        }}>
-                          {notif.message}
-                        </span>
+                        {notif.message && (
+                          <span style={{
+                            fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)',
+                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                            display: 'block',
+                          }}>
+                            {notif.message}
+                          </span>
+                        )}
                       </div>
 
-                      {/* Right side: severity + time */}
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.25rem', flexShrink: 0 }}>
-                        {severityColor && (
-                          <span style={{
-                            fontSize: '0.6875rem', fontWeight: 600,
-                            color: severityColor, textTransform: 'uppercase',
-                          }}>
-                            {notif.metadata?.severity}
-                          </span>
-                        )}
-                        {notif.createdAt && (
-                          <span style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)' }}>
-                            {timeAgo(notif.createdAt)}
-                          </span>
-                        )}
-                      </div>
+                      {/* Time */}
+                      {notif.createdAt && (
+                        <span style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', flexShrink: 0 }}>
+                          {timeAgo(notif.createdAt)}
+                        </span>
+                      )}
 
                       {/* Chevron */}
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--neutral-on-background-weak)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                        <polyline points="9 18 15 12 9 6" />
-                      </svg>
+                      {route && (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--neutral-on-background-weak)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                          <polyline points="9 18 15 12 9 6" />
+                        </svg>
+                      )}
                     </div>
                   )
                 })}

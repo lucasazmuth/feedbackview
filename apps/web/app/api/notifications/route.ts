@@ -71,6 +71,7 @@ export async function GET() {
       .from('Notification')
       .select('*')
       .eq('userId', user.id)
+      .neq('type', 'NEW_FEEDBACK')
       .gte('createdAt', thirtyDaysAgo.toISOString())
       .order('createdAt', { ascending: false })
       .limit(50)

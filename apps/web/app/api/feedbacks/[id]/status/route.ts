@@ -1,0 +1,77 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
+import { createNotification } from '@/lib/notifications'
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
+  }
+
+  const { status } = await req.json()
+  if (!status) {
+    return NextResponse.json({ error: 'Status obrigatório' }, { status: 400 })
+  }
+
+  // Fetch current feedback + project info
+  const { data: feedback } = await supabase
+    .from('Feedback')
+    .select('status, title, comment, projectId')
+    .eq('id', id)
+    .single()
+
+  if (!feedback) {
+    return NextResponse.json({ error: 'Feedback não encontrado' }, { status: 404 })
+  }
+
+  const oldStatus = feedback.status
+
+  // Update status
+  const { error } = await supabase
+    .from('Feedback')
+    .update({ status })
+    .eq('id', id)
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  // Notify project owner if changed by someone else
+  const { data: project } = await supabase
+    .from('Project')
+    .select('ownerId, name')
+    .eq('id', feedback.projectId)
+    .single()
+
+  if (project && project.ownerId !== user.id) {
+    const statusLabels: Record<string, string> = {
+      OPEN: 'Aberto',
+      IN_PROGRESS: 'Em andamento',
+      RESOLVED: 'Resolvido',
+      CLOSED: 'Fechado',
+    }
+    const feedbackTitle = feedback.title || feedback.comment?.slice(0, 60) || 'Report'
+    createNotification({
+      userId: project.ownerId,
+      type: 'STATUS_CHANGE',
+      title: `"${feedbackTitle}" marcado como ${statusLabels[status] || status}`,
+      message: `Status alterado em ${project.name}`,
+      metadata: {
+        feedbackId: id,
+        feedbackTitle,
+        projectId: feedback.projectId,
+        projectName: project.name,
+        oldStatus,
+        newStatus: status,
+      },
+    })
+  }
+
+  return NextResponse.json({ success: true })
+}

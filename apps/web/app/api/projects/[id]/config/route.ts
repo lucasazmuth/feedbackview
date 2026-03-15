@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { createNotification } from '@/lib/notifications'
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -26,7 +27,7 @@ export async function GET(
 
     const { data: project, error } = await supabase
       .from('Project')
-      .select('widgetPosition, widgetColor, widgetStyle, widgetText')
+      .select('widgetPosition, widgetColor, widgetStyle, widgetText, ownerId, name, embedLastSeenAt')
       .eq('id', id)
       .single()
 
@@ -34,12 +35,25 @@ export async function GET(
       return corsJson({ error: 'Project not found' }, 404)
     }
 
+    const isFirstConnection = !project.embedLastSeenAt
+
     // Record embed ping (fire-and-forget, non-blocking)
     void supabase
       .from('Project')
       .update({ embedLastSeenAt: new Date().toISOString() })
       .eq('id', id)
       .then(() => {})
+
+    // Notify project owner on first embed connection
+    if (isFirstConnection && project.ownerId) {
+      createNotification({
+        userId: project.ownerId,
+        type: 'EMBED_CONNECTED',
+        title: `Widget conectado em "${project.name}"`,
+        message: 'O script embed foi detectado no seu site.',
+        metadata: { projectId: id, projectName: project.name },
+      })
+    }
 
     return corsJson({
       widgetPosition: project.widgetPosition || 'bottom-right',
