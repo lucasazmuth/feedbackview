@@ -60,6 +60,9 @@ export default function Sidebar() {
     if (prefix === '/dashboard') {
       return pathname === '/dashboard' || pathname.startsWith('/projects') || pathname.startsWith('/feedbacks')
     }
+    if (prefix === '/reports') {
+      return pathname === '/reports' || pathname.startsWith('/reports/')
+    }
     return pathname.startsWith(prefix)
   }
 
@@ -82,6 +85,12 @@ export default function Sidebar() {
       matchPrefix: '/dashboard',
     },
     {
+      label: 'Reports',
+      href: '/reports',
+      icon: <SvgIcon><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></SvgIcon>,
+      matchPrefix: '/reports',
+    },
+    {
       label: 'Equipe',
       href: '/team',
       icon: <SvgIcon><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></SvgIcon>,
@@ -91,7 +100,74 @@ export default function Sidebar() {
 
   const SIDEBAR_WIDTH = '15rem'
 
-  // Collapsed state: show a thin strip with expand button
+  const bottomNavItems = [
+    {
+      label: 'Notificações',
+      href: '/notifications',
+      icon: <SvgIcon><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></SvgIcon>,
+      badge: notifCount,
+    },
+    {
+      label: 'Planos',
+      href: '/plans',
+      icon: <SvgIcon><path d="M21 4H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z" /><path d="M1 10h22" /></SvgIcon>,
+    },
+    {
+      label: 'Configurações',
+      href: '/settings',
+      icon: <SvgIcon><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></SvgIcon>,
+    },
+  ]
+
+  function CollapsedIconButton({ icon, label, badge, onClick, active }: { icon: React.ReactNode; label: string; badge?: number; onClick: () => void; active?: boolean }) {
+    return (
+      <button
+        onClick={onClick}
+        title={label}
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: 8,
+          border: 'none',
+          background: active ? 'var(--neutral-alpha-medium)' : 'transparent',
+          color: active ? 'var(--neutral-on-background-strong)' : 'var(--neutral-on-background-weak)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          transition: 'background 0.15s',
+          position: 'relative',
+          flexShrink: 0,
+        }}
+        onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = 'var(--neutral-alpha-weak)' }}
+        onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = active ? 'var(--neutral-alpha-medium)' : 'transparent' }}
+      >
+        {icon}
+        {badge && badge > 0 ? (
+          <span style={{
+            position: 'absolute',
+            top: 2,
+            right: 2,
+            minWidth: 16,
+            height: 16,
+            borderRadius: 8,
+            background: '#ef4444',
+            color: '#fff',
+            fontSize: '0.6rem',
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '0 3px',
+          }}>
+            {badge > 99 ? '99+' : badge}
+          </span>
+        ) : null}
+      </button>
+    )
+  }
+
+  // Collapsed state: icon-only rail
   if (collapsed) {
     return (
       <nav
@@ -107,36 +183,11 @@ export default function Sidebar() {
           flexDirection: 'column',
           alignItems: 'center',
           padding: '0.75rem 0',
-          gap: '0.5rem',
+          gap: '0.25rem',
           zIndex: 100,
           transition: 'width 0.2s ease',
         }}
       >
-        {/* Expand button */}
-        <button
-          onClick={() => setCollapsed(false)}
-          title="Expandir menu"
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 8,
-            border: 'none',
-            background: 'transparent',
-            color: 'var(--neutral-on-background-weak)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            transition: 'background 0.15s',
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--neutral-alpha-weak)' }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="m9 18 6-6-6-6" />
-          </svg>
-        </button>
-
         {/* Active workspace avatar */}
         {currentOrg && (
           <button
@@ -156,11 +207,58 @@ export default function Sidebar() {
               fontWeight: 700,
               cursor: 'pointer',
               flexShrink: 0,
+              marginBottom: '0.25rem',
             }}
           >
             {currentOrg.name[0].toUpperCase()}
           </button>
         )}
+
+        {/* Separator */}
+        <div style={{ width: 24, height: 1, background: 'var(--neutral-border-medium)', flexShrink: 0, margin: '0.25rem 0' }} />
+
+        {/* Workspace nav icons */}
+        {wsNavItems.map((item) => (
+          <CollapsedIconButton
+            key={item.href}
+            icon={item.icon}
+            label={item.label}
+            onClick={() => router.push(item.href)}
+            active={isActive(item.matchPrefix)}
+          />
+        ))}
+
+        {/* Spacer */}
+        <div style={{ flex: 1 }} />
+
+        {/* Separator */}
+        <div style={{ width: 24, height: 1, background: 'var(--neutral-border-medium)', flexShrink: 0, margin: '0.25rem 0' }} />
+
+        {/* Bottom nav icons */}
+        {bottomNavItems.map((item) => (
+          <CollapsedIconButton
+            key={item.href}
+            icon={item.icon}
+            label={item.label}
+            badge={item.badge}
+            onClick={() => router.push(item.href)}
+            active={isActive(item.href)}
+          />
+        ))}
+
+        {/* Sign out */}
+        <CollapsedIconButton
+          icon={<SvgIcon><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></SvgIcon>}
+          label="Sair"
+          onClick={handleSignOut}
+        />
+
+        {/* Expand */}
+        <CollapsedIconButton
+          icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="m9 18 6-6-6-6" /></svg>}
+          label="Expandir menu"
+          onClick={() => setCollapsed(false)}
+        />
       </nav>
     )
   }
@@ -191,7 +289,8 @@ export default function Sidebar() {
             alignItems: 'center',
             gap: '0.625rem',
             width: '100%',
-            padding: '0.875rem 1rem',
+            height: 56,
+            padding: '0 1rem',
             border: 'none',
             background: 'transparent',
             cursor: 'pointer',
@@ -384,31 +483,6 @@ export default function Sidebar() {
               })}
             </div>
 
-            {/* Create workspace */}
-            <div style={{ padding: '0.5rem 0.75rem', borderTop: '1px solid var(--neutral-border-medium)' }}>
-              <button
-                onClick={() => {
-                  setWsDropdownOpen(false)
-                  router.push('/onboarding')
-                }}
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  borderRadius: 8,
-                  border: 'none',
-                  background: 'var(--brand-solid-strong)',
-                  color: '#fff',
-                  fontSize: '0.8125rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'opacity 0.15s',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.85' }}
-                onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
-              >
-                Criar workspace
-              </button>
-            </div>
           </div>
         )}
       </div>
@@ -464,84 +538,59 @@ export default function Sidebar() {
         flexDirection: 'column',
         gap: '0.125rem',
       }}>
-        {/* Notifications */}
-        <button
-          onClick={() => router.push('/notifications')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.625rem',
-            padding: '0.5rem 0.75rem',
-            borderRadius: '0.5rem',
-            border: 'none',
-            background: isActive('/notifications') ? 'var(--neutral-alpha-weak)' : 'transparent',
-            color: isActive('/notifications') ? 'var(--neutral-on-background-strong)' : 'var(--neutral-on-background-weak)',
-            cursor: 'pointer',
-            fontSize: '0.875rem',
-            fontWeight: isActive('/notifications') ? 600 : 400,
-            width: '100%',
-            textAlign: 'left',
-            transition: 'background 0.15s',
-            position: 'relative',
-          }}
-          onMouseEnter={(e) => {
-            if (!isActive('/notifications')) e.currentTarget.style.background = 'var(--neutral-alpha-weak)'
-          }}
-          onMouseLeave={(e) => {
-            if (!isActive('/notifications')) e.currentTarget.style.background = 'transparent'
-          }}
-        >
-          <SvgIcon><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></SvgIcon>
-          Notificações
-          {notifCount > 0 && (
-            <span style={{
-              marginLeft: 'auto',
-              minWidth: 20,
-              height: 20,
-              borderRadius: 10,
-              background: '#ef4444',
-              color: '#fff',
-              fontSize: '0.6875rem',
-              fontWeight: 700,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '0 5px',
-            }}>
-              {notifCount > 99 ? '99+' : notifCount}
-            </span>
-          )}
-        </button>
-
-        {/* Settings */}
-        <button
-          onClick={() => router.push('/settings')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.625rem',
-            padding: '0.5rem 0.75rem',
-            borderRadius: '0.5rem',
-            border: 'none',
-            background: isActive('/settings') ? 'var(--neutral-alpha-weak)' : 'transparent',
-            color: isActive('/settings') ? 'var(--neutral-on-background-strong)' : 'var(--neutral-on-background-weak)',
-            cursor: 'pointer',
-            fontSize: '0.875rem',
-            fontWeight: isActive('/settings') ? 600 : 400,
-            width: '100%',
-            textAlign: 'left',
-            transition: 'background 0.15s',
-          }}
-          onMouseEnter={(e) => {
-            if (!isActive('/settings')) e.currentTarget.style.background = 'var(--neutral-alpha-weak)'
-          }}
-          onMouseLeave={(e) => {
-            if (!isActive('/settings')) e.currentTarget.style.background = 'transparent'
-          }}
-        >
-          <SvgIcon><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></SvgIcon>
-          Configurações
-        </button>
+        {bottomNavItems.map((item) => {
+          const active = isActive(item.href)
+          return (
+            <button
+              key={item.href}
+              onClick={() => router.push(item.href)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.625rem',
+                padding: '0.5rem 0.75rem',
+                borderRadius: '0.5rem',
+                border: 'none',
+                background: active ? 'var(--neutral-alpha-weak)' : 'transparent',
+                color: active ? 'var(--neutral-on-background-strong)' : 'var(--neutral-on-background-weak)',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                fontWeight: active ? 600 : 400,
+                width: '100%',
+                textAlign: 'left',
+                transition: 'background 0.15s',
+                position: 'relative',
+              }}
+              onMouseEnter={(e) => {
+                if (!active) e.currentTarget.style.background = 'var(--neutral-alpha-weak)'
+              }}
+              onMouseLeave={(e) => {
+                if (!active) e.currentTarget.style.background = 'transparent'
+              }}
+            >
+              {item.icon}
+              {item.label}
+              {item.badge && item.badge > 0 ? (
+                <span style={{
+                  marginLeft: 'auto',
+                  minWidth: 20,
+                  height: 20,
+                  borderRadius: 10,
+                  background: '#ef4444',
+                  color: '#fff',
+                  fontSize: '0.6875rem',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0 5px',
+                }}>
+                  {item.badge > 99 ? '99+' : item.badge}
+                </span>
+              ) : null}
+            </button>
+          )
+        })}
 
         {/* Sign Out */}
         <button

@@ -123,7 +123,7 @@ export default function TeamPage() {
   if (loading) {
     return (
       <AppLayout>
-        <Column as="main" fillWidth maxWidth={40} paddingX="l" paddingY="xl" gap="l" style={{ margin: '0 auto' }}>
+        <Column as="main" fillWidth maxWidth={40} paddingX="xl" paddingY="l" gap="l" style={{ margin: '0 auto' }}>
           <style>{`@keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:.4 } }`}</style>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <SkeletonBar width="6rem" height="1.75rem" />
@@ -156,7 +156,7 @@ export default function TeamPage() {
 
   return (
     <AppLayout>
-      <Column as="main" fillWidth maxWidth={40} paddingX="l" paddingY="xl" gap="l" style={{ margin: '0 auto' }}>
+      <Column as="main" fillWidth maxWidth={40} paddingX="xl" paddingY="l" gap="l" style={{ margin: '0 auto' }}>
         <Column gap="xs">
           <Heading variant="heading-strong-l">Equipe</Heading>
           <Text variant="body-default-s" onBackground="neutral-weak">

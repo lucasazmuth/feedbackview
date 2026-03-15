@@ -34,6 +34,14 @@ export async function GET(
       return corsJson({ error: 'Project not found' }, 404)
     }
 
+    // Record embed ping (fire-and-forget, non-blocking)
+    supabase
+      .from('Project')
+      .update({ embedLastSeenAt: new Date().toISOString() })
+      .eq('id', id)
+      .then(() => {})
+      .catch(() => {})
+
     return corsJson({
       widgetPosition: project.widgetPosition || 'bottom-right',
       widgetColor: project.widgetColor || '#4f46e5',

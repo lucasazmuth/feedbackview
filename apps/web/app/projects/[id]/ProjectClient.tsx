@@ -16,7 +16,6 @@ import {
   Card,
   Input,
   Textarea,
-  Select,
   Tag,
   Icon,
   Feedback as FeedbackAlert,
@@ -46,6 +45,7 @@ interface Project {
   widgetText?: string
   targetUrl?: string
   createdAt: string
+  embedLastSeenAt?: string | null
 }
 
 interface ProjectClientProps {
@@ -113,6 +113,19 @@ export default function ProjectClient({
   const [typeFilter, setTypeFilter] = useState('')
   const [severityFilter, setSeverityFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
+  const [reportSearch, setReportSearch] = useState('')
+  const [showReportFilter, setShowReportFilter] = useState(false)
+  const [reportViewMode, setReportViewMode] = useState<'card' | 'list'>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('report-view-mode') as 'card' | 'list') || 'card'
+    }
+    return 'card'
+  })
+
+  function handleSetReportViewMode(mode: 'card' | 'list') {
+    setReportViewMode(mode)
+    localStorage.setItem('report-view-mode', mode)
+  }
 
   // Edit state
   const [editing, setEditing] = useState(false)
@@ -220,8 +233,14 @@ export default function ProjectClient({
     if (typeFilter && f.type !== typeFilter) return false
     if (severityFilter && f.severity !== severityFilter) return false
     if (statusFilter && f.status !== statusFilter) return false
+    if (reportSearch.trim()) {
+      const q = reportSearch.trim().toLowerCase()
+      if (!f.comment.toLowerCase().includes(q) && !(f.pageUrl || '').toLowerCase().includes(q)) return false
+    }
     return true
   })
+
+  const hasActiveReportFilter = typeFilter !== '' || severityFilter !== '' || statusFilter !== ''
 
   const totalCount = feedbacks.length
   const openCount = feedbacks.filter((f) => f.status === 'OPEN').length
@@ -329,151 +348,156 @@ export default function ProjectClient({
           {project?.name}
         </Text>
       </Row>
-      <Column fillWidth maxWidth={72} paddingX="l" paddingY="l" gap="l" style={{ margin: '0 auto' }}>
-        {/* Project header */}
-        <Column gap="xs">
-          <Heading variant="heading-strong-xl" as="h1">{project?.name}</Heading>
-          <a
-            href={project?.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ textDecoration: 'none' }}
-          >
-            <Row gap="xs" vertical="center">
-              <Icon name="openLink" size="xs" />
-              <Text variant="body-default-s" onBackground="neutral-weak">{project?.url}</Text>
-            </Row>
-          </a>
-          {project?.description && (
-            <Text variant="body-default-s" onBackground="neutral-weak">{project.description}</Text>
-          )}
-        </Column>
-
-        {/* Viewer URL card */}
-        <Card
-          fillWidth
-          padding="l"
-          radius="l"
-          style={{ background: 'var(--brand-solid-strong)' }}
-        >
-          <Column gap="s">
+      <Column fillWidth maxWidth={72} paddingX="l" paddingY="m" gap="l" style={{ margin: '0 auto' }}>
+        {/* Compact project header with inline stats */}
+        <Row fillWidth horizontal="between" vertical="center">
+          <Column gap="xs">
             <Row gap="s" vertical="center">
-              <Text
-                variant="label-default-s"
-                style={{ color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.05em' }}
-              >
-                {(project?.mode ?? 'proxy') === 'proxy' ? 'Link Rápido' : 'Instalação no Site'}
-              </Text>
-              <span
-                style={{
-                  fontSize: '0.625rem',
-                  fontWeight: 600,
-                  padding: '0.125rem 0.5rem',
-                  borderRadius: '1rem',
-                  background: 'rgba(255,255,255,0.2)',
-                  color: 'rgba(255,255,255,0.85)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.03em',
-                }}
-              >
-                {(project?.mode ?? 'proxy') === 'proxy' ? 'Sem instalação' : 'Recomendado'}
-              </span>
-            </Row>
-            {(project?.mode ?? 'proxy') === 'proxy' ? (
-              <>
-                <Row gap="s" vertical="center">
-                  <Flex
-                    fillWidth
-                    padding="s"
-                    radius="m"
+              <Heading variant="heading-strong-l" as="h1">{project?.name}</Heading>
+              {(() => {
+                const mode = project?.mode ?? 'proxy'
+                const lastSeen = project?.embedLastSeenAt
+
+                // For proxy mode: connected = has feedbacks
+                if (mode === 'proxy') {
+                  const hasReports = totalCount > 0
+                  return (
+                    <span
+                      title={hasReports ? 'Reports sendo recebidos via link compartilhado.' : 'Nenhum report recebido ainda. Compartilhe o link na aba Configurações.'}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.375rem',
+                        fontSize: '0.6875rem',
+                        fontWeight: 500,
+                        padding: '0.1875rem 0.5rem',
+                        borderRadius: '999px',
+                        background: hasReports ? 'var(--success-alpha-weak)' : 'var(--neutral-alpha-weak)',
+                        color: hasReports ? 'var(--success-on-background-strong)' : 'var(--neutral-on-background-weak)',
+                        cursor: 'help',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: hasReports ? 'var(--success-solid-strong)' : 'var(--neutral-solid-medium)', flexShrink: 0 }} />
+                      {hasReports ? 'Ativo' : 'Aguardando reports'}
+                    </span>
+                  )
+                }
+
+                // For embed mode: connected = lastSeen recent
+                if (!lastSeen) {
+                  return (
+                    <span
+                      title="Widget não detectado. Configure na aba Configurações."
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.375rem',
+                        fontSize: '0.6875rem',
+                        fontWeight: 500,
+                        padding: '0.1875rem 0.5rem',
+                        borderRadius: '999px',
+                        background: 'var(--neutral-alpha-weak)',
+                        color: 'var(--neutral-on-background-weak)',
+                        cursor: 'help',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--neutral-solid-medium)', flexShrink: 0 }} />
+                      Não conectado
+                    </span>
+                  )
+                }
+                const minutesAgo = (Date.now() - new Date(lastSeen).getTime()) / 1000 / 60
+                const isOnline = minutesAgo < 10
+                const isRecent = minutesAgo < 60
+                return (
+                  <span
+                    title={`Último sinal: ${formatDate(lastSeen)}`}
                     style={{
-                      background: 'rgba(255,255,255,0.15)',
-                      fontFamily: 'monospace',
-                      fontSize: '0.8125rem',
-                      color: 'white',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.375rem',
+                      fontSize: '0.6875rem',
+                      fontWeight: 500,
+                      padding: '0.1875rem 0.5rem',
+                      borderRadius: '999px',
+                      background: isOnline ? 'var(--success-alpha-weak)' : isRecent ? 'var(--warning-alpha-weak)' : 'var(--neutral-alpha-weak)',
+                      color: isOnline ? 'var(--success-on-background-strong)' : isRecent ? 'var(--warning-on-background-strong)' : 'var(--neutral-on-background-weak)',
+                      cursor: 'help',
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    {viewerUrl}
-                  </Flex>
-                  <Button
-                    variant="secondary"
-                    size="s"
-                    label={copied ? 'Copiado!' : 'Copiar'}
-                    prefixIcon={copied ? 'check' : 'copy'}
-                    onClick={copyViewerUrl}
-                    style={{ flexShrink: 0 }}
-                  />
-                </Row>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: isOnline ? 'var(--success-solid-strong)' : isRecent ? 'var(--warning-solid-strong)' : 'var(--neutral-solid-medium)', flexShrink: 0 }} />
+                    {isOnline ? 'Conectado' : isRecent ? 'Visto recentemente' : 'Inativo'}
+                  </span>
+                )
+              })()}
+            </Row>
+            {viewerUrl && (
+              <Row gap="s" vertical="center">
                 <Text
                   variant="body-default-xs"
-                  style={{ color: 'rgba(255,255,255,0.7)' }}
+                  onBackground="neutral-weak"
+                  style={{
+                    fontFamily: 'monospace',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    maxWidth: '24rem',
+                  }}
                 >
-                  Compartilhe esta URL com os QAs para começar a capturar reports.
+                  {viewerUrl}
                 </Text>
-              </>
-            ) : (
-              <>
-                <Flex fillWidth direction="column" gap="s">
-                  <pre
-                    style={{
-                      width: '100%',
-                      background: 'rgba(255,255,255,0.15)',
-                      color: '#4ade80',
-                      fontSize: '0.75rem',
-                      borderRadius: '0.5rem',
-                      padding: '0.75rem',
-                      overflow: 'auto',
-                      fontFamily: 'monospace',
-                      margin: 0,
-                      whiteSpace: 'pre-wrap',
-                      wordBreak: 'break-all',
-                    }}
-                  >
-                    {embedSnippet}
-                  </pre>
-                  <Flex fillWidth horizontal="end">
-                    <Button
-                      variant="secondary"
-                      size="s"
-                      label={copiedEmbed ? 'Copiado!' : 'Copiar'}
-                      prefixIcon={copiedEmbed ? 'check' : 'copy'}
-                      onClick={copyEmbedSnippet}
-                    />
-                  </Flex>
-                </Flex>
-                <Text
-                  variant="body-default-xs"
-                  style={{ color: 'rgba(255,255,255,0.7)' }}
+                <button
+                  onClick={copyViewerUrl}
+                  title="Copiar link"
+                  style={{
+                    border: 'none',
+                    background: 'transparent',
+                    cursor: 'pointer',
+                    padding: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    color: copied ? 'var(--success-solid-strong)' : 'var(--neutral-on-background-weak)',
+                    transition: 'color 0.15s',
+                  }}
                 >
-                  Adicione este código ao HTML do seu site para capturar reports.
-                </Text>
-              </>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    {copied ? (
+                      <polyline points="20 6 9 17 4 12" />
+                    ) : (
+                      <>
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                      </>
+                    )}
+                  </svg>
+                </button>
+              </Row>
             )}
           </Column>
-        </Card>
-
-        {/* Metrics */}
-        <Grid columns={4} gap="m" fillWidth s={{ columns: 2 }}>
-          {[
-            { label: 'Total', value: totalCount, dot: 'var(--neutral-solid-medium)' },
-            { label: 'Abertos', value: openCount, dot: 'var(--warning-solid-strong)' },
-            { label: 'Críticos', value: criticalCount, dot: 'var(--danger-solid-strong)' },
-            { label: 'Resolvidos', value: resolvedCount, dot: 'var(--success-solid-strong)' },
-          ].map(({ label, value, dot }) => (
-            <Card key={label} fillWidth padding="l" radius="l">
-              <Column gap="s">
-                <Row vertical="center" gap="xs">
-                  <div style={{ width: '0.5rem', height: '0.5rem', borderRadius: '50%', background: dot, flexShrink: 0 }} />
-                  <Text variant="body-default-xs" onBackground="neutral-weak">{label}</Text>
-                </Row>
-                <Heading variant="heading-strong-xl" as="h2">{value}</Heading>
-              </Column>
-            </Card>
-          ))}
-        </Grid>
+          <Row gap="m">
+            <div style={{ textAlign: 'center' }}>
+              <Text variant="heading-strong-m" onBackground="neutral-strong">{totalCount}</Text>
+              <Text variant="body-default-xs" onBackground="neutral-weak" style={{ display: 'block' }}>Total</Text>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <Text variant="heading-strong-m" onBackground="warning-strong">{openCount}</Text>
+              <Text variant="body-default-xs" onBackground="neutral-weak" style={{ display: 'block' }}>Abertos</Text>
+            </div>
+            {criticalCount > 0 && (
+              <div style={{ textAlign: 'center' }}>
+                <Text variant="heading-strong-m" onBackground="danger-strong">{criticalCount}</Text>
+                <Text variant="body-default-xs" onBackground="neutral-weak" style={{ display: 'block' }}>Críticos</Text>
+              </div>
+            )}
+            <div style={{ textAlign: 'center' }}>
+              <Text variant="heading-strong-m" onBackground="success-strong">{resolvedCount}</Text>
+              <Text variant="body-default-xs" onBackground="neutral-weak" style={{ display: 'block' }}>Resolvidos</Text>
+            </div>
+          </Row>
+        </Row>
 
         {/* Tabs */}
         <Row gap="l" fillWidth style={{ borderBottom: '2px solid var(--neutral-border-medium)' }}>
@@ -523,58 +547,247 @@ export default function ProjectClient({
         {/* Feedbacks tab */}
         {activeTab === 'feedbacks' && (
           <Column gap="l" fillWidth>
-            {/* Filters */}
-            <Row gap="s" vertical="center" wrap>
-              <Row gap="xs" vertical="center">
-                <Icon name="filter" size="xs" />
-                <Text variant="body-default-xs" onBackground="neutral-weak" style={{ fontWeight: 500 }}>Filtrar:</Text>
-              </Row>
-              <Flex className="filter-select" style={{ width: '10rem' }}>
-                <Select
-                  id="type-filter"
-                  label=""
-                  options={[
-                    { value: '', label: 'Todos os tipos' },
-                    { value: 'BUG', label: 'Bug' },
-                    { value: 'SUGGESTION', label: 'Sugestão' },
-                    { value: 'QUESTION', label: 'Dúvida' },
-                    { value: 'PRAISE', label: 'Elogio' },
-                  ]}
-                  value={typeFilter}
-                  onSelect={(value) => setTypeFilter(value)}
+            {/* Toolbar: search + filter + view toggle */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', width: '100%' }}>
+              {/* Search */}
+              <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="var(--neutral-on-background-weak)"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Buscar report..."
+                  value={reportSearch}
+                  onChange={(e) => setReportSearch(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem 0.75rem 0.5rem 2.25rem',
+                    borderRadius: '0.5rem',
+                    border: '1px solid var(--neutral-border-medium)',
+                    background: 'var(--surface-background)',
+                    color: 'var(--neutral-on-background-strong)',
+                    fontSize: '0.875rem',
+                    outline: 'none',
+                    transition: 'border-color 0.15s',
+                    height: 40,
+                  }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--brand-solid-strong)' }}
+                  onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--neutral-border-medium)' }}
                 />
-              </Flex>
-              <Flex className="filter-select" style={{ width: '11rem' }}>
-                <Select
-                  id="severity-filter"
-                  label=""
-                  options={[
-                    { value: '', label: 'Todas severidades' },
-                    { value: 'CRITICAL', label: 'Crítico' },
-                    { value: 'HIGH', label: 'Alto' },
-                    { value: 'MEDIUM', label: 'Médio' },
-                    { value: 'LOW', label: 'Baixo' },
-                  ]}
-                  value={severityFilter}
-                  onSelect={(value) => setSeverityFilter(value)}
-                />
-              </Flex>
-              <Flex className="filter-select" style={{ width: '10rem' }}>
-                <Select
-                  id="status-filter"
-                  label=""
-                  options={[
-                    { value: '', label: 'Todos os status' },
-                    { value: 'OPEN', label: 'Aberto' },
-                    { value: 'IN_PROGRESS', label: 'Em andamento' },
-                    { value: 'RESOLVED', label: 'Resolvido' },
-                    { value: 'CLOSED', label: 'Fechado' },
-                  ]}
-                  value={statusFilter}
-                  onSelect={(value) => setStatusFilter(value)}
-                />
-              </Flex>
-            </Row>
+              </div>
+
+              {/* Filter */}
+              <div style={{ position: 'relative' }}>
+                <button
+                  onClick={() => setShowReportFilter(!showReportFilter)}
+                  title="Filtrar reports"
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: '0.5rem',
+                    border: '1px solid var(--neutral-border-medium)',
+                    background: hasActiveReportFilter ? 'var(--brand-solid-strong)' : 'var(--surface-background)',
+                    color: hasActiveReportFilter ? '#fff' : 'var(--neutral-on-background-weak)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                    flexShrink: 0,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!hasActiveReportFilter) e.currentTarget.style.background = 'var(--neutral-alpha-weak)'
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!hasActiveReportFilter) e.currentTarget.style.background = 'var(--surface-background)'
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="4" y1="6" x2="20" y2="6" />
+                    <line x1="7" y1="12" x2="17" y2="12" />
+                    <line x1="10" y1="18" x2="14" y2="18" />
+                  </svg>
+                </button>
+                {showReportFilter && (
+                  <>
+                    <div
+                      style={{ position: 'fixed', inset: 0, zIndex: 199 }}
+                      onClick={() => setShowReportFilter(false)}
+                    />
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: 'calc(100% + 0.5rem)',
+                        right: 0,
+                        zIndex: 200,
+                        background: 'var(--surface-background)',
+                        border: '1px solid var(--neutral-border-medium)',
+                        borderRadius: '0.75rem',
+                        padding: '1rem',
+                        width: '18rem',
+                        boxShadow: '0 4px 24px rgba(0,0,0,0.1)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '1rem',
+                      }}
+                    >
+                      <Text variant="label-default-s" onBackground="neutral-strong">Tipo</Text>
+                      <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
+                        {([['', 'Todos'], ['BUG', 'Bug'], ['SUGGESTION', 'Sugestão'], ['QUESTION', 'Dúvida'], ['PRAISE', 'Elogio']] as const).map(([val, label]) => (
+                          <button
+                            key={val}
+                            onClick={() => setTypeFilter(val)}
+                            style={{
+                              padding: '0.375rem 0.625rem',
+                              borderRadius: '0.375rem',
+                              border: '1px solid',
+                              borderColor: typeFilter === val ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)',
+                              background: typeFilter === val ? 'var(--brand-solid-strong)' : 'transparent',
+                              color: typeFilter === val ? '#fff' : 'var(--neutral-on-background-weak)',
+                              fontSize: '0.75rem',
+                              fontWeight: typeFilter === val ? 600 : 400,
+                              cursor: 'pointer',
+                              transition: 'all 0.15s',
+                            }}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+
+                      <Text variant="label-default-s" onBackground="neutral-strong">Severidade</Text>
+                      <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
+                        {([['', 'Todas'], ['CRITICAL', 'Crítico'], ['HIGH', 'Alto'], ['MEDIUM', 'Médio'], ['LOW', 'Baixo']] as const).map(([val, label]) => (
+                          <button
+                            key={val}
+                            onClick={() => setSeverityFilter(val)}
+                            style={{
+                              padding: '0.375rem 0.625rem',
+                              borderRadius: '0.375rem',
+                              border: '1px solid',
+                              borderColor: severityFilter === val ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)',
+                              background: severityFilter === val ? 'var(--brand-solid-strong)' : 'transparent',
+                              color: severityFilter === val ? '#fff' : 'var(--neutral-on-background-weak)',
+                              fontSize: '0.75rem',
+                              fontWeight: severityFilter === val ? 600 : 400,
+                              cursor: 'pointer',
+                              transition: 'all 0.15s',
+                            }}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+
+                      <Text variant="label-default-s" onBackground="neutral-strong">Status</Text>
+                      <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
+                        {([['', 'Todos'], ['OPEN', 'Aberto'], ['IN_PROGRESS', 'Em andamento'], ['RESOLVED', 'Resolvido'], ['CLOSED', 'Fechado']] as const).map(([val, label]) => (
+                          <button
+                            key={val}
+                            onClick={() => setStatusFilter(val)}
+                            style={{
+                              padding: '0.375rem 0.625rem',
+                              borderRadius: '0.375rem',
+                              border: '1px solid',
+                              borderColor: statusFilter === val ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)',
+                              background: statusFilter === val ? 'var(--brand-solid-strong)' : 'transparent',
+                              color: statusFilter === val ? '#fff' : 'var(--neutral-on-background-weak)',
+                              fontSize: '0.75rem',
+                              fontWeight: statusFilter === val ? 600 : 400,
+                              cursor: 'pointer',
+                              transition: 'all 0.15s',
+                            }}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+
+                      {hasActiveReportFilter && (
+                        <button
+                          onClick={() => { setTypeFilter(''); setSeverityFilter(''); setStatusFilter('') }}
+                          style={{
+                            padding: '0.375rem',
+                            border: 'none',
+                            background: 'transparent',
+                            color: 'var(--brand-on-background-strong)',
+                            fontSize: '0.75rem',
+                            cursor: 'pointer',
+                            textAlign: 'center',
+                          }}
+                        >
+                          Limpar filtros
+                        </button>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* View mode toggle */}
+              <div style={{ display: 'flex', borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)', overflow: 'hidden', flexShrink: 0 }}>
+                <button
+                  onClick={() => handleSetReportViewMode('card')}
+                  title="Visualização em cards"
+                  style={{
+                    width: 40,
+                    height: 38,
+                    border: 'none',
+                    background: reportViewMode === 'card' ? 'var(--neutral-alpha-weak)' : 'var(--surface-background)',
+                    color: reportViewMode === 'card' ? 'var(--neutral-on-background-strong)' : 'var(--neutral-on-background-weak)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="7" height="7" />
+                    <rect x="14" y="3" width="7" height="7" />
+                    <rect x="3" y="14" width="7" height="7" />
+                    <rect x="14" y="14" width="7" height="7" />
+                  </svg>
+                </button>
+                <div style={{ width: 1, background: 'var(--neutral-border-medium)' }} />
+                <button
+                  onClick={() => handleSetReportViewMode('list')}
+                  title="Visualização em lista"
+                  style={{
+                    width: 40,
+                    height: 38,
+                    border: 'none',
+                    background: reportViewMode === 'list' ? 'var(--neutral-alpha-weak)' : 'var(--surface-background)',
+                    color: reportViewMode === 'list' ? 'var(--neutral-on-background-strong)' : 'var(--neutral-on-background-weak)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="8" y1="6" x2="21" y2="6" />
+                    <line x1="8" y1="12" x2="21" y2="12" />
+                    <line x1="8" y1="18" x2="21" y2="18" />
+                    <line x1="3" y1="6" x2="3.01" y2="6" />
+                    <line x1="3" y1="12" x2="3.01" y2="12" />
+                    <line x1="3" y1="18" x2="3.01" y2="18" />
+                  </svg>
+                </button>
+              </div>
+            </div>
 
             {filteredFeedbacks.length === 0 ? (
               <Card fillWidth padding="xl" radius="l" style={{ textAlign: 'center' }}>
@@ -598,7 +811,7 @@ export default function ProjectClient({
                   </Text>
                 </Column>
               </Card>
-            ) : (
+            ) : reportViewMode === 'card' ? (
               <Column gap="s" fillWidth>
                 {filteredFeedbacks.map((feedback) => (
                   <Card
@@ -668,6 +881,64 @@ export default function ProjectClient({
                   </Card>
                 ))}
               </Column>
+            ) : (
+              <Column fillWidth radius="l" border="neutral-medium" style={{ overflow: 'hidden' }}>
+                {/* List header */}
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '6rem 1fr 6rem 5rem 10rem 2rem',
+                    padding: '0.625rem 1rem',
+                    borderBottom: '1px solid var(--neutral-border-medium)',
+                    background: 'var(--neutral-alpha-weak)',
+                    gap: '0.75rem',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Text variant="label-default-xs" onBackground="neutral-weak">Tipo</Text>
+                  <Text variant="label-default-xs" onBackground="neutral-weak">Comentário</Text>
+                  <Text variant="label-default-xs" onBackground="neutral-weak">Severidade</Text>
+                  <Text variant="label-default-xs" onBackground="neutral-weak">Status</Text>
+                  <Text variant="label-default-xs" onBackground="neutral-weak">Data</Text>
+                  <span />
+                </div>
+                {filteredFeedbacks.map((feedback, i) => (
+                  <div
+                    key={feedback.id}
+                    onClick={() => router.push(`/feedbacks/${feedback.id}`)}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '6rem 1fr 6rem 5rem 10rem 2rem',
+                      padding: '0.75rem 1rem',
+                      borderBottom: i < filteredFeedbacks.length - 1 ? '1px solid var(--neutral-border-medium)' : undefined,
+                      cursor: 'pointer',
+                      transition: 'background 0.15s',
+                      gap: '0.75rem',
+                      alignItems: 'center',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--neutral-alpha-weak)' }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+                  >
+                    <Tag variant={getTagVariant(feedback.type)} size="s" label={getTypeLabel(feedback.type)} />
+                    <Text
+                      variant="body-default-s"
+                      style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                    >
+                      {feedback.comment}
+                    </Text>
+                    {feedback.severity ? (
+                      <Tag variant={getTagVariant(feedback.severity)} size="s" label={getSeverityLabel(feedback.severity)} />
+                    ) : (
+                      <span />
+                    )}
+                    <Tag variant={getTagVariant(feedback.status)} size="s" label={getStatusLabel(feedback.status)} />
+                    <Text variant="body-default-xs" onBackground="neutral-weak" style={{ whiteSpace: 'nowrap' }}>
+                      {formatDate(feedback.createdAt)}
+                    </Text>
+                    <Icon name="chevronRight" size="xs" />
+                  </div>
+                ))}
+              </Column>
             )}
           </Column>
         )}
@@ -675,6 +946,247 @@ export default function ProjectClient({
         {/* Settings tab */}
         {activeTab === 'settings' && (
           <Column gap="l" fillWidth>
+            {/* Setup Guide */}
+            {(() => {
+              const mode = project?.mode ?? 'proxy'
+              const isEmbed = mode === 'embed'
+              const hasEmbed = !!project?.embedLastSeenAt
+              const hasReports = totalCount > 0
+
+              const steps = isEmbed
+                ? [
+                    { label: 'Criar projeto', done: true },
+                    { label: 'Adicionar script ao site', done: hasEmbed },
+                    { label: 'Widget conectado', done: hasEmbed },
+                    { label: 'Primeiro report recebido', done: hasReports },
+                  ]
+                : [
+                    { label: 'Criar projeto', done: true },
+                    { label: 'Compartilhar link com a equipe', done: hasReports },
+                    { label: 'Primeiro report recebido', done: hasReports },
+                  ]
+
+              const completedCount = steps.filter((s) => s.done).length
+              const allDone = completedCount === steps.length
+
+              if (allDone) return null
+
+              return (
+                <Card fillWidth padding="l" radius="l">
+                  <Column gap="m" fillWidth>
+                    <Row horizontal="between" vertical="center" fillWidth>
+                      <Column gap="xs">
+                        <Text variant="label-default-s" onBackground="neutral-strong">
+                          Configuração do projeto
+                        </Text>
+                        <Text variant="body-default-xs" onBackground="neutral-weak">
+                          {completedCount} de {steps.length} etapas concluídas
+                        </Text>
+                      </Column>
+                      <div
+                        style={{
+                          width: 80,
+                          height: 6,
+                          borderRadius: 3,
+                          background: 'var(--neutral-alpha-weak)',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: `${(completedCount / steps.length) * 100}%`,
+                            height: '100%',
+                            borderRadius: 3,
+                            background: 'var(--success-solid-strong)',
+                            transition: 'width 0.3s ease',
+                          }}
+                        />
+                      </div>
+                    </Row>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                      {steps.map((step, i) => {
+                        const isLast = i === steps.length - 1
+                        const isCurrent = !step.done && (i === 0 || steps[i - 1].done)
+                        return (
+                          <div key={step.label} style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                            {/* Timeline dot + line */}
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 20, flexShrink: 0 }}>
+                              <div
+                                style={{
+                                  width: 20,
+                                  height: 20,
+                                  borderRadius: '50%',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  background: step.done
+                                    ? 'var(--success-solid-strong)'
+                                    : isCurrent
+                                    ? 'var(--brand-solid-strong)'
+                                    : 'var(--neutral-alpha-weak)',
+                                  flexShrink: 0,
+                                }}
+                              >
+                                {step.done ? (
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="20 6 9 17 4 12" />
+                                  </svg>
+                                ) : (
+                                  <span
+                                    style={{
+                                      width: 8,
+                                      height: 8,
+                                      borderRadius: '50%',
+                                      background: isCurrent ? '#fff' : 'var(--neutral-solid-medium)',
+                                    }}
+                                  />
+                                )}
+                              </div>
+                              {!isLast && (
+                                <div
+                                  style={{
+                                    width: 2,
+                                    height: 24,
+                                    background: step.done ? 'var(--success-solid-strong)' : 'var(--neutral-border-medium)',
+                                  }}
+                                />
+                              )}
+                            </div>
+                            {/* Step content */}
+                            <div style={{ paddingTop: 1, paddingBottom: isLast ? 0 : 24 }}>
+                              <Text
+                                variant="body-default-s"
+                                onBackground={step.done ? 'neutral-strong' : isCurrent ? 'brand-strong' : 'neutral-weak'}
+                                style={{ fontWeight: isCurrent ? 600 : 400 }}
+                              >
+                                {step.label}
+                              </Text>
+                              {isCurrent && isEmbed && step.label === 'Adicionar script ao site' && (
+                                <Text variant="body-default-xs" onBackground="neutral-weak" style={{ marginTop: 4 }}>
+                                  Copie o código abaixo e adicione ao HTML do seu site.
+                                </Text>
+                              )}
+                              {isCurrent && !isEmbed && step.label === 'Compartilhar link com a equipe' && (
+                                <Text variant="body-default-xs" onBackground="neutral-weak" style={{ marginTop: 4 }}>
+                                  Copie o link abaixo e envie para sua equipe de QA.
+                                </Text>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </Column>
+                </Card>
+              )
+            })()}
+
+            {/* Integration / Viewer URL card */}
+            <Card
+              fillWidth
+              padding="l"
+              radius="l"
+              style={{ background: 'var(--brand-solid-strong)' }}
+            >
+              <Column gap="s">
+                <Row gap="s" vertical="center">
+                  <Text
+                    variant="label-default-s"
+                    style={{ color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                  >
+                    {(project?.mode ?? 'proxy') === 'proxy' ? 'Link Rápido' : 'Instalação no Site'}
+                  </Text>
+                  <span
+                    style={{
+                      fontSize: '0.625rem',
+                      fontWeight: 600,
+                      padding: '0.125rem 0.5rem',
+                      borderRadius: '1rem',
+                      background: 'rgba(255,255,255,0.2)',
+                      color: 'rgba(255,255,255,0.85)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.03em',
+                    }}
+                  >
+                    {(project?.mode ?? 'proxy') === 'proxy' ? 'Sem instalação' : 'Recomendado'}
+                  </span>
+                </Row>
+                {(project?.mode ?? 'proxy') === 'proxy' ? (
+                  <>
+                    <Row gap="s" vertical="center">
+                      <Flex
+                        fillWidth
+                        padding="s"
+                        radius="m"
+                        style={{
+                          background: 'rgba(255,255,255,0.15)',
+                          fontFamily: 'monospace',
+                          fontSize: '0.8125rem',
+                          color: 'white',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {viewerUrl}
+                      </Flex>
+                      <Button
+                        variant="secondary"
+                        size="s"
+                        label={copied ? 'Copiado!' : 'Copiar'}
+                        prefixIcon={copied ? 'check' : 'copy'}
+                        onClick={copyViewerUrl}
+                        style={{ flexShrink: 0 }}
+                      />
+                    </Row>
+                    <Text
+                      variant="body-default-xs"
+                      style={{ color: 'rgba(255,255,255,0.7)' }}
+                    >
+                      Compartilhe esta URL com os QAs para começar a capturar reports.
+                    </Text>
+                  </>
+                ) : (
+                  <>
+                    <Flex fillWidth direction="column" gap="s">
+                      <pre
+                        style={{
+                          width: '100%',
+                          background: 'rgba(255,255,255,0.15)',
+                          color: '#4ade80',
+                          fontSize: '0.75rem',
+                          borderRadius: '0.5rem',
+                          padding: '0.75rem',
+                          overflow: 'auto',
+                          fontFamily: 'monospace',
+                          margin: 0,
+                          whiteSpace: 'pre-wrap',
+                          wordBreak: 'break-all',
+                        }}
+                      >
+                        {embedSnippet}
+                      </pre>
+                      <Flex fillWidth horizontal="end">
+                        <Button
+                          variant="secondary"
+                          size="s"
+                          label={copiedEmbed ? 'Copiado!' : 'Copiar'}
+                          prefixIcon={copiedEmbed ? 'check' : 'copy'}
+                          onClick={copyEmbedSnippet}
+                        />
+                      </Flex>
+                    </Flex>
+                    <Text
+                      variant="body-default-xs"
+                      style={{ color: 'rgba(255,255,255,0.7)' }}
+                    >
+                      Adicione este código ao HTML do seu site para capturar reports.
+                    </Text>
+                  </>
+                )}
+              </Column>
+            </Card>
+
             {/* Edit project */}
             <Card fillWidth padding="l" radius="l">
               <Column gap="m" fillWidth>

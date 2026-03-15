@@ -148,7 +148,7 @@ function UpgradeContent() {
   if (loading) {
     return (
       <AppLayout>
-        <Column as="main" fillWidth paddingX="l" paddingY="xl" gap="l" style={{ margin: '0 auto', maxWidth: '72rem' }}>
+        <Column as="main" fillWidth paddingX="xl" paddingY="l" gap="l" style={{ margin: '0 auto', maxWidth: '72rem' }}>
           <Text variant="body-default-m" onBackground="neutral-weak">Carregando...</Text>
         </Column>
       </AppLayout>
@@ -157,7 +157,7 @@ function UpgradeContent() {
 
   return (
     <AppLayout>
-      <Column as="main" fillWidth paddingX="l" paddingY="xl" gap="xl" style={{ margin: '0 auto', maxWidth: '72rem' }}>
+      <Column as="main" fillWidth paddingX="xl" paddingY="l" gap="xl" style={{ margin: '0 auto', maxWidth: '72rem' }}>
         <Column gap="s">
           <Button variant="tertiary" size="s" label="← Voltar para Planos" onClick={() => router.push('/plans')} />
           <Column gap="xs" horizontal="center" style={{ textAlign: 'center' }}>

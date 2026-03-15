@@ -202,7 +202,7 @@ export default function SettingsClient({
 
   return (
     <AppLayout>
-      <Column as="main" fillWidth maxWidth={40} paddingX="l" paddingY="xl" gap="l" style={{ margin: '0 auto' }}>
+      <Column as="main" fillWidth maxWidth={40} paddingX="xl" paddingY="l" gap="l" style={{ margin: '0 auto' }}>
         {/* Page header */}
         <Column gap="xs">
           <Heading variant="heading-strong-l">Configurações</Heading>

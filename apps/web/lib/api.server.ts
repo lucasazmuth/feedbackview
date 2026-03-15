@@ -63,5 +63,16 @@ export const serverApi = {
       if (data?.Project?.ownerId !== userId) throw new Error('Not found')
       return data
     },
+
+    async listAll(userId: string) {
+      const supabase = await createClient()
+      const { data, error } = await supabase
+        .from('Feedback')
+        .select('*, Project!inner(id, name, ownerId)')
+        .eq('Project.ownerId', userId)
+        .order('createdAt', { ascending: false })
+      if (error) throw new Error(error.message)
+      return data || []
+    },
   },
 }

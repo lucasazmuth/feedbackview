@@ -29,10 +29,10 @@ export async function POST(req: NextRequest) {
       return corsJson({ error: 'Description must be at least 10 characters' }, 400)
     }
 
-    // Verify project exists and get organization info
+    // Verify project exists and get organization info + owner
     const { data: project, error: projectError } = await supabase
       .from('Project')
-      .select('id, organizationId')
+      .select('id, organizationId, ownerId, name')
       .eq('id', data.projectId)
       .single()
 
@@ -123,8 +123,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Insert feedback
+    const feedbackId = crypto.randomUUID()
     const { error: insertError } = await supabase.from('Feedback').insert({
-      id: crypto.randomUUID(),
+      id: feedbackId,
       projectId: data.projectId,
       title: data.title?.trim() || null,
       comment: data.comment.trim(),
@@ -142,6 +143,32 @@ export async function POST(req: NextRequest) {
     if (insertError) {
       return corsJson({ error: insertError.message }, 500)
     }
+
+    // Create notification for project owner (fire-and-forget)
+    const typeLabels: Record<string, string> = {
+      BUG: 'Bug',
+      SUGGESTION: 'Sugestão',
+      QUESTION: 'Pergunta',
+      PRAISE: 'Elogio',
+    }
+    const typeLabel = typeLabels[data.type] || data.type
+    supabase
+      .from('Notification')
+      .insert({
+        userId: project.ownerId,
+        type: 'NEW_FEEDBACK',
+        title: `Novo ${typeLabel} em ${project.name}`,
+        message: data.title?.trim() || data.comment.trim().slice(0, 120),
+        metadata: {
+          feedbackId,
+          projectId: data.projectId,
+          projectName: project.name,
+          feedbackType: data.type,
+          severity: data.severity || null,
+        },
+      })
+      .then(() => {})
+      .catch(() => {})
 
     return corsJson({ success: true })
   } catch (err: any) {

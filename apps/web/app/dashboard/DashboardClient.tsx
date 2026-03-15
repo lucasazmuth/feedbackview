@@ -12,7 +12,6 @@ import {
   Button,
   Tag,
   Icon,
-  IconButton,
 } from '@once-ui-system/core'
 import AppLayout from '@/components/ui/AppLayout'
 import { getPlanLimits, getUsageWarning, type Plan, type Role, type Usage } from '@/lib/limits'
@@ -75,6 +74,17 @@ export default function DashboardClient({
   const [filterStatus, setFilterStatus] = useState<'all' | 'open' | 'none'>('all')
   const [sortBy, setSortBy] = useState<'recent' | 'name' | 'feedbacks'>('recent')
   const [search, setSearch] = useState('')
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('dashboard-view-mode') as 'grid' | 'list') || 'grid'
+    }
+    return 'grid'
+  })
+
+  function handleSetViewMode(mode: 'grid' | 'list') {
+    setViewMode(mode)
+    localStorage.setItem('dashboard-view-mode', mode)
+  }
 
   const filteredProjects = useMemo(() => {
     let result = [...projects]
@@ -105,26 +115,122 @@ export default function DashboardClient({
 
   return (
     <AppLayout>
-      <Column as="main" fillWidth maxWidth={72} paddingX="l" paddingY="xl" gap="l" style={{ margin: '0 auto' }}>
-        {/* Page header */}
-        <Row fillWidth horizontal="between" vertical="center">
-          <Column gap="xs">
-            <Heading variant="heading-strong-l">Projetos</Heading>
-            <Text variant="body-default-s" onBackground="neutral-weak">
-              {projects.length === 0
-                ? 'Nenhum projeto ainda'
-                : `${projects.length} projeto${projects.length !== 1 ? 's' : ''}`}
+      <Column as="main" fillWidth maxWidth={72} paddingX="l" paddingY="m" gap="l" style={{ margin: '0 auto' }}>
+        {/* Page title */}
+        <Heading variant="heading-strong-l">Projetos</Heading>
+
+        {/* Usage warning banner */}
+        {usageWarning && (
+          <Row
+            fillWidth
+            padding="m"
+            radius="l"
+            background="warning-weak"
+            border="warning-medium"
+            horizontal="between"
+            vertical="center"
+          >
+            <Text variant="body-default-s" onBackground="warning-strong">
+              {usageWarning}
             </Text>
-          </Column>
-          <Row gap="s" vertical="center">
-            <div style={{ position: 'relative' }}>
-              <IconButton
-                icon="filter"
-                variant={hasActiveFilter ? 'primary' : 'secondary'}
-                size="m"
-                onClick={() => setShowFilter(!showFilter)}
-                tooltip="Filtrar projetos"
+            <Button
+              variant="secondary"
+              size="s"
+              href="/plans"
+            >
+              Ver planos
+            </Button>
+          </Row>
+        )}
+
+        {/* Error state */}
+        {error && (
+          <Row
+            fillWidth
+            padding="m"
+            radius="l"
+            background="danger-weak"
+            border="danger-medium"
+          >
+            <Text variant="body-default-s" onBackground="danger-strong">
+              {error}
+            </Text>
+          </Row>
+        )}
+
+        {/* Toolbar: search + filter + new project */}
+        {projects.length > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', width: '100%' }}>
+            {/* Search */}
+            <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="var(--neutral-on-background-weak)"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Buscar projeto por nome ou URL..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.5rem 0.75rem 0.5rem 2.25rem',
+                  borderRadius: '0.5rem',
+                  border: '1px solid var(--neutral-border-medium)',
+                  background: 'var(--surface-background)',
+                  color: 'var(--neutral-on-background-strong)',
+                  fontSize: '0.875rem',
+                  outline: 'none',
+                  transition: 'border-color 0.15s',
+                  height: 40,
+                }}
+                onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--brand-solid-strong)' }}
+                onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--neutral-border-medium)' }}
               />
+            </div>
+
+            {/* Filter */}
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => setShowFilter(!showFilter)}
+                title="Filtrar projetos"
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: '0.5rem',
+                  border: '1px solid var(--neutral-border-medium)',
+                  background: hasActiveFilter ? 'var(--brand-solid-strong)' : 'var(--surface-background)',
+                  color: hasActiveFilter ? '#fff' : 'var(--neutral-on-background-weak)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                  flexShrink: 0,
+                }}
+                onMouseEnter={(e) => {
+                  if (!hasActiveFilter) e.currentTarget.style.background = 'var(--neutral-alpha-weak)'
+                }}
+                onMouseLeave={(e) => {
+                  if (!hasActiveFilter) e.currentTarget.style.background = 'var(--surface-background)'
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="4" y1="6" x2="20" y2="6" />
+                  <line x1="7" y1="12" x2="17" y2="12" />
+                  <line x1="10" y1="18" x2="14" y2="18" />
+                </svg>
+              </button>
               {showFilter && (
                 <>
                   <div
@@ -216,6 +322,61 @@ export default function DashboardClient({
                 </>
               )}
             </div>
+
+            {/* View mode toggle */}
+            <div style={{ display: 'flex', borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)', overflow: 'hidden', flexShrink: 0 }}>
+              <button
+                onClick={() => handleSetViewMode('grid')}
+                title="Visualização em grade"
+                style={{
+                  width: 40,
+                  height: 38,
+                  border: 'none',
+                  background: viewMode === 'grid' ? 'var(--neutral-alpha-weak)' : 'var(--surface-background)',
+                  color: viewMode === 'grid' ? 'var(--neutral-on-background-strong)' : 'var(--neutral-on-background-weak)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="7" height="7" />
+                  <rect x="14" y="3" width="7" height="7" />
+                  <rect x="3" y="14" width="7" height="7" />
+                  <rect x="14" y="14" width="7" height="7" />
+                </svg>
+              </button>
+              <div style={{ width: 1, background: 'var(--neutral-border-medium)' }} />
+              <button
+                onClick={() => handleSetViewMode('list')}
+                title="Visualização em lista"
+                style={{
+                  width: 40,
+                  height: 38,
+                  border: 'none',
+                  background: viewMode === 'list' ? 'var(--neutral-alpha-weak)' : 'var(--surface-background)',
+                  color: viewMode === 'list' ? 'var(--neutral-on-background-strong)' : 'var(--neutral-on-background-weak)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s',
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="8" y1="6" x2="21" y2="6" />
+                  <line x1="8" y1="12" x2="21" y2="12" />
+                  <line x1="8" y1="18" x2="21" y2="18" />
+                  <line x1="3" y1="6" x2="3.01" y2="6" />
+                  <line x1="3" y1="12" x2="3.01" y2="12" />
+                  <line x1="3" y1="18" x2="3.01" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            {/* New project button */}
             <Button
               variant="primary"
               prefixIcon="plus"
@@ -224,46 +385,7 @@ export default function DashboardClient({
             >
               Novo Projeto
             </Button>
-          </Row>
-        </Row>
-
-        {/* Usage warning banner */}
-        {usageWarning && (
-          <Row
-            fillWidth
-            padding="m"
-            radius="l"
-            background="warning-weak"
-            border="warning-medium"
-            horizontal="between"
-            vertical="center"
-          >
-            <Text variant="body-default-s" onBackground="warning-strong">
-              {usageWarning}
-            </Text>
-            <Button
-              variant="secondary"
-              size="s"
-              href="/plans"
-            >
-              Ver planos
-            </Button>
-          </Row>
-        )}
-
-        {/* Error state */}
-        {error && (
-          <Row
-            fillWidth
-            padding="m"
-            radius="l"
-            background="danger-weak"
-            border="danger-medium"
-          >
-            <Text variant="body-default-s" onBackground="danger-strong">
-              {error}
-            </Text>
-          </Row>
+          </div>
         )}
 
         {/* Empty state */}
@@ -279,50 +401,19 @@ export default function DashboardClient({
               Crie seu primeiro projeto para começar a capturar reports com screenshot e session
               replay.
             </Text>
+            <Button
+              variant="primary"
+              prefixIcon="plus"
+              size="m"
+              href="/projects/new"
+            >
+              Novo Projeto
+            </Button>
           </Column>
         )}
 
-        {/* Search */}
-        {projects.length > 0 && (
-          <div style={{ position: 'relative', width: '100%' }}>
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="var(--neutral-on-background-weak)"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
-            >
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Buscar projeto por nome ou URL..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.625rem 0.75rem 0.625rem 2.25rem',
-                borderRadius: '0.5rem',
-                border: '1px solid var(--neutral-border-medium)',
-                background: 'var(--surface-background)',
-                color: 'var(--neutral-on-background-strong)',
-                fontSize: '0.875rem',
-                outline: 'none',
-                transition: 'border-color 0.15s',
-              }}
-              onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--brand-solid-strong)' }}
-              onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--neutral-border-medium)' }}
-            />
-          </div>
-        )}
-
-        {/* Projects grid */}
-        {filteredProjects.length > 0 && (
+        {/* Projects grid view */}
+        {filteredProjects.length > 0 && viewMode === 'grid' && (
           <Grid fillWidth columns={3} gap="m" s={{ columns: 1 }} m={{ columns: 2 }}>
             {filteredProjects.map((project) => {
               const openCount = project.openFeedbackCount ?? project._count?.feedbacks ?? 0
@@ -371,6 +462,75 @@ export default function DashboardClient({
               )
             })}
           </Grid>
+        )}
+
+        {/* Projects list view */}
+        {filteredProjects.length > 0 && viewMode === 'list' && (
+          <Column fillWidth radius="l" border="neutral-medium" style={{ overflow: 'hidden' }}>
+            {/* List header */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 12rem 8rem 6rem 2rem',
+                padding: '0.625rem 1rem',
+                borderBottom: '1px solid var(--neutral-border-medium)',
+                background: 'var(--neutral-alpha-weak)',
+                gap: '0.75rem',
+                alignItems: 'center',
+              }}
+            >
+              <Text variant="label-default-xs" onBackground="neutral-weak">Nome</Text>
+              <Text variant="label-default-xs" onBackground="neutral-weak">URL</Text>
+              <Text variant="label-default-xs" onBackground="neutral-weak">Status</Text>
+              <Text variant="label-default-xs" onBackground="neutral-weak">Criado</Text>
+              <span />
+            </div>
+            {filteredProjects.map((project, i) => {
+              const openCount = project.openFeedbackCount ?? project._count?.feedbacks ?? 0
+              return (
+                <div
+                  key={project.id}
+                  onClick={() => router.push(`/projects/${project.id}`)}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 12rem 8rem 6rem 2rem',
+                    padding: '0.75rem 1rem',
+                    borderBottom: i < filteredProjects.length - 1 ? '1px solid var(--neutral-border-medium)' : undefined,
+                    cursor: 'pointer',
+                    transition: 'background 0.15s',
+                    gap: '0.75rem',
+                    alignItems: 'center',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--neutral-alpha-weak)' }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+                >
+                  <Text
+                    variant="body-default-s"
+                    onBackground="neutral-strong"
+                    style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}
+                  >
+                    {project.name}
+                  </Text>
+                  <Text
+                    variant="body-default-xs"
+                    onBackground="neutral-weak"
+                    style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                  >
+                    {project.url}
+                  </Text>
+                  <Tag
+                    variant={openCount > 0 ? 'warning' : 'neutral'}
+                    size="s"
+                    label={`${openCount} aberto${openCount !== 1 ? 's' : ''}`}
+                  />
+                  <Text variant="body-default-xs" onBackground="neutral-weak" style={{ whiteSpace: 'nowrap' }}>
+                    {formatDate(project.createdAt)}
+                  </Text>
+                  <Icon name="chevronRight" size="xs" />
+                </div>
+              )
+            })}
+          </Column>
         )}
       </Column>
     </AppLayout>

@@ -45,6 +45,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             transition: 'margin-left 0.2s ease',
             display: 'flex',
             flexDirection: 'column',
+            height: '100vh',
+            overflow: 'hidden',
           }}
         >
           <PageHeader />
