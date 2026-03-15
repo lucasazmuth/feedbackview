@@ -7,6 +7,7 @@ import {
   IconProvider,
 } from '@once-ui-system/core'
 import { iconLibrary } from '@/resources/icons'
+import { OrgProvider } from '@/contexts/OrgContext'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -25,7 +26,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       >
         <ToastProvider>
           <IconProvider icons={iconLibrary}>
-            {children}
+            <OrgProvider>
+              {children}
+            </OrgProvider>
           </IconProvider>
         </ToastProvider>
       </ThemeProvider>

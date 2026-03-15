@@ -208,12 +208,6 @@ export default function SettingsClient({
           </Text>
         </Column>
 
-        <Row gap="s">
-          <Button variant="secondary" size="s" label="Perfil" onClick={() => router.push('/settings')} />
-          <Button variant="tertiary" size="s" label="Plano & Uso" onClick={() => router.push('/settings/billing')} />
-          <Button variant="tertiary" size="s" label="Equipe" onClick={() => router.push('/settings/team')} />
-        </Row>
-
         {/* Profile section */}
         <Section title="Perfil" description="Atualize suas informações pessoais e da empresa.">
           {profileMsg && (

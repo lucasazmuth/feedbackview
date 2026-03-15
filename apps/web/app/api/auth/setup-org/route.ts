@@ -69,11 +69,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to create team member' }, { status: 500 })
     }
 
-    // Update user's defaultOrgId
+    // Link any pending invites for this email to the new userId
+    const normalizedEmail = email.toLowerCase()
     await supabase
-      .from('User')
-      .update({ defaultOrgId: orgId })
-      .eq('id', userId)
+      .from('TeamMember')
+      .update({ userId })
+      .eq('inviteEmail', normalizedEmail)
+      .eq('status', 'PENDING')
+      .is('userId', null)
 
     return NextResponse.json({ orgId })
   } catch (err) {
