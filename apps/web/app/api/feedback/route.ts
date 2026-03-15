@@ -152,7 +152,7 @@ export async function POST(req: NextRequest) {
       PRAISE: 'Elogio',
     }
     const typeLabel = typeLabels[data.type] || data.type
-    supabase
+    void supabase
       .from('Notification')
       .insert({
         userId: project.ownerId,
@@ -168,7 +168,6 @@ export async function POST(req: NextRequest) {
         },
       })
       .then(() => {})
-      .catch(() => {})
 
     return corsJson({ success: true })
   } catch (err: any) {
