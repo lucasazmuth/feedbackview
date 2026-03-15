@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { api } from '@/lib/api'
@@ -174,26 +174,39 @@ export default function ProjectClient({
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
-  const viewerUrl =
-    typeof window !== 'undefined'
-      ? `${window.location.protocol}//${window.location.host}/p/${project?.id}`
-      : `http://localhost:3000/p/${project?.id}`
+  const [origin, setOrigin] = useState('')
+  useEffect(() => {
+    setOrigin(`${window.location.protocol}//${window.location.host}`)
+  }, [])
 
-  const appBase =
-    typeof window !== 'undefined'
-      ? `${window.location.protocol}//${window.location.host}`
-      : 'https://feedbackview.vercel.app'
+  const viewerUrl = origin ? `${origin}/p/${project?.id}` : ''
+  const appBase = origin
 
   const embedSnippet = `<script src="${appBase}/embed.js" data-project="${project?.id}"></script>`
 
+  async function clipboardCopy(text: string) {
+    try {
+      await navigator.clipboard.writeText(text)
+    } catch {
+      const ta = document.createElement('textarea')
+      ta.value = text
+      ta.style.position = 'fixed'
+      ta.style.opacity = '0'
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      document.body.removeChild(ta)
+    }
+  }
+
   async function copyViewerUrl() {
-    await navigator.clipboard.writeText(viewerUrl)
+    await clipboardCopy(viewerUrl)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
 
   async function copyEmbedSnippet() {
-    await navigator.clipboard.writeText(embedSnippet)
+    await clipboardCopy(embedSnippet)
     setCopiedEmbed(true)
     setTimeout(() => setCopiedEmbed(false), 2000)
   }
@@ -918,21 +931,21 @@ export default function ProjectClient({
                       {/* Widget button preview */}
                       <div style={{
                         position: 'absolute',
-                        ...(widgetPosition.includes('top') ? { top: 10 } : { bottom: 10 }),
-                        ...(widgetPosition.includes('left') ? { left: 10 } : { right: 10 }),
-                        width: 28,
-                        height: 28,
-                        borderRadius: '50%',
+                        ...(widgetPosition.includes('top') ? { top: 8 } : { bottom: 8 }),
+                        ...(widgetPosition.includes('left') ? { left: 8 } : { right: 8 }),
+                        height: 20,
+                        paddingLeft: 6,
+                        paddingRight: 8,
+                        borderRadius: 10,
                         background: widgetColor,
                         boxShadow: `0 2px 8px ${widgetColor}66`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
+                        gap: 3,
                         transition: 'all 0.3s ease',
                       }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="m8 2 1.88 1.88"/><path d="M14.12 3.88 16 2"/><path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/>
-                        </svg>
+                        <span style={{ color: '#fff', fontSize: 7, fontWeight: 700, whiteSpace: 'nowrap', lineHeight: 1 }}>QBugs Reportar</span>
                       </div>
                     </div>
                   </Column>

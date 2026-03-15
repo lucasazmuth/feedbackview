@@ -116,12 +116,6 @@ export default function ViewerClient({ projectId, widgetColor = '#4f46e5', widge
     }
   })()
 
-  const bugIconSvg = (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m8 2 1.88 1.88"/><path d="M14.12 3.88 16 2"/><path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/>
-    </svg>
-  )
-
   return (
     <div className="h-screen w-screen overflow-hidden relative">
       {/* Full-screen iframe */}
@@ -133,7 +127,7 @@ export default function ViewerClient({ projectId, widgetColor = '#4f46e5', widge
         sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
       />
 
-      {/* Floating bug button — same as embed widget */}
+      {/* Floating report button */}
       {!modalOpen && (
         <button
           onClick={() => {
@@ -146,17 +140,23 @@ export default function ViewerClient({ projectId, widgetColor = '#4f46e5', widge
           className="fixed z-[2147483646] flex items-center justify-center text-white border-none cursor-pointer transition-all duration-200"
           style={{
             ...positionStyle,
-            width: 56,
-            height: 56,
-            borderRadius: '50%',
+            height: 40,
+            paddingLeft: 14,
+            paddingRight: 16,
+            borderRadius: 20,
             background: widgetColor,
             boxShadow: isHovered
               ? `0 6px 20px ${widgetColor}80`
               : `0 4px 12px ${widgetColor}66`,
-            transform: isHovered ? 'scale(1.08)' : 'scale(1)',
+            transform: isHovered ? 'scale(1.04)' : 'scale(1)',
+            gap: 6,
+            fontSize: 14,
+            fontWeight: 600,
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+            letterSpacing: '-0.01em',
           }}
         >
-          {bugIconSvg}
+          QBugs Reportar
         </button>
       )}
 

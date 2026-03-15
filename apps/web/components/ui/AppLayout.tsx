@@ -20,12 +20,12 @@ const COLLAPSED_WIDTH = '4rem'
 const STORAGE_KEY = 'sidebar-collapsed'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const [collapsed, setCollapsed] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem(STORAGE_KEY) === 'true'
-    }
-    return false
-  })
+  const [collapsed, setCollapsed] = useState(false)
+
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (stored === 'true') setCollapsed(true)
+  }, [])
 
   const handleSetCollapsed = useCallback((v: boolean) => {
     setCollapsed(v)
