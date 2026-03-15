@@ -116,6 +116,35 @@ body {
   animation: hero-pulse-dot 1.5s ease-in-out infinite;
 }
 
+/* Landing page animations */
+@keyframes lp-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.2); }
+}
+@keyframes lp-float-up {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.lp-badge-dot {
+  animation: lp-pulse 2s ease-in-out infinite;
+}
+.lp-rec-dot {
+  animation: lp-pulse 1.5s ease-in-out infinite;
+}
+.lp-hero-visual {
+  animation: lp-float-up 0.8s ease-out 0.3s both;
+}
+.lp-badge {
+  animation: lp-float-up 0.5s ease-out both;
+}
+
+/* Landing page responsive */
+@media (max-width: 768px) {
+  .lp-hero-visual > div:last-child {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 6px;

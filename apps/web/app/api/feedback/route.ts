@@ -26,18 +26,45 @@ export async function POST(req: NextRequest) {
     }
 
     if (data.comment.trim().length < 10) {
-      return corsJson({ error: 'Comment must be at least 10 characters' }, 400)
+      return corsJson({ error: 'Description must be at least 10 characters' }, 400)
     }
 
-    // Verify project exists
+    // Verify project exists and get organization info
     const { data: project, error: projectError } = await supabase
       .from('Project')
-      .select('id')
+      .select('id, organizationId')
       .eq('id', data.projectId)
       .single()
 
     if (projectError || !project) {
       return corsJson({ error: 'Project not found' }, 404)
+    }
+
+    // Check report limits if project has an organization
+    if (project.organizationId) {
+      const { data: org } = await supabase
+        .from('Organization')
+        .select('maxReportsPerMonth')
+        .eq('id', project.organizationId)
+        .single()
+
+      if (org && org.maxReportsPerMonth > 0) {
+        const startOfMonth = new Date()
+        startOfMonth.setDate(1)
+        startOfMonth.setHours(0, 0, 0, 0)
+
+        const { count } = await supabase
+          .from('Feedback')
+          .select('id', { count: 'exact', head: true })
+          .eq('projectId', data.projectId)
+          .gte('createdAt', startOfMonth.toISOString())
+
+        if (count !== null && count >= org.maxReportsPerMonth) {
+          return corsJson({
+            error: `Limite de ${org.maxReportsPerMonth} reports/mês atingido. Faça upgrade do plano.`,
+          }, 429)
+        }
+      }
     }
 
     // Upload screenshot if provided
@@ -67,10 +94,39 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Upload attachments if provided
+    const attachmentUrls: string[] = []
+    if (data.attachments && Array.isArray(data.attachments)) {
+      for (const att of data.attachments.slice(0, 5)) {
+        try {
+          const base64Data = att.data.split(',')[1]
+          const byteString = atob(base64Data)
+          const bytes = new Uint8Array(byteString.length)
+          for (let i = 0; i < byteString.length; i++) {
+            bytes[i] = byteString.charCodeAt(i)
+          }
+          const ext = att.name?.split('.').pop() || 'bin'
+          const fileName = `${data.projectId}/attachments/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('feedbacks')
+            .upload(fileName, bytes, { contentType: att.type || 'application/octet-stream' })
+
+          if (!uploadError && uploadData) {
+            const { data: { publicUrl } } = supabase.storage.from('feedbacks').getPublicUrl(uploadData.path)
+            attachmentUrls.push(publicUrl)
+          }
+        } catch {
+          // Attachment upload failed, continue
+        }
+      }
+    }
+
     // Insert feedback
     const { error: insertError } = await supabase.from('Feedback').insert({
       id: crypto.randomUUID(),
       projectId: data.projectId,
+      title: data.title?.trim() || null,
       comment: data.comment.trim(),
       type: data.type,
       severity: data.severity || null,
@@ -80,6 +136,7 @@ export async function POST(req: NextRequest) {
       pageUrl: data.pageUrl || null,
       userAgent: data.userAgent || null,
       metadata: data.rrwebEvents ? { rrwebEvents: data.rrwebEvents } : null,
+      attachmentUrls: attachmentUrls.length > 0 ? attachmentUrls : null,
     })
 
     if (insertError) {

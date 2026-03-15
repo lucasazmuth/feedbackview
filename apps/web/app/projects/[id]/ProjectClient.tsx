@@ -83,7 +83,7 @@ function getTagVariant(value: string): 'brand' | 'danger' | 'warning' | 'success
 }
 
 function getTypeLabel(type: string) {
-  const map: Record<string, string> = { BUG: 'Bug', SUGGESTION: 'Sugestao', QUESTION: 'Duvida', PRAISE: 'Elogio' }
+  const map: Record<string, string> = { BUG: 'Bug', SUGGESTION: 'Sugestão', QUESTION: 'Dúvida', PRAISE: 'Elogio' }
   return map[type] || type
 }
 
@@ -93,7 +93,7 @@ function getStatusLabel(status: string) {
 }
 
 function getSeverityLabel(sev: string) {
-  const map: Record<string, string> = { CRITICAL: 'Critico', HIGH: 'Alto', MEDIUM: 'Medio', LOW: 'Baixo' }
+  const map: Record<string, string> = { CRITICAL: 'Crítico', HIGH: 'Alto', MEDIUM: 'Médio', LOW: 'Baixo' }
   return map[sev] || sev
 }
 
@@ -132,7 +132,7 @@ export default function ProjectClient({
     setAppearanceMsg(null)
     try {
       await api.projects.update(project.id, { widgetPosition, widgetColor })
-      setAppearanceMsg({ type: 'success', text: 'Aparencia atualizada com sucesso!' })
+      setAppearanceMsg({ type: 'success', text: 'Aparência atualizada com sucesso!' })
       router.refresh()
     } catch (err: any) {
       setAppearanceMsg({ type: 'danger', text: err.message || 'Erro ao salvar.' })
@@ -244,7 +244,7 @@ export default function ProjectClient({
       router.refresh()
       setEditing(false)
     } catch (err: any) {
-      setEditError(err.message || 'Erro ao salvar alteracoes.')
+      setEditError(err.message || 'Erro ao salvar alterações.')
     } finally {
       setEditSaving(false)
     }
@@ -440,7 +440,7 @@ export default function ProjectClient({
           {[
             { label: 'Total', value: totalCount, dot: 'var(--neutral-solid-medium)' },
             { label: 'Abertos', value: openCount, dot: 'var(--warning-solid-strong)' },
-            { label: 'Criticos', value: criticalCount, dot: 'var(--danger-solid-strong)' },
+            { label: 'Críticos', value: criticalCount, dot: 'var(--danger-solid-strong)' },
             { label: 'Resolvidos', value: resolvedCount, dot: 'var(--success-solid-strong)' },
           ].map(({ label, value, dot }) => (
             <Card key={label} fillWidth padding="l" radius="l">
@@ -458,8 +458,8 @@ export default function ProjectClient({
         {/* Tabs */}
         <Row gap="l" fillWidth style={{ borderBottom: '2px solid var(--neutral-border-medium)' }}>
           {[
-            { key: 'feedbacks' as const, label: 'Feedbacks', count: totalCount },
-            { key: 'settings' as const, label: 'Configuracoes', count: undefined },
+            { key: 'feedbacks' as const, label: 'Caixa de entrada', count: totalCount },
+            { key: 'settings' as const, label: 'Configurações', count: undefined },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -516,8 +516,8 @@ export default function ProjectClient({
                   options={[
                     { value: '', label: 'Todos os tipos' },
                     { value: 'BUG', label: 'Bug' },
-                    { value: 'SUGGESTION', label: 'Sugestao' },
-                    { value: 'QUESTION', label: 'Duvida' },
+                    { value: 'SUGGESTION', label: 'Sugestão' },
+                    { value: 'QUESTION', label: 'Dúvida' },
                     { value: 'PRAISE', label: 'Elogio' },
                   ]}
                   value={typeFilter}
@@ -530,9 +530,9 @@ export default function ProjectClient({
                   label=""
                   options={[
                     { value: '', label: 'Todas severidades' },
-                    { value: 'CRITICAL', label: 'Critico' },
+                    { value: 'CRITICAL', label: 'Crítico' },
                     { value: 'HIGH', label: 'Alto' },
-                    { value: 'MEDIUM', label: 'Medio' },
+                    { value: 'MEDIUM', label: 'Médio' },
                     { value: 'LOW', label: 'Baixo' },
                   ]}
                   value={severityFilter}
@@ -659,7 +659,7 @@ export default function ProjectClient({
             <Card fillWidth padding="l" radius="l">
               <Column gap="m" fillWidth>
                 <Row horizontal="between" vertical="center" fillWidth>
-                  <Heading variant="heading-strong-s" as="h3">Configuracoes do Projeto</Heading>
+                  <Heading variant="heading-strong-s" as="h3">Configurações do Projeto</Heading>
                   {!editing && (
                     <Button
                       variant="tertiary"
@@ -691,7 +691,7 @@ export default function ProjectClient({
                     />
                     <Textarea
                       id="edit-description"
-                      label="Descricao"
+                      label="Descrição"
                       value={editDescription}
                       onChange={(e) => setEditDescription(e.target.value)}
                       lines={3}
@@ -728,7 +728,7 @@ export default function ProjectClient({
                     {[
                       { label: 'ID do projeto', value: project?.id, mono: true },
                       { label: 'Nome', value: project?.name },
-                      ...(project?.description ? [{ label: 'Descricao', value: project.description }] : []),
+                      ...(project?.description ? [{ label: 'Descrição', value: project.description }] : []),
                       { label: 'URL alvo', value: project?.url, link: true },
                       { label: 'Criado em', value: project?.createdAt ? formatDate(project.createdAt) : '-' },
                     ].map((row, i, arr) => (
@@ -781,10 +781,10 @@ export default function ProjectClient({
               <Column gap="m" fillWidth>
                 <Row gap="s" vertical="center">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" /></svg>
-                  <Heading variant="heading-strong-s" as="h3">Aparencia do Widget</Heading>
+                  <Heading variant="heading-strong-s" as="h3">Aparência do Widget</Heading>
                 </Row>
                 <Text variant="body-default-s" onBackground="neutral-weak">
-                  Personalize a posicao e cor do botao de feedback que aparece no site.
+                  Personalize a posição e cor do botão de feedback que aparece no site.
                 </Text>
 
                 {appearanceMsg && (
@@ -794,7 +794,7 @@ export default function ProjectClient({
                 <Row gap="l" fillWidth wrap>
                   {/* Position selector */}
                   <Column gap="s" style={{ flex: 1, minWidth: '12rem' }}>
-                    <Text variant="label-default-s" onBackground="neutral-strong">Posicao</Text>
+                    <Text variant="label-default-s" onBackground="neutral-strong">Posição</Text>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                       {([
                         { value: 'top-left', label: 'Superior esq.' },
@@ -931,7 +931,7 @@ export default function ProjectClient({
                         transition: 'all 0.3s ease',
                       }}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                          <path d="m8 2 1.88 1.88"/><path d="M14.12 3.88 16 2"/><path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/>
                         </svg>
                       </div>
                     </div>
@@ -942,7 +942,7 @@ export default function ProjectClient({
                   <Button
                     variant="primary"
                     size="m"
-                    label={appearanceSaving ? 'Salvando...' : 'Salvar aparencia'}
+                    label={appearanceSaving ? 'Salvando...' : 'Salvar aparência'}
                     loading={appearanceSaving}
                     onClick={handleAppearanceSave}
                   />
@@ -1057,7 +1057,7 @@ export default function ProjectClient({
                   <Text onBackground="danger-strong">Zona de Perigo</Text>
                 </Heading>
                 <Text variant="body-default-s" onBackground="neutral-weak">
-                  Excluir este projeto removera permanentemente todos os feedbacks associados. Esta acao nao pode ser desfeita.
+                  Excluir este projeto removerá permanentemente todos os feedbacks associados. Esta ação não pode ser desfeita.
                 </Text>
 
                 {!showDeleteConfirm ? (
@@ -1095,7 +1095,7 @@ export default function ProjectClient({
                         <Button
                           variant="danger"
                           size="m"
-                          label="Confirmar exclusao"
+                          label="Confirmar exclusão"
                           loading={deleting}
                           onClick={handleDelete}
                           disabled={deleting || deleteConfirmText !== project?.name}

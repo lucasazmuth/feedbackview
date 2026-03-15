@@ -28,8 +28,9 @@ export async function middleware(request: NextRequest) {
   const isAuthPage = request.nextUrl.pathname.startsWith('/auth')
   const isPublicPage = request.nextUrl.pathname.startsWith('/p/')
   const isLandingPage = request.nextUrl.pathname === '/'
+  const isStaticPage = ['/termos', '/privacidade', '/contato'].includes(request.nextUrl.pathname)
 
-  if (!user && !isAuthPage && !isPublicPage && !isLandingPage) {
+  if (!user && !isAuthPage && !isPublicPage && !isLandingPage && !isStaticPage) {
     const url = request.nextUrl.clone()
     url.pathname = '/auth/login'
     return NextResponse.redirect(url)
@@ -45,5 +46,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|embed\\.js).*)'],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|embed\\.js|.*\\.svg$|.*\\.png$|.*\\.jpg$|.*\\.ico$|.*\\.json$).*)'],
 }

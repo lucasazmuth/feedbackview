@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import Sidebar from './Sidebar'
 
 interface SidebarContextValue {
@@ -17,11 +17,23 @@ export function useSidebarContext() {
 const EXPANDED_WIDTH = '15rem'
 const COLLAPSED_WIDTH = '4rem'
 
+const STORAGE_KEY = 'sidebar-collapsed'
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem(STORAGE_KEY) === 'true'
+    }
+    return false
+  })
+
+  const handleSetCollapsed = useCallback((v: boolean) => {
+    setCollapsed(v)
+    localStorage.setItem(STORAGE_KEY, String(v))
+  }, [])
 
   return (
-    <SidebarContext.Provider value={{ collapsed, setCollapsed }}>
+    <SidebarContext.Provider value={{ collapsed, setCollapsed: handleSetCollapsed }}>
       <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface-background)' }}>
         <Sidebar />
         <div

@@ -8,6 +8,28 @@ export const api = {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
+      // Check project limit via organization
+      const { data: membership } = await supabase
+        .from('TeamMember')
+        .select('organizationId, organization:Organization(maxProjects)')
+        .eq('userId', user.id)
+        .eq('role', 'OWNER')
+        .single()
+
+      if (membership?.organization) {
+        const org = membership.organization as { maxProjects: number }
+        if (org.maxProjects > 0) {
+          const { count } = await supabase
+            .from('Project')
+            .select('id', { count: 'exact', head: true })
+            .eq('organizationId', membership.organizationId)
+
+          if (count !== null && count >= org.maxProjects) {
+            throw new Error(`Limite de ${org.maxProjects} projeto(s) atingido. Faça upgrade do plano.`)
+          }
+        }
+      }
+
       const { data: project, error } = await supabase
         .from('Project')
         .insert({
@@ -17,6 +39,7 @@ export const api = {
           targetUrl: data.targetUrl,
           mode: data.mode || 'proxy',
           ownerId: user.id,
+          organizationId: membership?.organizationId || null,
         })
         .select()
         .single()
@@ -84,9 +107,40 @@ export const api = {
         }
       }
 
+      // Upload attachments if provided
+      const attachmentUrls: string[] = []
+      if (data.attachments && Array.isArray(data.attachments)) {
+        for (const att of data.attachments.slice(0, 5)) {
+          try {
+            const base64Data = att.data.split(',')[1]
+            const byteString = atob(base64Data)
+            const bytes = new Uint8Array(byteString.length)
+            for (let i = 0; i < byteString.length; i++) {
+              bytes[i] = byteString.charCodeAt(i)
+            }
+            const ext = att.name?.split('.').pop() || 'bin'
+            const fileName = `${data.projectId}/attachments/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+
+            const { data: uploadData, error: uploadError } = await supabase.storage
+              .from('feedbacks')
+              .upload(fileName, bytes, { contentType: att.type || 'application/octet-stream' })
+
+            if (!uploadError && uploadData) {
+              const { data: { publicUrl } } = supabase.storage
+                .from('feedbacks')
+                .getPublicUrl(uploadData.path)
+              attachmentUrls.push(publicUrl)
+            }
+          } catch {
+            // Attachment upload failed, continue
+          }
+        }
+      }
+
       const { error } = await supabase.from('Feedback').insert({
         id: crypto.randomUUID(),
         projectId: data.projectId,
+        title: data.title?.trim() || null,
         comment: data.comment,
         type: data.type,
         severity: data.severity || null,
@@ -96,6 +150,7 @@ export const api = {
         pageUrl: data.pageUrl || null,
         userAgent: data.userAgent || null,
         metadata: data.rrwebEvents ? { rrwebEvents: data.rrwebEvents } : null,
+        attachmentUrls: attachmentUrls.length > 0 ? attachmentUrls : null,
       })
       if (error) throw new Error(error.message)
     },

@@ -47,6 +47,8 @@ interface FeedbackModalProps {
   rrwebEvents: RRWebEvent[]
   screenshotFromTracker?: string | null
   pageUrl?: string | null
+  widgetColor?: string
+  panelSide?: 'left' | 'right'
   onClose: () => void
 }
 
@@ -67,12 +69,15 @@ export default function FeedbackModal({
   rrwebEvents,
   screenshotFromTracker,
   pageUrl: pageUrlProp,
+  widgetColor = '#4f46e5',
+  panelSide = 'right',
   onClose,
 }: FeedbackModalProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null)
   const [screenshotDataUrl, setScreenshotDataUrl] = useState<string | null>(null)
   const [capturing, setCapturing] = useState(true)
+  const [title, setTitle] = useState('')
   const [comment, setComment] = useState('')
   const [type, setType] = useState('BUG')
   const [severity, setSeverity] = useState('MEDIUM')
@@ -82,6 +87,7 @@ export default function FeedbackModal({
   const [networkLogsOpen, setNetworkLogsOpen] = useState(false)
   const [consoleLogsOpen, setConsoleLogsOpen] = useState(false)
   const [commentError, setCommentError] = useState<string | null>(null)
+  const [attachments, setAttachments] = useState<{ name: string; type: string; data: string }[]>([])
 
   // Drawing state
   const [isDrawing, setIsDrawing] = useState(false)
@@ -204,7 +210,7 @@ export default function FeedbackModal({
   async function handleSubmit() {
     setSubmitError(null)
     if (comment.trim().length < 10) {
-      setCommentError('O comentário deve ter pelo menos 10 caracteres.')
+      setCommentError('A descrição deve ter pelo menos 10 caracteres.')
       return
     }
     setCommentError(null)
@@ -215,10 +221,12 @@ export default function FeedbackModal({
       const payload: any = {
         projectId,
         type,
+        title: title.trim() || undefined,
         comment: comment.trim(),
         consoleLogs,
         networkLogs,
         rrwebEvents: trimRrwebForSubmit(rrwebEvents, 200),
+        attachments: attachments.length > 0 ? attachments : undefined,
       }
       if (type === 'BUG') payload.severity = severity
       if (finalScreenshot) payload.screenshotBase64 = finalScreenshot
@@ -239,82 +247,98 @@ export default function FeedbackModal({
     }
   }
 
+  // Shared styles matching embed CSS exactly
+  const S = {
+    font: { fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" },
+    label: { display: 'block', fontSize: 13, fontWeight: 500, color: '#374151', marginBottom: 6 } as React.CSSProperties,
+    input: { width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, outline: 'none', color: '#111827', fontFamily: 'inherit' } as React.CSSProperties,
+    select: { width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, background: 'white', outline: 'none', color: '#111827', cursor: 'pointer', fontFamily: 'inherit' } as React.CSSProperties,
+  }
+
   return (
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+        className="fixed inset-0 z-40"
+        style={{ background: 'rgba(0,0,0,0.4)', ...S.font }}
         onClick={onClose}
       />
 
-      {/* Slide-over panel */}
-      <div className="fixed right-0 top-0 h-full w-full sm:w-[520px] bg-white z-50 flex flex-col shadow-2xl">
+      {/* Slide-over panel — matching embed exactly */}
+      <div
+        className="fixed top-0 h-full flex flex-col"
+        style={{
+          ...S.font,
+          [panelSide === 'left' ? 'left' : 'right']: 0,
+          width: 520,
+          maxWidth: '100vw',
+          background: '#fff',
+          zIndex: 2147483647,
+          boxShadow: `${panelSide === 'left' ? '4px' : '-4px'} 0 24px rgba(0,0,0,0.15)`,
+        }}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Enviar Feedback</h2>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid #e5e7eb' }}>
+          <h2 style={{ fontSize: 16, fontWeight: 600, color: '#111827', margin: 0 }}>Reportar</h2>
           <button
             onClick={onClose}
-            className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            style={{ width: 32, height: 32, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}
           >
-            <X className="w-5 h-5" />
+            <X style={{ width: 20, height: 20 }} />
           </button>
         </div>
 
         {submitted ? (
-          <div className="flex-1 flex items-center justify-center flex-col gap-3">
-            <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center">
-              <CheckCircle2 className="w-7 h-7 text-green-600" />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+            <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <CheckCircle2 style={{ width: 28, height: 28, color: '#16a34a' }} />
             </div>
-            <p className="text-lg font-semibold text-gray-900">Feedback enviado!</p>
-            <p className="text-sm text-gray-500">Obrigado pela contribuição.</p>
+            <p style={{ fontSize: 18, fontWeight: 600, color: '#111827' }}>Feedback enviado!</p>
+            <p style={{ fontSize: 14, color: '#6b7280' }}>Obrigado pela contribuição.</p>
           </div>
         ) : (
-          <div className="flex-1 overflow-y-auto">
+          <div style={{ flex: 1, overflowY: 'auto' }}>
             {/* Screenshot section */}
-            <div className="p-5 border-b border-gray-100">
-              <h3 className="text-sm font-medium text-gray-700 mb-3">
+            <div style={{ padding: 20, borderBottom: '1px solid #f3f4f6' }}>
+              <div style={{ fontSize: 13, fontWeight: 500, color: '#374151', marginBottom: 12 }}>
                 Screenshot{' '}
-                <span className="text-xs font-normal text-gray-400">
+                <span style={{ fontSize: 12, fontWeight: 400, color: '#9ca3af' }}>
                   (arraste para destacar áreas)
                 </span>
-              </h3>
+              </div>
 
               {capturing ? (
-                <div className="bg-gray-100 rounded-xl h-48 flex items-center justify-center gap-2">
-                  <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />
-                  <span className="text-sm text-gray-400">Capturando screenshot...</span>
+                <div style={{ height: 192, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#f3f4f6', borderRadius: 12, border: '1px solid #e5e7eb' }}>
+                  <Loader2 style={{ width: 20, height: 20, color: '#9ca3af' }} className="animate-spin" />
+                  <span style={{ fontSize: 13, color: '#9ca3af' }}>Capturando screenshot...</span>
                 </div>
               ) : (
-                <div className="relative rounded-xl overflow-hidden border border-gray-200 bg-gray-100">
+                <div style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', border: '1px solid #e5e7eb', background: '#f3f4f6' }}>
                   {screenshotDataUrl ? (
                     <>
                       <canvas
                         ref={canvasRef}
-                        className="w-full"
-                        style={{ display: 'block' }}
+                        style={{ width: '100%', display: 'block' }}
                       />
                       <canvas
                         ref={overlayCanvasRef}
-                        className="absolute inset-0 w-full h-full cursor-crosshair"
+                        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', cursor: 'crosshair' }}
                         onMouseDown={handleMouseDown}
                         onMouseMove={handleMouseMove}
                         onMouseUp={handleMouseUp}
                       />
                     </>
                   ) : (
-                    <div className="h-32 flex items-center justify-center">
-                      <p className="text-sm text-gray-400">Screenshot não disponível</p>
+                    <div style={{ height: 192, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <span style={{ fontSize: 13, color: '#9ca3af' }}>Screenshot não disponível</span>
                     </div>
                   )}
                 </div>
               )}
               {rects.length > 0 && (
                 <button
-                  onClick={() => {
-                    setRects([])
-                    redrawOverlay([])
-                  }}
-                  className="mt-2 text-xs text-red-500 hover:text-red-700"
+                  onClick={() => { setRects([]); redrawOverlay([]) }}
+                  style={{ marginTop: 8, background: 'none', border: 'none', fontSize: 12, color: '#ef4444', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}
                 >
                   Limpar marcações ({rects.length})
                 </button>
@@ -322,81 +346,171 @@ export default function FeedbackModal({
             </div>
 
             {/* Form fields */}
-            <div className="p-5 space-y-4">
-              {/* Comment */}
+            <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* Title */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Comentário <span className="text-red-500">*</span>
+                <label style={S.label}>Título</label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Resumo breve do feedback"
+                  style={S.input}
+                  onFocus={(e) => { e.target.style.borderColor = widgetColor; e.target.style.boxShadow = `0 0 0 3px ${widgetColor}1a` }}
+                  onBlur={(e) => { e.target.style.borderColor = '#d1d5db'; e.target.style.boxShadow = 'none' }}
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label style={S.label}>
+                  Descrição <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <textarea
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   rows={4}
                   placeholder="Descreva o problema ou sugestão em detalhes... (mínimo 10 caracteres)"
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                  style={{ ...S.input, resize: 'none' as const }}
+                  onFocus={(e) => { e.target.style.borderColor = widgetColor; e.target.style.boxShadow = `0 0 0 3px ${widgetColor}1a` }}
+                  onBlur={(e) => { e.target.style.borderColor = '#d1d5db'; e.target.style.boxShadow = 'none' }}
                 />
                 {commentError && (
-                  <p className="mt-1 text-xs text-red-600">{commentError}</p>
+                  <p style={{ marginTop: 4, fontSize: 12, color: '#dc2626' }}>{commentError}</p>
                 )}
               </div>
 
               {/* Type */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Tipo</label>
-                <select
-                  value={type}
-                  onChange={(e) => setType(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-                  <option value="BUG">Bug</option>
-                  <option value="SUGGESTION">Sugestão</option>
-                  <option value="QUESTION">Dúvida</option>
-                  <option value="PRAISE">Elogio</option>
-                </select>
+                <label style={S.label}>Tipo</label>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {([['BUG', '🐛 Bug'], ['SUGGESTION', '💡 Sugestão'], ['QUESTION', '❓ Dúvida'], ['PRAISE', '👏 Elogio']] as const).map(([val, label]) => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setType(val)}
+                      style={{
+                        flex: 1,
+                        padding: '8px 4px',
+                        borderRadius: 8,
+                        border: type === val ? `2px solid ${widgetColor}` : '1px solid #d1d5db',
+                        background: type === val ? `${widgetColor}0d` : '#fff',
+                        color: type === val ? widgetColor : '#374151',
+                        fontSize: 12,
+                        fontWeight: type === val ? 600 : 400,
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              {/* Severity (only for bugs) */}
+              {/* Priority (only for bugs) */}
               {type === 'BUG' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Severidade</label>
-                  <select
-                    value={severity}
-                    onChange={(e) => setSeverity(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  >
-                    <option value="LOW">Baixa</option>
-                    <option value="MEDIUM">Média</option>
-                    <option value="HIGH">Alta</option>
-                    <option value="CRITICAL">Crítica</option>
-                  </select>
+                  <label style={S.label}>Prioridade</label>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    {([['LOW', 'Baixa', '#22c55e'], ['MEDIUM', 'Média', '#f59e0b'], ['HIGH', 'Alta', '#f97316'], ['CRITICAL', 'Crítica', '#ef4444']] as const).map(([val, label, color]) => (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => setSeverity(val)}
+                        style={{
+                          flex: 1,
+                          padding: '8px 4px',
+                          borderRadius: 8,
+                          border: severity === val ? `2px solid ${color}` : '1px solid #d1d5db',
+                          background: severity === val ? `${color}15` : '#fff',
+                          color: severity === val ? color : '#374151',
+                          fontSize: 12,
+                          fontWeight: severity === val ? 600 : 400,
+                          cursor: 'pointer',
+                          fontFamily: 'inherit',
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
 
+              {/* Attachments */}
+              <div>
+                <label style={S.label}>Anexos</label>
+                <div
+                  style={{ border: '2px dashed #d1d5db', borderRadius: 8, padding: '12px 16px', textAlign: 'center' as const, cursor: 'pointer', background: '#f9fafb', transition: 'border-color 0.2s' }}
+                  onClick={() => {
+                    const input = document.createElement('input')
+                    input.type = 'file'
+                    input.multiple = true
+                    input.accept = 'image/*,.pdf,.txt,.log,.json,.csv'
+                    input.onchange = () => {
+                      if (!input.files) return
+                      const files = Array.from(input.files).slice(0, 5 - attachments.length)
+                      files.forEach((file) => {
+                        const reader = new FileReader()
+                        reader.onload = () => {
+                          setAttachments((prev) => {
+                            if (prev.length >= 5) return prev
+                            return [...prev, { name: file.name, type: file.type, data: reader.result as string }]
+                          })
+                        }
+                        reader.readAsDataURL(file)
+                      })
+                    }
+                    input.click()
+                  }}
+                >
+                  <span style={{ fontSize: 12, color: '#6b7280' }}>
+                    Clique para anexar arquivos (máx. 5)
+                  </span>
+                </div>
+                {attachments.length > 0 && (
+                  <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {attachments.map((att, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 8px', background: '#f3f4f6', borderRadius: 6, fontSize: 12 }}>
+                        <span style={{ color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, flex: 1, minWidth: 0 }}>{att.name}</span>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setAttachments((prev) => prev.filter((_, idx) => idx !== i)) }}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: '0 4px', fontSize: 14, lineHeight: 1 }}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               {/* Network Logs */}
               {networkLogs.length > 0 && (
-                <div className="border border-gray-200 rounded-xl overflow-hidden">
+                <div style={{ border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
                   <button
                     onClick={() => setNetworkLogsOpen(!networkLogsOpen)}
-                    className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#f9fafb', cursor: 'pointer', border: 'none', textAlign: 'left' as const, fontFamily: 'inherit' }}
                   >
-                    <span className="text-sm font-medium text-gray-700">
+                    <span style={{ fontSize: 13, fontWeight: 500, color: '#374151' }}>
                       Network Logs ({networkLogs.length})
                     </span>
-                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${networkLogsOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown style={{ width: 16, height: 16, color: '#9ca3af', transition: 'transform 0.2s', transform: networkLogsOpen ? 'rotate(180deg)' : 'none' }} />
                   </button>
                   {networkLogsOpen && (
-                    <div className="max-h-48 overflow-y-auto">
+                    <div style={{ maxHeight: 180, overflowY: 'auto' }}>
                       {networkLogs.map((log, i) => (
-                        <div key={i} className="flex items-center gap-2 px-4 py-1.5 border-t border-gray-100">
-                          <span className={`shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                            log.status && log.status >= 400 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-                          }`}>
+                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 14px', borderTop: '1px solid #f3f4f6' }}>
+                          <span style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', padding: '1px 6px', borderRadius: 4, fontSize: 10, fontWeight: 700, lineHeight: '16px', background: log.status && log.status >= 400 ? '#fee2e2' : '#dcfce7', color: log.status && log.status >= 400 ? '#b91c1c' : '#15803d' }}>
                             {log.status ?? '-'}
                           </span>
-                          <span className="shrink-0 font-mono text-[11px] font-bold text-gray-700">{log.method}</span>
-                          <span className="font-mono text-[11px] text-gray-500 truncate flex-1 min-w-0" title={log.url}>{log.url}</span>
+                          <span style={{ flexShrink: 0, fontFamily: 'monospace', fontSize: 11, fontWeight: 700, color: '#374151' }}>{log.method}</span>
+                          <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, flex: 1, minWidth: 0 }} title={log.url}>{log.url}</span>
                           {log.duration != null && (
-                            <span className="shrink-0 font-mono text-[11px] text-gray-400">{log.duration}ms</span>
+                            <span style={{ flexShrink: 0, fontFamily: 'monospace', fontSize: 11, color: '#9ca3af' }}>{log.duration}ms</span>
                           )}
                         </div>
                       ))}
@@ -407,27 +521,28 @@ export default function FeedbackModal({
 
               {/* Console Logs */}
               {consoleLogs.length > 0 && (
-                <div className="border border-gray-200 rounded-xl overflow-hidden">
+                <div style={{ border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
                   <button
                     onClick={() => setConsoleLogsOpen(!consoleLogsOpen)}
-                    className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#f9fafb', cursor: 'pointer', border: 'none', textAlign: 'left' as const, fontFamily: 'inherit' }}
                   >
-                    <span className="text-sm font-medium text-gray-700">
+                    <span style={{ fontSize: 13, fontWeight: 500, color: '#374151' }}>
                       Console Logs ({consoleLogs.length})
                     </span>
-                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${consoleLogsOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown style={{ width: 16, height: 16, color: '#9ca3af', transition: 'transform 0.2s', transform: consoleLogsOpen ? 'rotate(180deg)' : 'none' }} />
                   </button>
                   {consoleLogsOpen && (
-                    <div className="max-h-48 overflow-y-auto">
+                    <div style={{ maxHeight: 180, overflowY: 'auto' }}>
                       {consoleLogs.map((log, i) => {
                         const level = log.level?.toUpperCase() ?? 'LOG'
-                        const colors = level === 'ERROR' ? 'bg-red-100 text-red-700' : level === 'WARN' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700'
+                        const tagBg = level === 'ERROR' ? '#fee2e2' : level === 'WARN' ? '#fef9c3' : '#dbeafe'
+                        const tagColor = level === 'ERROR' ? '#b91c1c' : level === 'WARN' ? '#a16207' : '#1d4ed8'
                         return (
-                          <div key={i} className="flex items-start gap-2 px-4 py-1.5 border-t border-gray-100">
-                            <span className={`shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold ${colors}`}>
+                          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 6, padding: '5px 14px', borderTop: '1px solid #f3f4f6' }}>
+                            <span style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', padding: '1px 6px', borderRadius: 4, fontSize: 10, fontWeight: 700, lineHeight: '16px', background: tagBg, color: tagColor }}>
                               {level}
                             </span>
-                            <span className="font-mono text-[11px] text-gray-500 break-words flex-1 min-w-0">{log.message}</span>
+                            <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#6b7280', wordBreak: 'break-word' as const, flex: 1, minWidth: 0 }}>{log.message}</span>
                           </div>
                         )
                       })}
@@ -438,15 +553,15 @@ export default function FeedbackModal({
 
               {/* Session replay events summary */}
               {rrwebEvents.length > 0 && (
-                <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl">
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-700">{rrwebEvents.length}</span>
-                  <span className="text-xs text-gray-500">eventos de session replay capturados</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#6b7280', padding: '10px 14px', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8 }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', padding: '1px 6px', borderRadius: 4, fontSize: 10, fontWeight: 700, lineHeight: '16px', background: '#e0e7ff', color: '#4338ca' }}>{rrwebEvents.length}</span>
+                  eventos de session replay capturados
                 </div>
               )}
 
               {/* Submit error */}
               {submitError && (
-                <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+                <div style={{ padding: '10px 14px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, color: '#dc2626', fontSize: 13 }}>
                   {submitError}
                 </div>
               )}
@@ -456,21 +571,27 @@ export default function FeedbackModal({
 
         {/* Footer */}
         {!submitted && (
-          <div className="px-5 py-4 border-t border-gray-200">
+          <div style={{ padding: '16px 20px', borderTop: '1px solid #e5e7eb' }}>
             <button
               onClick={handleSubmit}
               disabled={submitting || capturing}
-              className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-medium rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
+              style={{ width: '100%', padding: '10px 16px', background: widgetColor, color: 'white', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 500, cursor: submitting || capturing ? 'not-allowed' : 'pointer', opacity: submitting || capturing ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit' }}
             >
               {submitting ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 style={{ width: 16, height: 16 }} className="animate-spin" />
                   Enviando...
                 </>
               ) : (
-                'Enviar Feedback'
+                'Enviar ' + (type === 'BUG' ? 'Bug' : type === 'SUGGESTION' ? 'Sugestão' : type === 'QUESTION' ? 'Dúvida' : 'Elogio')
               )}
             </button>
+            <p style={{ textAlign: 'center', marginTop: 8, fontSize: 11, color: '#9ca3af' }}>
+              Powered by{' '}
+              <a href="https://feedbackview.com" target="_blank" rel="noopener noreferrer" style={{ color: '#6b7280', textDecoration: 'none' }}>
+                QBugs
+              </a>
+            </p>
           </div>
         )}
       </div>

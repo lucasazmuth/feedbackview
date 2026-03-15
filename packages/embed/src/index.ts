@@ -5,7 +5,8 @@
 import { record } from 'rrweb'
 
 // ─── Config ──────────────────────────────────────────────────────────────────
-const SCRIPT_EL = document.currentScript as HTMLScriptElement | null
+const SCRIPT_EL = (document.currentScript as HTMLScriptElement | null)
+  || document.querySelector('script[src*="embed.js"][data-project]') as HTMLScriptElement | null
 const PROJECT_ID = SCRIPT_EL?.dataset.project || ''
 const API_BASE = SCRIPT_EL?.dataset.api || SCRIPT_EL?.src.replace(/\/embed\.js.*$/, '') || ''
 
@@ -259,12 +260,19 @@ function createWidget(config: WidgetConfig) {
   style.textContent = `
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
 
+    @keyframes fv-trigger-bounce {
+      0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+      50% { transform: scale(1.2) rotate(5deg); opacity: 1; }
+      70% { transform: scale(0.9) rotate(-3deg); }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
     .fv-trigger {
       position: fixed;
       ${getPositionCSS(config.widgetPosition)}
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
+      height: 44px;
+      padding: 0 20px;
+      border-radius: 22px;
       background: ${color};
       color: white;
       border: none;
@@ -273,14 +281,34 @@ function createWidget(config: WidgetConfig) {
       display: flex;
       align-items: center;
       justify-content: center;
+      gap: 6px;
       transition: transform 0.2s, box-shadow 0.2s;
       z-index: 2147483646;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      white-space: nowrap;
+    }
+    .fv-trigger .fv-trigger-brand {
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: -0.02em;
+    }
+    .fv-trigger .fv-trigger-label {
+      font-weight: 400;
+      font-size: 0.8rem;
+      opacity: 0.9;
+    }
+    .fv-trigger.fv-trigger-hidden {
+      transform: scale(0);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .fv-trigger.fv-trigger-entering {
+      animation: fv-trigger-bounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
     .fv-trigger:hover {
-      transform: scale(1.08);
+      transform: scale(1.05);
       box-shadow: 0 6px 20px ${hexToRgba(color, 0.5)};
     }
-    .fv-trigger svg { width: 24px; height: 24px; }
 
     .fv-backdrop {
       position: fixed;
@@ -360,6 +388,7 @@ function createWidget(config: WidgetConfig) {
       border: 1px solid #e5e7eb;
       background: #f3f4f6;
       position: relative;
+      max-height: 240px;
     }
     .fv-screenshot canvas {
       width: 100%;
@@ -416,6 +445,22 @@ function createWidget(config: WidgetConfig) {
     }
     .fv-required { color: #ef4444; }
 
+    .fv-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      font-family: inherit;
+      color: #111827;
+      box-sizing: border-box;
+    }
+    .fv-input:focus {
+      border-color: ${color};
+      box-shadow: 0 0 0 3px ${hexToRgba(color, 0.1)};
+    }
     .fv-textarea {
       width: 100%;
       padding: 10px 12px;
@@ -431,6 +476,18 @@ function createWidget(config: WidgetConfig) {
     .fv-textarea:focus {
       border-color: ${color};
       box-shadow: 0 0 0 3px ${hexToRgba(color, 0.1)};
+    }
+    .fv-attach-drop {
+      border: 2px dashed #d1d5db;
+      border-radius: 8px;
+      padding: 12px 16px;
+      text-align: center;
+      cursor: pointer;
+      background: #f9fafb;
+      transition: border-color 0.2s;
+    }
+    .fv-attach-drop:hover {
+      border-color: ${color};
     }
 
     .fv-select {
@@ -541,26 +598,74 @@ function createWidget(config: WidgetConfig) {
     .fv-submit:hover { background: ${colorHover}; }
     .fv-submit:disabled { background: ${colorDisabled}; cursor: not-allowed; }
 
+    @keyframes fv-success-pop {
+      0% { transform: scale(0); opacity: 0; }
+      50% { transform: scale(1.15); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes fv-success-check {
+      0% { stroke-dashoffset: 24; }
+      100% { stroke-dashoffset: 0; }
+    }
+    @keyframes fv-success-fade-up {
+      0% { opacity: 0; transform: translateY(12px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fv-confetti {
+      0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(-80px) rotate(360deg); opacity: 0; }
+    }
+
     .fv-success {
       flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 12px;
+      gap: 16px;
+      position: relative;
+      overflow: hidden;
     }
     .fv-success-icon {
-      width: 56px;
-      height: 56px;
+      width: 72px;
+      height: 72px;
       border-radius: 50%;
       background: #dcfce7;
       display: flex;
       align-items: center;
       justify-content: center;
+      animation: fv-success-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
-    .fv-success-icon svg { width: 28px; height: 28px; color: #16a34a; }
-    .fv-success h3 { font-size: 18px; font-weight: 600; color: #111827; }
-    .fv-success p { font-size: 14px; color: #6b7280; }
+    .fv-success-icon svg {
+      width: 36px;
+      height: 36px;
+      color: #16a34a;
+      stroke-dasharray: 24;
+      stroke-dashoffset: 24;
+      animation: fv-success-check 0.4s ease 0.4s forwards;
+    }
+    .fv-success h3 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #111827;
+      opacity: 0;
+      animation: fv-success-fade-up 0.4s ease 0.5s forwards;
+    }
+    .fv-success p {
+      font-size: 14px;
+      color: #6b7280;
+      text-align: center;
+      max-width: 280px;
+      opacity: 0;
+      animation: fv-success-fade-up 0.4s ease 0.65s forwards;
+    }
+    .fv-confetti-particle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      animation: fv-confetti 1s ease forwards;
+    }
 
     .fv-server-error {
       padding: 10px 14px;
@@ -602,6 +707,8 @@ function createWidget(config: WidgetConfig) {
   let isCapturing = false
   let isSubmitting = false
   let submitted = false
+  let demoSubmitted = false
+  const embedAttachments: { name: string; type: string; data: string }[] = []
 
   // Drawing annotation state
   let baseCanvas: HTMLCanvasElement | null = null
@@ -649,14 +756,15 @@ function createWidget(config: WidgetConfig) {
   }
 
   // Icons
-  const msgIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`
+  const bugIcon = `<svg viewBox="0 0 200 220" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M75,40 Q60,22 50,8" stroke-width="4.5"/><circle cx="48" cy="6" r="5" fill="currentColor" stroke="none"/><path d="M105,36 Q114,18 118,5" stroke-width="4.5"/><circle cx="119" cy="3" r="5" fill="currentColor" stroke="none"/><circle cx="90" cy="52" r="30" stroke-width="5"/><circle cx="76" cy="48" r="9" stroke-width="4"/><circle cx="76" cy="48" r="4" fill="currentColor" stroke="none"/><circle cx="104" cy="48" r="9" stroke-width="4"/><circle cx="104" cy="48" r="4" fill="currentColor" stroke="none"/><ellipse cx="90" cy="115" rx="52" ry="68" stroke-width="5"/><path d="M40,88 Q90,82 140,88" stroke-width="4"/><path d="M38,115 Q90,109 142,115" stroke-width="4"/><path d="M40,142 Q90,136 140,142" stroke-width="4"/><circle cx="90" cy="108" r="24" stroke-width="4"/><ellipse cx="82" cy="102" rx="6" ry="7" fill="currentColor" stroke="none"/><ellipse cx="98" cy="102" rx="6" ry="7" fill="currentColor" stroke="none"/><path d="M87,112 L90,116 L93,112" stroke-width="3" fill="none"/><path d="M82,120 L98,120" stroke-width="3"/><line x1="85" y1="120" x2="85" y2="125" stroke-width="3"/><line x1="90" y1="120" x2="90" y2="126" stroke-width="3"/><line x1="95" y1="120" x2="95" y2="125" stroke-width="3"/><path d="M40,92 C26,86 16,78 8,68" stroke-width="4.5"/><path d="M39,115 C24,112 12,108 3,103" stroke-width="4.5"/><path d="M41,140 C28,144 18,152 10,162" stroke-width="4.5"/><path d="M140,92 C154,86 164,78 172,68" stroke-width="4.5"/><path d="M141,115 C156,112 168,108 177,103" stroke-width="4.5"/><path d="M139,140 C152,144 162,152 170,162" stroke-width="4.5"/><path d="M76,180 Q68,192 58,198" stroke-width="4.5"/><path d="M104,180 Q112,192 122,198" stroke-width="4.5"/></svg>`
   const closeIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`
   const checkIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
 
   // Trigger button
+  const hiddenTrigger = SCRIPT_EL?.dataset.hiddenTrigger === 'true' || SCRIPT_EL?.getAttribute('data-hidden-trigger') === 'true'
   const trigger = document.createElement('button')
-  trigger.className = 'fv-trigger'
-  trigger.innerHTML = msgIcon
+  trigger.className = hiddenTrigger ? 'fv-trigger fv-trigger-hidden' : 'fv-trigger'
+  trigger.innerHTML = `<span class="fv-trigger-brand">QBugs</span><span class="fv-trigger-label">Reportar</span>`
   trigger.title = 'Enviar feedback'
   shadow.appendChild(trigger)
 
@@ -684,14 +792,14 @@ function createWidget(config: WidgetConfig) {
     requestAnimationFrame(() => panel.classList.add('open'))
 
     if (submitted) {
-      renderSuccess(panel)
+      renderSuccess(panel, demoSubmitted)
       return
     }
 
     // Header
     const header = document.createElement('div')
     header.className = 'fv-header'
-    header.innerHTML = `<h2>Enviar Feedback</h2>`
+    header.innerHTML = `<h2>Reportar</h2>`
     const closeBtn = document.createElement('button')
     closeBtn.className = 'fv-close'
     closeBtn.innerHTML = closeIcon
@@ -770,9 +878,12 @@ function createWidget(config: WidgetConfig) {
         if (newRect.w > 5 && newRect.h > 5) {
           drawingRects.push(newRect)
           redrawOverlay()
-          // Update clear button visibility
+          // Update clear button visibility and text
           const clearBtn = ssSection.querySelector('.fv-clear-annotations') as HTMLElement
-          if (clearBtn) clearBtn.style.display = 'inline'
+          if (clearBtn) {
+            clearBtn.style.display = 'inline'
+            clearBtn.textContent = `Limpar marcações (${drawingRects.length})`
+          }
         }
         isDrawing = false
         drawStartPos = null
@@ -800,10 +911,22 @@ function createWidget(config: WidgetConfig) {
     const formSection = document.createElement('div')
     formSection.className = 'fv-form-section'
 
-    // Comment
+    // Title
+    const titleField = document.createElement('div')
+    titleField.className = 'fv-field'
+    titleField.innerHTML = `<label class="fv-label">Título</label>`
+    const titleInput = document.createElement('input')
+    titleInput.type = 'text'
+    titleInput.className = 'fv-input'
+    titleInput.placeholder = 'Resumo breve do feedback'
+    titleInput.id = 'fv-title'
+    titleField.appendChild(titleInput)
+    formSection.appendChild(titleField)
+
+    // Description
     const commentField = document.createElement('div')
     commentField.className = 'fv-field'
-    commentField.innerHTML = `<label class="fv-label">Comentário <span class="fv-required">*</span></label>`
+    commentField.innerHTML = `<label class="fv-label">Descrição <span class="fv-required">*</span></label>`
     const textarea = document.createElement('textarea')
     textarea.className = 'fv-textarea'
     textarea.rows = 4
@@ -816,40 +939,166 @@ function createWidget(config: WidgetConfig) {
     commentField.appendChild(commentError)
     formSection.appendChild(commentField)
 
-    // Type
+    // Type (segmented buttons)
     const typeField = document.createElement('div')
     typeField.className = 'fv-field'
-    typeField.innerHTML = `
-      <label class="fv-label">Tipo</label>
-      <select class="fv-select" id="fv-type">
-        <option value="BUG">Bug</option>
-        <option value="SUGGESTION">Sugestão</option>
-        <option value="QUESTION">Dúvida</option>
-        <option value="PRAISE">Elogio</option>
-      </select>
-    `
-    formSection.appendChild(typeField)
+    typeField.innerHTML = `<label class="fv-label">Tipo</label>`
+    // Hidden select to keep value accessible
+    const typeHidden = document.createElement('input')
+    typeHidden.type = 'hidden'
+    typeHidden.id = 'fv-type'
+    typeHidden.value = 'BUG'
+    typeField.appendChild(typeHidden)
 
-    // Severity
+    const typeBtnGroup = document.createElement('div')
+    typeBtnGroup.style.cssText = 'display:flex;gap:6px;'
+    const typeOptions = [
+      { value: 'BUG', label: '🐛 Bug' },
+      { value: 'SUGGESTION', label: '💡 Sugestão' },
+      { value: 'QUESTION', label: '❓ Dúvida' },
+      { value: 'PRAISE', label: '👏 Elogio' },
+    ]
+    const typeLabels: Record<string, string> = { BUG: 'Bug', SUGGESTION: 'Sugestão', QUESTION: 'Dúvida', PRAISE: 'Elogio' }
+    const typeBtns: HTMLButtonElement[] = []
+
+    function updateTypeBtns(selected: string) {
+      typeBtns.forEach((btn) => {
+        const val = btn.dataset.value!
+        const isActive = val === selected
+        btn.style.border = isActive ? `2px solid ${color}` : '1px solid #d1d5db'
+        btn.style.background = isActive ? `${color}0d` : '#fff'
+        btn.style.color = isActive ? color : '#374151'
+        btn.style.fontWeight = isActive ? '600' : '400'
+      })
+    }
+
+    typeOptions.forEach((opt) => {
+      const btn = document.createElement('button')
+      btn.type = 'button'
+      btn.dataset.value = opt.value
+      btn.textContent = opt.label
+      btn.style.cssText = `flex:1;padding:8px 4px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;transition:all 0.15s;border:1px solid #d1d5db;background:#fff;color:#374151;`
+      btn.addEventListener('click', () => {
+        typeHidden.value = opt.value
+        updateTypeBtns(opt.value)
+        severityField.style.display = opt.value === 'BUG' ? 'block' : 'none'
+        const submitBtn = panel.querySelector('#fv-submit-btn') as HTMLButtonElement
+        if (submitBtn && PROJECT_ID !== 'demo') submitBtn.textContent = `Enviar ${typeLabels[opt.value] || 'Bug'}`
+      })
+      typeBtns.push(btn)
+      typeBtnGroup.appendChild(btn)
+    })
+    typeField.appendChild(typeBtnGroup)
+    formSection.appendChild(typeField)
+    updateTypeBtns('BUG')
+
+    // Priority (segmented buttons with colors)
     const severityField = document.createElement('div')
     severityField.className = 'fv-field'
     severityField.id = 'fv-severity-field'
-    severityField.innerHTML = `
-      <label class="fv-label">Severidade</label>
-      <select class="fv-select" id="fv-severity">
-        <option value="LOW">Baixa</option>
-        <option value="MEDIUM" selected>Média</option>
-        <option value="HIGH">Alta</option>
-        <option value="CRITICAL">Crítica</option>
-      </select>
-    `
-    formSection.appendChild(severityField)
+    severityField.innerHTML = `<label class="fv-label">Prioridade</label>`
+    const sevHidden = document.createElement('input')
+    sevHidden.type = 'hidden'
+    sevHidden.id = 'fv-severity'
+    sevHidden.value = 'MEDIUM'
+    severityField.appendChild(sevHidden)
 
-    // Toggle severity visibility based on type
-    const typeSelect = formSection.querySelector('#fv-type') as HTMLSelectElement
-    typeSelect.addEventListener('change', () => {
-      severityField.style.display = typeSelect.value === 'BUG' ? 'block' : 'none'
+    const sevBtnGroup = document.createElement('div')
+    sevBtnGroup.style.cssText = 'display:flex;gap:6px;'
+    const sevOptions = [
+      { value: 'LOW', label: 'Baixa', color: '#22c55e' },
+      { value: 'MEDIUM', label: 'Média', color: '#f59e0b' },
+      { value: 'HIGH', label: 'Alta', color: '#f97316' },
+      { value: 'CRITICAL', label: 'Crítica', color: '#ef4444' },
+    ]
+    const sevBtns: HTMLButtonElement[] = []
+
+    function updateSevBtns(selected: string) {
+      sevBtns.forEach((btn) => {
+        const val = btn.dataset.value!
+        const opt = sevOptions.find((o) => o.value === val)!
+        const isActive = val === selected
+        btn.style.border = isActive ? `2px solid ${opt.color}` : '1px solid #d1d5db'
+        btn.style.background = isActive ? `${opt.color}15` : '#fff'
+        btn.style.color = isActive ? opt.color : '#374151'
+        btn.style.fontWeight = isActive ? '600' : '400'
+      })
+    }
+
+    sevOptions.forEach((opt) => {
+      const btn = document.createElement('button')
+      btn.type = 'button'
+      btn.dataset.value = opt.value
+      btn.textContent = opt.label
+      btn.style.cssText = `flex:1;padding:8px 4px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;transition:all 0.15s;border:1px solid #d1d5db;background:#fff;color:#374151;`
+      btn.addEventListener('click', () => {
+        sevHidden.value = opt.value
+        updateSevBtns(opt.value)
+      })
+      sevBtns.push(btn)
+      sevBtnGroup.appendChild(btn)
     })
+    severityField.appendChild(sevBtnGroup)
+    formSection.appendChild(severityField)
+    updateSevBtns('MEDIUM')
+
+    // Attachments
+    const attachField = document.createElement('div')
+    attachField.className = 'fv-field'
+    attachField.innerHTML = `<label class="fv-label">Anexos</label>`
+    const attachDrop = document.createElement('div')
+    attachDrop.className = 'fv-attach-drop'
+    attachDrop.innerHTML = `<span style="font-size:12px;color:#6b7280;">Clique para anexar arquivos (máx. 5)</span>`
+    const attachList = document.createElement('div')
+    attachList.className = 'fv-attach-list'
+    embedAttachments.length = 0 // reset on re-render
+
+    attachDrop.addEventListener('click', () => {
+      const input = document.createElement('input')
+      input.type = 'file'
+      input.multiple = true
+      input.accept = 'image/*,.pdf,.txt,.log,.json,.csv'
+      input.onchange = () => {
+        if (!input.files) return
+        const files = Array.from(input.files).slice(0, 5 - embedAttachments.length)
+        files.forEach((file) => {
+          if (embedAttachments.length >= 5) return
+          const reader = new FileReader()
+          reader.onload = () => {
+            embedAttachments.push({ name: file.name, type: file.type, data: reader.result as string })
+            renderAttachList()
+          }
+          reader.readAsDataURL(file)
+        })
+      }
+      input.click()
+    })
+
+    function renderAttachList() {
+      attachList.innerHTML = ''
+      embedAttachments.forEach((att, i) => {
+        const row = document.createElement('div')
+        row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:4px 8px;background:#f3f4f6;border-radius:6px;font-size:12px;margin-top:4px;'
+        const name = document.createElement('span')
+        name.style.cssText = 'color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;'
+        name.textContent = att.name
+        const removeBtn = document.createElement('button')
+        removeBtn.style.cssText = 'background:none;border:none;cursor:pointer;color:#9ca3af;padding:0 4px;font-size:14px;line-height:1;'
+        removeBtn.textContent = '×'
+        removeBtn.addEventListener('click', (e) => {
+          e.stopPropagation()
+          embedAttachments.splice(i, 1)
+          renderAttachList()
+        })
+        row.appendChild(name)
+        row.appendChild(removeBtn)
+        attachList.appendChild(row)
+      })
+    }
+
+    attachField.appendChild(attachDrop)
+    attachField.appendChild(attachList)
+    formSection.appendChild(attachField)
 
     // Network Logs section
     if (networkLogs.length > 0) {
@@ -925,26 +1174,27 @@ function createWidget(config: WidgetConfig) {
     body.appendChild(formSection)
 
     // Footer
+    const isDemo = PROJECT_ID === 'demo'
     const footer = document.createElement('div')
     footer.className = 'fv-footer'
     const submitBtn = document.createElement('button')
     submitBtn.className = 'fv-submit'
     submitBtn.id = 'fv-submit-btn'
-    submitBtn.textContent = 'Enviar Feedback'
-    submitBtn.addEventListener('click', handleSubmit)
+    submitBtn.textContent = isDemo ? 'Enviar demonstração' : 'Enviar Bug'
+    submitBtn.addEventListener('click', isDemo ? handleDemoSubmit : handleSubmit)
     footer.appendChild(submitBtn)
 
     const powered = document.createElement('div')
     powered.className = 'fv-powered'
-    powered.innerHTML = 'Powered by <a href="https://feedbackview.com" target="_blank">FeedbackView</a>'
+    powered.innerHTML = 'Powered by <a href="https://feedbackview.com" target="_blank">QBugs</a>'
     footer.appendChild(powered)
     panel.appendChild(footer)
   }
 
-  function renderSuccess(panel: HTMLElement) {
+  function renderSuccess(panel: HTMLElement, isDemoSuccess = false) {
     const header = document.createElement('div')
     header.className = 'fv-header'
-    header.innerHTML = `<h2>Enviar Feedback</h2>`
+    header.innerHTML = `<h2>Reportar</h2>`
     const closeBtn = document.createElement('button')
     closeBtn.className = 'fv-close'
     closeBtn.innerHTML = closeIcon
@@ -954,12 +1204,51 @@ function createWidget(config: WidgetConfig) {
 
     const success = document.createElement('div')
     success.className = 'fv-success'
-    success.innerHTML = `
-      <div class="fv-success-icon">${checkIcon}</div>
-      <h3>Feedback enviado!</h3>
-      <p>Obrigado pela contribuição.</p>
-    `
+
+    if (isDemoSuccess) {
+      success.innerHTML = `
+        <div class="fv-success-icon">${checkIcon}</div>
+        <h3>É assim que funciona!</h3>
+        <p>Esse é o widget que seus usuários verão. Screenshot, logs e replay são capturados automaticamente.</p>
+      `
+    } else {
+      success.innerHTML = `
+        <div class="fv-success-icon">${checkIcon}</div>
+        <h3>Feedback enviado!</h3>
+        <p>Obrigado pela contribuição.</p>
+      `
+    }
     panel.appendChild(success)
+
+    // Add confetti particles
+    const colors = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
+    for (let i = 0; i < 12; i++) {
+      const particle = document.createElement('div')
+      particle.className = 'fv-confetti-particle'
+      particle.style.background = colors[i % colors.length]
+      particle.style.left = `${20 + Math.random() * 60}%`
+      particle.style.top = `${40 + Math.random() * 20}%`
+      particle.style.animationDelay = `${0.3 + Math.random() * 0.5}s`
+      particle.style.animationDuration = `${0.8 + Math.random() * 0.6}s`
+      success.appendChild(particle)
+    }
+  }
+
+  async function handleDemoSubmit() {
+    const submitBtn = shadow.querySelector('#fv-submit-btn') as HTMLButtonElement
+    if (submitBtn) {
+      submitBtn.disabled = true
+      submitBtn.innerHTML = '<div class="fv-spinner"></div> Enviando...'
+    }
+
+    // Simulate a brief loading delay for realism
+    await new Promise((resolve) => setTimeout(resolve, 1200))
+
+    submitted = true
+    demoSubmitted = true
+    renderPanel()
+
+    setTimeout(close, 4000)
   }
 
   async function open() {
@@ -984,9 +1273,10 @@ function createWidget(config: WidgetConfig) {
   }
 
   async function handleSubmit() {
+    const titleEl = shadow.querySelector('#fv-title') as HTMLInputElement
     const commentEl = shadow.querySelector('#fv-comment') as HTMLTextAreaElement
-    const typeEl = shadow.querySelector('#fv-type') as HTMLSelectElement
-    const severityEl = shadow.querySelector('#fv-severity') as HTMLSelectElement
+    const typeEl = shadow.querySelector('#fv-type') as HTMLInputElement
+    const severityEl = shadow.querySelector('#fv-severity') as HTMLInputElement
     const submitBtn = shadow.querySelector('#fv-submit-btn') as HTMLButtonElement
     const serverErrorEl = shadow.querySelector('#fv-server-error') as HTMLElement
     const commentErrorEl = commentEl?.parentElement?.querySelector('.fv-error-msg') as HTMLElement
@@ -994,7 +1284,7 @@ function createWidget(config: WidgetConfig) {
     const comment = commentEl?.value?.trim() || ''
     if (comment.length < 10) {
       if (commentErrorEl) {
-        commentErrorEl.textContent = 'O comentário deve ter pelo menos 10 caracteres.'
+        commentErrorEl.textContent = 'A descrição deve ter pelo menos 10 caracteres.'
         commentErrorEl.style.display = 'block'
       }
       return
@@ -1008,8 +1298,11 @@ function createWidget(config: WidgetConfig) {
 
     const feedbackType = typeEl?.value || 'BUG'
 
+    const feedbackTitle = titleEl?.value?.trim() || ''
+
     const payload: any = {
       projectId: PROJECT_ID,
+      title: feedbackTitle || undefined,
       comment,
       type: feedbackType,
       consoleLogs: consoleLogs.slice(-50),
@@ -1017,6 +1310,7 @@ function createWidget(config: WidgetConfig) {
       rrwebEvents: rrwebEvents.slice(-MAX_RRWEB_EVENTS),
       pageUrl: window.location.href,
       userAgent: navigator.userAgent,
+      attachments: embedAttachments.length > 0 ? embedAttachments : undefined,
     }
 
     if (feedbackType === 'BUG') {
@@ -1048,7 +1342,9 @@ function createWidget(config: WidgetConfig) {
     } catch (err: any) {
       isSubmitting = false
       submitBtn.disabled = false
-      submitBtn.innerHTML = 'Enviar Feedback'
+      const currentType = (panel.querySelector('#fv-type') as HTMLInputElement)?.value || 'BUG'
+      const tLabels: Record<string, string> = { BUG: 'Bug', SUGGESTION: 'Sugestão', QUESTION: 'Dúvida', PRAISE: 'Elogio' }
+      submitBtn.innerHTML = `Enviar ${tLabels[currentType] || 'Bug'}`
       if (serverErrorEl) {
         serverErrorEl.textContent = err.message || 'Erro ao enviar feedback.'
         serverErrorEl.style.display = 'block'
@@ -1057,6 +1353,22 @@ function createWidget(config: WidgetConfig) {
   }
 
   trigger.addEventListener('click', open)
+
+  // Expose global API for programmatic control
+  ;(window as any).FeedbackView = { open, close, demoSubmit: handleDemoSubmit }
+  ;(host as any).__fv = { open, close }
+
+  // Listen for programmatic open requests
+  document.addEventListener('feedbackview:open', open)
+
+  // Listen for show-trigger requests (for demo pages where trigger starts hidden)
+  document.addEventListener('feedbackview:show-trigger', () => {
+    trigger.classList.remove('fv-trigger-hidden')
+    trigger.classList.add('fv-trigger-entering')
+    trigger.addEventListener('animationend', () => {
+      trigger.classList.remove('fv-trigger-entering')
+    }, { once: true })
+  })
 }
 
 // Initialize widget

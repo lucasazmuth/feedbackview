@@ -18,16 +18,15 @@ import {
   Button,
   Card,
   Feedback,
-  Logo,
   Select,
 } from '@once-ui-system/core'
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
-  email: z.string().email('E-mail invalido'),
+  email: z.string().email('E-mail inválido'),
   company: z.string().min(2, 'Nome da empresa deve ter pelo menos 2 caracteres'),
-  phone: z.string().min(14, 'Telefone invalido').max(15, 'Telefone invalido'),
-  cep: z.string().length(9, 'CEP invalido'),
+  phone: z.string().min(14, 'Telefone inválido').max(15, 'Telefone inválido'),
+  cep: z.string().length(9, 'CEP inválido'),
   teamSize: z.string().min(1, 'Selecione o tamanho da equipe'),
   password: z.string().min(8, 'Senha deve ter pelo menos 8 caracteres'),
 })
@@ -64,7 +63,7 @@ export default function RegisterPage() {
     setServerError(null)
     try {
       const supabase = createClient()
-      const { error } = await supabase.auth.signUp({
+      const { data: authData, error } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
@@ -83,10 +82,28 @@ export default function RegisterPage() {
         return
       }
 
+      // Create organization for the new user
+      if (authData.user) {
+        try {
+          await fetch('/api/auth/setup-org', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: authData.user.id,
+              name: data.company || data.name,
+              email: data.email,
+            }),
+          })
+        } catch {
+          // Non-blocking: org can be created later if this fails
+          console.error('Failed to create organization')
+        }
+      }
+
       router.push('/dashboard')
       router.refresh()
     } catch {
-      setServerError('Erro de conexao. Verifique sua internet.')
+      setServerError('Erro de conexão. Verifique sua internet.')
     }
   }
 
@@ -117,37 +134,21 @@ export default function RegisterPage() {
           vertical="center"
           style={{ position: 'relative', zIndex: 1 }}
         >
-          <Row gap="s" vertical="center">
-            <div style={{
-              width: 40,
-              height: 40,
-              borderRadius: 12,
-              background: 'rgba(255,255,255,0.2)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#fff',
-              fontWeight: 800,
-              fontSize: 18,
-            }}>
-              Q
-            </div>
-            <span style={{ color: '#fff', fontWeight: 700, fontSize: '1.25rem' }}>Qbug</span>
-          </Row>
+          <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '1.5rem', letterSpacing: '-0.02em', color: '#fff' }}>QBugs</span>
 
           <Column gap="m" style={{ maxWidth: '24rem' }}>
             <h2 style={{ color: '#fff', fontSize: '2rem', fontWeight: 700, lineHeight: 1.2, margin: 0 }}>
               Comece a capturar bugs hoje
             </h2>
             <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '1rem', lineHeight: 1.6, margin: 0 }}>
-              Configure em menos de 1 minuto. Sem cartao de credito.
+              Configure em menos de 1 minuto. Sem cartão de crédito.
             </p>
           </Column>
 
           <Column gap="m" style={{ maxWidth: '22rem' }}>
             {[
               { svg: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>, text: 'Setup em 1 minuto' },
-              { svg: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>, text: 'Gratis para comecar' },
+              { svg: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>, text: 'Grátis para começar' },
               { svg: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>, text: 'Convide toda sua equipe' },
             ].map((item) => (
               <Row key={item.text} gap="s" vertical="center">
@@ -178,7 +179,7 @@ export default function RegisterPage() {
         <Column maxWidth={24} fillWidth gap="xl">
           {/* Mobile logo */}
           <Column horizontal="center" gap="4" className="auth-mobile-logo">
-            <Logo size="m" />
+            <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '1.5rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-strong)' }}>QBugs</span>
             <Text variant="body-default-s" onBackground="neutral-weak">
               QA com captura em tempo real
             </Text>
@@ -273,7 +274,7 @@ export default function RegisterPage() {
             <PasswordInput
               id="password"
               label="Senha"
-              placeholder="Minimo 8 caracteres"
+              placeholder="Mínimo 8 caracteres"
               error={!!errors.password}
               errorMessage={errors.password?.message}
               {...register('password')}
@@ -285,16 +286,16 @@ export default function RegisterPage() {
               size="l"
               fillWidth
               loading={isSubmitting}
-              label={isSubmitting ? 'Criando conta...' : 'Criar conta gratis'}
+              label={isSubmitting ? 'Criando conta...' : 'Criar conta grátis'}
             />
           </Column>
 
           <Text variant="body-default-xs" onBackground="neutral-weak" align="center">
-            Ao criar uma conta, voce concorda com nossos termos de uso.
+            Ao criar uma conta, você concorda com nossos termos de uso.
           </Text>
 
           <Text variant="body-default-s" onBackground="neutral-weak" align="center">
-            Ja tem conta?{' '}
+            Já tem conta?{' '}
             <Link href="/auth/login" style={{ color: 'var(--brand-on-background-strong)', fontWeight: 600, textDecoration: 'none' }}>
               Entrar
             </Link>

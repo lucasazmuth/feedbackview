@@ -8,42 +8,103 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  email     String    @unique
-  name      String?
-  password  String
-  createdAt DateTime  @default(now())
-  projects  Project[]
+  id           String       @id @default(cuid())
+  email        String       @unique
+  name         String?
+  password     String
+  createdAt    DateTime     @default(now())
+  projects     Project[]
+  memberships  TeamMember[]
+  defaultOrgId String?
+}
+
+model Organization {
+  id                   String       @id @default(cuid())
+  name                 String
+  slug                 String       @unique
+  plan                 Plan         @default(FREE)
+  planPeriod           PlanPeriod?
+  planExpiresAt        DateTime?
+  stripeCustomerId     String?      @unique
+  stripeSubscriptionId String?      @unique
+  maxProjects          Int          @default(1)
+  maxMembers           Int          @default(1)
+  maxReportsPerMonth   Int          @default(50)
+  createdAt            DateTime     @default(now())
+  members              TeamMember[]
+  projects             Project[]
+}
+
+model TeamMember {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  userId         String
+  user           User         @relation(fields: [userId], references: [id])
+  role           TeamRole     @default(MEMBER)
+  status         MemberStatus @default(ACTIVE)
+  invitedAt      DateTime     @default(now())
+  joinedAt       DateTime?
+
+  @@unique([organizationId, userId])
 }
 
 model Project {
-  id          String     @id @default(cuid())
-  name        String
-  description String?
-  targetUrl   String
-  mode        String     @default("proxy")
-  ownerId     String
-  owner       User       @relation(fields: [ownerId], references: [id])
-  createdAt   DateTime   @default(now())
-  feedbacks   Feedback[]
+  id             String        @id @default(cuid())
+  name           String
+  description    String?
+  targetUrl      String
+  mode           String        @default("proxy")
+  ownerId        String
+  owner          User          @relation(fields: [ownerId], references: [id])
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime      @default(now())
+  feedbacks      Feedback[]
 }
 
 model Feedback {
-  id            String         @id @default(cuid())
-  projectId     String
-  project       Project        @relation(fields: [projectId], references: [id])
-  comment       String
-  type          FeedbackType
-  severity      Severity?
-  status        FeedbackStatus @default(OPEN)
-  screenshotUrl String?
-  replayUrl     String?
-  consoleLogs   Json?
-  networkLogs   Json?
-  metadata      Json?
-  pageUrl       String?
-  userAgent     String?
-  createdAt     DateTime       @default(now())
+  id             String         @id @default(cuid())
+  projectId      String
+  project        Project        @relation(fields: [projectId], references: [id])
+  title          String?
+  comment        String
+  type           FeedbackType
+  severity       Severity?
+  status         FeedbackStatus @default(OPEN)
+  screenshotUrl  String?
+  replayUrl      String?
+  consoleLogs    Json?
+  networkLogs    Json?
+  metadata       Json?
+  pageUrl        String?
+  userAgent      String?
+  attachmentUrls Json?
+  createdAt      DateTime       @default(now())
+}
+
+enum Plan {
+  FREE
+  PRO
+  BUSINESS
+}
+
+enum PlanPeriod {
+  MONTHLY
+  YEARLY
+}
+
+enum TeamRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum MemberStatus {
+  PENDING
+  ACTIVE
+  REMOVED
 }
 
 enum FeedbackType {

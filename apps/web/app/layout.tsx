@@ -1,14 +1,15 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter, Space_Grotesk } from 'next/font/google'
 import '@once-ui-system/core/css/tokens.css'
 import '@once-ui-system/core/css/styles.css'
 import './globals.css'
 import { Providers } from './providers'
 
 const inter = Inter({ subsets: ['latin'] })
+const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], weight: ['700'] })
 
 export const metadata: Metadata = {
-  title: 'Qbug — QA com Captura em Tempo Real',
+  title: 'QBugs — QA com Captura em Tempo Real',
   description: 'Plataforma de QA com captura automática de bugs: screenshot, session replay e logs.',
 }
 
@@ -29,7 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       data-viz-style="gradient"
       suppressHydrationWarning
     >
-      <body className={inter.className}>
+      <body className={inter.className} style={{ ['--font-logo' as string]: spaceGrotesk.style.fontFamily }}>
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -68,7 +68,7 @@ const STATUS_OPTIONS = [
 ]
 
 function getTypeLabel(type: string) {
-  const map: Record<string, string> = { BUG: 'Bug', SUGGESTION: 'Sugestao', QUESTION: 'Duvida', PRAISE: 'Elogio' }
+  const map: Record<string, string> = { BUG: 'Bug', SUGGESTION: 'Sugestão', QUESTION: 'Dúvida', PRAISE: 'Elogio' }
   return map[type] || type
 }
 
@@ -78,7 +78,7 @@ function getStatusLabel(status: string) {
 }
 
 function getSeverityLabel(sev: string) {
-  const map: Record<string, string> = { CRITICAL: 'Critico', HIGH: 'Alto', MEDIUM: 'Medio', LOW: 'Baixo' }
+  const map: Record<string, string> = { CRITICAL: 'Crítico', HIGH: 'Alto', MEDIUM: 'Médio', LOW: 'Baixo' }
   return map[sev] || sev
 }
 
@@ -138,7 +138,7 @@ export default function FeedbackClient({
       <AppLayout>
         <Flex fillWidth style={{ minHeight: '100vh' }} horizontal="center" vertical="center">
           <Column horizontal="center" gap="m">
-            <FeedbackAlert variant="danger">{error || 'Feedback nao encontrado.'}</FeedbackAlert>
+            <FeedbackAlert variant="danger">{error || 'Feedback não encontrado.'}</FeedbackAlert>
             <Link href="/dashboard">
               <Button variant="tertiary" size="s" label="Voltar ao dashboard" />
             </Link>
@@ -213,7 +213,7 @@ export default function FeedbackClient({
           onBackground="neutral-strong"
           style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '20rem', flexShrink: 0 }}
         >
-          {comment || 'Sem descricao'}
+          {comment || 'Sem descrição'}
         </Text>
       </Row>
       <Column fillWidth paddingX="l" paddingY="l" gap="m">
@@ -253,7 +253,7 @@ export default function FeedbackClient({
             <Card fillWidth padding="l" radius="l">
               <Column gap="s">
                 <Row fillWidth horizontal="between" vertical="center">
-                  <Heading variant="heading-strong-s">Descricao</Heading>
+                  <Heading variant="heading-strong-s">Descrição</Heading>
                   {!editingComment && (
                     <IconButton
                       icon="edit"
@@ -268,7 +268,7 @@ export default function FeedbackClient({
                   <Column gap="s">
                     <Textarea
                       id="comment-edit"
-                      label="Descricao"
+                      label="Descrição"
                       value={commentDraft}
                       lines={4}
                       resize="vertical"
@@ -434,7 +434,7 @@ export default function FeedbackClient({
                 {/* Page URL */}
                 {feedback.pageUrl && (
                   <Column gap="xs">
-                    <Text variant="label-default-s" onBackground="neutral-weak">Pagina</Text>
+                    <Text variant="label-default-s" onBackground="neutral-weak">Página</Text>
                     <a
                       href={feedback.pageUrl}
                       target="_blank"
@@ -480,7 +480,7 @@ export default function FeedbackClient({
                     <Row gap="xs" vertical="center">
                       <Icon name="monitor" size="xs" />
                       <Text variant="body-default-xs">
-                        {feedback.metadata?.rrwebEvents?.length ?? 0} eventos de sessao
+                        {feedback.metadata?.rrwebEvents?.length ?? 0} eventos de sessão
                       </Text>
                     </Row>
                     <Row gap="xs" vertical="center">
@@ -492,7 +492,7 @@ export default function FeedbackClient({
                     <Row gap="xs" vertical="center">
                       <Icon name="openLink" size="xs" />
                       <Text variant="body-default-xs">
-                        {networkLogs.length} requisicao{networkLogs.length !== 1 ? 'es' : ''} de rede
+                        {networkLogs.length} requisição{networkLogs.length !== 1 ? 'ões' : ''} de rede
                       </Text>
                     </Row>
                   </Column>

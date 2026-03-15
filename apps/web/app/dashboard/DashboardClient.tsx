@@ -149,7 +149,7 @@ export default function DashboardClient({
 
                     <Text variant="label-default-s" onBackground="neutral-strong">Ordenar por</Text>
                     <div style={{ display: 'flex', gap: '0.375rem' }}>
-                      {([['recent', 'Recentes'], ['name', 'Nome'], ['feedbacks', 'Feedbacks']] as const).map(([val, label]) => (
+                      {([['recent', 'Recentes'], ['name', 'Nome'], ['feedbacks', 'Reports']] as const).map(([val, label]) => (
                         <button
                           key={val}
                           onClick={() => setSortBy(val)}
@@ -236,7 +236,7 @@ export default function DashboardClient({
               align="center"
               style={{ maxWidth: '24rem' }}
             >
-              Crie seu primeiro projeto para começar a capturar feedbacks com screenshot e session
+              Crie seu primeiro projeto para começar a capturar reports com screenshot e session
               replay.
             </Text>
             <Button

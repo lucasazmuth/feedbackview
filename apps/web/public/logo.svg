@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 220" width="1800" height="440">
+
+  <!-- Bug mascot - skull bug icon -->
+  <g id="bug" transform="translate(18, 12)" fill="none" stroke="#0a0a0a" stroke-linecap="round" stroke-linejoin="round">
+
+    <!-- Left antenna -->
+    <path d="M75,40 Q60,22 50,8" stroke-width="4"/>
+    <circle cx="48" cy="6" r="5" fill="#0a0a0a" stroke="none"/>
+
+    <!-- Right antenna -->
+    <path d="M105,36 Q114,18 118,5" stroke-width="4"/>
+    <circle cx="119" cy="3" r="5" fill="#0a0a0a" stroke="none"/>
+
+    <!-- Head circle -->
+    <circle cx="90" cy="52" r="30" stroke-width="4.5"/>
+
+    <!-- Left eye (on head) -->
+    <circle cx="76" cy="48" r="9" stroke-width="3.5"/>
+    <circle cx="76" cy="48" r="4" fill="#0a0a0a" stroke="none"/>
+
+    <!-- Right eye (on head) -->
+    <circle cx="104" cy="48" r="9" stroke-width="3.5"/>
+    <circle cx="104" cy="48" r="4" fill="#0a0a0a" stroke="none"/>
+
+    <!-- Main body -->
+    <ellipse cx="90" cy="115" rx="52" ry="68" stroke-width="4.5"/>
+
+    <!-- Body segmentation lines -->
+    <path d="M40,88 Q90,82 140,88" stroke-width="3.5"/>
+    <path d="M38,115 Q90,109 142,115" stroke-width="3.5"/>
+    <path d="M40,142 Q90,136 140,142" stroke-width="3.5"/>
+
+    <!-- Skull face on body -->
+    <circle cx="90" cy="108" r="24" stroke-width="3.5"/>
+
+    <!-- Skull eye sockets -->
+    <ellipse cx="82" cy="102" rx="6" ry="7" fill="#0a0a0a" stroke="none"/>
+    <ellipse cx="98" cy="102" rx="6" ry="7" fill="#0a0a0a" stroke="none"/>
+
+    <!-- Skull nose -->
+    <path d="M87,112 L90,116 L93,112" stroke-width="2.5" fill="none"/>
+
+    <!-- Skull teeth -->
+    <path d="M82,120 L98,120" stroke-width="2.5"/>
+    <line x1="85" y1="120" x2="85" y2="125" stroke-width="2.5"/>
+    <line x1="90" y1="120" x2="90" y2="126" stroke-width="2.5"/>
+    <line x1="95" y1="120" x2="95" y2="125" stroke-width="2.5"/>
+
+    <!-- Left legs (3 pairs) -->
+    <path d="M40,92 C26,86 16,78 8,68" stroke-width="4"/>
+    <path d="M39,115 C24,112 12,108 3,103" stroke-width="4"/>
+    <path d="M41,140 C28,144 18,152 10,162" stroke-width="4"/>
+
+    <!-- Right legs (3 pairs) -->
+    <path d="M140,92 C154,86 164,78 172,68" stroke-width="4"/>
+    <path d="M141,115 C156,112 168,108 177,103" stroke-width="4"/>
+    <path d="M139,140 C152,144 162,152 170,162" stroke-width="4"/>
+
+    <!-- Bottom appendages -->
+    <path d="M76,180 Q68,192 58,198" stroke-width="4"/>
+    <path d="M104,180 Q112,192 122,198" stroke-width="4"/>
+  </g>
+
+  <!-- QBUGS Lettering - bold outline style matching logo -->
+  <g id="text" transform="translate(215, 15)" fill="none" stroke="#0a0a0a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+
+    <!-- Q letter -->
+    <g id="Q">
+      <ellipse cx="52" cy="90" rx="48" ry="78" stroke-width="6"/>
+      <!-- Q crossbar tail -->
+      <line x1="76" y1="138" x2="104" y2="168" stroke-width="6"/>
+    </g>
+
+    <!-- B letter -->
+    <g id="B" transform="translate(118, 12)">
+      <line x1="4" y1="0" x2="4" y2="156" stroke-width="6"/>
+      <path d="M4,0 L52,0 Q76,0 76,38 Q76,78 4,78" stroke-width="6"/>
+      <path d="M4,78 L58,78 Q82,78 82,117 Q82,156 4,156" stroke-width="6"/>
+    </g>
+
+    <!-- U letter -->
+    <g id="U" transform="translate(230, 12)">
+      <line x1="4" y1="0" x2="4" y2="104" stroke-width="6"/>
+      <path d="M4,104 Q4,156 42,156 Q80,156 80,104" stroke-width="6"/>
+      <line x1="80" y1="104" x2="80" y2="0" stroke-width="6"/>
+    </g>
+
+    <!-- G letter -->
+    <g id="G" transform="translate(338, 12)">
+      <path d="M90,32 Q78,0 46,0 Q2,0 2,78 Q2,156 46,156 Q90,156 92,112 L92,78 L54,78" stroke-width="6"/>
+    </g>
+
+    <!-- S letter -->
+    <g id="S" transform="translate(452, 12)">
+      <path d="M84,20 Q84,0 48,0 Q4,0 4,38 Q4,78 48,78 Q92,78 92,116 Q92,156 48,156 Q10,156 4,134" stroke-width="6"/>
+    </g>
+
+  </g>
+
+</svg>

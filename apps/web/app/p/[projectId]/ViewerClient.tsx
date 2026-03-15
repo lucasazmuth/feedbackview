@@ -29,33 +29,18 @@ interface RRWebEvent {
 interface ViewerClientProps {
   projectId: string
   widgetColor?: string
+  widgetPosition?: string
 }
 
-function formatTime(seconds: number): string {
-  const h = Math.floor(seconds / 3600)
-  const m = Math.floor((seconds % 3600) / 60)
-  const s = seconds % 60
-  return [h, m, s].map((v) => String(v).padStart(2, '0')).join(':')
-}
-
-export default function ViewerClient({ projectId, widgetColor = '#4f46e5' }: ViewerClientProps) {
+export default function ViewerClient({ projectId, widgetColor = '#4f46e5', widgetPosition = 'bottom-right' }: ViewerClientProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
-  const [elapsedSeconds, setElapsedSeconds] = useState(0)
-  const [errorCount, setErrorCount] = useState(0)
   const [modalOpen, setModalOpen] = useState(false)
   const [consoleLogs, setConsoleLogs] = useState<ConsoleLog[]>([])
   const [networkLogs, setNetworkLogs] = useState<NetworkLog[]>([])
   const [rrwebEvents, setRrwebEvents] = useState<RRWebEvent[]>([])
   const [screenshotDataUrl, setScreenshotDataUrl] = useState<string | null>(null)
   const [realPageUrl, setRealPageUrl] = useState<string | null>(null)
-
-  // Session timer
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setElapsedSeconds((s) => s + 1)
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [])
+  const [isHovered, setIsHovered] = useState(false)
 
   // Listen to postMessage events from tracker
   const handleMessage = useCallback((event: MessageEvent) => {
@@ -64,7 +49,6 @@ export default function ViewerClient({ projectId, widgetColor = '#4f46e5' }: Vie
 
     switch (type) {
       case 'CONSOLE_LOG': {
-        // Tracker sends payload.args (array), convert to string message
         const msg = Array.isArray(payload.args)
           ? payload.args.map((a: unknown) => (typeof a === 'string' ? a : JSON.stringify(a))).join(' ')
           : payload.message || ''
@@ -74,9 +58,6 @@ export default function ViewerClient({ projectId, widgetColor = '#4f46e5' }: Vie
           timestamp: payload.timestamp,
         }
         setConsoleLogs((prev) => [...prev, log])
-        if (log.level === 'error') {
-          setErrorCount((c) => c + 1)
-        }
         break
       }
       case 'JS_ERROR': {
@@ -86,7 +67,6 @@ export default function ViewerClient({ projectId, widgetColor = '#4f46e5' }: Vie
           timestamp: payload.timestamp,
         }
         setConsoleLogs((prev) => [...prev, log])
-        setErrorCount((c) => c + 1)
         break
       }
       case 'NETWORK_LOG': {
@@ -126,84 +106,61 @@ export default function ViewerClient({ projectId, widgetColor = '#4f46e5' }: Vie
 
   const proxyUrl = `${PROXY_URL}/proxy/${projectId}/`
 
+  // Position styles for the floating button
+  const positionStyle: React.CSSProperties = (() => {
+    switch (widgetPosition) {
+      case 'top-left': return { top: 24, left: 24 }
+      case 'top-right': return { top: 24, right: 24 }
+      case 'bottom-left': return { bottom: 24, left: 24 }
+      default: return { bottom: 24, right: 24 }
+    }
+  })()
+
+  const bugIconSvg = (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m8 2 1.88 1.88"/><path d="M14.12 3.88 16 2"/><path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/>
+    </svg>
+  )
+
   return (
-    <div className="flex flex-col h-screen bg-gray-950 overflow-hidden">
-      {/* Toolbar */}
-      <div
-        className="flex items-center justify-between px-4 bg-gray-900 border-b border-gray-800 flex-shrink-0"
-        style={{ height: '48px' }}
-      >
-        {/* Logo */}
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-md bg-indigo-500 flex items-center justify-center">
-            <span className="text-white font-bold text-xs">Q</span>
-          </div>
-          <span className="text-white font-semibold text-sm hidden sm:block">Qbug</span>
-        </div>
+    <div className="h-screen w-screen overflow-hidden relative">
+      {/* Full-screen iframe */}
+      <iframe
+        ref={iframeRef}
+        src={proxyUrl}
+        className="w-full h-full border-0"
+        title="QA Viewer"
+        sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
+      />
 
-        {/* Center: timer + status */}
-        <div className="flex items-center gap-4">
-          {/* Timer */}
-          <div className="flex items-center gap-2">
-            <span className="text-gray-400 text-xs font-mono">{formatTime(elapsedSeconds)}</span>
-          </div>
-
-          {/* Capturing indicator */}
-          <div className="flex items-center gap-1.5">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-            </span>
-            <span className="text-green-400 text-xs font-medium">Capturando</span>
-          </div>
-
-          {/* Error counter */}
-          {errorCount > 0 && (
-            <div className="flex items-center gap-1 px-2 py-0.5 bg-red-900/50 border border-red-700 rounded-full">
-              <span className="text-red-400 text-xs font-bold">{errorCount}</span>
-              <span className="text-red-400 text-xs">erro{errorCount !== 1 ? 's' : ''}</span>
-            </div>
-          )}
-        </div>
-
-        {/* Right: Send feedback button */}
+      {/* Floating bug button — same as embed widget */}
+      {!modalOpen && (
         <button
           onClick={() => {
-            // Request screenshot from tracker inside iframe before opening modal
             iframeRef.current?.contentWindow?.postMessage({ type: 'CAPTURE_SCREENSHOT' }, '*')
             setModalOpen(true)
           }}
-          className="px-3 py-1.5 text-white text-sm font-medium rounded-lg transition-colors"
-          style={{ background: widgetColor }}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          title="Enviar feedback"
+          className="fixed z-[2147483646] flex items-center justify-center text-white border-none cursor-pointer transition-all duration-200"
+          style={{
+            ...positionStyle,
+            width: 56,
+            height: 56,
+            borderRadius: '50%',
+            background: widgetColor,
+            boxShadow: isHovered
+              ? `0 6px 20px ${widgetColor}80`
+              : `0 4px 12px ${widgetColor}66`,
+            transform: isHovered ? 'scale(1.08)' : 'scale(1)',
+          }}
         >
-          Enviar Feedback
+          {bugIconSvg}
         </button>
-      </div>
+      )}
 
-      {/* iframe */}
-      <div className="flex-1 relative overflow-hidden">
-        <iframe
-          ref={iframeRef}
-          src={proxyUrl}
-          className="w-full h-full border-0"
-          style={{
-            outline: '2px solid rgba(99, 102, 241, 0.4)',
-            outlineOffset: '-2px',
-          }}
-          title="QA Viewer"
-          sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"
-        />
-        {/* Animated border overlay */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              'linear-gradient(90deg, rgba(99,102,241,0.15) 0%, transparent 30%, transparent 70%, rgba(99,102,241,0.15) 100%)',
-          }}
-        />
-      </div>
-
-      {/* Feedback modal */}
+      {/* Feedback modal — same slide-over panel as embed */}
       {modalOpen && (
         <FeedbackModal
           projectId={projectId}
@@ -213,6 +170,8 @@ export default function ViewerClient({ projectId, widgetColor = '#4f46e5' }: Vie
           rrwebEvents={rrwebEvents}
           screenshotFromTracker={screenshotDataUrl}
           pageUrl={realPageUrl}
+          widgetColor={widgetColor}
+          panelSide={widgetPosition.includes('left') ? 'left' : 'right'}
           onClose={() => setModalOpen(false)}
         />
       )}

@@ -23,8 +23,8 @@ import AppLayout from '@/components/ui/AppLayout'
 const profileSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
   company: z.string().min(2, 'Nome da empresa deve ter pelo menos 2 caracteres'),
-  phone: z.string().min(14, 'Telefone invalido').max(15, 'Telefone invalido'),
-  cep: z.string().length(9, 'CEP invalido'),
+  phone: z.string().min(14, 'Telefone inválido').max(15, 'Telefone inválido'),
+  cep: z.string().length(9, 'CEP inválido'),
   teamSize: z.string().min(1, 'Selecione o tamanho da equipe'),
 })
 
@@ -35,7 +35,7 @@ const passwordSchema = z
     confirmPassword: z.string().min(1, 'Confirme a nova senha'),
   })
   .refine((d) => d.newPassword === d.confirmPassword, {
-    message: 'As senhas nao coincidem',
+    message: 'As senhas não coincidem',
     path: ['confirmPassword'],
   })
 
@@ -164,7 +164,7 @@ export default function SettingsClient({
       setProfileMsg({ type: 'success', text: 'Perfil atualizado com sucesso!' })
       router.refresh()
     } catch {
-      setProfileMsg({ type: 'danger', text: 'Erro de conexao. Tente novamente.' })
+      setProfileMsg({ type: 'danger', text: 'Erro de conexão. Tente novamente.' })
     }
   }
 
@@ -193,7 +193,7 @@ export default function SettingsClient({
       setPasswordMsg({ type: 'success', text: 'Senha alterada com sucesso!' })
       resetPassword()
     } catch {
-      setPasswordMsg({ type: 'danger', text: 'Erro de conexao. Tente novamente.' })
+      setPasswordMsg({ type: 'danger', text: 'Erro de conexão. Tente novamente.' })
     }
   }
 
@@ -202,14 +202,20 @@ export default function SettingsClient({
       <Column as="main" fillWidth maxWidth={40} paddingX="l" paddingY="xl" gap="l" style={{ margin: '0 auto' }}>
         {/* Page header */}
         <Column gap="xs">
-          <Heading variant="heading-strong-l">Configuracoes</Heading>
+          <Heading variant="heading-strong-l">Configurações</Heading>
           <Text variant="body-default-s" onBackground="neutral-weak">
-            Gerencie suas informacoes de conta
+            Gerencie suas informações de conta
           </Text>
         </Column>
 
+        <Row gap="s">
+          <Button variant="secondary" size="s" label="Perfil" onClick={() => router.push('/settings')} />
+          <Button variant="tertiary" size="s" label="Plano & Uso" onClick={() => router.push('/settings/billing')} />
+          <Button variant="tertiary" size="s" label="Equipe" onClick={() => router.push('/settings/team')} />
+        </Row>
+
         {/* Profile section */}
-        <Section title="Perfil" description="Atualize suas informacoes pessoais e da empresa.">
+        <Section title="Perfil" description="Atualize suas informações pessoais e da empresa.">
           {profileMsg && (
             <Feedback variant={profileMsg.type}>{profileMsg.text}</Feedback>
           )}
@@ -290,7 +296,7 @@ export default function SettingsClient({
                 variant="primary"
                 size="m"
                 loading={profileSubmitting}
-                label={profileSubmitting ? 'Salvando...' : 'Salvar alteracoes'}
+                label={profileSubmitting ? 'Salvando...' : 'Salvar alterações'}
               />
             </Row>
           </Column>
@@ -315,7 +321,7 @@ export default function SettingsClient({
             <PasswordInput
               id="settings-newPassword"
               label="Nova senha"
-              placeholder="Minimo 8 caracteres"
+              placeholder="Mínimo 8 caracteres"
               error={!!passwordErrors.newPassword}
               errorMessage={passwordErrors.newPassword?.message}
               {...regPassword('newPassword')}

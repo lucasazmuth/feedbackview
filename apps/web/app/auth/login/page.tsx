@@ -19,11 +19,10 @@ import {
   Card,
   Feedback,
   Spinner,
-  Logo,
 } from '@once-ui-system/core'
 
 const loginSchema = z.object({
-  email: z.string().email('E-mail invalido'),
+  email: z.string().email('E-mail inválido'),
   password: z.string().min(8, 'Senha deve ter pelo menos 8 caracteres'),
 })
 
@@ -51,7 +50,7 @@ function LoginFormContent() {
       password: data.password,
     })
     if (error) {
-      setServerError('E-mail ou senha invalidos.')
+      setServerError('E-mail ou senha inválidos.')
     } else {
       router.push(callbackUrl)
       router.refresh()
@@ -85,23 +84,7 @@ function LoginFormContent() {
           vertical="center"
           style={{ position: 'relative', zIndex: 1 }}
         >
-          <Row gap="s" vertical="center">
-            <div style={{
-              width: 40,
-              height: 40,
-              borderRadius: 12,
-              background: 'rgba(255,255,255,0.2)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#fff',
-              fontWeight: 800,
-              fontSize: 18,
-            }}>
-              Q
-            </div>
-            <span style={{ color: '#fff', fontWeight: 700, fontSize: '1.25rem' }}>Qbug</span>
-          </Row>
+          <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '1.5rem', letterSpacing: '-0.02em', color: '#fff' }}>QBugs</span>
 
           <Column gap="m" style={{ maxWidth: '24rem' }}>
             <h2 style={{ color: '#fff', fontSize: '2rem', fontWeight: 700, lineHeight: 1.2, margin: 0 }}>
@@ -115,7 +98,7 @@ function LoginFormContent() {
           <Column gap="m" style={{ maxWidth: '22rem' }}>
             {[
               { svg: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg>, text: 'Session replay completo' },
-              { svg: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>, text: 'Screenshot com anotacoes' },
+              { svg: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>, text: 'Screenshot com anotações' },
               { svg: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></svg>, text: 'Console e network logs' },
             ].map((item) => (
               <Row key={item.text} gap="s" vertical="center">
@@ -146,7 +129,7 @@ function LoginFormContent() {
         <Column maxWidth={24} fillWidth gap="xl">
           {/* Mobile logo */}
           <Column horizontal="center" gap="4" className="auth-mobile-logo">
-            <Logo size="m" />
+            <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '1.5rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-strong)' }}>QBugs</span>
             <Text variant="body-default-s" onBackground="neutral-weak">
               QA com captura em tempo real
             </Text>
@@ -196,9 +179,9 @@ function LoginFormContent() {
           </Column>
 
           <Text variant="body-default-s" onBackground="neutral-weak" align="center">
-            Nao tem conta?{' '}
+            Não tem conta?{' '}
             <Link href="/auth/register" style={{ color: 'var(--brand-on-background-strong)', fontWeight: 600, textDecoration: 'none' }}>
-              Criar conta gratis
+              Criar conta grátis
             </Link>
           </Text>
         </Column>
