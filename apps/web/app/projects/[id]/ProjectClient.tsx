@@ -110,6 +110,7 @@ export default function ProjectClient({
   const [activeTab, setActiveTab] = useState<'feedbacks' | 'settings'>('feedbacks')
   const [copied, setCopied] = useState(false)
   const [copiedEmbed, setCopiedEmbed] = useState(false)
+  const [showHelpModal, setShowHelpModal] = useState(false)
   const [typeFilter, setTypeFilter] = useState('')
   const [severityFilter, setSeverityFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
@@ -1310,6 +1311,31 @@ export default function ProjectClient({
                                       ? 'Não detectado'
                                       : 'Verificar conexão'}
                                   </button>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); setShowHelpModal(true) }}
+                                    style={{
+                                      marginTop: 6,
+                                      marginLeft: 6,
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '0.25rem',
+                                      padding: '0.25rem 0.625rem',
+                                      borderRadius: '0.375rem',
+                                      border: '1px solid var(--neutral-border-medium)',
+                                      background: 'var(--surface-background)',
+                                      color: 'var(--neutral-on-background-strong)',
+                                      fontSize: '0.6875rem',
+                                      fontWeight: 500,
+                                      cursor: 'pointer',
+                                    }}
+                                  >
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <circle cx="12" cy="12" r="10" />
+                                      <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                                      <line x1="12" y1="17" x2="12.01" y2="17" />
+                                    </svg>
+                                    Ajuda
+                                  </button>
                                 </div>
                               )}
                               {isCurrent && !isEmbed && step.label === 'Compartilhar link com a equipe' && (
@@ -1961,6 +1987,168 @@ export default function ProjectClient({
           </Column>
         )}
       </Column>
+
+      {/* Help modal — how to install the script */}
+      {showHelpModal && (
+        <div
+          onClick={() => setShowHelpModal(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1.5rem',
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'var(--surface-background)',
+              borderRadius: '1rem',
+              width: '100%',
+              maxWidth: 560,
+              maxHeight: '85vh',
+              overflow: 'auto',
+              padding: '2rem',
+              position: 'relative',
+              boxShadow: '0 24px 48px rgba(0,0,0,0.16)',
+            }}
+          >
+            {/* Close */}
+            <button
+              onClick={() => setShowHelpModal(false)}
+              style={{
+                position: 'absolute', top: 16, right: 16,
+                width: 32, height: 32, borderRadius: 8,
+                border: 'none', background: 'transparent',
+                color: 'var(--neutral-on-background-weak)',
+                cursor: 'pointer', display: 'flex',
+                alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--neutral-on-background-strong)', margin: '0 0 0.5rem' }}>
+              Como instalar o widget
+            </h2>
+            <p style={{ fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)', margin: '0 0 1.5rem', lineHeight: 1.5 }}>
+              Siga os passos abaixo para adicionar o widget de feedback ao seu site.
+            </p>
+
+            {/* Steps */}
+            {[
+              {
+                step: 1,
+                title: 'Copie o script',
+                description: 'Clique no botão "Copiar" para copiar o código do script para a área de transferência.',
+                code: embedSnippet,
+              },
+              {
+                step: 2,
+                title: 'Abra o HTML do seu site',
+                description: 'Abra o arquivo HTML principal do seu site (geralmente index.html) ou o template do seu framework.',
+                tips: [
+                  'Next.js: app/layout.tsx ou pages/_document.tsx',
+                  'React (CRA): public/index.html',
+                  'Vue: public/index.html',
+                  'HTML puro: index.html',
+                  'WordPress: header.php do tema',
+                ],
+              },
+              {
+                step: 3,
+                title: 'Cole antes do </body>',
+                description: 'Cole o script logo antes da tag de fechamento </body> do seu HTML.',
+                code: `  <!-- Widget de Feedback -->\n  ${embedSnippet}\n</body>`,
+              },
+              {
+                step: 4,
+                title: 'Salve e publique',
+                description: 'Salve o arquivo e faça o deploy. O widget aparecerá automaticamente no canto inferior direito do seu site.',
+              },
+              {
+                step: 5,
+                title: 'Verifique a conexão',
+                description: 'Volte aqui e clique em "Verificar conexão" para confirmar que o widget está funcionando.',
+              },
+            ].map((item) => (
+              <div key={item.step} style={{ marginBottom: '1.25rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.375rem' }}>
+                  <span style={{
+                    width: 24, height: 24, borderRadius: '50%',
+                    background: 'var(--brand-solid-strong)', color: '#fff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '0.75rem', fontWeight: 700, flexShrink: 0,
+                  }}>
+                    {item.step}
+                  </span>
+                  <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)' }}>
+                    {item.title}
+                  </span>
+                </div>
+                <div style={{ marginLeft: 36 }}>
+                  <p style={{ fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)', margin: '0 0 0.5rem', lineHeight: 1.5 }}>
+                    {item.description}
+                  </p>
+                  {item.code && (
+                    <pre style={{
+                      background: 'var(--neutral-solid-strong)',
+                      color: '#4ade80',
+                      fontSize: '0.6875rem',
+                      borderRadius: '0.5rem',
+                      padding: '0.75rem',
+                      overflow: 'auto',
+                      fontFamily: 'monospace',
+                      margin: '0 0 0.5rem',
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-all',
+                    }}>
+                      {item.code}
+                    </pre>
+                  )}
+                  {item.tips && (
+                    <div style={{
+                      background: 'var(--brand-alpha-weak)',
+                      borderRadius: '0.5rem',
+                      padding: '0.625rem 0.75rem',
+                      fontSize: '0.75rem',
+                      color: 'var(--neutral-on-background-strong)',
+                      lineHeight: 1.6,
+                    }}>
+                      <span style={{ fontWeight: 600, display: 'block', marginBottom: 4 }}>Onde colar em cada framework:</span>
+                      {item.tips.map((tip) => (
+                        <div key={tip} style={{ display: 'flex', gap: '0.375rem', alignItems: 'flex-start' }}>
+                          <span style={{ color: 'var(--brand-on-background-strong)', flexShrink: 0 }}>•</span>
+                          <span style={{ fontFamily: 'monospace', fontSize: '0.6875rem' }}>{tip}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            <div style={{
+              marginTop: '0.5rem',
+              padding: '0.75rem 1rem',
+              borderRadius: '0.5rem',
+              background: 'var(--success-alpha-weak)',
+              border: '1px solid var(--success-border-medium)',
+              fontSize: '0.8125rem',
+              color: 'var(--success-on-background-strong)',
+              lineHeight: 1.5,
+            }}>
+              <strong>Dica:</strong> O widget funciona em qualquer site, incluindo aplicações com login, SPAs e páginas dinâmicas. Não é necessário nenhuma configuração adicional.
+            </div>
+          </div>
+        </div>
+      )}
     </AppLayout>
   )
 }

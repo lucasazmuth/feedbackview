@@ -215,7 +215,6 @@ export default function Sidebar() {
             key={item.href}
             icon={item.icon}
             label={item.label}
-            badge={item.badge}
             onClick={() => router.push(item.href)}
             active={isActive(item.href)}
           />
