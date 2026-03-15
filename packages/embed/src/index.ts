@@ -1,5 +1,5 @@
 // @feedbackview/embed — standalone feedback widget
-// Injected via <script src="https://app.feedbackview.com/embed.js" data-project="ID"></script>
+// Injected via <script src="https://www.reportbug.pro/embed.js" data-project="ID"></script>
 // Collects console, network, errors, rrweb session replay + shows feedback UI
 
 import { record, Replayer } from 'rrweb'
@@ -1159,7 +1159,7 @@ function createWidget(config: WidgetConfig) {
         leftControls.appendChild(timeDisplay)
         bottomRow.appendChild(leftControls)
 
-        // Speed selector (individual buttons like detail page)
+        // Speed selector (individual buttons)
         const rightControls = document.createElement('div')
         rightControls.style.cssText = 'display:flex;align-items:center;gap:2px;'
         const speeds = [1, 2, 4, 8]
@@ -1825,7 +1825,7 @@ function createWidget(config: WidgetConfig) {
 
     const powered = document.createElement('div')
     powered.className = 'fv-powered'
-    powered.innerHTML = 'Powered by <a href="https://feedbackview.com" target="_blank">Report Bug</a>'
+    powered.innerHTML = 'Powered by <a href="https://www.reportbug.pro" target="_blank">Report Bug</a>'
     footer.appendChild(powered)
     panel.appendChild(footer)
   }

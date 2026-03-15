@@ -121,6 +121,11 @@ export default function FeedbackModal({
   const [consoleLogsOpen, setConsoleLogsOpen] = useState(false)
   const [commentError, setCommentError] = useState<string | null>(null)
   const [attachments, setAttachments] = useState<{ name: string; type: string; data: string }[]>([])
+  const [replayPlaying, setReplayPlaying] = useState(false)
+  const [replayCurrentTime, setReplayCurrentTime] = useState(0)
+  const [replayTotalTime, setReplayTotalTime] = useState(0)
+  const [replaySpeed, setReplaySpeed] = useState(1)
+  const replayTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [stepsToReproduce, setStepsToReproduce] = useState('')
   const [expectedResult, setExpectedResult] = useState('')
   const [actualResult, setActualResult] = useState('')
@@ -188,7 +193,7 @@ export default function FeedbackModal({
             width: containerWidth,
             height: playerHeight,
             autoPlay: false,
-            showController: true,
+            showController: false,
             speedOption: [1, 2, 4, 8],
             skipInactive: true,
           },
@@ -196,6 +201,10 @@ export default function FeedbackModal({
         // Render first frame so the iframe becomes visible
         player.goto(0)
         replayPlayerRef.current = player
+
+        // Set total time for custom controls
+        const meta = player.getMetaData()
+        setReplayTotalTime(meta.totalTime)
       } catch (err) {
         console.warn('Failed to load rrweb-player:', err)
       }
@@ -208,6 +217,28 @@ export default function FeedbackModal({
       replayPlayerRef.current = null
     }
   }, [rrwebEvents])
+
+  // Track replay playback progress
+  useEffect(() => {
+    if (replayPlaying) {
+      replayTimerRef.current = setInterval(() => {
+        const p = replayPlayerRef.current
+        if (!p) return
+        try {
+          const current = p.getCurrentTime()
+          const meta = p.getMetaData()
+          setReplayCurrentTime(current)
+          if (current >= meta.totalTime) {
+            setReplayPlaying(false)
+            p.pause()
+          }
+        } catch {}
+      }, 100)
+    }
+    return () => {
+      if (replayTimerRef.current) clearInterval(replayTimerRef.current)
+    }
+  }, [replayPlaying])
 
   // Redraw overlay rects
   const redrawOverlay = useCallback(
@@ -364,8 +395,61 @@ export default function FeedbackModal({
 
   const env = parseEnvironment()
 
+  function fmtReplayTime(ms: number) {
+    const s = Math.floor(ms / 1000)
+    const m = Math.floor(s / 60)
+    const rem = s % 60
+    return `${String(m).padStart(2, '0')}:${String(rem).padStart(2, '0')}`
+  }
+
+  function handleReplayPlayPause() {
+    const p = replayPlayerRef.current
+    if (!p) return
+    if (replayPlaying) {
+      p.pause()
+      setReplayPlaying(false)
+    } else {
+      const meta = p.getMetaData()
+      const current = p.getCurrentTime() || 0
+      if (current >= meta.totalTime - 100) {
+        p.play(0)
+        setReplayCurrentTime(0)
+      } else {
+        p.play(current)
+      }
+      setReplayPlaying(true)
+    }
+  }
+
+  function handleReplaySeek(e: React.MouseEvent<HTMLDivElement>) {
+    const p = replayPlayerRef.current
+    if (!p) return
+    const rect = e.currentTarget.getBoundingClientRect()
+    const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+    const targetMs = Math.round(pct * replayTotalTime)
+    p.play(targetMs)
+    setReplayCurrentTime(targetMs)
+    if (!replayPlaying) {
+      requestAnimationFrame(() => p.pause())
+    }
+  }
+
+  function handleReplaySpeed(s: number) {
+    setReplaySpeed(s)
+    if (replayPlayerRef.current) {
+      replayPlayerRef.current.setConfig?.({ speed: s })
+    }
+  }
+
+  const replayProgress = replayTotalTime > 0 ? (replayCurrentTime / replayTotalTime) * 100 : 0
+
   const typeLabels: Record<string, string> = { BUG: 'Bug', SUGGESTION: 'Sugestão', QUESTION: 'Dúvida', PRAISE: 'Elogio' }
-  const typeEmojis: Record<string, string> = { BUG: '🐛', SUGGESTION: '💡', QUESTION: '❓', PRAISE: '👏' }
+  const typeIcons: Record<string, React.ReactNode> = {
+    BUG: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2l1.88 1.88"/><path d="M14.12 3.88L16 2"/><path d="M9 7.13v-1a3.003 3.003 0 116 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 014-4h4a4 4 0 014 4v3c0 3.3-2.7 6-6 6"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/></svg>,
+    SUGGESTION: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 006 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>,
+    QUESTION: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>,
+    PRAISE: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 10v12"/><path d="M15 5.88L14 10h5.83a2 2 0 011.92 2.56l-2.33 8A2 2 0 0117.5 22H4a2 2 0 01-2-2v-8a2 2 0 012-2h2.76a2 2 0 001.79-1.11L12 2a3.13 3.13 0 013 3.88z"/></svg>,
+  }
   const severityLabels: Record<string, { label: string; color: string }> = {
     LOW: { label: 'Baixa', color: '#22c55e' },
     MEDIUM: { label: 'Média', color: '#f59e0b' },
@@ -449,6 +533,53 @@ export default function FeedbackModal({
                     Gravando sessão...
                   </div>
                 )}
+                {/* Custom replay controls (matching embed exactly) */}
+                {rrwebEvents.length >= 2 && replayTotalTime > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, background: '#fff', padding: '12px 16px', borderTop: '1px solid #e5e7eb' }}>
+                    {/* Timeline */}
+                    <div
+                      onClick={handleReplaySeek}
+                      style={{ cursor: 'pointer', height: 6, display: 'flex', alignItems: 'center', borderRadius: 3, background: '#e5e7eb', position: 'relative' }}
+                    >
+                      <div style={{ height: '100%', width: `${replayProgress}%`, background: widgetColor, borderRadius: 3, transition: replayPlaying ? 'none' : 'width 0.1s linear' }} />
+                      <div style={{ position: 'absolute', top: '50%', left: `${replayProgress}%`, width: 14, height: 14, background: widgetColor, borderRadius: '50%', transform: 'translate(-50%, -50%)', boxShadow: '0 1px 3px rgba(0,0,0,0.15)', border: '2px solid #fff' }} />
+                    </div>
+                    {/* Bottom row */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <button
+                          onClick={handleReplayPlayPause}
+                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: '50%', border: 'none', background: widgetColor, color: '#fff', cursor: 'pointer', transition: 'opacity 0.15s' }}
+                        >
+                          {replayPlaying ? (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+                          ) : (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v14.72a1 1 0 0 0 1.5.86l11-7.36a1 1 0 0 0 0-1.72l-11-7.36A1 1 0 0 0 8 5.14z"/></svg>
+                          )}
+                        </button>
+                        <span style={{ fontSize: 12, fontFamily: 'monospace', color: '#6b7280', whiteSpace: 'nowrap' }}>
+                          {fmtReplayTime(replayCurrentTime)} / {fmtReplayTime(replayTotalTime)}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        {[1, 2, 4, 8].map((s) => (
+                          <button
+                            key={s}
+                            onClick={() => handleReplaySpeed(s)}
+                            style={{
+                              border: 'none', cursor: 'pointer', padding: '4px 8px', borderRadius: 6, fontSize: 11, transition: 'all 0.15s',
+                              background: replaySpeed === s ? widgetColor : 'transparent',
+                              color: replaySpeed === s ? '#fff' : '#9ca3af',
+                              fontWeight: replaySpeed === s ? 600 : 400,
+                            }}
+                          >
+                            {s}x
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {/* Stats bar */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px', background: '#1e293b', fontSize: 11, color: '#94a3b8' }}>
                   <span>{rrwebEvents.length} eventos</span>
@@ -504,7 +635,7 @@ export default function FeedbackModal({
               <div>
                 <label style={S.label}>Tipo</label>
                 <div style={{ display: 'flex', gap: 6 }}>
-                  {([['BUG', '🐛 Bug'], ['SUGGESTION', '💡 Sugestão'], ['QUESTION', '❓ Dúvida'], ['PRAISE', '👏 Elogio']] as const).map(([val, label]) => (
+                  {(['BUG', 'SUGGESTION', 'QUESTION', 'PRAISE'] as const).map((val) => (
                     <button
                       key={val}
                       type="button"
@@ -521,9 +652,13 @@ export default function FeedbackModal({
                         cursor: 'pointer',
                         fontFamily: 'inherit',
                         transition: 'all 0.15s',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 4,
                       }}
                     >
-                      {label}
+                      {typeIcons[val]} {typeLabels[val]}
                     </button>
                   ))}
                 </div>
@@ -740,7 +875,7 @@ export default function FeedbackModal({
                   background: type === 'BUG' ? '#fef2f2' : type === 'SUGGESTION' ? '#fffbeb' : type === 'QUESTION' ? '#eff6ff' : '#f0fdf4',
                   color: type === 'BUG' ? '#dc2626' : type === 'SUGGESTION' ? '#d97706' : type === 'QUESTION' ? '#2563eb' : '#16a34a',
                 }}>
-                  {typeEmojis[type]} {typeLabels[type]}
+                  {typeIcons[type]} {typeLabels[type]}
                 </span>
               </div>
 
@@ -892,7 +1027,7 @@ export default function FeedbackModal({
             </button>
             <p style={{ textAlign: 'center', marginTop: 8, fontSize: 11, color: '#9ca3af' }}>
               Powered by{' '}
-              <a href="https://feedbackview.com" target="_blank" rel="noopener noreferrer" style={{ color: '#6b7280', textDecoration: 'none' }}>
+              <a href="https://www.reportbug.pro" target="_blank" rel="noopener noreferrer" style={{ color: '#6b7280', textDecoration: 'none' }}>
                 Report Bug
               </a>
             </p>

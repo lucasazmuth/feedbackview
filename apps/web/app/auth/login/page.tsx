@@ -84,7 +84,7 @@ function LoginFormContent() {
           vertical="center"
           style={{ position: 'relative', zIndex: 1 }}
         >
-          <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '1.5rem', letterSpacing: '-0.02em', color: '#fff' }}>Report Bug</span>
+          <a href="/" style={{ textDecoration: 'none' }}><span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '1.5rem', letterSpacing: '-0.02em', color: '#fff' }}>Report Bug</span></a>
 
           <Column gap="m" style={{ maxWidth: '24rem' }}>
             <h2 style={{ color: '#fff', fontSize: '2rem', fontWeight: 700, lineHeight: 1.2, margin: 0 }}>
@@ -129,7 +129,7 @@ function LoginFormContent() {
         <Column maxWidth={24} fillWidth gap="xl">
           {/* Mobile logo */}
           <Column horizontal="center" gap="4" className="auth-mobile-logo">
-            <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '1.5rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-strong)' }}>Report Bug</span>
+            <a href="/" style={{ textDecoration: 'none' }}><span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '1.5rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-strong)' }}>Report Bug</span></a>
             <Text variant="body-default-s" onBackground="neutral-weak">
               QA com captura em tempo real
             </Text>

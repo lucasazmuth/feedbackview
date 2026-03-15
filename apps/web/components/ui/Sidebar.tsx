@@ -154,7 +154,13 @@ export default function Sidebar() {
             return (
               <button
                 key={org.id}
-                onClick={() => { if (!active) switchOrg(org.id) }}
+                onClick={() => {
+                  if (active) {
+                    if (collapsed) setCollapsed(false)
+                  } else {
+                    switchOrg(org.id)
+                  }
+                }}
                 title={org.name}
                 style={{
                   width: 36,

@@ -49,7 +49,7 @@ export function OrgProvider({ children }: { children: ReactNode }) {
         return
       }
 
-      const { data: memberships } = await supabase
+      const { data: memberships, error } = await supabase
         .from('TeamMember')
         .select('role, organization:Organization(id, name, slug, plan)')
         .eq('userId', user.id)
