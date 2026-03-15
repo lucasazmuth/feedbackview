@@ -544,24 +544,6 @@ export default function Sidebar() {
             >
               {item.icon}
               {item.label}
-              {item.badge && item.badge > 0 ? (
-                <span style={{
-                  marginLeft: 'auto',
-                  minWidth: 20,
-                  height: 20,
-                  borderRadius: 10,
-                  background: '#ef4444',
-                  color: '#fff',
-                  fontSize: '0.6875rem',
-                  fontWeight: 700,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '0 5px',
-                }}>
-                  {item.badge > 99 ? '99+' : item.badge}
-                </span>
-              ) : null}
             </button>
           )
         })}
