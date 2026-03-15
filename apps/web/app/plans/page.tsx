@@ -13,6 +13,7 @@ import {
 } from '@once-ui-system/core'
 import AppLayout from '@/components/ui/AppLayout'
 import { getPlanLimits, type Plan } from '@/lib/limits'
+import { SkeletonBar, SkeletonCard } from '@/components/ui/LoadingSkeleton'
 
 function UsageBar({ label, current, max }: { label: string; current: number; max: number }) {
   const isUnlimited = max <= 0
@@ -145,7 +146,44 @@ function PlansContent() {
     return (
       <AppLayout>
         <Column as="main" fillWidth maxWidth={40} paddingX="l" paddingY="xl" gap="l" style={{ margin: '0 auto' }}>
-          <Text variant="body-default-m" onBackground="neutral-weak">Carregando...</Text>
+          <style>{`@keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:.4 } }`}</style>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <SkeletonBar width="6rem" height="1.75rem" />
+            <SkeletonBar width="18rem" height="0.875rem" />
+          </div>
+          <SkeletonCard>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <SkeletonBar width="8rem" height="1.25rem" />
+                  <SkeletonBar width="4rem" height="1.25rem" radius="999px" />
+                </div>
+                <SkeletonBar width="5rem" height="0.75rem" />
+              </div>
+              <SkeletonBar width="8rem" height="2.25rem" />
+            </div>
+          </SkeletonCard>
+          <SkeletonCard>
+            <SkeletonBar width="6rem" height="1.25rem" />
+            {[1, 2, 3].map((i) => (
+              <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <SkeletonBar width="6rem" height="0.75rem" />
+                  <SkeletonBar width="4rem" height="0.75rem" />
+                </div>
+                <SkeletonBar width="100%" height="6px" radius="3px" />
+              </div>
+            ))}
+          </SkeletonCard>
+          <SkeletonCard>
+            <SkeletonBar width="10rem" height="1.25rem" />
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <SkeletonBar width="1rem" height="1rem" />
+                <SkeletonBar width={`${8 + i * 2}rem`} height="0.875rem" />
+              </div>
+            ))}
+          </SkeletonCard>
         </Column>
       </AppLayout>
     )

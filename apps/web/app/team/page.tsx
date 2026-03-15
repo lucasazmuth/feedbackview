@@ -15,6 +15,7 @@ import {
 import AppLayout from '@/components/ui/AppLayout'
 import { createClient } from '@/lib/supabase/client'
 import { useOrg } from '@/contexts/OrgContext'
+import { SkeletonBar, SkeletonCard } from '@/components/ui/LoadingSkeleton'
 
 interface Member {
   id: string
@@ -123,7 +124,31 @@ export default function TeamPage() {
     return (
       <AppLayout>
         <Column as="main" fillWidth maxWidth={40} paddingX="l" paddingY="xl" gap="l" style={{ margin: '0 auto' }}>
-          <Text variant="body-default-m" onBackground="neutral-weak">Carregando...</Text>
+          <style>{`@keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:.4 } }`}</style>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <SkeletonBar width="6rem" height="1.75rem" />
+            <SkeletonBar width="18rem" height="0.875rem" />
+          </div>
+          <SkeletonCard>
+            <SkeletonBar width="10rem" height="1.25rem" />
+            <SkeletonBar width="16rem" height="0.75rem" />
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-end' }}>
+              <SkeletonBar width="100%" height="2.5rem" />
+              <SkeletonBar width="6rem" height="2.5rem" />
+            </div>
+          </SkeletonCard>
+          <SkeletonCard>
+            <SkeletonBar width="8rem" height="1.25rem" />
+            {[1, 2].map((i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 0', borderBottom: i < 2 ? '1px solid var(--neutral-border-medium)' : 'none' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <SkeletonBar width="8rem" height="1rem" />
+                  <SkeletonBar width="4rem" height="1.25rem" radius="999px" />
+                </div>
+                <SkeletonBar width="5rem" height="2rem" />
+              </div>
+            ))}
+          </SkeletonCard>
         </Column>
       </AppLayout>
     )

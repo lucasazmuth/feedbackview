@@ -54,3 +54,23 @@ export function SkeletonShell({ children }: { children: React.ReactNode }) {
 }
 
 export { pulse }
+
+/** Inline skeleton bar – use inside AppLayout for client-side loading states */
+export function SkeletonBar({ width, height = '1rem', radius }: { width: string; height?: string; radius?: string }) {
+  return <div style={{ ...pulse, width, height, borderRadius: radius || '0.5rem' }} />
+}
+
+export function SkeletonCard({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{
+      border: '1px solid var(--neutral-border-medium)',
+      borderRadius: '0.75rem',
+      padding: '1.5rem',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '1rem',
+    }}>
+      {children}
+    </div>
+  )
+}

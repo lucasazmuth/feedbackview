@@ -12,6 +12,7 @@ import {
   Feedback,
 } from '@once-ui-system/core'
 import AppLayout from '@/components/ui/AppLayout'
+import { SkeletonBar, SkeletonCard } from '@/components/ui/LoadingSkeleton'
 
 interface Invite {
   id: string
@@ -103,7 +104,28 @@ export default function NotificationsPage() {
     return (
       <AppLayout>
         <Column as="main" fillWidth maxWidth={40} paddingX="l" paddingY="xl" gap="l" style={{ margin: '0 auto' }}>
-          <Text variant="body-default-m" onBackground="neutral-weak">Carregando...</Text>
+          <style>{`@keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:.4 } }`}</style>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <SkeletonBar width="10rem" height="1.75rem" />
+            <SkeletonBar width="16rem" height="0.875rem" />
+          </div>
+          {[1, 2].map((i) => (
+            <SkeletonCard key={i}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                  <SkeletonBar width="2rem" height="2rem" radius="0.5rem" />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                    <SkeletonBar width="10rem" height="1rem" />
+                    <SkeletonBar width="14rem" height="0.75rem" />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <SkeletonBar width="5rem" height="2rem" />
+                  <SkeletonBar width="5rem" height="2rem" />
+                </div>
+              </div>
+            </SkeletonCard>
+          ))}
         </Column>
       </AppLayout>
     )
