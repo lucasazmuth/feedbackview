@@ -17,7 +17,7 @@ export const api = {
         .single()
 
       if (membership?.organization) {
-        const org = membership.organization as { maxProjects: number }
+        const org = membership.organization as unknown as { maxProjects: number }
         if (org.maxProjects > 0) {
           const { count } = await supabase
             .from('Project')

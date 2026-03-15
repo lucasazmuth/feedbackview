@@ -178,7 +178,7 @@ export default function TeamPage() {
                 <Row
                   key={member.id}
                   fillWidth
-                  horizontal="space-between"
+                  horizontal="between"
                   vertical="center"
                   style={{
                     padding: '0.75rem 0',

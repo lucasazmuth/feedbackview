@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       .in('role', ['OWNER', 'ADMIN'])
       .single()
 
-    const org = membership?.organization as { stripeCustomerId: string | null } | null
+    const org = membership?.organization as unknown as { stripeCustomerId: string | null } | null
     if (!org?.stripeCustomerId) {
       return NextResponse.json({ error: 'No billing account found' }, { status: 404 })
     }

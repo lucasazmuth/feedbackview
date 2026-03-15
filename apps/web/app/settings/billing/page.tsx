@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   Column,
@@ -23,7 +23,7 @@ function UsageBar({ label, current, max }: { label: string; current: number; max
 
   return (
     <Column gap="xs" fillWidth>
-      <Row fillWidth horizontal="space-between">
+      <Row fillWidth horizontal="between">
         <Text variant="body-default-s" onBackground="neutral-strong">{label}</Text>
         <Text variant="body-default-s" onBackground={isAtLimit ? 'danger-strong' : isNearLimit ? 'warning-strong' : 'neutral-medium'}>
           {isUnlimited ? `${current} / Ilimitado` : `${current} / ${max}`}
@@ -76,7 +76,7 @@ interface UsageData {
   reportsThisMonth: number
 }
 
-export default function BillingPage() {
+function BillingPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [loading, setLoading] = useState(true)
@@ -197,7 +197,7 @@ export default function BillingPage() {
 
         {/* Current plan */}
         <Column fillWidth padding="l" gap="m" radius="l" border="neutral-medium" background="surface">
-          <Row fillWidth horizontal="space-between" vertical="center">
+          <Row fillWidth horizontal="between" vertical="center">
             <Column gap="4">
               <Row gap="s" vertical="center">
                 <Heading variant="heading-strong-m">Plano atual</Heading>
@@ -285,5 +285,13 @@ export default function BillingPage() {
         </Column>
       </Column>
     </AppLayout>
+  )
+}
+
+export default function BillingPage() {
+  return (
+    <Suspense>
+      <BillingPageContent />
+    </Suspense>
   )
 }

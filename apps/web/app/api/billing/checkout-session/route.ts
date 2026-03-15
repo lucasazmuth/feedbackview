@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Organization not found or insufficient permissions' }, { status: 403 })
     }
 
-    const org = membership.organization as { id: string; name: string; stripeCustomerId: string | null }
+    const org = membership.organization as unknown as { id: string; name: string; stripeCustomerId: string | null }
 
     // Create or retrieve Stripe customer
     let customerId = org.stripeCustomerId

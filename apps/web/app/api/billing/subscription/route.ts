@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Organization not found' }, { status: 404 })
     }
 
-    const org = membership.organization as Record<string, unknown>
+    const org = membership.organization as unknown as Record<string, unknown>
     const orgId = org.id as string
 
     // Get usage counts

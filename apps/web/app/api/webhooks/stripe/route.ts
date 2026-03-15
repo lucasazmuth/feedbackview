@@ -46,15 +46,16 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       ...planUpdates,
       planPeriod: period,
       stripeSubscriptionId: subscriptionId,
-      planExpiresAt: new Date(subscription.current_period_end * 1000).toISOString(),
+      planExpiresAt: new Date((subscription as unknown as { current_period_end: number }).current_period_end * 1000).toISOString(),
     })
     .eq('id', orgId)
 }
 
 async function handleInvoicePaid(invoice: Stripe.Invoice) {
-  const subscriptionId = typeof invoice.subscription === 'string'
-    ? invoice.subscription
-    : invoice.subscription?.id
+  const inv = invoice as unknown as Record<string, unknown>
+  const subscriptionId = typeof inv.subscription === 'string'
+    ? inv.subscription
+    : (inv.subscription as { id?: string })?.id
 
   if (!subscriptionId) return
 
@@ -72,7 +73,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
   await supabase
     .from('Organization')
     .update({
-      planExpiresAt: new Date(subscription.current_period_end * 1000).toISOString(),
+      planExpiresAt: new Date((subscription as unknown as { current_period_end: number }).current_period_end * 1000).toISOString(),
     })
     .eq('id', org.id)
 }
@@ -95,7 +96,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     .update({
       ...planUpdates,
       planPeriod: period,
-      planExpiresAt: new Date(subscription.current_period_end * 1000).toISOString(),
+      planExpiresAt: new Date((subscription as unknown as { current_period_end: number }).current_period_end * 1000).toISOString(),
     })
     .eq('id', orgId)
 }
