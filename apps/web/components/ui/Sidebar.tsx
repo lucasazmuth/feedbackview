@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useSidebarContext } from './AppLayout'
@@ -14,14 +14,15 @@ function SvgIcon({ children, size = 18 }: { children: React.ReactNode; size?: nu
   )
 }
 
-const RAIL_WIDTH = '3.5rem'
-
 export default function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const { collapsed, setCollapsed } = useSidebarContext()
   const { orgs, currentOrg, switchOrg } = useOrg()
   const [notifCount, setNotifCount] = useState(0)
+  const [wsDropdownOpen, setWsDropdownOpen] = useState(false)
+  const [wsSearch, setWsSearch] = useState('')
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   const fetchNotifCount = useCallback(async () => {
     try {
@@ -41,6 +42,20 @@ export default function Sidebar() {
     return () => clearInterval(interval)
   }, [fetchNotifCount])
 
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setWsDropdownOpen(false)
+        setWsSearch('')
+      }
+    }
+    if (wsDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [wsDropdownOpen])
+
   function isActive(prefix: string) {
     if (prefix === '/dashboard') {
       return pathname === '/dashboard' || pathname.startsWith('/projects') || pathname.startsWith('/feedbacks')
@@ -55,30 +70,15 @@ export default function Sidebar() {
     router.refresh()
   }
 
-  const userNavItems = [
-    {
-      label: 'Notificações',
-      href: '/notifications',
-      icon: <SvgIcon size={20}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></SvgIcon>,
-      badge: notifCount,
-    },
-    {
-      label: 'Planos',
-      href: '/plans',
-      icon: <SvgIcon size={20}><path d="M21 4H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z" /><path d="M1 10h22" /></SvgIcon>,
-    },
-    {
-      label: 'Configurações',
-      href: '/settings',
-      icon: <SvgIcon size={20}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></SvgIcon>,
-    },
-  ]
+  const filteredOrgs = orgs.filter((org) =>
+    org.name.toLowerCase().includes(wsSearch.toLowerCase())
+  )
 
   const wsNavItems = [
     {
       label: 'Projetos',
       href: '/dashboard',
-      icon: <SvgIcon><path d="M2 17l10 5 10-5M2 12l10 5 10-5M12 2l10 5-10 5L2 7z" /></SvgIcon>,
+      icon: <SvgIcon><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></SvgIcon>,
       matchPrefix: '/dashboard',
     },
     {
@@ -89,316 +89,518 @@ export default function Sidebar() {
     },
   ]
 
+  const SIDEBAR_WIDTH = '15rem'
+
+  // Collapsed state: show a thin strip with expand button
+  if (collapsed) {
+    return (
+      <nav
+        style={{
+          width: '3.5rem',
+          height: '100vh',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          background: 'var(--surface-background)',
+          borderRight: '1px solid var(--neutral-border-medium)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          padding: '0.75rem 0',
+          gap: '0.5rem',
+          zIndex: 100,
+          transition: 'width 0.2s ease',
+        }}
+      >
+        {/* Expand button */}
+        <button
+          onClick={() => setCollapsed(false)}
+          title="Expandir menu"
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 8,
+            border: 'none',
+            background: 'transparent',
+            color: 'var(--neutral-on-background-weak)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            transition: 'background 0.15s',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--neutral-alpha-weak)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m9 18 6-6-6-6" />
+          </svg>
+        </button>
+
+        {/* Active workspace avatar */}
+        {currentOrg && (
+          <button
+            onClick={() => setCollapsed(false)}
+            title={currentOrg.name}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 10,
+              background: 'var(--brand-solid-strong)',
+              color: '#fff',
+              border: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+          >
+            {currentOrg.name[0].toUpperCase()}
+          </button>
+        )}
+      </nav>
+    )
+  }
+
   return (
     <nav
       style={{
-        width: collapsed ? RAIL_WIDTH : '15rem',
+        width: SIDEBAR_WIDTH,
         height: '100vh',
         position: 'fixed',
         top: 0,
         left: 0,
         background: 'var(--surface-background)',
+        borderRight: '1px solid var(--neutral-border-medium)',
         display: 'flex',
-        transition: 'width 0.2s ease',
-        overflow: 'hidden',
+        flexDirection: 'column',
         zIndex: 100,
+        transition: 'width 0.2s ease',
+        overflow: 'visible',
       }}
     >
-      {/* ── Left Rail ── */}
-      <div
-        style={{
-          width: RAIL_WIDTH,
-          minWidth: RAIL_WIDTH,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          padding: '1rem 0',
-          gap: '0.5rem',
-          borderRight: collapsed ? '1px solid var(--neutral-border-medium)' : 'none',
-          background: 'var(--neutral-alpha-weak)',
-        }}
-      >
-        {/* Expand button (only in collapsed mode) */}
-        {collapsed && (
-          <button
-            onClick={() => setCollapsed(false)}
-            title="Expandir menu"
-            style={{
-              width: 36,
-              height: 24,
-              borderRadius: 6,
-              border: 'none',
-              background: 'transparent',
-              color: 'var(--neutral-on-background-weak)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              transition: 'background 0.15s ease',
-              flexShrink: 0,
-              marginBottom: '0.25rem',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--neutral-alpha-weak)' }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m9 18 6-6-6-6" />
-            </svg>
-          </button>
-        )}
-
-        {/* Workspace avatars */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.375rem', flex: 1 }}>
-          {orgs.map((org) => {
-            const active = org.id === currentOrg?.id
-            return (
-              <button
-                key={org.id}
-                onClick={() => {
-                  if (active) {
-                    if (collapsed) setCollapsed(false)
-                  } else {
-                    switchOrg(org.id)
-                  }
-                }}
-                title={org.name}
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: active ? 10 : 18,
-                  background: active ? 'var(--brand-solid-strong)' : 'var(--surface-background)',
-                  color: active ? '#fff' : 'var(--neutral-on-background-strong)',
-                  border: active ? 'none' : '1px solid var(--neutral-border-medium)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '0.8rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                  flexShrink: 0,
-                }}
-                onMouseEnter={(e) => {
-                  if (!active) e.currentTarget.style.borderRadius = '10px'
-                }}
-                onMouseLeave={(e) => {
-                  if (!active) e.currentTarget.style.borderRadius = '18px'
-                }}
-              >
-                {org.name[0].toUpperCase()}
-              </button>
-            )
-          })}
-        </div>
-
-        {/* Separator */}
-        <div style={{ width: 24, height: 1, background: 'var(--neutral-border-medium)', flexShrink: 0 }} />
-
-        {/* User-level icons */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
-          {userNavItems.map((item) => {
-            const active = isActive(item.href)
-            return (
-              <button
-                key={item.href}
-                onClick={() => router.push(item.href)}
-                title={item.label}
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 8,
-                  border: 'none',
-                  background: active ? 'var(--neutral-alpha-medium)' : 'transparent',
-                  color: active ? 'var(--neutral-on-background-strong)' : 'var(--neutral-on-background-weak)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  transition: 'background 0.15s ease',
-                  position: 'relative',
-                  flexShrink: 0,
-                }}
-                onMouseEnter={(e) => {
-                  if (!active) e.currentTarget.style.background = 'var(--neutral-alpha-weak)'
-                }}
-                onMouseLeave={(e) => {
-                  if (!active) e.currentTarget.style.background = 'transparent'
-                }}
-              >
-                {item.icon}
-                {item.badge && item.badge > 0 ? (
-                  <span style={{
-                    position: 'absolute',
-                    top: 2,
-                    right: 2,
-                    minWidth: 16,
-                    height: 16,
-                    borderRadius: 8,
-                    background: 'var(--danger-solid-strong)',
-                    color: '#fff',
-                    fontSize: '0.6rem',
-                    fontWeight: 700,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '0 3px',
-                  }}>
-                    {item.badge}
-                  </span>
-                ) : null}
-              </button>
-            )
-          })}
-
-          {/* Logout icon */}
-          <button
-            onClick={handleSignOut}
-            title="Sair"
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 8,
-              border: 'none',
-              background: 'transparent',
-              color: 'var(--neutral-on-background-weak)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              transition: 'background 0.15s ease',
-              flexShrink: 0,
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'var(--neutral-alpha-weak)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent'
-            }}
-          >
-            <SvgIcon size={20}>
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </SvgIcon>
-          </button>
-        </div>
-      </div>
-
-      {/* ── Main Panel (hidden when collapsed) ── */}
-      {!collapsed && (
-        <div
+      {/* ── Top: Workspace Switcher ── */}
+      <div ref={dropdownRef} style={{ position: 'relative' }}>
+        <button
+          onClick={() => setWsDropdownOpen(!wsDropdownOpen)}
           style={{
-            flex: 1,
             display: 'flex',
-            flexDirection: 'column',
-            borderRight: '1px solid var(--neutral-border-medium)',
-            overflow: 'hidden',
+            alignItems: 'center',
+            gap: '0.625rem',
+            width: '100%',
+            padding: '0.875rem 1rem',
+            border: 'none',
+            background: 'transparent',
+            cursor: 'pointer',
+            textAlign: 'left',
+            transition: 'background 0.15s',
           }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--neutral-alpha-weak)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
         >
-          {/* Header: Logo + collapse */}
+          {/* Avatar */}
           <div
             style={{
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              background: 'var(--brand-solid-strong)',
+              color: '#fff',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '1rem 0.75rem 0.75rem 1rem',
-              minHeight: '2.5rem',
+              justifyContent: 'center',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              flexShrink: 0,
             }}
           >
-            <span style={{
-              fontFamily: 'var(--font-logo)',
-              fontWeight: 700,
-              fontSize: '1.1rem',
-              letterSpacing: '-0.02em',
+            {currentOrg?.name?.[0]?.toUpperCase() || '?'}
+          </div>
+
+          {/* Name + plan */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{
+              fontSize: '0.8125rem',
+              fontWeight: 600,
               color: 'var(--neutral-on-background-strong)',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
             }}>
-              Report Bug
-            </span>
+              {currentOrg?.name || 'Workspace'}
+            </div>
+            <div style={{
+              fontSize: '0.6875rem',
+              color: 'var(--neutral-on-background-weak)',
+              marginTop: 1,
+            }}>
+              {currentOrg?.plan || 'Free'}
+            </div>
+          </div>
+
+          {/* Chevron */}
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="var(--neutral-on-background-weak)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{
+              flexShrink: 0,
+              transition: 'transform 0.15s',
+              transform: wsDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+            }}
+          >
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </button>
+
+        {/* ── Workspace Dropdown ── */}
+        {wsDropdownOpen && (
+          <div
+            style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              width: '100%',
+              background: 'var(--surface-background)',
+              border: '1px solid var(--neutral-border-medium)',
+              borderRadius: '0 0 12px 12px',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+              zIndex: 200,
+              maxHeight: '400px',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Search */}
+            <div style={{ padding: '0.625rem 0.75rem', borderBottom: '1px solid var(--neutral-border-medium)' }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.4375rem 0.625rem',
+                borderRadius: 8,
+                background: 'var(--neutral-alpha-weak)',
+              }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--neutral-on-background-weak)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Buscar workspaces"
+                  value={wsSearch}
+                  onChange={(e) => setWsSearch(e.target.value)}
+                  autoFocus
+                  style={{
+                    border: 'none',
+                    background: 'transparent',
+                    outline: 'none',
+                    fontSize: '0.8125rem',
+                    color: 'var(--neutral-on-background-strong)',
+                    width: '100%',
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Workspace list */}
+            <div style={{ overflowY: 'auto', flex: 1, padding: '0.375rem 0' }}>
+              {filteredOrgs.map((org) => {
+                const active = org.id === currentOrg?.id
+                return (
+                  <button
+                    key={org.id}
+                    onClick={() => {
+                      if (!active) switchOrg(org.id)
+                      setWsDropdownOpen(false)
+                      setWsSearch('')
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.625rem',
+                      width: '100%',
+                      padding: '0.5rem 0.75rem',
+                      border: 'none',
+                      background: active ? 'var(--neutral-alpha-weak)' : 'transparent',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'background 0.15s',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!active) e.currentTarget.style.background = 'var(--neutral-alpha-weak)'
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!active) e.currentTarget.style.background = 'transparent'
+                    }}
+                  >
+                    <div style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: 6,
+                      background: active ? 'var(--brand-solid-strong)' : 'var(--neutral-alpha-medium)',
+                      color: active ? '#fff' : 'var(--neutral-on-background-strong)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '0.7rem',
+                      fontWeight: 700,
+                      flexShrink: 0,
+                    }}>
+                      {org.name[0].toUpperCase()}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{
+                        fontSize: '0.8125rem',
+                        fontWeight: active ? 600 : 400,
+                        color: 'var(--neutral-on-background-strong)',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}>
+                        {org.name}
+                      </div>
+                      <div style={{
+                        fontSize: '0.6875rem',
+                        color: 'var(--neutral-on-background-weak)',
+                      }}>
+                        {org.plan || 'Free'}
+                      </div>
+                    </div>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--neutral-on-background-weak)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                      <path d="m9 18 6-6-6-6" />
+                    </svg>
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Create workspace */}
+            <div style={{ padding: '0.5rem 0.75rem', borderTop: '1px solid var(--neutral-border-medium)' }}>
+              <button
+                onClick={() => {
+                  setWsDropdownOpen(false)
+                  router.push('/onboarding')
+                }}
+                style={{
+                  width: '100%',
+                  padding: '0.5rem',
+                  borderRadius: 8,
+                  border: 'none',
+                  background: 'var(--brand-solid-strong)',
+                  color: '#fff',
+                  fontSize: '0.8125rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'opacity 0.15s',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.85' }}
+                onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
+              >
+                Criar workspace
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Separator ── */}
+      <div style={{ height: 1, background: 'var(--neutral-border-medium)', margin: '0 0.75rem', flexShrink: 0 }} />
+
+      {/* ── Navigation ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem', padding: '0.5rem 0.5rem', flex: 1 }}>
+        {wsNavItems.map((item) => {
+          const active = isActive(item.matchPrefix)
+          return (
             <button
-              onClick={() => setCollapsed(true)}
-              title="Minimizar menu"
+              key={item.href}
+              onClick={() => router.push(item.href)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                width: '1.75rem',
-                height: '1.75rem',
-                borderRadius: '0.375rem',
+                gap: '0.625rem',
+                padding: '0.5rem 0.75rem',
+                borderRadius: '0.5rem',
                 border: 'none',
-                background: 'transparent',
-                color: 'var(--neutral-on-background-weak)',
+                background: active ? 'var(--neutral-alpha-weak)' : 'transparent',
+                color: active ? 'var(--neutral-on-background-strong)' : 'var(--neutral-on-background-weak)',
                 cursor: 'pointer',
-                transition: 'background 0.15s ease',
-                flexShrink: 0,
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--neutral-alpha-weak)' }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="m15 18-6-6 6-6" />
-              </svg>
-            </button>
-          </div>
-
-          {/* Workspace name */}
-          {currentOrg && (
-            <div style={{ padding: '0 1rem 0.5rem', borderBottom: '1px solid var(--neutral-border-medium)' }}>
-              <span style={{
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                color: 'var(--neutral-on-background-strong)',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
+                fontSize: '0.875rem',
+                fontWeight: active ? 600 : 400,
+                width: '100%',
+                textAlign: 'left',
+                transition: 'background 0.15s',
                 whiteSpace: 'nowrap',
-                display: 'block',
-              }}>
-                {currentOrg.name}
-              </span>
-            </div>
-          )}
+                overflow: 'hidden',
+              }}
+              onMouseEnter={(e) => {
+                if (!active) e.currentTarget.style.background = 'var(--neutral-alpha-weak)'
+              }}
+              onMouseLeave={(e) => {
+                if (!active) e.currentTarget.style.background = 'transparent'
+              }}
+            >
+              {item.icon}
+              {item.label}
+            </button>
+          )
+        })}
+      </div>
 
-          {/* Workspace nav items */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem', padding: '0.5rem', flex: 1 }}>
-            {wsNavItems.map((item) => {
-              const active = isActive(item.matchPrefix)
-              return (
-                <button
-                  key={item.href}
-                  onClick={() => router.push(item.href)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.625rem',
-                    padding: '0.5rem 0.75rem',
-                    borderRadius: '0.5rem',
-                    border: 'none',
-                    background: active ? 'var(--neutral-alpha-weak)' : 'transparent',
-                    color: active ? 'var(--neutral-on-background-strong)' : 'var(--neutral-on-background-weak)',
-                    cursor: 'pointer',
-                    fontSize: '0.875rem',
-                    fontWeight: active ? 600 : 400,
-                    width: '100%',
-                    textAlign: 'left',
-                    transition: 'background 0.15s ease',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!active) e.currentTarget.style.background = 'var(--neutral-alpha-weak)'
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!active) e.currentTarget.style.background = 'transparent'
-                  }}
-                >
-                  {item.icon}
-                  {item.label}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      )}
+      {/* ── Bottom: Utilities ── */}
+      <div style={{
+        borderTop: '1px solid var(--neutral-border-medium)',
+        padding: '0.5rem',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.125rem',
+      }}>
+        {/* Notifications */}
+        <button
+          onClick={() => router.push('/notifications')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.625rem',
+            padding: '0.5rem 0.75rem',
+            borderRadius: '0.5rem',
+            border: 'none',
+            background: isActive('/notifications') ? 'var(--neutral-alpha-weak)' : 'transparent',
+            color: isActive('/notifications') ? 'var(--neutral-on-background-strong)' : 'var(--neutral-on-background-weak)',
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            fontWeight: isActive('/notifications') ? 600 : 400,
+            width: '100%',
+            textAlign: 'left',
+            transition: 'background 0.15s',
+            position: 'relative',
+          }}
+          onMouseEnter={(e) => {
+            if (!isActive('/notifications')) e.currentTarget.style.background = 'var(--neutral-alpha-weak)'
+          }}
+          onMouseLeave={(e) => {
+            if (!isActive('/notifications')) e.currentTarget.style.background = 'transparent'
+          }}
+        >
+          <SvgIcon><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></SvgIcon>
+          Notificações
+          {notifCount > 0 && (
+            <span style={{
+              marginLeft: 'auto',
+              minWidth: 20,
+              height: 20,
+              borderRadius: 10,
+              background: '#ef4444',
+              color: '#fff',
+              fontSize: '0.6875rem',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '0 5px',
+            }}>
+              {notifCount > 99 ? '99+' : notifCount}
+            </span>
+          )}
+        </button>
+
+        {/* Settings */}
+        <button
+          onClick={() => router.push('/settings')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.625rem',
+            padding: '0.5rem 0.75rem',
+            borderRadius: '0.5rem',
+            border: 'none',
+            background: isActive('/settings') ? 'var(--neutral-alpha-weak)' : 'transparent',
+            color: isActive('/settings') ? 'var(--neutral-on-background-strong)' : 'var(--neutral-on-background-weak)',
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            fontWeight: isActive('/settings') ? 600 : 400,
+            width: '100%',
+            textAlign: 'left',
+            transition: 'background 0.15s',
+          }}
+          onMouseEnter={(e) => {
+            if (!isActive('/settings')) e.currentTarget.style.background = 'var(--neutral-alpha-weak)'
+          }}
+          onMouseLeave={(e) => {
+            if (!isActive('/settings')) e.currentTarget.style.background = 'transparent'
+          }}
+        >
+          <SvgIcon><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></SvgIcon>
+          Configurações
+        </button>
+
+        {/* Sign Out */}
+        <button
+          onClick={handleSignOut}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.625rem',
+            padding: '0.5rem 0.75rem',
+            borderRadius: '0.5rem',
+            border: 'none',
+            background: 'transparent',
+            color: 'var(--neutral-on-background-weak)',
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            fontWeight: 400,
+            width: '100%',
+            textAlign: 'left',
+            transition: 'background 0.15s',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--neutral-alpha-weak)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+        >
+          <SvgIcon>
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </SvgIcon>
+          Sair
+        </button>
+
+        {/* Collapse button */}
+        <button
+          onClick={() => setCollapsed(true)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.625rem',
+            padding: '0.5rem 0.75rem',
+            borderRadius: '0.5rem',
+            border: 'none',
+            background: 'transparent',
+            color: 'var(--neutral-on-background-weak)',
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            fontWeight: 400,
+            width: '100%',
+            textAlign: 'left',
+            transition: 'background 0.15s',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--neutral-alpha-weak)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+            <path d="m15 18-6-6 6-6" />
+          </svg>
+          Minimizar
+        </button>
+      </div>
     </nav>
   )
 }

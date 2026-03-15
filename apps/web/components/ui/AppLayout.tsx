@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import Sidebar from './Sidebar'
+import PageHeader from './PageHeader'
 
 interface SidebarContextValue {
   collapsed: boolean
@@ -42,9 +43,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             minWidth: 0,
             marginLeft: collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH,
             transition: 'margin-left 0.2s ease',
+            display: 'flex',
+            flexDirection: 'column',
           }}
         >
-          {children}
+          <PageHeader />
+          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+            {children}
+          </div>
         </div>
       </div>
     </SidebarContext.Provider>
