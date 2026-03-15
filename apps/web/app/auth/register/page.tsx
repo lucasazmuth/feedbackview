@@ -41,10 +41,13 @@ export default function RegisterPage() {
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
   })
+
+  const teamSizeValue = watch('teamSize')
 
   function maskPhone(value: string) {
     const digits = value.replace(/\D/g, '').slice(0, 11)
@@ -266,9 +269,10 @@ export default function RegisterPage() {
                 { value: '21-50', label: '21 a 50 pessoas' },
                 { value: '51+', label: 'Mais de 50 pessoas' },
               ]}
+              value={teamSizeValue || ''}
               error={!!errors.teamSize}
               errorMessage={errors.teamSize?.message}
-              {...register('teamSize')}
+              onSelect={(value: string) => setValue('teamSize', value, { shouldValidate: true })}
             />
 
             <PasswordInput

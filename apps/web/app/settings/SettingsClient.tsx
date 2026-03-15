@@ -121,6 +121,7 @@ export default function SettingsClient({
     register: regProfile,
     handleSubmit: handleProfile,
     setValue: setProfileValue,
+    watch: watchProfile,
     formState: { errors: profileErrors, isSubmitting: profileSubmitting },
   } = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
@@ -132,6 +133,8 @@ export default function SettingsClient({
       teamSize: userTeamSize,
     },
   })
+
+  const profileTeamSize = watchProfile('teamSize')
 
   /* Password form */
   const [passwordMsg, setPasswordMsg] = useState<{ type: 'success' | 'danger'; text: string } | null>(null)
@@ -279,9 +282,10 @@ export default function SettingsClient({
                 { value: '21-50', label: '21 a 50 pessoas' },
                 { value: '51+', label: 'Mais de 50 pessoas' },
               ]}
+              value={profileTeamSize || ''}
               error={!!profileErrors.teamSize}
               errorMessage={profileErrors.teamSize?.message}
-              {...regProfile('teamSize')}
+              onSelect={(value: string) => setProfileValue('teamSize', value, { shouldValidate: true })}
             />
 
             <Row horizontal="end" fillWidth>
