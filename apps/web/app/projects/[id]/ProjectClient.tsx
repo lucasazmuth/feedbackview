@@ -42,6 +42,9 @@ interface Project {
   mode?: string
   widgetPosition?: string
   widgetColor?: string
+  widgetStyle?: string
+  widgetText?: string
+  targetUrl?: string
   createdAt: string
 }
 
