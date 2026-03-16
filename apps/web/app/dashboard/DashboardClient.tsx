@@ -481,8 +481,8 @@ export default function DashboardClient({
                     </Text>
                   </Column>
 
-                  <Row fillWidth vertical="center" gap="s" style={{ marginTop: 'auto' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.7rem', color: embedStatus.color, fontWeight: 500 }}>
+                  <Row fillWidth vertical="center" gap="s" style={{ marginTop: 'auto', overflow: 'hidden', minWidth: 0, flexWrap: 'wrap' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.7rem', color: embedStatus.color, fontWeight: 500, flexShrink: 0 }}>
                       <span style={{ width: 6, height: 6, borderRadius: '50%', background: embedStatus.dotColor, flexShrink: 0 }} />
                       {embedStatus.label}
                     </span>
@@ -491,7 +491,7 @@ export default function DashboardClient({
                       size="s"
                       label={`${openCount} aberto${openCount !== 1 ? 's' : ''}`}
                     />
-                    <Text variant="body-default-xs" onBackground="neutral-weak" style={{ whiteSpace: 'nowrap' }}>
+                    <Text variant="body-default-xs" onBackground="neutral-weak" style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
                       {formatDate(project.createdAt)}
                     </Text>
                   </Row>
