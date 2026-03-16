@@ -1965,12 +1965,22 @@ function createWidget(config: WidgetConfig) {
     // Pause recording — we only want events from before the modal opened
     pauseRecording()
 
+    // Re-fetch config to check for limit/pause changes since last open
+    const freshConfig = await fetchConfig()
+    if (!freshConfig.blocked) {
+      config.limitReached = freshConfig.limitReached
+      config.paused = freshConfig.paused
+    }
+
     isOpen = true
     submitted = false
     isCapturing = true
     screenshotUrl = null
     trigger.style.display = 'none'
     renderPanel()
+
+    // Skip screenshot capture if limit reached or paused (form won't show)
+    if (config.limitReached || config.paused) return
 
     // Capture screenshot and update only the preview screenshot area (avoid full re-render)
     const ss = await captureScreenshot()
