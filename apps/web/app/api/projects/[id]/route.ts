@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
 import { logActivity } from '@/lib/activity-log'
+import { getProjectWriteAccess } from '@/lib/project-access'
 
 const supabaseAdmin = createSupabaseClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,17 +23,12 @@ export async function PATCH(
     const { id } = await params
     const body = await req.json()
 
-    // Verify ownership and get current values
-    const { data: project, error: findError } = await supabaseAdmin
-      .from('Project')
-      .select('id, ownerId, name, targetUrl, description')
-      .eq('id', id)
-      .eq('ownerId', user.id)
-      .single()
-
-    if (findError || !project) {
+    // Verify OWNER/ADMIN access (direct owner or org role)
+    const access = await getProjectWriteAccess(user.id, id, 'id, ownerId, organizationId, name, targetUrl, description')
+    if (!access) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 })
     }
+    const project = access.project
 
     const allowedFields = ['name', 'description', 'targetUrl', 'widgetPosition', 'widgetColor', 'widgetStyle', 'widgetText', 'embedPaused']
     const updateData: Record<string, unknown> = {}
@@ -106,15 +102,9 @@ export async function DELETE(
 
     const { id } = await params
 
-    // Verify ownership
-    const { data: project, error: findError } = await supabaseAdmin
-      .from('Project')
-      .select('id, ownerId')
-      .eq('id', id)
-      .eq('ownerId', user.id)
-      .single()
-
-    if (findError || !project) {
+    // Verify OWNER/ADMIN access
+    const access = await getProjectWriteAccess(user.id, id)
+    if (!access) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 })
     }
 

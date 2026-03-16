@@ -50,6 +50,9 @@ export default function TeamPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'danger' | 'warning'; text: string } | null>(null)
   const [removingMember, setRemovingMember] = useState<Member | null>(null)
   const [removeLoading, setRemoveLoading] = useState(false)
+  const [updatingRoleId, setUpdatingRoleId] = useState<string | null>(null)
+  const [editingMemberId, setEditingMemberId] = useState<string | null>(null)
+  const [pendingRole, setPendingRole] = useState<string | null>(null)
 
   const fetchData = useCallback(async () => {
     if (!currentOrg?.id) return
@@ -153,6 +156,33 @@ export default function TeamPage() {
     } finally {
       setRemoveLoading(false)
       setRemovingMember(null)
+    }
+  }
+
+  const handleSaveRole = async (member: Member) => {
+    if (!currentOrg || !pendingRole || pendingRole === member.role) return
+    setUpdatingRoleId(member.id)
+    setMessage(null)
+
+    try {
+      const res = await fetch('/api/team/update-role', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberId: member.id, orgId: currentOrg.id, role: pendingRole }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setMessage({ type: 'success', text: `Função de ${member.name} atualizada para ${ROLE_LABELS[pendingRole]}.` })
+        setEditingMemberId(null)
+        setPendingRole(null)
+        fetchData()
+      } else {
+        setMessage({ type: 'danger', text: data.error || 'Erro ao atualizar função.' })
+      }
+    } catch {
+      setMessage({ type: 'danger', text: 'Erro de conexão.' })
+    } finally {
+      setUpdatingRoleId(null)
     }
   }
 
@@ -281,14 +311,58 @@ export default function TeamPage() {
                     {member.email && (
                       <Text variant="body-default-s" onBackground="neutral-weak">{member.email}</Text>
                     )}
+                    {/* Expanded edit area */}
+                    {editingMemberId === member.id && member.role !== 'OWNER' && currentUserRole === 'OWNER' && (
+                      <Column gap="s" style={{ marginTop: '0.5rem', padding: '0.75rem', borderRadius: '0.5rem', background: 'var(--neutral-alpha-weak)' }}>
+                        <Row gap="s" vertical="end">
+                          <div style={{ width: '10rem' }}>
+                            <Select
+                              id={`role-${member.id}`}
+                              label="Função"
+                              options={[
+                                { value: 'ADMIN', label: 'Admin' },
+                                { value: 'MEMBER', label: 'Membro' },
+                                { value: 'VIEWER', label: 'Visualizador' },
+                              ]}
+                              value={pendingRole || member.role}
+                              onSelect={(value: string) => setPendingRole(value)}
+                              disabled={updatingRoleId === member.id}
+                            />
+                          </div>
+                          <Button
+                            variant="primary"
+                            size="s"
+                            label={updatingRoleId === member.id ? 'Salvando...' : 'Salvar'}
+                            onClick={() => handleSaveRole(member)}
+                            disabled={updatingRoleId === member.id || !pendingRole || pendingRole === member.role}
+                          />
+                        </Row>
+                        <Row horizontal="end">
+                          <Button
+                            variant="danger"
+                            size="s"
+                            label="Remover membro"
+                            onClick={() => setRemovingMember(member)}
+                          />
+                        </Row>
+                      </Column>
+                    )}
                   </Column>
 
                   {member.role !== 'OWNER' && currentUserRole === 'OWNER' && (
                     <Button
-                      variant="danger"
+                      variant={editingMemberId === member.id ? 'tertiary' : 'secondary'}
                       size="s"
-                      label="Remover"
-                      onClick={() => setRemovingMember(member)}
+                      label={editingMemberId === member.id ? 'Fechar' : 'Editar'}
+                      onClick={() => {
+                        if (editingMemberId === member.id) {
+                          setEditingMemberId(null)
+                          setPendingRole(null)
+                        } else {
+                          setEditingMemberId(member.id)
+                          setPendingRole(member.role)
+                        }
+                      }}
                     />
                   )}
                 </Row>

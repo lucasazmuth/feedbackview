@@ -66,6 +66,7 @@ interface ProjectClientProps {
   activityLog: ActivityLogEntry[]
   error: string | null
   userEmail: string
+  userRole: string
 }
 
 const PROXY_URL = process.env.NEXT_PUBLIC_PROXY_URL || 'http://localhost:3002'
@@ -213,8 +214,10 @@ export default function ProjectClient({
   activityLog,
   error,
   userEmail,
+  userRole,
 }: ProjectClientProps) {
   const router = useRouter()
+  const canEdit = userRole === 'OWNER' || userRole === 'ADMIN'
   const [activeTab, setActiveTab] = useState<'feedbacks' | 'settings' | 'history'>('feedbacks')
   const [copied, setCopied] = useState(false)
   const [copiedEmbed, setCopiedEmbed] = useState(false)
@@ -1251,6 +1254,11 @@ export default function ProjectClient({
         {/* Settings tab */}
         {activeTab === 'settings' && (
           <Column gap="l" fillWidth>
+            {!canEdit && (
+              <FeedbackAlert variant="info">
+                Apenas o proprietário ou administrador da organização pode alterar as configurações do projeto.
+              </FeedbackAlert>
+            )}
             {/* Setup Guide */}
             {(() => {
               const mode = project?.mode ?? 'proxy'
@@ -1557,7 +1565,7 @@ export default function ProjectClient({
               <Column gap="m" fillWidth>
                 <Row horizontal="between" vertical="center" fillWidth>
                   <Heading variant="heading-strong-s" as="h3">Configurações do Projeto</Heading>
-                  {!editing && (
+                  {!editing && canEdit && (
                     <Button
                       variant="tertiary"
                       size="s"
@@ -1921,6 +1929,7 @@ export default function ProjectClient({
                     label={appearanceSaving ? 'Salvando...' : 'Salvar aparência'}
                     loading={appearanceSaving}
                     onClick={handleAppearanceSave}
+                    disabled={!canEdit}
                   />
                 </Row>
               </Column>
@@ -2041,6 +2050,7 @@ export default function ProjectClient({
                       prefixIcon={embedPaused ? 'play' : 'pause'}
                       onClick={toggleEmbedPause}
                       loading={pauseToggling}
+                      disabled={!canEdit}
                     />
                   </Flex>
                 </Column>
@@ -2070,6 +2080,7 @@ export default function ProjectClient({
                       label="Arquivar projeto"
                       prefixIcon="archive"
                       onClick={() => setShowDeleteConfirm(true)}
+                      disabled={!canEdit}
                     />
                   </Flex>
                 ) : (
