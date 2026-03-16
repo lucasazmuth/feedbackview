@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 function ConfettiCanvas() {
@@ -229,8 +229,6 @@ function SuccessContent() {
     </div>
   )
 }
-
-import { Suspense } from 'react'
 
 export default function UpgradeSuccessPage() {
   return (
