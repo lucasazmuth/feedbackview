@@ -10,6 +10,7 @@ import {
   Tag,
   Input,
   Feedback,
+  Select,
 } from '@once-ui-system/core'
 import AppLayout from '@/components/ui/AppLayout'
 import { createClient } from '@/lib/supabase/client'
@@ -41,20 +42,28 @@ const ROLE_VARIANTS: Record<string, 'brand' | 'success' | 'neutral' | 'warning'>
 export default function TeamPage() {
   const { currentOrg } = useOrg()
   const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteRole, setInviteRole] = useState<'ADMIN' | 'MEMBER' | 'VIEWER'>('MEMBER')
   const [inviteLoading, setInviteLoading] = useState(false)
   const [loading, setLoading] = useState(true)
   const [members, setMembers] = useState<Member[]>([])
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null)
   const [message, setMessage] = useState<{ type: 'success' | 'danger' | 'warning'; text: string } | null>(null)
+  const [removingMember, setRemovingMember] = useState<Member | null>(null)
+  const [removeLoading, setRemoveLoading] = useState(false)
 
   const fetchData = useCallback(async () => {
+    if (!currentOrg?.id) return
     try {
-      const res = await fetch('/api/billing/subscription')
+      const res = await fetch(`/api/billing/subscription?orgId=${currentOrg.id}`)
       if (!res.ok) return
 
       const data = await res.json()
       const orgId = data.organization.id
 
       const supabase = createClient()
+
+      // Get current user to determine their role
+      const { data: { user } } = await supabase.auth.getUser()
 
       const { data: teamMembers } = await supabase
         .from('TeamMember')
@@ -65,6 +74,14 @@ export default function TeamPage() {
 
       if (teamMembers) {
         const orgName = data.organization.name || ''
+
+        // Find current user's role
+        if (user) {
+          const myMembership = teamMembers.find((tm: Record<string, unknown>) => tm.userId === user.id)
+          if (myMembership) {
+            setCurrentUserRole((myMembership as Record<string, unknown>).role as string)
+          }
+        }
 
         setMembers(
           teamMembers.map((tm: Record<string, unknown>) => ({
@@ -81,7 +98,7 @@ export default function TeamPage() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [currentOrg?.id])
 
   useEffect(() => {
     fetchData()
@@ -96,7 +113,7 @@ export default function TeamPage() {
       const res = await fetch('/api/team/invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: inviteEmail.trim(), orgId: currentOrg.id }),
+        body: JSON.stringify({ email: inviteEmail.trim(), orgId: currentOrg.id, role: inviteRole }),
       })
       const data = await res.json()
       if (res.ok) {
@@ -110,6 +127,32 @@ export default function TeamPage() {
       setMessage({ type: 'danger', text: 'Erro de conexão.' })
     } finally {
       setInviteLoading(false)
+    }
+  }
+
+  const handleRemove = async () => {
+    if (!removingMember || !currentOrg) return
+    setRemoveLoading(true)
+    setMessage(null)
+
+    try {
+      const res = await fetch('/api/team/remove', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberId: removingMember.id, orgId: currentOrg.id }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setMessage({ type: 'success', text: `${removingMember.name} foi removido da organização.` })
+        fetchData()
+      } else {
+        setMessage({ type: 'danger', text: data.error || 'Erro ao remover membro.' })
+      }
+    } catch {
+      setMessage({ type: 'danger', text: 'Erro de conexão.' })
+    } finally {
+      setRemoveLoading(false)
+      setRemovingMember(null)
     }
   }
 
@@ -179,6 +222,19 @@ export default function TeamPage() {
                 placeholder="colega@empresa.com"
               />
             </div>
+            <div style={{ width: '10rem' }}>
+              <Select
+                id="invite-role"
+                label="Função"
+                options={[
+                  { value: 'ADMIN', label: 'Admin' },
+                  { value: 'MEMBER', label: 'Membro' },
+                  { value: 'VIEWER', label: 'Visualizador' },
+                ]}
+                value={inviteRole}
+                onSelect={(value: string) => setInviteRole(value as 'ADMIN' | 'MEMBER' | 'VIEWER')}
+              />
+            </div>
             <Button
               variant="primary"
               size="m"
@@ -227,12 +283,12 @@ export default function TeamPage() {
                     )}
                   </Column>
 
-                  {member.role !== 'OWNER' && (
+                  {member.role !== 'OWNER' && currentUserRole === 'OWNER' && (
                     <Button
                       variant="danger"
                       size="s"
                       label="Remover"
-                      disabled
+                      onClick={() => setRemovingMember(member)}
                     />
                   )}
                 </Row>
@@ -241,6 +297,55 @@ export default function TeamPage() {
           </Column>
         </Column>
       </Column>
+
+      {/* Confirmation modal */}
+      {removingMember && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+          onClick={() => !removeLoading && setRemovingMember(null)}
+        >
+          <Column
+            padding="l"
+            gap="m"
+            radius="l"
+            background="surface"
+            border="neutral-medium"
+            style={{ maxWidth: '28rem', width: '100%' }}
+            onClick={(e: React.MouseEvent) => e.stopPropagation()}
+          >
+            <Column gap="4">
+              <Heading variant="heading-strong-m">Remover membro</Heading>
+              <Text variant="body-default-s" onBackground="neutral-weak">
+                Tem certeza que deseja remover <strong>{removingMember.name}</strong> ({removingMember.email}) da organização? Esta ação não pode ser desfeita.
+              </Text>
+            </Column>
+            <Row gap="s" horizontal="end">
+              <Button
+                variant="secondary"
+                size="m"
+                label="Cancelar"
+                onClick={() => setRemovingMember(null)}
+                disabled={removeLoading}
+              />
+              <Button
+                variant="danger"
+                size="m"
+                label={removeLoading ? 'Removendo...' : 'Remover'}
+                onClick={handleRemove}
+                disabled={removeLoading}
+              />
+            </Row>
+          </Column>
+        </div>
+      )}
     </AppLayout>
   )
 }

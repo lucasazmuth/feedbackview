@@ -2,6 +2,8 @@ import { requireUser } from '@/lib/auth'
 import { serverApi } from '@/lib/api.server'
 import DashboardClient from './DashboardClient'
 
+export const dynamic = 'force-dynamic'
+
 export default async function DashboardPage() {
   const user = await requireUser()
 

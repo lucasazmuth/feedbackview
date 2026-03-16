@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useOrg } from '@/contexts/OrgContext'
 import {
   Column,
   Row,
@@ -77,28 +78,32 @@ const PLANS: {
 function UpgradeContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { currentOrg } = useOrg()
   const [loading, setLoading] = useState(true)
   const [upgradeLoading, setUpgradeLoading] = useState<string | null>(null)
   const [portalLoading, setPortalLoading] = useState(false)
   const [currentPlan, setCurrentPlan] = useState<Plan>('FREE')
   const [stripeSubscriptionId, setStripeSubscriptionId] = useState<string | null>(null)
+  const [userRole, setUserRole] = useState<string>('MEMBER')
 
   const canceled = searchParams.get('canceled') === 'true'
 
   const fetchData = useCallback(async () => {
+    if (!currentOrg?.id) return
     try {
-      const res = await fetch('/api/billing/subscription')
+      const res = await fetch(`/api/billing/subscription?orgId=${currentOrg.id}`)
       if (res.ok) {
         const data = await res.json()
         setCurrentPlan(data.organization.plan || 'FREE')
         setStripeSubscriptionId(data.organization.stripeSubscriptionId)
+        setUserRole(data.role || 'MEMBER')
       }
     } catch {
       // defaults
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [currentOrg?.id])
 
   useEffect(() => {
     fetchData()
@@ -145,6 +150,22 @@ function UpgradeContent() {
       <AppLayout>
         <Column as="main" fillWidth paddingX="xl" paddingY="l" gap="l" style={{ margin: '0 auto', maxWidth: '72rem' }}>
           <Text variant="body-default-m" onBackground="neutral-weak">Carregando...</Text>
+        </Column>
+      </AppLayout>
+    )
+  }
+
+  if (userRole !== 'OWNER') {
+    return (
+      <AppLayout>
+        <Column as="main" fillWidth paddingX="xl" paddingY="l" gap="l" horizontal="center" style={{ margin: '0 auto', maxWidth: '72rem' }}>
+          <Column gap="s" horizontal="center" style={{ textAlign: 'center', paddingTop: '4rem' }}>
+            <Heading variant="heading-strong-l">Acesso restrito</Heading>
+            <Text variant="body-default-m" onBackground="neutral-weak">
+              Apenas o proprietário da organização pode alterar o plano.
+            </Text>
+            <Button variant="secondary" size="m" label="Voltar para Planos" onClick={() => router.push('/plans')} />
+          </Column>
         </Column>
       </AppLayout>
     )

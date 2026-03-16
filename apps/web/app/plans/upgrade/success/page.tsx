@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useOrg } from '@/contexts/OrgContext'
 
 function ConfettiCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -94,6 +95,7 @@ function formatPlan(plan: string): string {
 function SuccessContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { currentOrg } = useOrg()
   const [planName, setPlanName] = useState('')
   const [show, setShow] = useState(false)
 
@@ -104,7 +106,7 @@ function SuccessContent() {
       setPlanName(formatPlan(planParam))
     } else {
       // Fallback: fetch from API
-      fetch('/api/billing/subscription')
+      fetch(`/api/billing/subscription${currentOrg?.id ? `?orgId=${currentOrg.id}` : ''}`)
         .then(r => r.json())
         .then(data => {
           const plan = data.organization?.plan || 'Pro'

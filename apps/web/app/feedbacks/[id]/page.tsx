@@ -3,6 +3,8 @@ import { serverApi } from '@/lib/api.server'
 import { notFound } from 'next/navigation'
 import FeedbackClient from './FeedbackClient'
 
+export const dynamic = 'force-dynamic'
+
 interface PageProps {
   params: Promise<{ id: string }>
 }

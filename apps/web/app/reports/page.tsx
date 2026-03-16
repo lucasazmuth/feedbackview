@@ -2,6 +2,8 @@ import { requireUser } from '@/lib/auth'
 import { serverApi } from '@/lib/api.server'
 import ReportsClient from './ReportsClient'
 
+export const dynamic = 'force-dynamic'
+
 export default async function ReportsPage() {
   const user = await requireUser()
 

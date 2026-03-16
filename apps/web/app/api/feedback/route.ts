@@ -48,7 +48,12 @@ export async function POST(req: NextRequest) {
       const originDomain = normalizeDomain(origin)
       const projectDomain = normalizeDomain(project.targetUrl)
       if (originDomain !== projectDomain) {
-        return corsJson({ error: 'Site não autorizado.' }, 403)
+        // Allow localhost in development mode
+        const isDev = process.env.NODE_ENV === 'development'
+        const isLocalhost = originDomain === 'localhost' || originDomain === '127.0.0.1'
+        if (!(isDev && isLocalhost)) {
+          return corsJson({ error: 'Site não autorizado.' }, 403)
+        }
       }
     }
 

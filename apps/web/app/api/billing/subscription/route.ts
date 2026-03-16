@@ -15,15 +15,22 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get user's organization with membership
-    const { data: membership } = await supabaseAdmin
+    // Support orgId query param to fetch specific org's subscription
+    const requestedOrgId = req.nextUrl.searchParams.get('orgId')
+
+    let membershipQuery = supabaseAdmin
       .from('TeamMember')
       .select('organizationId, role, organization:Organization(*)')
       .eq('userId', user.id)
       .eq('status', 'ACTIVE')
-      .order('role', { ascending: true }) // OWNER comes first alphabetically... actually use limit
-      .limit(1)
-      .single()
+
+    if (requestedOrgId) {
+      membershipQuery = membershipQuery.eq('organizationId', requestedOrgId)
+    } else {
+      membershipQuery = membershipQuery.order('role', { ascending: true })
+    }
+
+    const { data: membership } = await membershipQuery.limit(1).single()
 
     if (!membership?.organization) {
       return NextResponse.json({ error: 'Organization not found' }, { status: 404 })

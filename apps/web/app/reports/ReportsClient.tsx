@@ -13,6 +13,7 @@ import {
   Flex,
 } from '@once-ui-system/core'
 import AppLayout from '@/components/ui/AppLayout'
+import { useOrg } from '@/contexts/OrgContext'
 
 interface Feedback {
   id: string
@@ -30,6 +31,7 @@ interface Feedback {
 interface Project {
   id: string
   name: string
+  organizationId?: string | null
 }
 
 interface ReportsClientProps {
@@ -83,6 +85,14 @@ function getSeverityLabel(sev: string) {
 
 export default function ReportsClient({ feedbacks, projects, error }: ReportsClientProps) {
   const router = useRouter()
+  const { currentOrg } = useOrg()
+
+  // Filter by current org
+  const orgProjects = currentOrg
+    ? projects.filter((p) => p.organizationId === currentOrg.id)
+    : projects
+  const orgProjectIds = new Set(orgProjects.map((p) => p.id))
+  const orgFeedbacks = feedbacks.filter((f) => orgProjectIds.has(f.projectId))
 
   const [search, setSearch] = useState('')
   const [projectFilter, setProjectFilter] = useState('')
@@ -102,7 +112,7 @@ export default function ReportsClient({ feedbacks, projects, error }: ReportsCli
     localStorage.setItem('reports-view-mode', mode)
   }
 
-  const filteredFeedbacks = feedbacks.filter((f) => {
+  const filteredFeedbacks = orgFeedbacks.filter((f) => {
     if (projectFilter && f.projectId !== projectFilter) return false
     if (typeFilter && f.type !== typeFilter) return false
     if (severityFilter && f.severity !== severityFilter) return false
@@ -121,9 +131,9 @@ export default function ReportsClient({ feedbacks, projects, error }: ReportsCli
 
   const hasActiveFilter = projectFilter !== '' || typeFilter !== '' || severityFilter !== '' || statusFilter !== ''
 
-  const totalCount = feedbacks.length
-  const openCount = feedbacks.filter((f) => f.status === 'OPEN').length
-  const criticalCount = feedbacks.filter((f) => f.severity === 'CRITICAL').length
+  const totalCount = orgFeedbacks.length
+  const openCount = orgFeedbacks.filter((f) => f.status === 'OPEN').length
+  const criticalCount = orgFeedbacks.filter((f) => f.severity === 'CRITICAL').length
 
   if (error) {
     return (
@@ -273,7 +283,7 @@ export default function ReportsClient({ feedbacks, projects, error }: ReportsCli
                     >
                       Todos
                     </button>
-                    {projects.map((p) => (
+                    {orgProjects.map((p) => (
                       <button
                         key={p.id}
                         onClick={() => setProjectFilter(p.id)}

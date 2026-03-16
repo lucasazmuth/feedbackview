@@ -12,6 +12,7 @@ import {
   Feedback,
 } from '@once-ui-system/core'
 import AppLayout from '@/components/ui/AppLayout'
+import { useOrg } from '@/contexts/OrgContext'
 import { SkeletonBar, SkeletonCard } from '@/components/ui/LoadingSkeleton'
 
 interface Notification {
@@ -147,6 +148,7 @@ function timeAgo(dateStr: string): string {
 
 export default function NotificationsPage() {
   const router = useRouter()
+  const { refreshOrgs, switchOrg } = useOrg()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
@@ -202,6 +204,11 @@ export default function NotificationsPage() {
       if (res.ok) {
         setMessage({ type: 'success', text: 'Convite aceito! Agora você faz parte da organização.' })
         setNotifications((prev) => prev.filter((i) => i.id !== inviteId))
+        // Refresh orgs and switch to the new workspace
+        await refreshOrgs()
+        if (data.organizationId) {
+          switchOrg(data.organizationId)
+        }
       } else {
         setMessage({ type: 'danger', text: data.error || 'Erro ao aceitar convite.' })
       }

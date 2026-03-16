@@ -25,12 +25,13 @@ export default function Sidebar() {
   const dropdownRef = useRef<HTMLDivElement>(null)
   const [usage, setUsage] = useState<{ reportsUsed: number; maxReports: number; isLifetimeLimit: boolean } | null>(null)
 
-  // Fetch usage data
+  // Fetch usage data for the currently selected org
   useEffect(() => {
     let cancelled = false
     async function fetchUsage() {
+      if (!currentOrg?.id) return
       try {
-        const res = await fetch('/api/billing/subscription')
+        const res = await fetch(`/api/billing/subscription?orgId=${currentOrg.id}`)
         if (res.ok && !cancelled) {
           const data = await res.json()
           const plan = (data.organization?.plan || 'FREE') as Plan
@@ -43,6 +44,7 @@ export default function Sidebar() {
         }
       } catch { /* ignore */ }
     }
+    setUsage(null) // Reset while loading new org data
     fetchUsage()
     return () => { cancelled = true }
   }, [currentOrg?.id])

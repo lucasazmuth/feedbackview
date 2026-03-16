@@ -15,12 +15,15 @@ import {
 } from '@once-ui-system/core'
 import AppLayout from '@/components/ui/AppLayout'
 import UpgradeModal from '@/components/ui/UpgradeModal'
+import { useOrg } from '@/contexts/OrgContext'
 import { getPlanLimits, getUsageWarning, getReportsUsagePercent, type Plan, type Role, type Usage } from '@/lib/limits'
 
 interface Project {
   id: string
   name: string
   url: string
+  organizationId?: string | null
+  ownerId?: string
   openFeedbackCount?: number
   _count?: { feedbacks: number }
   createdAt: string
@@ -74,6 +77,7 @@ export default function DashboardClient({
   userName,
 }: DashboardClientProps) {
   const router = useRouter()
+  const { currentOrg } = useOrg()
   const [usageWarning, setUsageWarning] = useState<string | null>(null)
   const [currentPlan, setCurrentPlan] = useState<Plan>('FREE')
   const [reportsUsed, setReportsUsed] = useState(0)
@@ -82,9 +86,10 @@ export default function DashboardClient({
   const [isLifetimeLimit, setIsLifetimeLimit] = useState(false)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   useEffect(() => {
+    if (!currentOrg?.id) return
     async function fetchUsage() {
       try {
-        const res = await fetch('/api/billing/subscription')
+        const res = await fetch(`/api/billing/subscription?orgId=${currentOrg!.id}`)
         if (!res.ok) return
         const data = await res.json()
         const plan = (data.organization?.plan || 'FREE') as Plan
@@ -105,7 +110,13 @@ export default function DashboardClient({
       }
     }
     fetchUsage()
-  }, [])
+  }, [currentOrg?.id])
+
+  // Filter projects by current org
+  const orgProjects = useMemo(() => {
+    if (!currentOrg) return projects
+    return projects.filter((p) => p.organizationId === currentOrg.id)
+  }, [projects, currentOrg])
 
   const [showFilter, setShowFilter] = useState(false)
   const [filterStatus, setFilterStatus] = useState<'all' | 'open' | 'none'>('all')
@@ -126,7 +137,7 @@ export default function DashboardClient({
   }
 
   const filteredProjects = useMemo(() => {
-    let result = [...projects]
+    let result = [...orgProjects]
 
     if (search.trim()) {
       const q = search.trim().toLowerCase()
@@ -148,7 +159,7 @@ export default function DashboardClient({
     }
 
     return result
-  }, [projects, search, filterStatus, sortBy])
+  }, [orgProjects, search, filterStatus, sortBy])
 
   const hasActiveFilter = filterStatus !== 'all' || sortBy !== 'recent'
 
@@ -191,7 +202,7 @@ export default function DashboardClient({
         )}
 
         {/* Toolbar: search + filter + new project */}
-        {projects.length > 0 && (
+        {orgProjects.length > 0 && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', width: '100%' }}>
             {/* Search */}
             <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
@@ -421,7 +432,7 @@ export default function DashboardClient({
         )}
 
         {/* Empty state */}
-        {projects.length === 0 && !error && (
+        {orgProjects.length === 0 && !error && (
           <Column fillWidth horizontal="center" vertical="center" paddingY="xl" gap="m">
             <Heading variant="heading-strong-m">Nenhum projeto ainda</Heading>
             <Text

@@ -52,23 +52,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Já existe um convite pendente para este email.' }, { status: 409 })
     }
 
-    // Check if user with this email is already an active member
     // Look up user by email in auth.users via admin API
     const { data: { users } } = await supabaseAdmin.auth.admin.listUsers()
     const targetUser = users?.find((u: { email?: string }) => u.email?.toLowerCase() === email.toLowerCase())
 
-    if (targetUser) {
-      const { data: existingMember } = await supabaseAdmin
-        .from('TeamMember')
-        .select('id')
-        .eq('organizationId', orgId)
-        .eq('userId', targetUser.id)
-        .eq('status', 'ACTIVE')
-        .single()
+    if (!targetUser) {
+      return NextResponse.json({ error: 'Nenhuma conta encontrada com este email. O membro precisa criar uma conta antes de ser convidado.' }, { status: 404 })
+    }
 
-      if (existingMember) {
-        return NextResponse.json({ error: 'Este usuário já é membro da organização.' }, { status: 409 })
-      }
+    // Check if user with this email is already an active member
+    const { data: existingMember } = await supabaseAdmin
+      .from('TeamMember')
+      .select('id')
+      .eq('organizationId', orgId)
+      .eq('userId', targetUser.id)
+      .eq('status', 'ACTIVE')
+      .single()
+
+    if (existingMember) {
+      return NextResponse.json({ error: 'Este usuário já é membro da organização.' }, { status: 409 })
     }
 
     // Create pending invite
@@ -79,7 +81,7 @@ export async function POST(req: NextRequest) {
       .insert({
         id: inviteId,
         organizationId: orgId,
-        userId: targetUser?.id || null,
+        userId: targetUser.id,
         inviteEmail: email.toLowerCase(),
         role: inviteRole,
         status: 'PENDING',

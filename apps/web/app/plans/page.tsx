@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useOrg } from '@/contexts/OrgContext'
 import {
   Column,
   Row,
@@ -76,6 +77,7 @@ interface UsageData {
 function PlansContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { currentOrg } = useOrg()
   const [loading, setLoading] = useState(true)
   const [portalLoading, setPortalLoading] = useState(false)
 
@@ -88,13 +90,15 @@ function PlansContent() {
   const [usage, setUsage] = useState<UsageData>({
     reportsUsed: 0,
   })
+  const [userRole, setUserRole] = useState<string>('MEMBER')
 
   const success = searchParams.get('success') === 'true'
   const canceled = searchParams.get('canceled') === 'true'
 
   const fetchData = useCallback(async () => {
+    if (!currentOrg?.id) return
     try {
-      const res = await fetch('/api/billing/subscription')
+      const res = await fetch(`/api/billing/subscription?orgId=${currentOrg.id}`)
       if (res.ok) {
         const data = await res.json()
         const plan = data.organization.plan || 'FREE'
@@ -106,13 +110,14 @@ function PlansContent() {
           stripeSubscriptionId: data.organization.stripeSubscriptionId,
         })
         setUsage({ reportsUsed: data.usage?.reportsUsed ?? 0 })
+        setUserRole(data.role || 'MEMBER')
       }
     } catch {
       // Use defaults
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [currentOrg?.id])
 
   useEffect(() => {
     fetchData()
@@ -121,6 +126,7 @@ function PlansContent() {
   const currentPlan = org.plan
   const limits = getPlanLimits(currentPlan)
   const hasPaidPlan = currentPlan !== 'FREE'
+  const isOwner = userRole === 'OWNER'
 
   const handleManageSubscription = async () => {
     setPortalLoading(true)
@@ -190,9 +196,15 @@ function PlansContent() {
         <Column gap="xs">
           <Heading variant="heading-strong-l">Planos</Heading>
           <Text variant="body-default-s" onBackground="neutral-weak">
-            Gerencie seu plano e acompanhe o consumo
+            {isOwner ? 'Gerencie seu plano e acompanhe o consumo' : 'Visualize o plano e consumo da organização'}
           </Text>
         </Column>
+
+        {!isOwner && (
+          <Feedback variant="info">
+            Apenas o proprietário da organização pode gerenciar o plano e pagamentos.
+          </Feedback>
+        )}
 
         {success && (
           <Feedback variant="success">Assinatura ativada com sucesso! Seus limites foram atualizados.</Feedback>
@@ -213,27 +225,31 @@ function PlansContent() {
                   label={PLAN_NAMES[currentPlan]}
                 />
               </Row>
-              <Text variant="body-default-s" onBackground="neutral-weak">
-                {PLAN_PRICES[currentPlan]}/mês
-              </Text>
-            </Column>
-            <Column gap="xs">
-              {hasPaidPlan && (
-                <Button
-                  variant="secondary"
-                  size="s"
-                  label={portalLoading ? 'Abrindo...' : 'Gerenciar assinatura'}
-                  onClick={handleManageSubscription}
-                  disabled={portalLoading}
-                />
+              {isOwner && (
+                <Text variant="body-default-s" onBackground="neutral-weak">
+                  {PLAN_PRICES[currentPlan]}/mês
+                </Text>
               )}
-              <Button
-                variant={hasPaidPlan ? 'tertiary' : 'primary'}
-                size="s"
-                label={hasPaidPlan ? 'Alterar plano' : 'Fazer upgrade'}
-                onClick={() => router.push('/plans/upgrade')}
-              />
             </Column>
+            {isOwner && (
+              <Column gap="xs">
+                {hasPaidPlan && (
+                  <Button
+                    variant="secondary"
+                    size="s"
+                    label={portalLoading ? 'Abrindo...' : 'Gerenciar assinatura'}
+                    onClick={handleManageSubscription}
+                    disabled={portalLoading}
+                  />
+                )}
+                <Button
+                  variant={hasPaidPlan ? 'tertiary' : 'primary'}
+                  size="s"
+                  label={hasPaidPlan ? 'Alterar plano' : 'Fazer upgrade'}
+                  onClick={() => router.push('/plans/upgrade')}
+                />
+              </Column>
+            )}
           </Row>
         </Column>
 
@@ -247,7 +263,7 @@ function PlansContent() {
         <Column fillWidth padding="l" gap="m" radius="l" border="neutral-medium" background="surface">
           <Row fillWidth horizontal="between" vertical="center">
             <Heading variant="heading-strong-m">Recursos do plano</Heading>
-            <Button variant="tertiary" size="s" label="Ver todos os planos" onClick={() => router.push('/plans/upgrade')} />
+            {isOwner && <Button variant="tertiary" size="s" label="Ver todos os planos" onClick={() => router.push('/plans/upgrade')} />}
           </Row>
           <Column gap="s">
             {[
