@@ -168,38 +168,6 @@ export default function UpgradeSuccessPage() {
           </p>
         </div>
 
-        {/* Features unlocked */}
-        <div style={{
-          display: 'flex',
-          gap: '1rem',
-          flexWrap: 'wrap',
-          justifyContent: 'center',
-        }}>
-          {[
-            { icon: '⚡', label: 'Mais reports' },
-            { icon: '📊', label: 'Logs avançados' },
-            { icon: '🕐', label: 'Maior retenção' },
-          ].map((item) => (
-            <div key={item.label} style={{
-              padding: '0.75rem 1.25rem',
-              borderRadius: '1rem',
-              background: 'rgba(255, 255, 255, 0.8)',
-              backdropFilter: 'blur(8px)',
-              border: '1px solid rgba(0, 0, 0, 0.06)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              color: '#374151',
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.04)',
-            }}>
-              <span style={{ fontSize: '1.125rem' }}>{item.icon}</span>
-              {item.label}
-            </div>
-          ))}
-        </div>
-
         {/* CTA */}
         <button
           onClick={() => router.push('/dashboard')}
