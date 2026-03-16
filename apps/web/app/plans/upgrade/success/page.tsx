@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 function ConfettiCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -85,24 +85,36 @@ function ConfettiCanvas() {
   )
 }
 
-export default function UpgradeSuccessPage() {
+function formatPlan(plan: string): string {
+  if (plan === 'PRO' || plan === 'Pro') return 'Pro'
+  if (plan === 'BUSINESS' || plan === 'Business') return 'Business'
+  return plan
+}
+
+function SuccessContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [planName, setPlanName] = useState('')
   const [show, setShow] = useState(false)
 
   useEffect(() => {
-    // Fetch the current plan name
-    fetch('/api/billing/subscription')
-      .then(r => r.json())
-      .then(data => {
-        const plan = data.organization?.plan || 'Pro'
-        setPlanName(plan === 'PRO' ? 'Pro' : plan === 'BUSINESS' ? 'Business' : plan)
-      })
-      .catch(() => setPlanName('Pro'))
+    // Use plan from URL param (most reliable, set at checkout time)
+    const planParam = searchParams.get('plan')
+    if (planParam) {
+      setPlanName(formatPlan(planParam))
+    } else {
+      // Fallback: fetch from API
+      fetch('/api/billing/subscription')
+        .then(r => r.json())
+        .then(data => {
+          const plan = data.organization?.plan || 'Pro'
+          setPlanName(formatPlan(plan))
+        })
+        .catch(() => setPlanName('Pro'))
+    }
 
-    // Animate in
     requestAnimationFrame(() => setShow(true))
-  }, [])
+  }, [searchParams])
 
   return (
     <div style={{
@@ -215,5 +227,15 @@ export default function UpgradeSuccessPage() {
         }
       `}</style>
     </div>
+  )
+}
+
+import { Suspense } from 'react'
+
+export default function UpgradeSuccessPage() {
+  return (
+    <Suspense>
+      <SuccessContent />
+    </Suspense>
   )
 }
