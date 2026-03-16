@@ -1,3 +1,4 @@
+import Script from 'next/script'
 import type { Metadata } from 'next'
 import { Inter, Space_Grotesk } from 'next/font/google'
 import '@once-ui-system/core/css/tokens.css'
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body className={inter.className} style={{ ['--font-logo' as string]: spaceGrotesk.style.fontFamily }}>
         <Providers>{children}</Providers>
+        <Script src="/embed.js?v=2" data-project="d21f0583-5d85-4e3f-aa4b-e1a6c9bcd2a6" strategy="lazyOnload" />
       </body>
     </html>
   )
