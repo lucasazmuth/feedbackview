@@ -38,10 +38,11 @@ export async function GET(
       return corsJson({ error: 'Project not found' }, 404)
     }
 
-    // Origin validation — block unauthorized sites (skip for localhost dev)
+    // Origin validation — block unauthorized sites (skip for localhost dev and own app)
     const origin = req.headers.get('origin') || req.headers.get('referer') || ''
     const isLocalhost = origin.includes('localhost') || origin.includes('127.0.0.1')
-    if (origin && project.targetUrl && !isLocalhost) {
+    const isOwnApp = origin.includes('feedbackview-web.vercel.app') || origin.includes('reportbug.pro')
+    if (origin && project.targetUrl && !isLocalhost && !isOwnApp) {
       const originDomain = normalizeDomain(origin)
       const projectDomain = normalizeDomain(project.targetUrl)
       if (originDomain !== projectDomain) {
