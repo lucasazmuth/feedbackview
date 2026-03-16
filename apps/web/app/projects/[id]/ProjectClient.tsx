@@ -1866,18 +1866,34 @@ export default function ProjectClient({
                         </div>
                       </div>
 
-                      {/* Mock page content */}
-                      <div style={{ position: 'relative', height: 200, background: '#f8fafc', padding: '1.5rem' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                          <div style={{ width: '60%', height: 12, borderRadius: 4, background: '#e2e8f0' }} />
-                          <div style={{ width: '90%', height: 8, borderRadius: 3, background: '#e2e8f0' }} />
-                          <div style={{ width: '75%', height: 8, borderRadius: 3, background: '#e2e8f0' }} />
-                          <div style={{ width: '40%', height: 8, borderRadius: 3, background: '#e2e8f0' }} />
-                          <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
-                            <div style={{ width: '45%', height: 40, borderRadius: 6, background: '#e2e8f0' }} />
-                            <div style={{ width: '45%', height: 40, borderRadius: 6, background: '#e2e8f0' }} />
+                      {/* Site preview with iframe or skeleton fallback */}
+                      <div style={{ position: 'relative', height: 200, overflow: 'hidden' }}>
+                        {project?.targetUrl ? (
+                          <iframe
+                            src={project.targetUrl}
+                            title="Preview do site"
+                            sandbox="allow-scripts allow-same-origin"
+                            style={{
+                              width: '200%',
+                              height: '200%',
+                              border: 'none',
+                              transform: 'scale(0.5)',
+                              transformOrigin: 'top left',
+                              pointerEvents: 'none',
+                            }}
+                          />
+                        ) : (
+                          <div style={{ width: '100%', height: '100%', background: '#f8fafc', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            <div style={{ width: '60%', height: 12, borderRadius: 4, background: '#e2e8f0' }} />
+                            <div style={{ width: '90%', height: 8, borderRadius: 3, background: '#e2e8f0' }} />
+                            <div style={{ width: '75%', height: 8, borderRadius: 3, background: '#e2e8f0' }} />
+                            <div style={{ width: '40%', height: 8, borderRadius: 3, background: '#e2e8f0' }} />
+                            <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
+                              <div style={{ width: '45%', height: 40, borderRadius: 6, background: '#e2e8f0' }} />
+                              <div style={{ width: '45%', height: 40, borderRadius: 6, background: '#e2e8f0' }} />
+                            </div>
                           </div>
-                        </div>
+                        )}
 
                         {/* Widget preview */}
                         <div style={{

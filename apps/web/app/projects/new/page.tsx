@@ -53,6 +53,11 @@ export default function NewProjectPage() {
 
   const [step, setStep] = useState(1)
   const [mode, setMode] = useState<Mode | null>(null)
+  const [recommendedMode, setRecommendedMode] = useState<Mode | null>(null)
+  const [proxyBlocked, setProxyBlocked] = useState(false)
+  const [siteType, setSiteType] = useState<string | null>(null)
+  const [urlAnalyzing, setUrlAnalyzing] = useState(false)
+  const [urlReady, setUrlReady] = useState(false)
 
   const [targetUrl, setTargetUrl] = useState('')
   const [urlError, setUrlError] = useState<string | null>(null)
@@ -159,6 +164,75 @@ export default function NewProjectPage() {
     }
   }, [])
 
+  // Step 1 → Step 2: after URL is validated, analyze and go to integration
+  async function analyzeAndProceed() {
+    if (!targetUrl || urlError) return
+    setUrlAnalyzing(true)
+    setRecommendedMode(null)
+    setProxyBlocked(false)
+    setSiteType(null)
+
+    try {
+      // Check URL accessibility and determine recommended mode
+      const res = await fetch('/api/check-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: targetUrl }),
+      })
+      const data = await res.json()
+      const warnings: UrlWarning[] = data.warnings || []
+      setUrlWarnings(warnings)
+      setUrlChecked(true)
+      setUrlValid(!warnings.some((w: UrlWarning) => w.type === 'error'))
+
+      // Use API response for recommendation
+      const recommended: Mode = data.recommendedMode || 'proxy'
+      const blocked = data.proxyBlocked || false
+      setRecommendedMode(recommended)
+      setProxyBlocked(blocked)
+      setSiteType(data.siteType || null)
+      setMode(recommended)
+      setUrlReady(true)
+
+      // Auto-fill project name from meta title or URL hostname
+      if (data.metaTitle) {
+        setValue('name', data.metaTitle.slice(0, 80))
+      } else {
+        try {
+          const hostname = new URL(targetUrl).hostname.replace(/^www\./, '')
+          const siteName = hostname.split('.')[0]
+          setValue('name', siteName.charAt(0).toUpperCase() + siteName.slice(1))
+        } catch { /* ignore */ }
+      }
+
+      // Auto-fill description from meta description
+      if (data.metaDescription) {
+        setValue('description', data.metaDescription)
+      }
+
+      // Auto-advance to step 2
+      setValue('targetUrl', targetUrl)
+      setStep(2)
+    } catch {
+      // If check fails, default to embed and proceed
+      setRecommendedMode('embed')
+      setMode('embed')
+      setUrlReady(true)
+
+      try {
+        const hostname = new URL(targetUrl).hostname.replace(/^www\./, '')
+        const siteName = hostname.split('.')[0]
+        const capitalized = siteName.charAt(0).toUpperCase() + siteName.slice(1)
+        setValue('name', capitalized)
+      } catch { /* ignore */ }
+
+      setValue('targetUrl', targetUrl)
+      setStep(2)
+    } finally {
+      setUrlAnalyzing(false)
+    }
+  }
+
   function goToStep2(selectedMode: Mode) {
     setMode(selectedMode)
     if (targetUrl) {
@@ -167,9 +241,13 @@ export default function NewProjectPage() {
     setStep(2)
   }
 
-  function goToStep3(data: ProjectForm) {
-    setSavedFormData(data)
+  function goToStep3() {
     setStep(3)
+  }
+
+  function goToStep4(data: ProjectForm) {
+    setSavedFormData(data)
+    setStep(4)
   }
 
   async function onFinalSubmit() {
@@ -226,9 +304,10 @@ export default function NewProjectPage() {
         <div style={{ flex: 1 }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           {[
-            { num: 1, label: 'Integração' },
-            { num: 2, label: 'Dados' },
-            { num: 3, label: 'Widget' },
+            { num: 1, label: 'URL' },
+            { num: 2, label: 'Integração' },
+            { num: 3, label: 'Dados' },
+            { num: 4, label: 'Widget' },
           ].map((s, i) => (
             <div key={s.num} style={{ display: 'contents' }}>
               {i > 0 && (
@@ -274,7 +353,7 @@ export default function NewProjectPage() {
       <Column
         as="main"
         fillWidth
-        maxWidth={step === 3 ? 56 : 36}
+        maxWidth={step === 4 ? 56 : 36}
         paddingX="l"
         paddingY="xl"
         gap="xl"
@@ -326,8 +405,224 @@ export default function NewProjectPage() {
           </Column>
         )}
 
-        {/* Step 1: Choose integration mode */}
+        {/* Step 1: URL Input — beautiful domain-purchase style */}
         {!limitBlocked && !limitLoading && step === 1 && (
+          <Column gap="l" horizontal="center" style={{ paddingTop: '2rem' }}>
+            <Column gap="8" horizontal="center">
+              <Heading variant="heading-strong-xl" as="h1" align="center">
+                Qual site você quer monitorar?
+              </Heading>
+              <Text variant="body-default-m" onBackground="neutral-weak" align="center" style={{ maxWidth: '28rem' }}>
+                Insira a URL do seu site para começar a coletar feedbacks dos seus usuários.
+              </Text>
+            </Column>
+
+            {/* URL input card */}
+            <div
+              style={{
+                width: '100%',
+                padding: '2rem',
+                borderRadius: '1rem',
+                border: '1px solid var(--neutral-border-medium)',
+                background: 'var(--surface-background)',
+                boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+              }}
+            >
+              <Column gap="m">
+                <div style={{ position: 'relative' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      padding: '0.875rem 1rem',
+                      borderRadius: '0.75rem',
+                      border: `2px solid ${urlError ? '#dc2626' : targetUrl && isUrlValid ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)'}`,
+                      background: 'var(--surface-background)',
+                      transition: 'border-color 0.2s',
+                    }}
+                  >
+                    <div style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: '0.5rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: urlError ? '#fef2f2' : targetUrl && isUrlValid ? 'var(--brand-alpha-weak)' : 'var(--neutral-alpha-weak)',
+                      flexShrink: 0,
+                      transition: 'all 0.2s',
+                    }}>
+                      <SvgIcon size={18}>
+                        {urlError ? (
+                          <><circle cx="12" cy="12" r="10" stroke="#dc2626" /><line x1="15" y1="9" x2="9" y2="15" stroke="#dc2626" /><line x1="9" y1="9" x2="15" y2="15" stroke="#dc2626" /></>
+                        ) : targetUrl && isUrlValid ? (
+                          <><rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="var(--brand-solid-strong)" /><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="var(--brand-solid-strong)" /></>
+                        ) : (
+                          <><circle cx="12" cy="12" r="10" stroke="var(--neutral-on-background-weak)" /><line x1="2" y1="12" x2="22" y2="12" stroke="var(--neutral-on-background-weak)" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" stroke="var(--neutral-on-background-weak)" /></>
+                        )}
+                      </SvgIcon>
+                    </div>
+                    <input
+                      type="url"
+                      placeholder="meusite.com.br"
+                      value={targetUrl}
+                      onChange={(e) => handleUrlChange(e.target.value)}
+                      onBlur={handleUrlBlur}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && isUrlValid && !urlAnalyzing) {
+                          e.preventDefault()
+                          analyzeAndProceed()
+                        }
+                      }}
+                      autoFocus
+                      style={{
+                        flex: 1,
+                        border: 'none',
+                        outline: 'none',
+                        fontSize: '1.125rem',
+                        fontWeight: 500,
+                        color: 'var(--neutral-on-background-strong)',
+                        background: 'transparent',
+                        fontFamily: 'inherit',
+                      }}
+                    />
+                    {targetUrl && isUrlValid && !urlAnalyzing && (
+                      <div style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: '50%',
+                        background: '#f0fdf4',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}>
+                        <SvgIcon size={16}><polyline points="20 6 9 17 4 12" stroke="#16a34a" /></SvgIcon>
+                      </div>
+                    )}
+                    {urlAnalyzing && (
+                      <div style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: '50%',
+                        border: '2px solid var(--brand-solid-strong)',
+                        borderTopColor: 'transparent',
+                        animation: 'spin 0.8s linear infinite',
+                        flexShrink: 0,
+                      }} />
+                    )}
+                  </div>
+                </div>
+
+                {/* Error message */}
+                {urlError && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      padding: '0.625rem 0.875rem',
+                      borderRadius: '0.5rem',
+                      background: '#fef2f2',
+                      border: '1px solid #fecaca',
+                    }}
+                  >
+                    <SvgIcon size={14}><circle cx="12" cy="12" r="10" stroke="#dc2626" /><line x1="12" y1="8" x2="12" y2="12" stroke="#dc2626" /><line x1="12" y1="16" x2="12.01" y2="16" stroke="#dc2626" /></SvgIcon>
+                    <span style={{ fontSize: '0.8125rem', color: '#991b1b', flex: 1 }}>{urlError}</span>
+                  </div>
+                )}
+
+                {/* Valid URL hint */}
+                {!urlError && !targetUrl && (
+                  <Text variant="body-default-xs" onBackground="neutral-weak" align="center">
+                    Insira o endereço completo do site que deseja monitorar
+                  </Text>
+                )}
+
+                {/* Analyzing state */}
+                {urlAnalyzing && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      padding: '1.25rem',
+                      borderRadius: '0.75rem',
+                      background: 'var(--brand-alpha-weak)',
+                      border: '1px solid var(--brand-border-medium)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+                      <div style={{
+                        width: 20,
+                        height: 20,
+                        borderRadius: '50%',
+                        border: '2px solid var(--brand-solid-strong)',
+                        borderTopColor: 'transparent',
+                        animation: 'spin 0.8s linear infinite',
+                      }} />
+                      <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--brand-on-background-strong)' }}>
+                        Analisando seu site...
+                      </span>
+                    </div>
+                    <Text variant="body-default-xs" onBackground="neutral-weak">
+                      Verificando acessibilidade e detectando o melhor modo de integração
+                    </Text>
+                  </div>
+                )}
+
+                <Button
+                  variant="primary"
+                  size="l"
+                  fillWidth
+                  label={urlAnalyzing ? 'Analisando...' : 'Continuar'}
+                  suffixIcon={urlAnalyzing ? undefined : 'arrowRight'}
+                  onClick={analyzeAndProceed}
+                  disabled={!isUrlValid || urlAnalyzing || !!urlError}
+                  loading={urlAnalyzing}
+                />
+              </Column>
+            </div>
+
+            {/* Features list */}
+            <div style={{ display: 'flex', gap: '2rem', justifyContent: 'center', flexWrap: 'wrap', paddingTop: '0.5rem' }}>
+              {[
+                { icon: <><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></>, text: 'Verificação segura' },
+                { icon: <><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></>, text: 'Setup em minutos' },
+                { icon: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></>, text: 'Sem limite de feedbacks' },
+              ].map((f, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: '0.375rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'var(--neutral-alpha-weak)',
+                  }}>
+                    <SvgIcon size={14}>{f.icon}</SvgIcon>
+                  </div>
+                  <span style={{ fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)', fontWeight: 500 }}>
+                    {f.text}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* CSS animation for spinner */}
+            <style>{`
+              @keyframes spin {
+                to { transform: rotate(360deg); }
+              }
+            `}</style>
+          </Column>
+        )}
+
+        {/* Step 2: Choose integration mode (with recommended pre-selected) */}
+        {!limitBlocked && !limitLoading && step === 2 && (
           <Column gap="l">
             <Column gap="8">
               <Heading variant="heading-strong-l" as="h1">
@@ -338,17 +633,94 @@ export default function NewProjectPage() {
               </Text>
             </Column>
 
+            {/* URL badge */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: '0.75rem 1rem',
+                borderRadius: '0.625rem',
+                background: 'var(--neutral-alpha-weak)',
+              }}
+            >
+              <div style={{
+                width: 28,
+                height: 28,
+                borderRadius: '0.375rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'var(--brand-solid-strong)',
+                color: '#fff',
+                flexShrink: 0,
+              }}>
+                <SvgIcon size={14}><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></SvgIcon>
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--neutral-on-background-strong)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
+                  {targetUrl}
+                </span>
+              </div>
+              <button
+                onClick={() => setStep(1)}
+                style={{
+                  fontSize: '0.75rem',
+                  color: 'var(--brand-on-background-strong)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontWeight: 500,
+                  flexShrink: 0,
+                }}
+              >
+                Alterar
+              </button>
+            </div>
+
+            {/* Site type detection badge */}
+            {siteType && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.625rem',
+                  padding: '0.75rem 1rem',
+                  borderRadius: '0.5rem',
+                  background: proxyBlocked ? '#fef2f2' : recommendedMode === 'embed' ? '#eff6ff' : '#f0fdf4',
+                  border: `1px solid ${proxyBlocked ? '#fecaca' : recommendedMode === 'embed' ? '#bfdbfe' : '#bbf7d0'}`,
+                }}
+              >
+                <SvgIcon size={16}>
+                  {proxyBlocked ? (
+                    <><circle cx="12" cy="12" r="10" stroke="#dc2626" /><line x1="12" y1="8" x2="12" y2="12" stroke="#dc2626" /><line x1="12" y1="16" x2="12.01" y2="16" stroke="#dc2626" /></>
+                  ) : (
+                    <><circle cx="12" cy="12" r="10" stroke={recommendedMode === 'embed' ? '#2563eb' : '#16a34a'} /><polyline points="16 12 12 8 8 12" stroke={recommendedMode === 'embed' ? '#2563eb' : '#16a34a'} /><line x1="12" y1="16" x2="12" y2="8" stroke={recommendedMode === 'embed' ? '#2563eb' : '#16a34a'} /></>
+                  )}
+                </SvgIcon>
+                <span style={{ fontSize: '0.8125rem', color: proxyBlocked ? '#991b1b' : recommendedMode === 'embed' ? '#1e40af' : '#166534', flex: 1 }}>
+                  {proxyBlocked
+                    ? `${siteType} detectado — Link Rápido não é compatível com este tipo de site.`
+                    : recommendedMode === 'embed'
+                    ? `${siteType} detectado — recomendamos a Instalação no Site para melhor compatibilidade.`
+                    : `${siteType} detectado — compatível com Link Rápido!`}
+                </span>
+              </div>
+            )}
+
             <Column gap="12">
               {/* Proxy mode */}
               <div
-                onClick={() => setMode('proxy')}
+                onClick={() => !proxyBlocked && setMode('proxy')}
                 style={{
                   padding: '1.25rem',
                   borderRadius: '0.75rem',
-                  border: `2px solid ${mode === 'proxy' ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)'}`,
-                  background: mode === 'proxy' ? 'var(--brand-alpha-weak)' : 'var(--surface-background)',
-                  cursor: 'pointer',
+                  border: `2px solid ${proxyBlocked ? 'var(--neutral-border-medium)' : mode === 'proxy' ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)'}`,
+                  background: proxyBlocked ? 'var(--neutral-alpha-weak)' : mode === 'proxy' ? 'var(--brand-alpha-weak)' : 'var(--surface-background)',
+                  cursor: proxyBlocked ? 'not-allowed' : 'pointer',
                   transition: 'all 0.15s',
+                  opacity: proxyBlocked ? 0.5 : 1,
+                  position: 'relative',
                 }}
               >
                 <div style={{ display: 'flex', gap: '0.875rem', alignItems: 'flex-start' }}>
@@ -361,17 +733,23 @@ export default function NewProjectPage() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       flexShrink: 0,
-                      background: mode === 'proxy' ? 'var(--brand-solid-strong)' : 'var(--neutral-alpha-medium)',
-                      color: mode === 'proxy' ? '#fff' : 'var(--neutral-on-background-weak)',
+                      background: proxyBlocked ? 'var(--neutral-alpha-medium)' : mode === 'proxy' ? 'var(--brand-solid-strong)' : 'var(--neutral-alpha-medium)',
+                      color: proxyBlocked ? 'var(--neutral-on-background-weak)' : mode === 'proxy' ? '#fff' : 'var(--neutral-on-background-weak)',
                       transition: 'all 0.15s',
                     }}
                   >
                     <SvgIcon><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></SvgIcon>
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem', flexWrap: 'wrap' }}>
                       <span style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)' }}>Link Rápido</span>
                       <span style={{ fontSize: '0.6875rem', fontWeight: 500, padding: '0.125rem 0.5rem', borderRadius: '1rem', background: 'var(--neutral-alpha-weak)', color: 'var(--neutral-on-background-weak)' }}>Sem instalação</span>
+                      {proxyBlocked && (
+                        <span style={{ fontSize: '0.6875rem', fontWeight: 500, padding: '0.125rem 0.5rem', borderRadius: '1rem', background: '#fef2f2', color: '#991b1b' }}>Indisponível</span>
+                      )}
+                      {!proxyBlocked && recommendedMode === 'proxy' && (
+                        <span style={{ fontSize: '0.6875rem', fontWeight: 500, padding: '0.125rem 0.5rem', borderRadius: '1rem', background: 'var(--success-alpha-weak)', color: 'var(--success-on-background-strong)' }}>Recomendado</span>
+                      )}
                     </div>
                     <p style={{ fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)', margin: 0, lineHeight: 1.5 }}>
                       Cole a URL do site e compartilhe o link de QA. Nada para instalar.
@@ -385,7 +763,7 @@ export default function NewProjectPage() {
                       width: 20,
                       height: 20,
                       borderRadius: '50%',
-                      border: `2px solid ${mode === 'proxy' ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)'}`,
+                      border: `2px solid ${proxyBlocked ? 'var(--neutral-border-medium)' : mode === 'proxy' ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)'}`,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -394,136 +772,14 @@ export default function NewProjectPage() {
                       transition: 'all 0.15s',
                     }}
                   >
-                    {mode === 'proxy' && (
+                    {!proxyBlocked && mode === 'proxy' && (
                       <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--brand-solid-strong)' }} />
+                    )}
+                    {proxyBlocked && (
+                      <SvgIcon size={12}><line x1="18" y1="6" x2="6" y2="18" stroke="var(--neutral-on-background-weak)" /><line x1="6" y1="6" x2="18" y2="18" stroke="var(--neutral-on-background-weak)" /></SvgIcon>
                     )}
                   </div>
                 </div>
-
-                {/* URL input for proxy */}
-                {mode === 'proxy' && (
-                  <div
-                    onClick={(e) => e.stopPropagation()}
-                    style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--neutral-border-medium)' }}
-                  >
-                    <Column gap="m">
-                      <Row gap="s">
-                        <Flex fillWidth>
-                          <Input
-                            id="proxy-url"
-                            label=""
-                            placeholder="https://meusite.com.br"
-                            value={targetUrl}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUrlChange(e.target.value)}
-                            onBlur={handleUrlBlur}
-                            error={!!urlError}
-                            errorMessage={urlError || undefined}
-                          />
-                        </Flex>
-                        {!(urlChecked && hasProblems) && (
-                          <Button
-                            variant="primary"
-                            size="m"
-                            label={urlChecking ? 'Verificando...' : 'Verificar'}
-                            onClick={() => checkUrl(targetUrl)}
-                            disabled={urlChecking || !isUrlValid}
-                            loading={urlChecking}
-                          />
-                        )}
-                      </Row>
-
-                      {urlChecked && urlWarnings.length > 0 && (
-                        <Column gap="s">
-                          {urlWarnings.map((w, i) => {
-                            const colors = {
-                              error: { bg: '#fef2f2', border: '#fecaca', icon: '#dc2626', text: '#991b1b' },
-                              warning: { bg: '#fffbeb', border: '#fde68a', icon: '#d97706', text: '#92400e' },
-                              success: { bg: '#f0fdf4', border: '#bbf7d0', icon: '#16a34a', text: '#166534' },
-                              info: { bg: '#eff6ff', border: '#bfdbfe', icon: '#2563eb', text: '#1e40af' },
-                            }[w.type] || { bg: '#eff6ff', border: '#bfdbfe', icon: '#2563eb', text: '#1e40af' }
-                            return (
-                              <div
-                                key={i}
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'flex-start',
-                                  gap: '0.625rem',
-                                  padding: '0.75rem',
-                                  borderRadius: '0.5rem',
-                                  background: colors.bg,
-                                  border: `1px solid ${colors.border}`,
-                                }}
-                              >
-                                <SvgIcon size={16}>
-                                  {w.type === 'error' ? (
-                                    <><circle cx="12" cy="12" r="10" stroke={colors.icon} /><line x1="12" y1="8" x2="12" y2="12" stroke={colors.icon} /><line x1="12" y1="16" x2="12.01" y2="16" stroke={colors.icon} /></>
-                                  ) : w.type === 'warning' ? (
-                                    <><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke={colors.icon} /><line x1="12" y1="9" x2="12" y2="13" stroke={colors.icon} /><line x1="12" y1="17" x2="12.01" y2="17" stroke={colors.icon} /></>
-                                  ) : (
-                                    <><circle cx="12" cy="12" r="10" stroke={colors.icon} /><polyline points="16 12 12 8 8 12" stroke={colors.icon} /><line x1="12" y1="16" x2="12" y2="8" stroke={colors.icon} /></>
-                                  )}
-                                </SvgIcon>
-                                <span style={{ fontSize: '0.8125rem', color: colors.text, lineHeight: 1.5, flex: 1 }}>
-                                  {w.message}
-                                </span>
-                              </div>
-                            )
-                          })}
-
-                          {hasProblems && (
-                            <div
-                              style={{
-                                padding: '0.875rem',
-                                borderRadius: '0.625rem',
-                                background: '#f0f4ff',
-                                border: '1px solid #c7d2fe',
-                              }}
-                            >
-                              <div style={{ display: 'flex', gap: '0.625rem', alignItems: 'flex-start' }}>
-                                <SvgIcon size={18}><path d="M12 2l2.4 7.4H22l-6.2 4.5L18.2 21 12 16.5 5.8 21l2.4-7.1L2 9.4h7.6z" stroke="#4f46e5" /></SvgIcon>
-                                <div style={{ flex: 1 }}>
-                                  <p style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#312e81', margin: '0 0 0.25rem' }}>
-                                    Recomendamos usar a Instalação no Site
-                                  </p>
-                                  <p style={{ fontSize: '0.75rem', color: '#4338ca', margin: '0 0 0.625rem', lineHeight: 1.5 }}>
-                                    Este modo funciona diretamente no site, sem limitações.
-                                  </p>
-                                  <Button
-                                    variant="primary"
-                                    size="s"
-                                    prefixIcon="code"
-                                    label="Usar Instalação no Site"
-                                    onClick={() => setMode('embed')}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </Column>
-                      )}
-
-                      {urlChecked && urlValid && !hasProblems && (
-                        <Button
-                          variant="primary"
-                          size="m"
-                          fillWidth
-                          label="Continuar"
-                          suffixIcon="arrowRight"
-                          onClick={() => goToStep2('proxy')}
-                        />
-                      )}
-
-                      {urlChecked && urlValid && hasProblems && !urlWarnings.some((w) => w.type === 'error') && (
-                        <Button
-                          variant="tertiary"
-                          size="s"
-                          label="Continuar mesmo assim com Proxy"
-                          onClick={() => goToStep2('proxy')}
-                        />
-                      )}
-                    </Column>
-                  </div>
-                )}
               </div>
 
               {/* Embed mode */}
@@ -556,9 +812,11 @@ export default function NewProjectPage() {
                     <SvgIcon><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></SvgIcon>
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem', flexWrap: 'wrap' }}>
                       <span style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)' }}>Instalação no Site</span>
-                      <span style={{ fontSize: '0.6875rem', fontWeight: 500, padding: '0.125rem 0.5rem', borderRadius: '1rem', background: 'var(--success-alpha-weak)', color: 'var(--success-on-background-strong)' }}>Recomendado</span>
+                      {recommendedMode === 'embed' && (
+                        <span style={{ fontSize: '0.6875rem', fontWeight: 500, padding: '0.125rem 0.5rem', borderRadius: '1rem', background: 'var(--success-alpha-weak)', color: 'var(--success-on-background-strong)' }}>Recomendado</span>
+                      )}
                     </div>
                     <p style={{ fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)', margin: 0, lineHeight: 1.5 }}>
                       Adicione uma linha de código ao seu site. Funciona em qualquer lugar.
@@ -586,49 +844,31 @@ export default function NewProjectPage() {
                     )}
                   </div>
                 </div>
-
-                {/* URL input for embed */}
-                {mode === 'embed' && (
-                  <div
-                    onClick={(e) => e.stopPropagation()}
-                    style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--neutral-border-medium)' }}
-                  >
-                    <Column gap="m">
-                      <Column gap="xs">
-                        <Input
-                          id="embed-url"
-                          label="URL do site"
-                          placeholder="https://meusite.com.br"
-                          value={targetUrl}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleUrlChange(e.target.value)}
-                          onBlur={handleUrlBlur}
-                          error={!!urlError}
-                          errorMessage={urlError || undefined}
-                        />
-                        <Text variant="body-default-xs" onBackground="neutral-weak">
-                          Usada como referência. O snippet será exibido após criar o projeto.
-                        </Text>
-                      </Column>
-
-                      <Button
-                        variant="primary"
-                        size="m"
-                        fillWidth
-                        label="Continuar"
-                        suffixIcon="arrowRight"
-                        onClick={() => goToStep2('embed')}
-                        disabled={!isUrlValid}
-                      />
-                    </Column>
-                  </div>
-                )}
               </div>
             </Column>
+
+            <Row gap="s" paddingTop="s">
+              <Button
+                variant="secondary"
+                size="m"
+                label="Voltar"
+                onClick={() => setStep(1)}
+              />
+              <Button
+                variant="primary"
+                size="m"
+                fillWidth
+                label="Continuar"
+                suffixIcon="arrowRight"
+                onClick={goToStep3}
+                disabled={!mode}
+              />
+            </Row>
           </Column>
         )}
 
-        {/* Step 2: Project details */}
-        {!limitBlocked && !limitLoading && step === 2 && (
+        {/* Step 3: Project details */}
+        {!limitBlocked && !limitLoading && step === 3 && (
           <Column gap="l">
             <Column gap="8">
               <Heading variant="heading-strong-l" as="h1">
@@ -678,7 +918,7 @@ export default function NewProjectPage() {
                 </span>
               </div>
               <button
-                onClick={() => setStep(1)}
+                onClick={() => setStep(2)}
                 style={{
                   fontSize: '0.75rem',
                   color: 'var(--brand-on-background-strong)',
@@ -710,7 +950,7 @@ export default function NewProjectPage() {
                 </div>
               )}
 
-              <Column as="form" gap="m" onSubmit={handleSubmit(goToStep3)}>
+              <Column as="form" gap="m" onSubmit={handleSubmit(goToStep4)}>
                 <input type="hidden" {...register('targetUrl')} />
 
                 <Input
@@ -736,7 +976,7 @@ export default function NewProjectPage() {
                     variant="secondary"
                     size="m"
                     label="Voltar"
-                    onClick={() => setStep(1)}
+                    onClick={() => setStep(2)}
                   />
                   <Button
                     type="submit"
@@ -751,8 +991,8 @@ export default function NewProjectPage() {
             </div>
           </Column>
         )}
-        {/* Step 3: Widget customization */}
-        {!limitBlocked && !limitLoading && step === 3 && (
+        {/* Step 4: Widget customization */}
+        {!limitBlocked && !limitLoading && step === 4 && (
           <Column gap="l">
             <Column gap="8">
               <Heading variant="heading-strong-l" as="h1">
@@ -794,16 +1034,12 @@ export default function NewProjectPage() {
                       >
                         <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'center' }}>
                           {s === 'text' ? (
-                            <div style={{ height: 32, paddingLeft: 12, paddingRight: 14, borderRadius: 16, background: widgetColor, color: '#fff', display: 'inline-flex', alignItems: 'center', fontSize: 11, fontWeight: 600, gap: 4 }}>
-                              {widgetText}
+                            <div style={{ height: 32, paddingLeft: 12, paddingRight: 14, borderRadius: 16, background: widgetColor, color: '#fff', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                              <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: 11, letterSpacing: '-0.02em' }}>Report Bug</span>
                             </div>
                           ) : (
-                            <div style={{ width: 36, height: 36, borderRadius: '50%', background: widgetColor, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                <ellipse cx="12" cy="15" rx="5" ry="6" />
-                                <circle cx="12" cy="7" r="3" />
-                                <path d="M5 9L2 7M19 9l3-2M5 15H2M19 15h3M5 19l-2 2M19 19l2 2" strokeLinecap="round" />
-                              </svg>
+                            <div style={{ width: 44, height: 44, borderRadius: '50%', background: widgetColor, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 900, fontSize: 9, letterSpacing: '-0.04em', lineHeight: 0.95, textAlign: 'left', textTransform: 'uppercase', whiteSpace: 'pre' }}>{'RE\nPORT\nBUG'}</span>
                             </div>
                           )}
                         </div>
@@ -811,36 +1047,12 @@ export default function NewProjectPage() {
                           {s === 'text' ? 'Texto' : 'Ícone'}
                         </span>
                         <p style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', margin: '0.25rem 0 0' }}>
-                          {s === 'text' ? 'Botão com texto personalizado' : 'Botão circular com ícone'}
+                          {s === 'text' ? 'Botão com logo Report Bug' : 'Botão circular com logo'}
                         </p>
                       </div>
                     ))}
                   </div>
                 </div>
-
-                {/* Widget text (only for text style) */}
-                {widgetStyle === 'text' && (
-                  <div>
-                    <Text variant="label-default-s" onBackground="neutral-strong" style={{ marginBottom: '0.5rem', display: 'block' }}>Texto do botão</Text>
-                    <input
-                      type="text"
-                      value={widgetText}
-                      onChange={(e) => setWidgetText(e.target.value.slice(0, 30))}
-                      placeholder="Reportar Bug"
-                      style={{
-                        width: '100%',
-                        padding: '0.625rem 0.75rem',
-                        borderRadius: '0.5rem',
-                        border: '1px solid var(--neutral-border-medium)',
-                        background: 'var(--surface-background)',
-                        color: 'var(--neutral-on-background-strong)',
-                        fontSize: '0.875rem',
-                        outline: 'none',
-                      }}
-                    />
-                    <span style={{ fontSize: '0.6875rem', color: 'var(--neutral-on-background-weak)', marginTop: '0.25rem', display: 'block' }}>{widgetText.length}/30</span>
-                  </div>
-                )}
 
                 {/* Widget position */}
                 <div>
@@ -941,17 +1153,15 @@ export default function NewProjectPage() {
                 </div>
               </div>
 
-              {/* Live preview */}
+              {/* Live preview with real site */}
               <div style={{ width: 320, flexShrink: 0 }}>
                 <Text variant="label-default-s" onBackground="neutral-strong" style={{ marginBottom: '0.5rem', display: 'block' }}>Preview</Text>
-                <div
-                  style={{
-                    borderRadius: '0.75rem',
-                    border: '1px solid var(--neutral-border-medium)',
-                    overflow: 'hidden',
-                    background: 'var(--surface-background)',
-                  }}
-                >
+                <div style={{
+                  borderRadius: '0.75rem',
+                  border: '1px solid var(--neutral-border-medium)',
+                  overflow: 'hidden',
+                  background: 'var(--surface-background)',
+                }}>
                   {/* Mock browser bar */}
                   <div style={{
                     padding: '0.5rem 0.75rem',
@@ -981,29 +1191,43 @@ export default function NewProjectPage() {
                     </div>
                   </div>
 
-                  {/* Mock page content */}
-                  <div style={{ position: 'relative', height: 240, background: '#f8fafc', padding: '1.5rem' }}>
-                    {/* Skeleton content */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                      <div style={{ width: '60%', height: 14, borderRadius: 4, background: '#e2e8f0' }} />
-                      <div style={{ width: '90%', height: 10, borderRadius: 3, background: '#e2e8f0' }} />
-                      <div style={{ width: '75%', height: 10, borderRadius: 3, background: '#e2e8f0' }} />
-                      <div style={{ width: '40%', height: 10, borderRadius: 3, background: '#e2e8f0' }} />
-                      <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
-                        <div style={{ width: '45%', height: 60, borderRadius: 6, background: '#e2e8f0' }} />
-                        <div style={{ width: '45%', height: 60, borderRadius: 6, background: '#e2e8f0' }} />
+                  {/* Real site iframe with widget overlay */}
+                  <div style={{ position: 'relative', height: 280, overflow: 'hidden' }}>
+                    {proxyBlocked ? (
+                      /* Skeleton fallback for sites that block iframes */
+                      <div style={{ width: '100%', height: '100%', background: 'var(--neutral-alpha-weak)', display: 'flex', flexDirection: 'column', padding: 16, gap: 8 }}>
+                        <div style={{ width: '40%', height: 10, borderRadius: 4, background: 'var(--neutral-alpha-medium)' }} />
+                        <div style={{ width: '70%', height: 8, borderRadius: 4, background: 'var(--neutral-alpha-weak)', marginTop: 8 }} />
+                        <div style={{ width: '55%', height: 8, borderRadius: 4, background: 'var(--neutral-alpha-weak)' }} />
+                        <div style={{ width: '90%', height: 60, borderRadius: 8, background: 'var(--neutral-alpha-weak)', marginTop: 12 }} />
+                        <div style={{ width: '65%', height: 8, borderRadius: 4, background: 'var(--neutral-alpha-weak)', marginTop: 12 }} />
+                        <div style={{ width: '80%', height: 8, borderRadius: 4, background: 'var(--neutral-alpha-weak)' }} />
+                        <div style={{ width: '45%', height: 8, borderRadius: 4, background: 'var(--neutral-alpha-weak)' }} />
                       </div>
-                    </div>
+                    ) : (
+                      <iframe
+                        src={targetUrl}
+                        title="Preview do site"
+                        sandbox="allow-scripts allow-same-origin"
+                        style={{
+                          width: '200%',
+                          height: '200%',
+                          border: 'none',
+                          transform: 'scale(0.5)',
+                          transformOrigin: 'top left',
+                          pointerEvents: 'none',
+                        }}
+                      />
+                    )}
 
-                    {/* Widget preview */}
-                    <div
-                      style={{
-                        position: 'absolute',
-                        ...(widgetPosition.includes('top') ? { top: 12 } : { bottom: 12 }),
-                        ...(widgetPosition.includes('left') ? { left: 12 } : { right: 12 }),
-                        transition: 'all 0.3s ease',
-                      }}
-                    >
+                    {/* Widget overlay */}
+                    <div style={{
+                      position: 'absolute',
+                      ...(widgetPosition.includes('top') ? { top: 10 } : { bottom: 10 }),
+                      ...(widgetPosition.includes('left') ? { left: 10 } : { right: 10 }),
+                      transition: 'all 0.3s ease',
+                      zIndex: 2,
+                    }}>
                       {widgetStyle === 'icon' ? (
                         <div style={{
                           width: 40,
@@ -1016,29 +1240,22 @@ export default function NewProjectPage() {
                           justifyContent: 'center',
                           boxShadow: `0 4px 12px ${widgetColor}66`,
                         }}>
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                            <ellipse cx="12" cy="15" rx="5" ry="6" />
-                            <circle cx="12" cy="7" r="3" />
-                            <path d="M5 9L2 7M19 9l3-2M5 15H2M19 15h3M5 19l-2 2M19 19l2 2" strokeLinecap="round" />
-                          </svg>
+                          <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 900, fontSize: 7, letterSpacing: '-0.04em', lineHeight: 0.95, textAlign: 'left', textTransform: 'uppercase', whiteSpace: 'pre' }}>{'RE\nPORT\nBUG'}</span>
                         </div>
                       ) : (
                         <div style={{
-                          height: 34,
-                          paddingLeft: 12,
-                          paddingRight: 14,
-                          borderRadius: 17,
+                          height: 28,
+                          paddingLeft: 10,
+                          paddingRight: 12,
+                          borderRadius: 14,
                           background: widgetColor,
                           color: '#fff',
                           display: 'inline-flex',
                           alignItems: 'center',
-                          fontSize: 12,
-                          fontWeight: 600,
-                          fontFamily: 'system-ui, -apple-system, sans-serif',
                           boxShadow: `0 4px 12px ${widgetColor}66`,
                           whiteSpace: 'nowrap',
                         }}>
-                          {widgetText || 'Reportar Bug'}
+                          <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: 10, letterSpacing: '-0.02em' }}>Report Bug</span>
                         </div>
                       )}
                     </div>
@@ -1053,7 +1270,7 @@ export default function NewProjectPage() {
                 variant="secondary"
                 size="m"
                 label="Voltar"
-                onClick={() => setStep(2)}
+                onClick={() => setStep(3)}
               />
               <Button
                 variant="primary"
