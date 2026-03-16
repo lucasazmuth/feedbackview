@@ -13,7 +13,6 @@ import {
 } from '@once-ui-system/core'
 import AppLayout from '@/components/ui/AppLayout'
 import { type Plan } from '@/lib/limits'
-import { PRICE_IDS } from '@/lib/stripe-shared'
 
 const PLANS: {
   key: Plan
@@ -21,7 +20,6 @@ const PLANS: {
   price: string
   period: string
   description: string
-  monthlyPriceId: string
   features: string[]
   highlight?: boolean
 }[] = [
@@ -31,7 +29,6 @@ const PLANS: {
     price: 'R$ 0',
     period: '/mês',
     description: 'Para testar a plataforma e projetos pessoais.',
-    monthlyPriceId: '',
     features: [
       '10 reports (total)',
       'Projetos ilimitados',
@@ -48,7 +45,6 @@ const PLANS: {
     price: 'R$ 49',
     period: '/mês',
     description: 'Para equipes que precisam de QA profissional.',
-    monthlyPriceId: PRICE_IDS.PRO_MONTHLY,
     highlight: true,
     features: [
       '2.000 reports/mês',
@@ -66,7 +62,6 @@ const PLANS: {
     price: 'R$ 149',
     period: '/mês',
     description: 'Para softhouses e equipes grandes.',
-    monthlyPriceId: PRICE_IDS.BUSINESS_MONTHLY,
     features: [
       '10.000 reports/mês',
       'Projetos ilimitados',
@@ -180,7 +175,7 @@ function UpgradeContent() {
           {PLANS.map((plan) => {
             const isCurrentPlan = plan.key === currentPlan
             const isFreePlan = plan.key === 'FREE'
-            const canUpgrade = !isCurrentPlan && !isFreePlan && plan.monthlyPriceId
+            const canUpgrade = !isCurrentPlan && !isFreePlan
 
             return (
               <div
