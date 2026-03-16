@@ -103,8 +103,8 @@ export default function RegisterPage() {
         }
       }
 
-      router.push('/dashboard')
-      router.refresh()
+      // Hard navigation to ensure fresh data
+      window.location.href = '/dashboard'
     } catch {
       setServerError('Erro de conexão. Verifique sua internet.')
     }

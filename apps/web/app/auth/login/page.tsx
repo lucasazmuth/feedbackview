@@ -52,8 +52,8 @@ function LoginFormContent() {
     if (error) {
       setServerError('E-mail ou senha inválidos.')
     } else {
-      router.push(callbackUrl)
-      router.refresh()
+      // Hard navigation to ensure fresh data (no stale cache from previous session)
+      window.location.href = callbackUrl
     }
   }
 
