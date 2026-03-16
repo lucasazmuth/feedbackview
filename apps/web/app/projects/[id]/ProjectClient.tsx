@@ -289,10 +289,10 @@ export default function ProjectClient({
     try {
       await api.projects.update(project.id, { widgetPosition, widgetColor, widgetStyle, widgetText })
       setAppearanceMsg({ type: 'success', text: 'Aparência atualizada com sucesso!' })
-      router.refresh()
+      // Full reload so the embed script re-fetches config with new appearance
+      setTimeout(() => window.location.reload(), 600)
     } catch (err: any) {
       setAppearanceMsg({ type: 'danger', text: err.message || 'Erro ao salvar.' })
-    } finally {
       setAppearanceSaving(false)
     }
   }
@@ -339,10 +339,9 @@ export default function ProjectClient({
     try {
       await api.projects.update(project.id, { embedPaused: !embedPaused })
       setEmbedPaused(!embedPaused)
-      router.refresh()
+      // Full reload so the embed script re-fetches config with new pause state
+      setTimeout(() => window.location.reload(), 600)
     } catch {
-      // ignore
-    } finally {
       setPauseToggling(false)
     }
   }
