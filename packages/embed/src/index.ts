@@ -2166,6 +2166,9 @@ function createWidget(config: WidgetConfig) {
 
 // Initialize widget
 async function init() {
+  // Don't render widget inside iframes (proxy mode uses parent's embed.js)
+  if (window.self !== window.top) return
+
   const config = await fetchConfig()
   if (config.blocked) return
   createWidget(config)
