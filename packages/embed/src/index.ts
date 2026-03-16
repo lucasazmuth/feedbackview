@@ -233,7 +233,39 @@ if (document.readyState === 'loading') {
 }
 
 // ─── Screenshot capture ──────────────────────────────────────────────────────
+function getProxyIframe(): HTMLIFrameElement | null {
+  return document.querySelector('iframe[title="QA Viewer"]') as HTMLIFrameElement | null
+}
+
+async function captureScreenshotViaProxy(iframe: HTMLIFrameElement): Promise<string | null> {
+  return new Promise((resolve) => {
+    const timeout = setTimeout(() => {
+      window.removeEventListener('message', handler)
+      resolve(null)
+    }, 8000)
+
+    function handler(event: MessageEvent) {
+      const data = event.data
+      if (data?.source === 'feedbackview-tracker' && data?.type === 'SCREENSHOT_RESULT') {
+        clearTimeout(timeout)
+        window.removeEventListener('message', handler)
+        resolve(data.payload?.dataUrl || null)
+      }
+    }
+
+    window.addEventListener('message', handler)
+    iframe.contentWindow?.postMessage({ type: 'CAPTURE_SCREENSHOT' }, '*')
+  })
+}
+
 async function captureScreenshot(): Promise<string | null> {
+  // In proxy mode, request screenshot from tracker.js inside the iframe
+  const proxyIframe = getProxyIframe()
+  if (proxyIframe) {
+    return captureScreenshotViaProxy(proxyIframe)
+  }
+
+  // Direct embed mode: capture with html2canvas
   try {
     const html2canvas = (await import('html2canvas')).default
     const canvas = await html2canvas(document.body, {
