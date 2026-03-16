@@ -104,7 +104,7 @@ or you can use record.mirror to access the mirror instance during recording.`,tf
       font-size: 9px;
       letter-spacing: -0.04em;
       line-height: 0.95;
-      text-align: center;
+      text-align: left;
       text-transform: uppercase;
       white-space: pre;
     }

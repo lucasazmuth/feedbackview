@@ -372,7 +372,7 @@ function createWidget(config: WidgetConfig) {
       font-size: 9px;
       letter-spacing: -0.04em;
       line-height: 0.95;
-      text-align: center;
+      text-align: left;
       text-transform: uppercase;
       white-space: pre;
     }

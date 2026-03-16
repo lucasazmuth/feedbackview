@@ -1706,7 +1706,7 @@ export default function ProjectClient({
                                 </div>
                               ) : (
                                 <div style={{ width: 44, height: 44, borderRadius: '50%', background: widgetColor, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                  <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 900, fontSize: 9, letterSpacing: '-0.04em', lineHeight: 0.95, textAlign: 'center', textTransform: 'uppercase', whiteSpace: 'pre' }}>{'RE\nPORT\nBUG'}</span>
+                                  <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 900, fontSize: 9, letterSpacing: '-0.04em', lineHeight: 0.95, textAlign: 'left', textTransform: 'uppercase', whiteSpace: 'pre' }}>{'RE\nPORT\nBUG'}</span>
                                 </div>
                               )}
                             </div>
@@ -1890,7 +1890,7 @@ export default function ProjectClient({
                               justifyContent: 'center',
                               boxShadow: `0 4px 12px ${widgetColor}66`,
                             }}>
-                              <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 900, fontSize: 7, letterSpacing: '-0.04em', lineHeight: 0.95, textAlign: 'center', textTransform: 'uppercase', whiteSpace: 'pre' }}>{'RE\nPORT\nBUG'}</span>
+                              <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 900, fontSize: 7, letterSpacing: '-0.04em', lineHeight: 0.95, textAlign: 'left', textTransform: 'uppercase', whiteSpace: 'pre' }}>{'RE\nPORT\nBUG'}</span>
                             </div>
                           ) : (
                             <div style={{
