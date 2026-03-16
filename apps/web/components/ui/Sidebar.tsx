@@ -74,8 +74,13 @@ export default function Sidebar() {
   async function handleSignOut() {
     const supabase = createClient()
     await supabase.auth.signOut()
-    router.push('/auth/login')
-    router.refresh()
+    // Clear cached org data so next login doesn't show stale data
+    try {
+      localStorage.removeItem('qbugs_current_org_id')
+      sessionStorage.clear()
+    } catch {}
+    // Hard navigation to clear Next.js Router Cache completely
+    window.location.href = '/auth/login'
   }
 
   const filteredOrgs = orgs.filter((org) =>
