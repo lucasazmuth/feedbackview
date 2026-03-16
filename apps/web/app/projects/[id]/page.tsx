@@ -13,6 +13,7 @@ export default async function ProjectPage({ params }: PageProps) {
 
   let project: any = null
   let feedbacks: any[] = []
+  let activityLog: any[] = []
   let error: string | null = null
 
   try {
@@ -20,6 +21,12 @@ export default async function ProjectPage({ params }: PageProps) {
       serverApi.projects.get(user.id, id),
       serverApi.projects.feedbacks(user.id, id),
     ])
+    // Fetch activity log separately (non-blocking if table doesn't exist yet)
+    try {
+      activityLog = await serverApi.activityLog.list(user.id, id)
+    } catch {
+      // ActivityLog table may not exist yet
+    }
   } catch (err: any) {
     if (err.message?.includes('not found') || err.message?.includes('No rows')) {
       notFound()
@@ -36,6 +43,7 @@ export default async function ProjectPage({ params }: PageProps) {
     <ProjectClient
       project={project}
       feedbacks={feedbacks}
+      activityLog={activityLog}
       error={error}
       userEmail={user.email ?? ''}
     />

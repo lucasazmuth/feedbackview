@@ -1,46 +1,31 @@
 export type Plan = 'FREE' | 'PRO' | 'BUSINESS'
 
 export interface PlanLimits {
-  maxProjects: number
-  maxMembers: number
-  maxReportsPerMonth: number
+  maxReports: number
+  /** If true, maxReports is a lifetime total. If false, resets monthly. */
+  isLifetimeLimit: boolean
   retentionDays: number
   hasReplay: boolean
-  hasIntegrations: boolean
-  hasWhiteLabel: boolean
-  hasApi: boolean
 }
 
 const PLAN_LIMITS: Record<Plan, PlanLimits> = {
   FREE: {
-    maxProjects: 1,
-    maxMembers: 1,
-    maxReportsPerMonth: 50,
+    maxReports: 10,
+    isLifetimeLimit: true,
     retentionDays: 7,
-    hasReplay: false,
-    hasIntegrations: false,
-    hasWhiteLabel: false,
-    hasApi: false,
+    hasReplay: true,
   },
   PRO: {
-    maxProjects: 5,
-    maxMembers: 10,
-    maxReportsPerMonth: -1, // unlimited
+    maxReports: 2000,
+    isLifetimeLimit: false,
     retentionDays: 90,
     hasReplay: true,
-    hasIntegrations: true,
-    hasWhiteLabel: false,
-    hasApi: false,
   },
   BUSINESS: {
-    maxProjects: -1, // unlimited
-    maxMembers: 50,
-    maxReportsPerMonth: -1, // unlimited
+    maxReports: 10000,
+    isLifetimeLimit: false,
     retentionDays: 365,
     hasReplay: true,
-    hasIntegrations: true,
-    hasWhiteLabel: true,
-    hasApi: true,
   },
 }
 
@@ -49,9 +34,7 @@ export function getPlanLimits(plan: Plan): PlanLimits {
 }
 
 export interface Usage {
-  projectCount: number
-  memberCount: number
-  reportsThisMonth: number
+  reportsUsed: number
 }
 
 export interface LimitCheck {
@@ -63,72 +46,39 @@ export interface LimitCheck {
 
 export type Role = 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER'
 
-function ownerMsg(msg: string) {
-  return msg
-}
-
-function memberMsg(msg: string) {
-  return msg.replace(/Faça upgrade.*$/, 'Peça ao administrador do workspace para fazer upgrade do plano.')
-}
-
 function limitMsg(base: string, role?: Role) {
-  if (!role || role === 'OWNER' || role === 'ADMIN') return ownerMsg(base)
-  return memberMsg(base)
-}
-
-export function checkProjectLimit(usage: Usage, limits: PlanLimits, role?: Role): LimitCheck {
-  if (limits.maxProjects === -1) {
-    return { allowed: true, current: usage.projectCount, limit: -1 }
-  }
-  const allowed = usage.projectCount < limits.maxProjects
-  return {
-    allowed,
-    current: usage.projectCount,
-    limit: limits.maxProjects,
-    reason: allowed ? undefined : limitMsg(`Limite de ${limits.maxProjects} projeto(s) atingido. Faça upgrade para criar mais projetos.`, role),
-  }
-}
-
-export function checkMemberLimit(usage: Usage, limits: PlanLimits, role?: Role): LimitCheck {
-  if (limits.maxMembers === -1) {
-    return { allowed: true, current: usage.memberCount, limit: -1 }
-  }
-  const allowed = usage.memberCount < limits.maxMembers
-  return {
-    allowed,
-    current: usage.memberCount,
-    limit: limits.maxMembers,
-    reason: allowed ? undefined : limitMsg(`Limite de ${limits.maxMembers} membro(s) atingido. Faça upgrade para convidar mais membros.`, role),
-  }
+  if (!role || role === 'OWNER' || role === 'ADMIN') return base
+  return base.replace(/Faça upgrade.*$/, 'Peça ao administrador do workspace para fazer upgrade do plano.')
 }
 
 export function checkReportLimit(usage: Usage, limits: PlanLimits, role?: Role): LimitCheck {
-  if (limits.maxReportsPerMonth === -1) {
-    return { allowed: true, current: usage.reportsThisMonth, limit: -1 }
+  if (limits.maxReports === -1) {
+    return { allowed: true, current: usage.reportsUsed, limit: -1 }
   }
-  const allowed = usage.reportsThisMonth < limits.maxReportsPerMonth
+  const allowed = usage.reportsUsed < limits.maxReports
+  const periodLabel = limits.isLifetimeLimit ? '' : '/mês'
   return {
     allowed,
-    current: usage.reportsThisMonth,
-    limit: limits.maxReportsPerMonth,
-    reason: allowed ? undefined : limitMsg(`Limite de ${limits.maxReportsPerMonth} reports/mês atingido. Faça upgrade para reports ilimitados.`, role),
+    current: usage.reportsUsed,
+    limit: limits.maxReports,
+    reason: allowed ? undefined : limitMsg(`Limite de ${limits.maxReports} reports${periodLabel} atingido. Faça upgrade para continuar reportando.`, role),
   }
 }
 
 export function getUsageWarning(usage: Usage, limits: PlanLimits, role?: Role): string | null {
-  // Check if any limit is at 100%
-  if (limits.maxProjects !== -1 && usage.projectCount >= limits.maxProjects) {
-    return limitMsg(`Limite de projetos atingido (${usage.projectCount}/${limits.maxProjects}). Faça upgrade para criar mais projetos.`, role)
+  if (limits.maxReports === -1) return null
+  const periodLabel = limits.isLifetimeLimit ? '' : ' este mês'
+  if (usage.reportsUsed >= limits.maxReports) {
+    return limitMsg(`Limite de reports atingido (${usage.reportsUsed}/${limits.maxReports}). Faça upgrade para continuar reportando.`, role)
   }
-  if (limits.maxReportsPerMonth !== -1 && usage.reportsThisMonth >= limits.maxReportsPerMonth) {
-    return limitMsg(`Limite de reports atingido (${usage.reportsThisMonth}/${limits.maxReportsPerMonth}). Faça upgrade para reports ilimitados.`, role)
-  }
-  // Check if any limit is above 80%
-  if (limits.maxProjects !== -1 && usage.projectCount >= limits.maxProjects * 0.8) {
-    return limitMsg(`Você está usando ${usage.projectCount} de ${limits.maxProjects} projetos. Faça upgrade antes de atingir o limite.`, role)
-  }
-  if (limits.maxReportsPerMonth !== -1 && usage.reportsThisMonth >= limits.maxReportsPerMonth * 0.8) {
-    return limitMsg(`Você já usou ${usage.reportsThisMonth} de ${limits.maxReportsPerMonth} reports este mês. Faça upgrade para reports ilimitados.`, role)
+  if (usage.reportsUsed >= limits.maxReports * 0.8) {
+    return limitMsg(`Você já usou ${usage.reportsUsed} de ${limits.maxReports} reports${periodLabel}. Faça upgrade para não perder reports.`, role)
   }
   return null
+}
+
+/** Returns usage percentage (0-100). Returns -1 for unlimited plans. */
+export function getReportsUsagePercent(usage: Usage, limits: PlanLimits): number {
+  if (limits.maxReports === -1) return -1
+  return Math.min(100, Math.round((usage.reportsUsed / limits.maxReports) * 100))
 }

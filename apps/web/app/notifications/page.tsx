@@ -246,7 +246,7 @@ export default function NotificationsPage() {
   if (loading) {
     return (
       <AppLayout>
-        <Column as="main" fillWidth maxWidth={40} paddingX="l" paddingY="m" gap="l" style={{ margin: '0 auto' }}>
+        <Column as="main" fillWidth paddingX="l" paddingY="m" gap="l">
           <style>{`@keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:.4 } }`}</style>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <SkeletonBar width="10rem" height="1.75rem" />
@@ -272,7 +272,7 @@ export default function NotificationsPage() {
 
   return (
     <AppLayout>
-      <Column as="main" fillWidth maxWidth={40} paddingX="l" paddingY="m" gap="l" style={{ margin: '0 auto' }}>
+      <Column as="main" fillWidth paddingX="l" paddingY="m" gap="l">
         <Column gap="xs">
           <Heading variant="heading-strong-l">Notificações</Heading>
           <Text variant="body-default-s" onBackground="neutral-weak">

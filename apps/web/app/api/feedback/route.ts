@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { logActivity } from '@/lib/activity-log'
+import { normalizeDomain } from '@/lib/url-utils'
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -32,7 +34,7 @@ export async function POST(req: NextRequest) {
     // Verify project exists and get organization info + owner
     const { data: project, error: projectError } = await supabase
       .from('Project')
-      .select('id, organizationId, ownerId, name')
+      .select('id, organizationId, ownerId, name, targetUrl, embedPaused')
       .eq('id', data.projectId)
       .single()
 
@@ -40,28 +42,50 @@ export async function POST(req: NextRequest) {
       return corsJson({ error: 'Project not found' }, 404)
     }
 
+    // Origin validation
+    const origin = req.headers.get('origin') || req.headers.get('referer') || ''
+    if (origin && project.targetUrl) {
+      const originDomain = normalizeDomain(origin)
+      const projectDomain = normalizeDomain(project.targetUrl)
+      if (originDomain !== projectDomain) {
+        return corsJson({ error: 'Site não autorizado.' }, 403)
+      }
+    }
+
+    // Paused check
+    if (project.embedPaused) {
+      return corsJson({ error: 'Widget pausado.' }, 403)
+    }
+
     // Check report limits if project has an organization
     if (project.organizationId) {
       const { data: org } = await supabase
         .from('Organization')
-        .select('maxReportsPerMonth')
+        .select('maxReportsPerMonth, plan')
         .eq('id', project.organizationId)
         .single()
 
       if (org && org.maxReportsPerMonth > 0) {
-        const startOfMonth = new Date()
-        startOfMonth.setDate(1)
-        startOfMonth.setHours(0, 0, 0, 0)
+        const isLifetime = org.plan === 'FREE'
 
-        const { count } = await supabase
+        let reportsQuery = supabase
           .from('Feedback')
           .select('id', { count: 'exact', head: true })
           .eq('projectId', data.projectId)
-          .gte('createdAt', startOfMonth.toISOString())
+
+        if (!isLifetime) {
+          const startOfMonth = new Date()
+          startOfMonth.setDate(1)
+          startOfMonth.setHours(0, 0, 0, 0)
+          reportsQuery = reportsQuery.gte('createdAt', startOfMonth.toISOString())
+        }
+
+        const { count } = await reportsQuery
 
         if (count !== null && count >= org.maxReportsPerMonth) {
+          const periodLabel = isLifetime ? '' : '/mês'
           return corsJson({
-            error: `Limite de ${org.maxReportsPerMonth} reports/mês atingido. Faça upgrade do plano.`,
+            error: `Limite de ${org.maxReportsPerMonth} reports${periodLabel} atingido. Faça upgrade do plano.`,
           }, 429)
         }
       }
@@ -143,6 +167,20 @@ export async function POST(req: NextRequest) {
     if (insertError) {
       return corsJson({ error: insertError.message }, 500)
     }
+
+    // Log activity
+    const typeLabels: Record<string, string> = { BUG: 'Bug', SUGGESTION: 'Sugestão', QUESTION: 'Dúvida', PRAISE: 'Elogio' }
+    logActivity({
+      projectId: data.projectId,
+      action: 'FEEDBACK_RECEIVED',
+      details: {
+        feedbackId,
+        title: data.title?.trim() || null,
+        type: data.type,
+        typeLabel: typeLabels[data.type] || data.type,
+        severity: data.severity || null,
+      },
+    })
 
     return corsJson({ success: true })
   } catch (err: any) {

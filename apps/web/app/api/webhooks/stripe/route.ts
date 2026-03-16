@@ -14,9 +14,7 @@ function getOrgUpdatesForPlan(plan: Plan) {
   const limits = getPlanLimits(plan)
   return {
     plan,
-    maxProjects: limits.maxProjects === -1 ? 999999 : limits.maxProjects,
-    maxMembers: limits.maxMembers,
-    maxReportsPerMonth: limits.maxReportsPerMonth === -1 ? 0 : limits.maxReportsPerMonth,
+    maxReportsPerMonth: limits.maxReports === -1 ? 0 : limits.maxReports,
   }
 }
 

@@ -18,11 +18,16 @@ if (!PROJECT_ID) {
 interface WidgetConfig {
   widgetPosition: string
   widgetColor: string
+  widgetStyle: 'text' | 'icon'
+  blocked?: boolean
+  paused?: boolean
+  limitReached?: boolean
 }
 
 const DEFAULT_CONFIG: WidgetConfig = {
   widgetPosition: 'bottom-right',
   widgetColor: '#4f46e5',
+  widgetStyle: 'text',
 }
 
 // ─── Data collection ─────────────────────────────────────────────────────────
@@ -237,17 +242,26 @@ function safeSerialize(val: unknown): unknown {
 
 // ─── Fetch widget config from server ────────────────────────────────────────
 async function fetchConfig(): Promise<WidgetConfig> {
-  if (!PROJECT_ID || !API_BASE) return DEFAULT_CONFIG
+  if (!PROJECT_ID || !API_BASE) return { ...DEFAULT_CONFIG, blocked: true }
   try {
-    const res = await originalFetch(`${API_BASE}/api/projects/${PROJECT_ID}/config`)
-    if (!res.ok) return DEFAULT_CONFIG
+    const res = await originalFetch(`${API_BASE}/api/projects/${PROJECT_ID}/config`, { cache: 'no-store' })
+    if (res.status === 403) {
+      console.warn('[FeedbackView] Site não autorizado para este projeto.')
+      return { ...DEFAULT_CONFIG, blocked: true }
+    }
+    if (!res.ok) return { ...DEFAULT_CONFIG, blocked: true }
     const data = await res.json()
+    if (data.paused) {
+      return { ...DEFAULT_CONFIG, paused: true }
+    }
     return {
       widgetPosition: data.widgetPosition || DEFAULT_CONFIG.widgetPosition,
       widgetColor: data.widgetColor && /^#[0-9a-fA-F]{6}$/.test(data.widgetColor) ? data.widgetColor : DEFAULT_CONFIG.widgetColor,
+      widgetStyle: data.widgetStyle === 'icon' ? 'icon' : 'text',
+      limitReached: !!data.limitReached,
     }
   } catch {
-    return DEFAULT_CONFIG
+    return { ...DEFAULT_CONFIG, blocked: true }
   }
 }
 
@@ -305,8 +319,14 @@ function createWidget(config: WidgetConfig) {
   const panelShadowDir = panelSide === 'left' ? '4px' : '-4px'
 
   const style = document.createElement('style')
+  // Load Inter font for brand consistency
+  const fontLink = document.createElement('link')
+  fontLink.rel = 'stylesheet'
+  fontLink.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@700;900&display=swap'
+  shadow.appendChild(fontLink)
+
   style.textContent = `
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
 
     @keyframes fv-trigger-bounce {
       0% { transform: scale(0) rotate(-45deg); opacity: 0; }
@@ -318,9 +338,16 @@ function createWidget(config: WidgetConfig) {
     .fv-trigger {
       position: fixed;
       ${getPositionCSS(config.widgetPosition)}
+      ${config.widgetStyle === 'icon' ? `
+      width: 48px;
+      height: 48px;
+      padding: 0;
+      border-radius: 50%;
+      ` : `
       height: 44px;
       padding: 0 20px;
       border-radius: 22px;
+      `}
       background: ${color};
       color: white;
       border: none;
@@ -336,14 +363,20 @@ function createWidget(config: WidgetConfig) {
       white-space: nowrap;
     }
     .fv-trigger .fv-trigger-brand {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       font-weight: 700;
       font-size: 0.9rem;
       letter-spacing: -0.02em;
     }
-    .fv-trigger .fv-trigger-label {
-      font-weight: 400;
-      font-size: 0.8rem;
-      opacity: 0.9;
+    .fv-trigger .fv-trigger-icon-text {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-weight: 900;
+      font-size: 9px;
+      letter-spacing: -0.04em;
+      line-height: 0.95;
+      text-align: center;
+      text-transform: uppercase;
+      white-space: pre;
     }
     .fv-trigger.fv-trigger-hidden {
       transform: scale(0);
@@ -950,7 +983,9 @@ function createWidget(config: WidgetConfig) {
   const hiddenTrigger = SCRIPT_EL?.dataset.hiddenTrigger === 'true' || SCRIPT_EL?.getAttribute('data-hidden-trigger') === 'true'
   const trigger = document.createElement('button')
   trigger.className = hiddenTrigger ? 'fv-trigger fv-trigger-hidden' : 'fv-trigger'
-  trigger.innerHTML = `<span class="fv-trigger-brand">Reportar</span><span class="fv-trigger-label">Bug</span>`
+  trigger.innerHTML = config.widgetStyle === 'icon'
+    ? `<span class="fv-trigger-icon-text">RE\nPORT\nBUG</span>`
+    : `<span class="fv-trigger-brand">Report Bug</span>`
   trigger.title = 'Enviar feedback'
   shadow.appendChild(trigger)
 
@@ -992,6 +1027,25 @@ function createWidget(config: WidgetConfig) {
     closeBtn.addEventListener('click', close)
     header.appendChild(closeBtn)
     panel.appendChild(header)
+
+    // Limit reached — show message instead of form
+    if (config.limitReached) {
+      const limitMsg = document.createElement('div')
+      limitMsg.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;text-align:center;gap:12px;flex:1;'
+      limitMsg.innerHTML = `
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 8v4"/>
+          <path d="M12 16h.01"/>
+        </svg>
+        <div style="font-size:15px;font-weight:600;color:#374151;">Limite de reports atingido</div>
+        <div style="font-size:13px;color:#6b7280;line-height:1.6;max-width:280px;">
+          O limite de reports deste projeto foi atingido este mês. Entre em contato com o responsável pelo site para continuar reportando.
+        </div>
+      `
+      panel.appendChild(limitMsg)
+      return
+    }
 
     // Body (two-column layout)
     const body = document.createElement('div')
@@ -2040,6 +2094,7 @@ function createWidget(config: WidgetConfig) {
 // Initialize widget
 async function init() {
   const config = await fetchConfig()
+  if (config.blocked || config.paused) return
   createWidget(config)
 }
 

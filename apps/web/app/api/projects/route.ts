@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
-import { checkProjectLimit, getPlanLimits, type Plan, type Role, type Usage } from '@/lib/limits'
+import { type Plan } from '@/lib/limits'
 import { createNotification } from '@/lib/notifications'
+import { logActivity } from '@/lib/activity-log'
+import { normalizeDomain } from '@/lib/url-utils'
 
 const supabaseAdmin = createSupabaseClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,24 +30,18 @@ export async function POST(req: NextRequest) {
     .limit(1)
     .single()
 
-  if (membership?.organization) {
-    const org = membership.organization as unknown as { plan: string }
-    const plan = (org.plan || 'FREE') as Plan
-    const role = membership.role as Role
-    const limits = getPlanLimits(plan)
+  // Projects are unlimited in all plans — no limit check needed
 
-    if (limits.maxProjects !== -1) {
-      const { count } = await supabase
-        .from('Project')
-        .select('id', { count: 'exact', head: true })
-        .eq('organizationId', membership.organizationId)
+  // Check URL uniqueness
+  const targetUrlDomain = normalizeDomain(data.targetUrl)
+  const { data: existingProject } = await supabaseAdmin
+    .from('Project')
+    .select('id')
+    .eq('targetUrlDomain', targetUrlDomain)
+    .maybeSingle()
 
-      const usage: Usage = { projectCount: count || 0, memberCount: 0, reportsThisMonth: 0 }
-      const check = checkProjectLimit(usage, limits, role)
-      if (!check.allowed) {
-        return NextResponse.json({ error: check.reason || 'Limite de projetos atingido.' }, { status: 403 })
-      }
-    }
+  if (existingProject) {
+    return NextResponse.json({ error: 'Este site já foi cadastrado por outro projeto.' }, { status: 409 })
   }
 
   const projectId = crypto.randomUUID()
@@ -56,6 +52,7 @@ export async function POST(req: NextRequest) {
       name: data.name,
       description: data.description || null,
       targetUrl: data.targetUrl,
+      targetUrlDomain,
       mode: data.mode || 'proxy',
       widgetStyle: data.widgetStyle || 'text',
       widgetText: data.widgetText || 'Reportar Bug',
@@ -70,6 +67,15 @@ export async function POST(req: NextRequest) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
+
+  // Log activity
+  logActivity({
+    projectId: project.id,
+    userId: user.id,
+    userEmail: user.email || undefined,
+    action: 'PROJECT_CREATED',
+    details: { name: data.name },
+  })
 
   // Notify other workspace members about new project
   if (membership?.organizationId) {

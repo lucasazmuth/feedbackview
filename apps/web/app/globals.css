@@ -24,6 +24,53 @@ body {
   50% { box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.6); }
 }
 
+/* Demo widget pulse animation — only pulses before click */
+@keyframes demo-widget-pulse {
+  0%, 100% { box-shadow: 0 4px 16px rgba(79, 70, 229, 0.35); transform: scale(1); }
+  50% { box-shadow: 0 4px 24px rgba(79, 70, 229, 0.6), 0 0 0 8px rgba(79, 70, 229, 0.15); transform: scale(1.04); }
+}
+/* Button: pulse then shrink on click, then hide */
+@keyframes demo-btn-sequence {
+  0% { opacity: 1; transform: scale(1); }
+  25% { opacity: 1; transform: scale(1.04); }
+  30% { opacity: 1; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.04); }
+  55% { opacity: 1; transform: scale(1); }
+  /* cursor arrives ~62%, click at 65% */
+  64% { opacity: 1; transform: scale(1); }
+  66% { opacity: 1; transform: scale(0.92); }
+  68% { opacity: 1; transform: scale(1); }
+  /* panel opens, button fades */
+  75% { opacity: 0; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1); }
+}
+.demo-widget-pulse {
+  animation: demo-btn-sequence 8s ease-in-out infinite;
+}
+/* Overlay: hidden initially, fades in after click */
+@keyframes demo-overlay-fade {
+  0%, 66% { opacity: 0; }
+  75% { opacity: 1; }
+  92% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.demo-hero-overlay {
+  animation: demo-overlay-fade 8s ease-in-out infinite;
+  opacity: 0;
+}
+/* Panel: hidden initially, slides in after click */
+@keyframes demo-panel-slide {
+  0%, 66% { transform: translateX(100%); opacity: 0; }
+  76% { transform: translateX(0); opacity: 1; }
+  92% { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+.demo-hero-panel {
+  animation: demo-panel-slide 8s ease-in-out infinite;
+  transform: translateX(100%);
+  opacity: 0;
+}
+
 /* Line clamp utility */
 .line-clamp-2 {
   display: -webkit-box;
@@ -57,14 +104,19 @@ body {
   to { opacity: 1; transform: scale(1); }
 }
 @keyframes hero-cursor-move {
-  0% { top: 30%; left: 20%; opacity: 0; }
+  /* Start at center of page */
+  0% { bottom: 50%; right: 50%; opacity: 0; transform: scale(1); }
   10% { opacity: 1; }
-  40% { top: 50%; left: 45%; }
-  50% { top: 50%; left: 45%; transform: scale(0.8); }
-  55% { transform: scale(1); }
-  70% { top: 35%; left: 70%; }
-  90% { top: 35%; left: 70%; opacity: 1; }
-  100% { top: 35%; left: 70%; opacity: 0; }
+  /* Move toward the button (bottom-right) */
+  55% { bottom: 18px; right: 40px; opacity: 1; transform: scale(1); }
+  /* Hover near button */
+  62% { bottom: 18px; right: 40px; opacity: 1; transform: scale(1); }
+  /* Click! */
+  65% { bottom: 18px; right: 40px; opacity: 1; transform: scale(0.75); }
+  68% { bottom: 18px; right: 40px; opacity: 1; transform: scale(1); }
+  /* Fade out as panel opens */
+  75% { bottom: 18px; right: 40px; opacity: 0; transform: scale(1); }
+  100% { bottom: 18px; right: 40px; opacity: 0; transform: scale(1); }
 }
 @keyframes hero-pulse-dot {
   0%, 100% { opacity: 1; }
@@ -98,7 +150,7 @@ body {
   height: 20px;
   z-index: 10;
   pointer-events: none;
-  animation: hero-cursor-move 4s ease-in-out infinite 1.5s;
+  animation: hero-cursor-move 8s ease-in-out infinite;
   opacity: 0;
 }
 .hero-recording-dot {
@@ -136,6 +188,14 @@ body {
 @media (max-width: 768px) {
   .lp-hero-visual > div:last-child {
     grid-template-columns: 1fr !important;
+  }
+  .demo-bg-site {
+    display: none !important;
+  }
+  .demo-panel-form {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-left: none !important;
   }
 }
 

@@ -40,9 +40,7 @@ export async function POST(req: NextRequest) {
         name: name || emailPrefix,
         slug,
         plan: 'FREE',
-        maxProjects: 1,
-        maxMembers: 1,
-        maxReportsPerMonth: 50,
+        maxReportsPerMonth: 10,
       })
 
     if (orgError) {

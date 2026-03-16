@@ -14,7 +14,8 @@ import {
   Icon,
 } from '@once-ui-system/core'
 import AppLayout from '@/components/ui/AppLayout'
-import { getPlanLimits, getUsageWarning, type Plan, type Role, type Usage } from '@/lib/limits'
+import UpgradeModal from '@/components/ui/UpgradeModal'
+import { getPlanLimits, getUsageWarning, getReportsUsagePercent, type Plan, type Role, type Usage } from '@/lib/limits'
 
 interface Project {
   id: string
@@ -23,10 +24,20 @@ interface Project {
   openFeedbackCount?: number
   _count?: { feedbacks: number }
   createdAt: string
+  embedLastSeenAt?: string | null
+}
+
+interface ArchivedProject {
+  id: string
+  name: string
+  url: string
+  createdAt: string
+  archivedAt: string
 }
 
 interface DashboardClientProps {
   projects: Project[]
+  archivedProjects: ArchivedProject[]
   error: string | null
   userEmail: string
   userName: string
@@ -39,14 +50,33 @@ function formatDate(dateStr: string) {
   })
 }
 
+function getEmbedStatus(embedLastSeenAt?: string | null): { label: string; color: string; dotColor: string } {
+  if (!embedLastSeenAt) {
+    return { label: 'Offline', color: '#9ca3af', dotColor: '#9ca3af' }
+  }
+  const diff = Date.now() - new Date(embedLastSeenAt).getTime()
+  const fiveMin = 5 * 60 * 1000
+  if (diff < fiveMin) {
+    return { label: 'Conectado', color: '#059669', dotColor: '#10b981' }
+  }
+  return { label: 'Offline', color: '#9ca3af', dotColor: '#9ca3af' }
+}
+
 export default function DashboardClient({
   projects,
+  archivedProjects,
   error,
   userEmail,
   userName,
 }: DashboardClientProps) {
   const router = useRouter()
   const [usageWarning, setUsageWarning] = useState<string | null>(null)
+  const [currentPlan, setCurrentPlan] = useState<Plan>('FREE')
+  const [reportsUsed, setReportsUsed] = useState(0)
+  const [reportsLimit, setReportsLimit] = useState(0)
+  const [reportsPercent, setReportsPercent] = useState(-1)
+  const [isLifetimeLimit, setIsLifetimeLimit] = useState(false)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   useEffect(() => {
     async function fetchUsage() {
       try {
@@ -56,13 +86,16 @@ export default function DashboardClient({
         const plan = (data.organization?.plan || 'FREE') as Plan
         const role = (data.role || 'MEMBER') as Role
         const usage: Usage = {
-          projectCount: data.usage?.projectCount || 0,
-          memberCount: data.usage?.memberCount || 0,
-          reportsThisMonth: data.usage?.reportsThisMonth || 0,
+          reportsUsed: data.usage?.reportsUsed || 0,
         }
         const limits = getPlanLimits(plan)
         const warning = getUsageWarning(usage, limits, role)
         setUsageWarning(warning)
+        setCurrentPlan(plan)
+        setReportsUsed(usage.reportsUsed)
+        setReportsLimit(limits.maxReports)
+        setReportsPercent(getReportsUsagePercent(usage, limits))
+        setIsLifetimeLimit(limits.isLifetimeLimit)
       } catch {
         // ignore
       }
@@ -74,12 +107,14 @@ export default function DashboardClient({
   const [filterStatus, setFilterStatus] = useState<'all' | 'open' | 'none'>('all')
   const [sortBy, setSortBy] = useState<'recent' | 'name' | 'feedbacks'>('recent')
   const [search, setSearch] = useState('')
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
-    if (typeof window !== 'undefined') {
-      return (localStorage.getItem('dashboard-view-mode') as 'grid' | 'list') || 'grid'
-    }
-    return 'grid'
-  })
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [unarchiving, setUnarchiving] = useState<string | null>(null)
+  const [showArchived, setShowArchived] = useState(false)
+
+  useEffect(() => {
+    const saved = localStorage.getItem('dashboard-view-mode') as 'grid' | 'list' | null
+    if (saved) setViewMode(saved)
+  }, [])
 
   function handleSetViewMode(mode: 'grid' | 'list') {
     setViewMode(mode)
@@ -113,35 +148,28 @@ export default function DashboardClient({
 
   const hasActiveFilter = filterStatus !== 'all' || sortBy !== 'recent'
 
+  async function handleUnarchive(projectId: string) {
+    setUnarchiving(projectId)
+    try {
+      const res = await fetch(`/api/projects/${projectId}/unarchive`, { method: 'POST' })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Erro ao desarquivar')
+      }
+      router.refresh()
+    } catch (err: any) {
+      alert(err.message)
+    } finally {
+      setUnarchiving(null)
+    }
+  }
+
   return (
     <AppLayout>
-      <Column as="main" fillWidth maxWidth={72} paddingX="l" paddingY="m" gap="l" style={{ margin: '0 auto' }}>
+      <Column as="main" fillWidth paddingX="l" paddingY="m" gap="l">
         {/* Page title */}
         <Heading variant="heading-strong-l">Projetos</Heading>
 
-        {/* Usage warning banner */}
-        {usageWarning && (
-          <Row
-            fillWidth
-            padding="m"
-            radius="l"
-            background="warning-weak"
-            border="warning-medium"
-            horizontal="between"
-            vertical="center"
-          >
-            <Text variant="body-default-s" onBackground="warning-strong">
-              {usageWarning}
-            </Text>
-            <Button
-              variant="secondary"
-              size="s"
-              href="/plans"
-            >
-              Ver planos
-            </Button>
-          </Row>
-        )}
 
         {/* Error state */}
         {error && (
@@ -417,6 +445,7 @@ export default function DashboardClient({
           <Grid fillWidth columns={3} gap="m" s={{ columns: 1 }} m={{ columns: 2 }}>
             {filteredProjects.map((project) => {
               const openCount = project.openFeedbackCount ?? project._count?.feedbacks ?? 0
+              const embedStatus = getEmbedStatus(project.embedLastSeenAt)
               return (
                 <Column
                   key={project.id}
@@ -449,6 +478,10 @@ export default function DashboardClient({
                   </Column>
 
                   <Row fillWidth vertical="center" gap="s" style={{ marginTop: 'auto' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.7rem', color: embedStatus.color, fontWeight: 500 }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: embedStatus.dotColor, flexShrink: 0 }} />
+                      {embedStatus.label}
+                    </span>
                     <Tag
                       variant={openCount > 0 ? 'warning' : 'neutral'}
                       size="s"
@@ -471,7 +504,7 @@ export default function DashboardClient({
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: '1fr 12rem 8rem 6rem 2rem',
+                gridTemplateColumns: '1fr 12rem 6rem 8rem 6rem 2rem',
                 padding: '0.625rem 1rem',
                 borderBottom: '1px solid var(--neutral-border-medium)',
                 background: 'var(--neutral-alpha-weak)',
@@ -481,19 +514,21 @@ export default function DashboardClient({
             >
               <Text variant="label-default-xs" onBackground="neutral-weak">Nome</Text>
               <Text variant="label-default-xs" onBackground="neutral-weak">URL</Text>
-              <Text variant="label-default-xs" onBackground="neutral-weak">Status</Text>
+              <Text variant="label-default-xs" onBackground="neutral-weak">Embed</Text>
+              <Text variant="label-default-xs" onBackground="neutral-weak">Reports</Text>
               <Text variant="label-default-xs" onBackground="neutral-weak">Criado</Text>
               <span />
             </div>
             {filteredProjects.map((project, i) => {
               const openCount = project.openFeedbackCount ?? project._count?.feedbacks ?? 0
+              const embedStatus = getEmbedStatus(project.embedLastSeenAt)
               return (
                 <div
                   key={project.id}
                   onClick={() => router.push(`/projects/${project.id}`)}
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: '1fr 12rem 8rem 6rem 2rem',
+                    gridTemplateColumns: '1fr 12rem 6rem 8rem 6rem 2rem',
                     padding: '0.75rem 1rem',
                     borderBottom: i < filteredProjects.length - 1 ? '1px solid var(--neutral-border-medium)' : undefined,
                     cursor: 'pointer',
@@ -518,6 +553,10 @@ export default function DashboardClient({
                   >
                     {project.url}
                   </Text>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.7rem', color: embedStatus.color, fontWeight: 500 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: embedStatus.dotColor, flexShrink: 0 }} />
+                    {embedStatus.label}
+                  </span>
                   <Tag
                     variant={openCount > 0 ? 'warning' : 'neutral'}
                     size="s"
@@ -532,7 +571,104 @@ export default function DashboardClient({
             })}
           </Column>
         )}
+
+        {/* Archived projects */}
+        {archivedProjects.length > 0 && (
+          <Column fillWidth gap="m">
+            <button
+              onClick={() => setShowArchived(!showArchived)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 0,
+                color: 'var(--neutral-on-background-weak)',
+                fontSize: '0.875rem',
+                fontWeight: 500,
+              }}
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{ transform: showArchived ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s' }}
+              >
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+              Arquivados ({archivedProjects.length})
+            </button>
+
+            {showArchived && (
+              <Column fillWidth radius="l" border="neutral-medium" style={{ overflow: 'hidden', opacity: 0.75 }}>
+                {archivedProjects.map((project, i) => (
+                  <div
+                    key={project.id}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 12rem 8rem auto',
+                      padding: '0.75rem 1rem',
+                      borderBottom: i < archivedProjects.length - 1 ? '1px solid var(--neutral-border-medium)' : undefined,
+                      gap: '0.75rem',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Text
+                      variant="body-default-s"
+                      onBackground="neutral-weak"
+                      style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}
+                    >
+                      {project.name}
+                    </Text>
+                    <Text
+                      variant="body-default-xs"
+                      onBackground="neutral-weak"
+                      style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                    >
+                      {project.url}
+                    </Text>
+                    <Text variant="body-default-xs" onBackground="neutral-weak" style={{ whiteSpace: 'nowrap' }}>
+                      {formatDate(project.createdAt)}
+                    </Text>
+                    <button
+                      onClick={() => handleUnarchive(project.id)}
+                      disabled={unarchiving === project.id}
+                      style={{
+                        padding: '0.375rem 0.75rem',
+                        borderRadius: '0.375rem',
+                        border: '1px solid var(--neutral-border-medium)',
+                        background: 'var(--surface-background)',
+                        color: 'var(--neutral-on-background-strong)',
+                        fontSize: '0.75rem',
+                        fontWeight: 500,
+                        cursor: unarchiving === project.id ? 'wait' : 'pointer',
+                        opacity: unarchiving === project.id ? 0.5 : 1,
+                        transition: 'all 0.15s',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {unarchiving === project.id ? 'Desarquivando...' : 'Desarquivar'}
+                    </button>
+                  </div>
+                ))}
+              </Column>
+            )}
+          </Column>
+        )}
       </Column>
+      {showUpgradeModal && (
+        <UpgradeModal
+          currentPlan={currentPlan}
+          onClose={() => setShowUpgradeModal(false)}
+        />
+      )}
     </AppLayout>
   )
 }

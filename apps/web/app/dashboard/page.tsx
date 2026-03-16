@@ -6,10 +6,14 @@ export default async function DashboardPage() {
   const user = await requireUser()
 
   let projects: any[] = []
+  let archivedProjects: any[] = []
   let error: string | null = null
 
   try {
-    projects = await serverApi.projects.list(user.id)
+    [projects, archivedProjects] = await Promise.all([
+      serverApi.projects.list(user.id),
+      serverApi.projects.listArchived(user.id),
+    ])
   } catch (err) {
     error = 'Não foi possível carregar os projetos.'
     console.error('Dashboard fetch error:', err)
@@ -18,6 +22,7 @@ export default async function DashboardPage() {
   return (
     <DashboardClient
       projects={projects}
+      archivedProjects={archivedProjects}
       error={error}
       userEmail={user.email ?? ''}
       userName={user.user_metadata?.name ?? ''}

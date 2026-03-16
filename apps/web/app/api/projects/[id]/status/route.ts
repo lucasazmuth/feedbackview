@@ -15,11 +15,12 @@ export async function GET(
 
   const { data: project } = await supabase
     .from('Project')
-    .select('embedLastSeenAt')
+    .select('embedLastSeenAt, embedPaused')
     .eq('id', id)
     .single()
 
   return NextResponse.json({
     embedLastSeenAt: project?.embedLastSeenAt ?? null,
+    embedPaused: project?.embedPaused ?? false,
   })
 }

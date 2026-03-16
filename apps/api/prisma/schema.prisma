@@ -81,6 +81,7 @@ model Feedback {
   userAgent      String?
   attachmentUrls Json?
   createdAt      DateTime       @default(now())
+  archivedAt     DateTime?
 }
 
 enum Plan {

@@ -222,7 +222,6 @@ export default function FeedbackClient({
       <Flex fillWidth>
         <Row
           fillWidth
-          maxWidth={72}
           gap="l"
           style={{ alignItems: 'flex-start' }}
         >

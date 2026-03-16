@@ -20,7 +20,7 @@ import {
   Icon,
 } from '@once-ui-system/core'
 import { api } from '@/lib/api'
-import { checkProjectLimit, getPlanLimits, type Plan, type Role, type Usage } from '@/lib/limits'
+import { type Plan } from '@/lib/limits'
 
 const projectSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
@@ -48,39 +48,8 @@ function SvgIcon({ children, size = 20 }: { children: React.ReactNode; size?: nu
 export default function NewProjectPage() {
   const router = useRouter()
 
-  const [limitBlocked, setLimitBlocked] = useState<string | null>(null)
-  const [limitLoading, setLimitLoading] = useState(true)
-
-  useEffect(() => {
-    async function checkLimit() {
-      try {
-        const res = await fetch('/api/billing/subscription')
-        if (!res.ok) { setLimitLoading(false); return }
-        const data = await res.json()
-        const plan = (data.organization?.plan || 'FREE') as Plan
-        const role = (data.role || 'MEMBER') as Role
-        const limits = getPlanLimits(plan)
-        const usage: Usage = {
-          projectCount: data.usage?.projectCount || 0,
-          memberCount: data.usage?.memberCount || 0,
-          reportsThisMonth: data.usage?.reportsThisMonth || 0,
-        }
-        const check = checkProjectLimit(usage, limits, role)
-        if (!check.allowed) {
-          if (role === 'OWNER' || role === 'ADMIN') {
-            router.replace('/plans')
-            return
-          }
-          setLimitBlocked(check.reason || 'Limite de projetos atingido.')
-        }
-      } catch {
-        // allow creation if check fails
-      } finally {
-        setLimitLoading(false)
-      }
-    }
-    checkLimit()
-  }, [router])
+  const [limitBlocked] = useState<string | null>(null)
+  const [limitLoading] = useState(false)
 
   const [step, setStep] = useState(1)
   const [mode, setMode] = useState<Mode | null>(null)
@@ -118,7 +87,7 @@ export default function NewProjectPage() {
     setTargetUrl(value)
   }
 
-  function handleUrlBlur() {
+  async function handleUrlBlur() {
     if (!targetUrl.trim()) {
       setUrlError(null)
       return
@@ -137,12 +106,30 @@ export default function NewProjectPage() {
       const parsed = new URL(url)
       if (!parsed.hostname.includes('.')) {
         setUrlError('URL inválida. Insira um domínio válido (ex: meusite.com.br)')
-      } else {
-        setUrlError(null)
+        return
       }
     } catch {
       setUrlError('URL inválida. Insira um domínio válido (ex: meusite.com.br)')
+      return
     }
+
+    // Check if domain is already registered
+    try {
+      const res = await fetch('/api/projects/check-domain', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetUrl: url }),
+      })
+      const data = await res.json()
+      if (data.exists) {
+        setUrlError('Este site já foi cadastrado por outro projeto.')
+        return
+      }
+    } catch {
+      // Non-blocking — allow form submission if check fails
+    }
+
+    setUrlError(null)
   }
 
   const isUrlValid = targetUrl.startsWith('http') && !urlError

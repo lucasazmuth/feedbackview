@@ -33,28 +33,25 @@ export async function GET(req: NextRequest) {
     const orgId = org.id as string
 
     // Get usage counts
-    const startOfMonth = new Date()
-    startOfMonth.setDate(1)
-    startOfMonth.setHours(0, 0, 0, 0)
+    const plan = (org.plan as string) || 'FREE'
+    const isLifetime = plan === 'FREE'
 
-    const [projectsResult, membersResult, reportsResult] = await Promise.all([
-      supabaseAdmin
-        .from('Project')
-        .select('id', { count: 'exact', head: true })
-        .eq('organizationId', orgId),
-      supabaseAdmin
-        .from('TeamMember')
-        .select('id', { count: 'exact', head: true })
-        .eq('organizationId', orgId)
-        .eq('status', 'ACTIVE'),
-      supabaseAdmin
-        .from('Feedback')
-        .select('id', { count: 'exact', head: true })
-        .in('projectId',
-          (await supabaseAdmin.from('Project').select('id').eq('organizationId', orgId)).data?.map((p: { id: string }) => p.id) || []
-        )
-        .gte('createdAt', startOfMonth.toISOString()),
-    ])
+    const projectIds = (await supabaseAdmin.from('Project').select('id').eq('organizationId', orgId)).data?.map((p: { id: string }) => p.id) || []
+
+    // For FREE plan, count all reports ever (lifetime). For paid plans, count this month only.
+    let reportsQuery = supabaseAdmin
+      .from('Feedback')
+      .select('id', { count: 'exact', head: true })
+      .in('projectId', projectIds.length > 0 ? projectIds : ['__none__'])
+
+    if (!isLifetime) {
+      const startOfMonth = new Date()
+      startOfMonth.setDate(1)
+      startOfMonth.setHours(0, 0, 0, 0)
+      reportsQuery = reportsQuery.gte('createdAt', startOfMonth.toISOString())
+    }
+
+    const reportsResult = await reportsQuery
 
     return NextResponse.json({
       organization: {
@@ -64,18 +61,15 @@ export async function GET(req: NextRequest) {
         plan: org.plan,
         planPeriod: org.planPeriod,
         planExpiresAt: org.planExpiresAt,
-        maxProjects: org.maxProjects,
-        maxMembers: org.maxMembers,
         maxReportsPerMonth: org.maxReportsPerMonth,
         stripeCustomerId: org.stripeCustomerId,
         stripeSubscriptionId: org.stripeSubscriptionId,
       },
       usage: {
-        projectCount: projectsResult.count || 0,
-        memberCount: membersResult.count || 0,
-        reportsThisMonth: reportsResult.count || 0,
+        reportsUsed: reportsResult.count || 0,
       },
       role: membership.role,
+      isLifetimeLimit: isLifetime,
     })
   } catch (err) {
     console.error('Subscription status error:', err)

@@ -64,16 +64,13 @@ const PLAN_PRICES: Record<Plan, string> = {
 
 interface OrgData {
   plan: Plan
-  maxProjects: number
-  maxMembers: number
-  maxReportsPerMonth: number
+  maxReports: number
+  isLifetimeLimit: boolean
   stripeSubscriptionId: string | null
 }
 
 interface UsageData {
-  projectCount: number
-  memberCount: number
-  reportsThisMonth: number
+  reportsUsed: number
 }
 
 function PlansContent() {
@@ -84,15 +81,12 @@ function PlansContent() {
 
   const [org, setOrg] = useState<OrgData>({
     plan: 'FREE',
-    maxProjects: 1,
-    maxMembers: 1,
-    maxReportsPerMonth: 50,
+    maxReports: 10,
+    isLifetimeLimit: true,
     stripeSubscriptionId: null,
   })
   const [usage, setUsage] = useState<UsageData>({
-    projectCount: 0,
-    memberCount: 1,
-    reportsThisMonth: 0,
+    reportsUsed: 0,
   })
 
   const success = searchParams.get('success') === 'true'
@@ -103,14 +97,15 @@ function PlansContent() {
       const res = await fetch('/api/billing/subscription')
       if (res.ok) {
         const data = await res.json()
+        const plan = data.organization.plan || 'FREE'
+        const limits = getPlanLimits(plan)
         setOrg({
-          plan: data.organization.plan || 'FREE',
-          maxProjects: data.organization.maxProjects,
-          maxMembers: data.organization.maxMembers,
-          maxReportsPerMonth: data.organization.maxReportsPerMonth,
+          plan,
+          maxReports: limits.maxReports,
+          isLifetimeLimit: limits.isLifetimeLimit,
           stripeSubscriptionId: data.organization.stripeSubscriptionId,
         })
-        setUsage(data.usage)
+        setUsage({ reportsUsed: data.usage?.reportsUsed ?? 0 })
       }
     } catch {
       // Use defaults
@@ -145,7 +140,7 @@ function PlansContent() {
   if (loading) {
     return (
       <AppLayout>
-        <Column as="main" fillWidth maxWidth={40} paddingX="xl" paddingY="l" gap="l" style={{ margin: '0 auto' }}>
+        <Column as="main" fillWidth paddingX="xl" paddingY="l" gap="l">
           <style>{`@keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:.4 } }`}</style>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <SkeletonBar width="6rem" height="1.75rem" />
@@ -191,7 +186,7 @@ function PlansContent() {
 
   return (
     <AppLayout>
-      <Column as="main" fillWidth maxWidth={40} paddingX="xl" paddingY="l" gap="l" style={{ margin: '0 auto' }}>
+      <Column as="main" fillWidth paddingX="xl" paddingY="l" gap="l">
         <Column gap="xs">
           <Heading variant="heading-strong-l">Planos</Heading>
           <Text variant="body-default-s" onBackground="neutral-weak">
@@ -245,9 +240,7 @@ function PlansContent() {
         {/* Usage */}
         <Column fillWidth padding="l" gap="l" radius="l" border="neutral-medium" background="surface">
           <Heading variant="heading-strong-m">Uso atual</Heading>
-          <UsageBar label="Projetos" current={usage.projectCount} max={org.maxProjects >= 999999 ? -1 : org.maxProjects} />
-          <UsageBar label="Membros da equipe" current={usage.memberCount} max={org.maxMembers} />
-          <UsageBar label="Reports este mês" current={usage.reportsThisMonth} max={org.maxReportsPerMonth <= 0 ? -1 : org.maxReportsPerMonth} />
+          <UsageBar label={org.isLifetimeLimit ? 'Reports (total)' : 'Reports este mês'} current={usage.reportsUsed} max={org.maxReports <= 0 ? -1 : org.maxReports} />
         </Column>
 
         {/* Features */}
@@ -261,9 +254,6 @@ function PlansContent() {
               { label: 'Screenshot automático', available: true },
               { label: 'Console & network logs', available: true },
               { label: 'Replay de sessão', available: limits.hasReplay },
-              { label: 'Integrações (Slack, Jira)', available: limits.hasIntegrations },
-              { label: 'White-label', available: limits.hasWhiteLabel },
-              { label: 'API access', available: limits.hasApi },
               { label: `Retenção de ${limits.retentionDays} dias`, available: true },
             ].map((feature) => (
               <Row key={feature.label} gap="s" vertical="center">

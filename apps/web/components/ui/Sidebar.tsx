@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useSidebarContext } from './AppLayout'
 import { useOrg } from '@/contexts/OrgContext'
+import { getPlanLimits, type Plan } from '@/lib/limits'
 
 function SvgIcon({ children, size = 18 }: { children: React.ReactNode; size?: number }) {
   return (
@@ -22,6 +23,29 @@ export default function Sidebar() {
   const [wsDropdownOpen, setWsDropdownOpen] = useState(false)
   const [wsSearch, setWsSearch] = useState('')
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const [usage, setUsage] = useState<{ reportsUsed: number; maxReports: number; isLifetimeLimit: boolean } | null>(null)
+
+  // Fetch usage data
+  useEffect(() => {
+    let cancelled = false
+    async function fetchUsage() {
+      try {
+        const res = await fetch('/api/billing/subscription')
+        if (res.ok && !cancelled) {
+          const data = await res.json()
+          const plan = (data.organization?.plan || 'FREE') as Plan
+          const limits = getPlanLimits(plan)
+          setUsage({
+            reportsUsed: data.usage?.reportsUsed ?? 0,
+            maxReports: limits.maxReports,
+            isLifetimeLimit: limits.isLifetimeLimit,
+          })
+        }
+      } catch { /* ignore */ }
+    }
+    fetchUsage()
+    return () => { cancelled = true }
+  }, [currentOrg?.id])
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -503,6 +527,43 @@ export default function Sidebar() {
           )
         })}
       </div>
+
+      {/* ── Usage Bar ── */}
+      {usage && usage.maxReports > 0 && (() => {
+        const pct = Math.min(100, Math.round((usage.reportsUsed / usage.maxReports) * 100))
+        const isNear = pct >= 80
+        const isAt = pct >= 100
+        return (
+          <div style={{ padding: '0 0.75rem 0.5rem', flexShrink: 0 }}>
+            <div
+              onClick={() => router.push('/plans')}
+              style={{ cursor: 'pointer', padding: '0.5rem 0.625rem', borderRadius: '0.5rem', background: 'var(--neutral-alpha-weak)' }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                <span style={{ fontSize: '0.6875rem', color: 'var(--neutral-on-background-weak)', fontWeight: 500 }}>
+                  Reports
+                </span>
+                <span style={{
+                  fontSize: '0.6875rem',
+                  fontWeight: 600,
+                  color: isAt ? 'var(--danger-on-background-strong)' : isNear ? 'var(--warning-on-background-strong)' : 'var(--neutral-on-background-medium)',
+                }}>
+                  {usage.reportsUsed}/{usage.maxReports}
+                </span>
+              </div>
+              <div style={{ width: '100%', height: 4, borderRadius: 2, background: 'var(--neutral-alpha-medium)' }}>
+                <div style={{
+                  width: `${pct}%`,
+                  height: '100%',
+                  borderRadius: 2,
+                  background: isAt ? 'var(--danger-solid-strong)' : isNear ? 'var(--warning-solid-strong)' : 'var(--brand-solid-strong)',
+                  transition: 'width 0.3s ease',
+                }} />
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* ── Bottom: Utilities ── */}
       <div style={{

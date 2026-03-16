@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createNotification } from '@/lib/notifications'
+import { logActivity } from '@/lib/activity-log'
 
 export async function PATCH(
   req: NextRequest,
@@ -42,6 +43,30 @@ export async function PATCH(
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  // Log activity
+  const statusLabels: Record<string, string> = {
+    OPEN: 'Aberto',
+    IN_PROGRESS: 'Em andamento',
+    RESOLVED: 'Resolvido',
+    CLOSED: 'Fechado',
+  }
+  const feedbackTitle = feedback.title || feedback.comment?.slice(0, 60) || 'Report'
+
+  logActivity({
+    projectId: feedback.projectId,
+    userId: user.id,
+    userEmail: user.email || undefined,
+    action: 'STATUS_CHANGED',
+    details: {
+      feedbackId: id,
+      feedbackTitle,
+      oldStatus,
+      newStatus: status,
+      oldStatusLabel: statusLabels[oldStatus] || oldStatus,
+      newStatusLabel: statusLabels[status] || status,
+    },
+  })
+
   // Notify project owner if changed by someone else
   const { data: project } = await supabase
     .from('Project')
@@ -50,13 +75,6 @@ export async function PATCH(
     .single()
 
   if (project && project.ownerId !== user.id) {
-    const statusLabels: Record<string, string> = {
-      OPEN: 'Aberto',
-      IN_PROGRESS: 'Em andamento',
-      RESOLVED: 'Resolvido',
-      CLOSED: 'Fechado',
-    }
-    const feedbackTitle = feedback.title || feedback.comment?.slice(0, 60) || 'Report'
     createNotification({
       userId: project.ownerId,
       type: 'STATUS_CHANGE',

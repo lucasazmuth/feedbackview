@@ -46,11 +46,24 @@ interface Project {
   targetUrl?: string
   createdAt: string
   embedLastSeenAt?: string | null
+  embedPaused?: boolean
+  ownerName?: string | null
+}
+
+interface ActivityLogEntry {
+  id: string
+  projectId: string
+  userId?: string
+  userEmail?: string
+  action: string
+  details?: Record<string, any>
+  createdAt: string
 }
 
 interface ProjectClientProps {
   project: Project | null
   feedbacks: Feedback[]
+  activityLog: ActivityLogEntry[]
   error: string | null
   userEmail: string
 }
@@ -100,14 +113,109 @@ function getSeverityLabel(sev: string) {
   return map[sev] || sev
 }
 
+function getActionLabel(action: string) {
+  const map: Record<string, string> = {
+    PROJECT_CREATED: 'Projeto criado',
+    PROJECT_UPDATED: 'Projeto editado',
+    STATUS_CHANGED: 'Status alterado',
+    FEEDBACK_RECEIVED: 'Novo report recebido',
+  }
+  return map[action] || action
+}
+
+function getActionIcon(action: string) {
+  switch (action) {
+    case 'PROJECT_CREATED':
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+      )
+    case 'PROJECT_UPDATED':
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+        </svg>
+      )
+    case 'STATUS_CHANGED':
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="23 4 23 10 17 10" />
+          <polyline points="1 20 1 14 7 14" />
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+        </svg>
+      )
+    case 'FEEDBACK_RECEIVED':
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+      )
+    default:
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" />
+        </svg>
+      )
+  }
+}
+
+function getActionColor(action: string) {
+  switch (action) {
+    case 'PROJECT_CREATED': return 'var(--success-solid-strong)'
+    case 'PROJECT_UPDATED': return 'var(--brand-solid-strong)'
+    case 'STATUS_CHANGED': return 'var(--warning-solid-strong)'
+    case 'FEEDBACK_RECEIVED': return 'var(--info-solid-strong)'
+    default: return 'var(--neutral-solid-medium)'
+  }
+}
+
+function renderActivityDetails(entry: ActivityLogEntry) {
+  if (!entry.details) return null
+
+  if (entry.action === 'PROJECT_UPDATED' && entry.details.changes) {
+    const changes = entry.details.changes as Record<string, { from: unknown; to: unknown }>
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginTop: '0.25rem' }}>
+        {Object.entries(changes).map(([field, { from, to }]) => (
+          <span key={field} style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)' }}>
+            {field}: <span style={{ textDecoration: 'line-through', opacity: 0.6 }}>{String(from || '—')}</span> → {String(to || '—')}
+          </span>
+        ))}
+      </div>
+    )
+  }
+
+  if (entry.action === 'STATUS_CHANGED') {
+    return (
+      <span style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', marginTop: '0.125rem', display: 'block' }}>
+        &quot;{entry.details.feedbackTitle}&quot;: {entry.details.oldStatusLabel} → {entry.details.newStatusLabel}
+      </span>
+    )
+  }
+
+  if (entry.action === 'FEEDBACK_RECEIVED') {
+    return (
+      <span style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', marginTop: '0.125rem', display: 'block' }}>
+        {entry.details.typeLabel}{entry.details.title ? `: ${entry.details.title}` : ''}
+        {entry.details.severity ? ` (${entry.details.severity})` : ''}
+      </span>
+    )
+  }
+
+  return null
+}
+
 export default function ProjectClient({
   project,
   feedbacks,
+  activityLog,
   error,
   userEmail,
 }: ProjectClientProps) {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<'feedbacks' | 'settings'>('feedbacks')
+  const [activeTab, setActiveTab] = useState<'feedbacks' | 'settings' | 'history'>('feedbacks')
   const [copied, setCopied] = useState(false)
   const [copiedEmbed, setCopiedEmbed] = useState(false)
   const [showHelpModal, setShowHelpModal] = useState(false)
@@ -116,12 +224,15 @@ export default function ProjectClient({
   const [statusFilter, setStatusFilter] = useState('')
   const [reportSearch, setReportSearch] = useState('')
   const [showReportFilter, setShowReportFilter] = useState(false)
-  const [reportViewMode, setReportViewMode] = useState<'card' | 'list'>(() => {
-    if (typeof window !== 'undefined') {
-      return (localStorage.getItem('report-view-mode') as 'card' | 'list') || 'card'
-    }
-    return 'card'
-  })
+  const [reportViewMode, setReportViewMode] = useState<'card' | 'list'>('card')
+
+  const [clientNow, setClientNow] = useState(0)
+
+  useEffect(() => {
+    setClientNow(Date.now())
+    const saved = localStorage.getItem('report-view-mode') as 'card' | 'list' | null
+    if (saved) setReportViewMode(saved)
+  }, [])
 
   function handleSetReportViewMode(mode: 'card' | 'list') {
     setReportViewMode(mode)
@@ -213,11 +324,28 @@ export default function ProjectClient({
     }
   }
 
-  // Delete state
+  // Archive state
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  // Embed pause state
+  const [embedPaused, setEmbedPaused] = useState(project?.embedPaused ?? false)
+  const [pauseToggling, setPauseToggling] = useState(false)
+
+  async function toggleEmbedPause() {
+    if (!project) return
+    setPauseToggling(true)
+    try {
+      await api.projects.update(project.id, { embedPaused: !embedPaused })
+      setEmbedPaused(!embedPaused)
+      router.refresh()
+    } catch {
+      // ignore
+    } finally {
+      setPauseToggling(false)
+    }
+  }
 
   const [origin, setOrigin] = useState('')
   useEffect(() => {
@@ -277,33 +405,15 @@ export default function ProjectClient({
 
   async function handleEditSave() {
     if (!project) return
-    if (!editName.trim() || !editUrl.trim()) {
-      setEditError('Nome e URL são obrigatórios.')
-      return
-    }
-    // Validate URL
-    let url = editUrl.trim()
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      url = 'https://' + url
-      setEditUrl(url)
-    }
-    try {
-      const parsed = new URL(url)
-      if (!parsed.hostname.includes('.')) {
-        setEditUrlError('URL inválida. Exemplo: https://meusite.com.br')
-        return
-      }
-    } catch {
-      setEditUrlError('URL inválida. Exemplo: https://meusite.com.br')
+    if (!editName.trim()) {
+      setEditError('Nome é obrigatório.')
       return
     }
     setEditError(null)
-    setEditUrlError(null)
     setEditSaving(true)
     try {
       await api.projects.update(project.id, {
         name: editName.trim(),
-        targetUrl: editUrl.trim(),
         description: editDescription.trim() || undefined,
       })
       router.refresh()
@@ -315,15 +425,15 @@ export default function ProjectClient({
     }
   }
 
-  async function handleDelete() {
+  async function handleArchive() {
     if (!project) return
     setDeleteError(null)
     setDeleting(true)
     try {
-      await api.projects.delete(project.id)
+      await api.projects.archive(project.id)
       router.push('/dashboard')
     } catch (err: any) {
-      setDeleteError(err.message || 'Erro ao excluir projeto.')
+      setDeleteError(err.message || 'Erro ao arquivar projeto.')
       setDeleting(false)
     }
   }
@@ -376,7 +486,7 @@ export default function ProjectClient({
           {project?.name}
         </Text>
       </Row>
-      <Column fillWidth maxWidth={72} paddingX="l" paddingY="m" gap="l" style={{ margin: '0 auto' }}>
+      <Column fillWidth paddingX="l" paddingY="m" gap="l">
         {/* Compact project header with inline stats */}
         <Row fillWidth horizontal="between" vertical="center">
           <Column gap="xs">
@@ -412,7 +522,32 @@ export default function ProjectClient({
                   )
                 }
 
-                // For embed mode: connected = lastSeen recent
+                // For embed mode: check paused state first
+                if (embedPaused) {
+                  return (
+                    <span
+                      title="Conexão embed pausada"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.375rem',
+                        fontSize: '0.6875rem',
+                        fontWeight: 500,
+                        padding: '0.1875rem 0.5rem',
+                        borderRadius: '999px',
+                        background: 'var(--warning-alpha-weak)',
+                        color: 'var(--warning-on-background-strong)',
+                        cursor: 'help',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--warning-solid-strong)', flexShrink: 0 }} />
+                      Pausado
+                    </span>
+                  )
+                }
+
+                // connected = lastSeen recent
                 if (!lastSeen) {
                   return (
                     <span
@@ -436,7 +571,28 @@ export default function ProjectClient({
                     </span>
                   )
                 }
-                const minutesAgo = (Date.now() - new Date(lastSeen).getTime()) / 1000 / 60
+                if (!clientNow) {
+                  return (
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.375rem',
+                        fontSize: '0.6875rem',
+                        fontWeight: 500,
+                        padding: '0.1875rem 0.5rem',
+                        borderRadius: '999px',
+                        background: 'var(--neutral-alpha-weak)',
+                        color: 'var(--neutral-on-background-weak)',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--neutral-solid-medium)', flexShrink: 0 }} />
+                      —
+                    </span>
+                  )
+                }
+                const minutesAgo = (clientNow - new Date(lastSeen).getTime()) / 1000 / 60
                 const isOnline = minutesAgo < 10
                 const isRecent = minutesAgo < 60
                 return (
@@ -652,6 +808,7 @@ export default function ProjectClient({
         <Row gap="l" fillWidth style={{ borderBottom: '2px solid var(--neutral-border-medium)' }}>
           {[
             { key: 'feedbacks' as const, label: 'Reports', count: totalCount },
+            { key: 'history' as const, label: 'Histórico', count: undefined },
             { key: 'settings' as const, label: 'Configurações', count: undefined },
           ].map((tab) => (
             <button
@@ -1420,16 +1577,6 @@ export default function ProjectClient({
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
                     />
-                    <Input
-                      id="edit-url"
-                      label="URL alvo"
-                      placeholder="https://meusite.com.br"
-                      value={editUrl}
-                      onChange={(e) => handleEditUrlChange(e.target.value)}
-                      onBlur={handleEditUrlBlur}
-                      error={!!editUrlError}
-                      errorMessage={editUrlError || undefined}
-                    />
                     <Textarea
                       id="edit-description"
                       label="Descrição"
@@ -1456,10 +1603,8 @@ export default function ProjectClient({
                         onClick={() => {
                           setEditing(false)
                           setEditName(project?.name ?? '')
-                          setEditUrl(project?.url ?? '')
                           setEditDescription(project?.description ?? '')
                           setEditError(null)
-                          setEditUrlError(null)
                         }}
                       />
                     </Row>
@@ -1471,6 +1616,7 @@ export default function ProjectClient({
                       { label: 'Nome', value: project?.name },
                       ...(project?.description ? [{ label: 'Descrição', value: project.description }] : []),
                       { label: 'URL alvo', value: project?.url, link: true },
+                      ...(project?.ownerName ? [{ label: 'Criado por', value: project.ownerName }] : []),
                       { label: 'Criado em', value: project?.createdAt ? formatDate(project.createdAt) : '-' },
                     ].map((row, i, arr) => (
                       <Row
@@ -1556,16 +1702,12 @@ export default function ProjectClient({
                           >
                             <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'center' }}>
                               {s === 'text' ? (
-                                <div style={{ height: 32, paddingLeft: 12, paddingRight: 14, borderRadius: 16, background: widgetColor, color: '#fff', display: 'inline-flex', alignItems: 'center', fontSize: 11, fontWeight: 600, gap: 4 }}>
-                                  {widgetText}
+                                <div style={{ height: 32, paddingLeft: 12, paddingRight: 14, borderRadius: 16, background: widgetColor, color: '#fff', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                  <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: 11, letterSpacing: '-0.02em' }}>Report Bug</span>
                                 </div>
                               ) : (
-                                <div style={{ width: 36, height: 36, borderRadius: '50%', background: widgetColor, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                    <ellipse cx="12" cy="15" rx="5" ry="6" />
-                                    <circle cx="12" cy="7" r="3" />
-                                    <path d="M5 9L2 7M19 9l3-2M5 15H2M19 15h3M5 19l-2 2M19 19l2 2" strokeLinecap="round" />
-                                  </svg>
+                                <div style={{ width: 44, height: 44, borderRadius: '50%', background: widgetColor, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 900, fontSize: 9, letterSpacing: '-0.04em', lineHeight: 0.95, textAlign: 'center', textTransform: 'uppercase', whiteSpace: 'pre' }}>{'RE\nPORT\nBUG'}</span>
                                 </div>
                               )}
                             </div>
@@ -1573,36 +1715,12 @@ export default function ProjectClient({
                               {s === 'text' ? 'Texto' : 'Ícone'}
                             </span>
                             <p style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', margin: '0.25rem 0 0' }}>
-                              {s === 'text' ? 'Botão com texto personalizado' : 'Botão circular com ícone'}
+                              {s === 'text' ? 'Botão com logo Report Bug' : 'Botão circular com logo'}
                             </p>
                           </div>
                         ))}
                       </div>
                     </div>
-
-                    {/* Widget text (only for text style) */}
-                    {widgetStyle === 'text' && (
-                      <div>
-                        <Text variant="label-default-s" onBackground="neutral-strong" style={{ marginBottom: '0.5rem', display: 'block' }}>Texto do botão</Text>
-                        <input
-                          type="text"
-                          value={widgetText}
-                          onChange={(e) => setWidgetText(e.target.value.slice(0, 30))}
-                          placeholder="Reportar Bug"
-                          style={{
-                            width: '100%',
-                            padding: '0.625rem 0.75rem',
-                            borderRadius: '0.5rem',
-                            border: '1px solid var(--neutral-border-medium)',
-                            background: 'var(--surface-background)',
-                            color: 'var(--neutral-on-background-strong)',
-                            fontSize: '0.875rem',
-                            outline: 'none',
-                          }}
-                        />
-                        <span style={{ fontSize: '0.6875rem', color: 'var(--neutral-on-background-weak)', marginTop: '0.25rem', display: 'block' }}>{widgetText.length}/30</span>
-                      </div>
-                    )}
 
                     {/* Widget position */}
                     <div>
@@ -1763,8 +1881,8 @@ export default function ProjectClient({
                         }}>
                           {widgetStyle === 'icon' ? (
                             <div style={{
-                              width: 36,
-                              height: 36,
+                              width: 40,
+                              height: 40,
                               borderRadius: '50%',
                               background: widgetColor,
                               color: '#fff',
@@ -1773,11 +1891,7 @@ export default function ProjectClient({
                               justifyContent: 'center',
                               boxShadow: `0 4px 12px ${widgetColor}66`,
                             }}>
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                                <ellipse cx="12" cy="15" rx="5" ry="6" />
-                                <circle cx="12" cy="7" r="3" />
-                                <path d="M5 9L2 7M19 9l3-2M5 15H2M19 15h3M5 19l-2 2M19 19l2 2" strokeLinecap="round" />
-                              </svg>
+                              <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 900, fontSize: 7, letterSpacing: '-0.04em', lineHeight: 0.95, textAlign: 'center', textTransform: 'uppercase', whiteSpace: 'pre' }}>{'RE\nPORT\nBUG'}</span>
                             </div>
                           ) : (
                             <div style={{
@@ -1789,13 +1903,10 @@ export default function ProjectClient({
                               color: '#fff',
                               display: 'inline-flex',
                               alignItems: 'center',
-                              fontSize: 10,
-                              fontWeight: 600,
-                              fontFamily: 'system-ui, -apple-system, sans-serif',
                               boxShadow: `0 4px 12px ${widgetColor}66`,
                               whiteSpace: 'nowrap',
                             }}>
-                              {widgetText || 'Reportar Bug'}
+                              <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: 10, letterSpacing: '-0.02em' }}>Report Bug</span>
                             </div>
                           )}
                         </div>
@@ -1913,28 +2024,52 @@ export default function ProjectClient({
             </Card>
             )}
 
-            {/* Delete project */}
+            {/* Pause/Resume embed connection */}
+            {(project?.mode ?? 'proxy') === 'embed' && (
+              <Card fillWidth padding="l" radius="l">
+                <Column gap="m" fillWidth>
+                  <Heading variant="heading-strong-s" as="h3">Conexão do Widget</Heading>
+                  <Text variant="body-default-s" onBackground="neutral-weak">
+                    {embedPaused
+                      ? 'O widget está pausado e não aparece no site. Os feedbacks não serão aceitos enquanto pausado.'
+                      : 'O widget está ativo e aparece no site cadastrado. Pause para ocultar temporariamente.'}
+                  </Text>
+                  <Flex>
+                    <Button
+                      variant={embedPaused ? 'primary' : 'secondary'}
+                      size="m"
+                      label={pauseToggling ? (embedPaused ? 'Retomando...' : 'Pausando...') : (embedPaused ? 'Retomar conexão' : 'Pausar conexão')}
+                      prefixIcon={embedPaused ? 'play' : 'pause'}
+                      onClick={toggleEmbedPause}
+                      loading={pauseToggling}
+                    />
+                  </Flex>
+                </Column>
+              </Card>
+            )}
+
+            {/* Archive project */}
             <Card
               fillWidth
               padding="l"
               radius="l"
-              style={{ border: '1px solid var(--danger-border-strong)' }}
+              style={{ border: '1px solid var(--warning-border-strong)' }}
             >
               <Column gap="m" fillWidth>
                 <Heading variant="heading-strong-s" as="h3">
-                  <Text onBackground="danger-strong">Zona de Perigo</Text>
+                  <Text onBackground="warning-strong">Arquivar Projeto</Text>
                 </Heading>
                 <Text variant="body-default-s" onBackground="neutral-weak">
-                  Excluir este projeto removerá permanentemente todos os feedbacks associados. Esta ação não pode ser desfeita.
+                  Arquivar este projeto irá ocultá-lo da lista de projetos. Os feedbacks e dados serão preservados.
                 </Text>
 
                 {!showDeleteConfirm ? (
                   <Flex>
                     <Button
-                      variant="danger"
+                      variant="secondary"
                       size="m"
-                      label="Excluir projeto"
-                      prefixIcon="delete"
+                      label="Arquivar projeto"
+                      prefixIcon="archive"
                       onClick={() => setShowDeleteConfirm(true)}
                     />
                   </Flex>
@@ -1943,30 +2078,22 @@ export default function ProjectClient({
                     fillWidth
                     padding="m"
                     radius="m"
-                    style={{ background: 'var(--danger-alpha-weak)' }}
+                    style={{ background: 'var(--warning-alpha-weak)' }}
                   >
                     <Column gap="s" fillWidth>
-                      <Text variant="body-default-s" onBackground="danger-strong" style={{ fontWeight: 500 }}>
-                        Digite <code style={{ background: 'var(--danger-alpha-medium)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.75rem' }}>{project?.name}</code> para confirmar:
+                      <Text variant="body-default-s" onBackground="warning-strong" style={{ fontWeight: 500 }}>
+                        Tem certeza que deseja arquivar o projeto <code style={{ background: 'var(--warning-alpha-medium)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.75rem' }}>{project?.name}</code>?
                       </Text>
-                      <Input
-                        id="delete-confirm"
-                        label=""
-                        value={deleteConfirmText}
-                        onChange={(e) => setDeleteConfirmText(e.target.value)}
-                        placeholder={project?.name}
-                      />
                       {deleteError && (
                         <FeedbackAlert variant="danger">{deleteError}</FeedbackAlert>
                       )}
                       <Row gap="s">
                         <Button
-                          variant="danger"
+                          variant="secondary"
                           size="m"
-                          label="Confirmar exclusão"
+                          label="Confirmar arquivamento"
                           loading={deleting}
-                          onClick={handleDelete}
-                          disabled={deleting || deleteConfirmText !== project?.name}
+                          onClick={handleArchive}
                         />
                         <Button
                           variant="tertiary"
@@ -1974,7 +2101,6 @@ export default function ProjectClient({
                           label="Cancelar"
                           onClick={() => {
                             setShowDeleteConfirm(false)
-                            setDeleteConfirmText('')
                             setDeleteError(null)
                           }}
                         />
@@ -1984,6 +2110,84 @@ export default function ProjectClient({
                 )}
               </Column>
             </Card>
+          </Column>
+        )}
+
+        {/* History tab */}
+        {activeTab === 'history' && (
+          <Column gap="m" fillWidth>
+            {activityLog.length === 0 ? (
+              <Card fillWidth padding="xl" radius="l">
+                <Column horizontal="center" gap="s" fillWidth>
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--neutral-on-background-weak)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.5 }}>
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                  <Text variant="body-default-m" onBackground="neutral-weak">
+                    Nenhuma atividade registrada ainda.
+                  </Text>
+                  <Text variant="body-default-s" onBackground="neutral-weak">
+                    Ações como editar o projeto, alterar status de reports e novos reports serão exibidas aqui.
+                  </Text>
+                </Column>
+              </Card>
+            ) : (
+              <Card fillWidth padding="l" radius="l">
+                <Column gap="0" fillWidth>
+                  {activityLog.map((entry, i) => {
+                    const isLast = i === activityLog.length - 1
+                    return (
+                      <div
+                        key={entry.id}
+                        style={{
+                          display: 'flex',
+                          gap: '0.75rem',
+                          alignItems: 'flex-start',
+                          paddingBottom: isLast ? 0 : '1rem',
+                          marginBottom: isLast ? 0 : '1rem',
+                          borderBottom: isLast ? 'none' : '1px solid var(--neutral-border-medium)',
+                        }}
+                      >
+                        {/* Icon */}
+                        <div
+                          style={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: '50%',
+                            background: getActionColor(entry.action),
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                            color: '#fff',
+                          }}
+                        >
+                          {getActionIcon(entry.action)}
+                        </div>
+
+                        {/* Content */}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            <Text variant="body-default-s" style={{ fontWeight: 600 }}>
+                              {getActionLabel(entry.action)}
+                            </Text>
+                            <Text variant="body-default-xs" onBackground="neutral-weak">
+                              {formatDate(entry.createdAt)}
+                            </Text>
+                          </div>
+                          {entry.userEmail && (
+                            <Text variant="body-default-xs" onBackground="neutral-weak">
+                              por {entry.userEmail}
+                            </Text>
+                          )}
+                          {renderActivityDetails(entry)}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </Column>
+              </Card>
+            )}
           </Column>
         )}
       </Column>

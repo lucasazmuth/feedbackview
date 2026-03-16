@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createNotification } from '@/lib/notifications'
+import { normalizeDomain } from '@/lib/url-utils'
+
+export const dynamic = 'force-dynamic'
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
-  'Cache-Control': 'public, max-age=300',
+  'Cache-Control': 'no-cache, no-store, must-revalidate',
 }
 
 const supabase = createClient(
@@ -19,7 +22,7 @@ function corsJson(body: any, status = 200) {
 }
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -27,7 +30,7 @@ export async function GET(
 
     const { data: project, error } = await supabase
       .from('Project')
-      .select('widgetPosition, widgetColor, widgetStyle, widgetText, ownerId, name, embedLastSeenAt')
+      .select('widgetPosition, widgetColor, widgetStyle, widgetText, ownerId, name, embedLastSeenAt, targetUrl, embedPaused, organizationId')
       .eq('id', id)
       .single()
 
@@ -35,9 +38,26 @@ export async function GET(
       return corsJson({ error: 'Project not found' }, 404)
     }
 
-    const isFirstConnection = !project.embedLastSeenAt
+    // Origin validation — block unauthorized sites
+    const origin = req.headers.get('origin') || req.headers.get('referer') || ''
+    if (origin && project.targetUrl) {
+      const originDomain = normalizeDomain(origin)
+      const projectDomain = normalizeDomain(project.targetUrl)
+      if (originDomain !== projectDomain) {
+        return corsJson({
+          error: 'blocked',
+          message: 'Site não autorizado. Crie sua conta em reportbug.pro',
+        }, 403)
+      }
+    }
+
+    // Paused check — widget should not appear
+    if (project.embedPaused) {
+      return corsJson({ paused: true })
+    }
 
     // Record embed ping (fire-and-forget, non-blocking)
+    const isFirstConnection = !project.embedLastSeenAt
     void supabase
       .from('Project')
       .update({ embedLastSeenAt: new Date().toISOString() })
@@ -55,11 +75,44 @@ export async function GET(
       })
     }
 
+    // Check report limit
+    let limitReached = false
+    if (project.organizationId) {
+      const { data: org } = await supabase
+        .from('Organization')
+        .select('maxReportsPerMonth, plan')
+        .eq('id', project.organizationId)
+        .single()
+
+      if (org && org.maxReportsPerMonth > 0) {
+        const isLifetime = org.plan === 'FREE'
+
+        let reportsQuery = supabase
+          .from('Feedback')
+          .select('id', { count: 'exact', head: true })
+          .eq('organizationId', project.organizationId)
+
+        if (!isLifetime) {
+          const startOfMonth = new Date()
+          startOfMonth.setDate(1)
+          startOfMonth.setHours(0, 0, 0, 0)
+          reportsQuery = reportsQuery.gte('createdAt', startOfMonth.toISOString())
+        }
+
+        const { count } = await reportsQuery
+
+        if (count !== null && count >= org.maxReportsPerMonth) {
+          limitReached = true
+        }
+      }
+    }
+
     return corsJson({
       widgetPosition: project.widgetPosition || 'bottom-right',
       widgetColor: project.widgetColor || '#4f46e5',
       widgetStyle: project.widgetStyle || 'text',
       widgetText: project.widgetText || 'Reportar Bug',
+      limitReached,
     })
   } catch (err: any) {
     return corsJson({ error: err.message || 'Internal server error' }, 500)

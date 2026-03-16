@@ -137,7 +137,7 @@ export default function ReportsClient({ feedbacks, projects, error }: ReportsCli
 
   return (
     <AppLayout>
-      <Column fillWidth paddingX="l" paddingY="m" gap="l">
+      <Column as="main" fillWidth paddingX="l" paddingY="m" gap="l">
         {/* Page title + stats */}
         <Row fillWidth horizontal="between" vertical="center">
           <Column gap="xs">
