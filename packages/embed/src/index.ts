@@ -251,14 +251,12 @@ async function fetchConfig(): Promise<WidgetConfig> {
     }
     if (!res.ok) return { ...DEFAULT_CONFIG, blocked: true }
     const data = await res.json()
-    if (data.paused) {
-      return { ...DEFAULT_CONFIG, paused: true }
-    }
     return {
       widgetPosition: data.widgetPosition || DEFAULT_CONFIG.widgetPosition,
       widgetColor: data.widgetColor && /^#[0-9a-fA-F]{6}$/.test(data.widgetColor) ? data.widgetColor : DEFAULT_CONFIG.widgetColor,
       widgetStyle: data.widgetStyle === 'icon' ? 'icon' : 'text',
       limitReached: !!data.limitReached,
+      paused: !!data.paused,
     }
   } catch {
     return { ...DEFAULT_CONFIG, blocked: true }
@@ -1029,6 +1027,25 @@ function createWidget(config: WidgetConfig) {
     panel.appendChild(header)
 
     // Limit reached — show message instead of form
+    // Paused — show message instead of form
+    if (config.paused) {
+      const pausedMsg = document.createElement('div')
+      pausedMsg.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;text-align:center;gap:12px;flex:1;'
+      pausedMsg.innerHTML = `
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="10" y1="15" x2="10" y2="9"/>
+          <line x1="14" y1="15" x2="14" y2="9"/>
+        </svg>
+        <div style="font-size:15px;font-weight:600;color:#374151;">Widget pausado</div>
+        <div style="font-size:13px;color:#6b7280;line-height:1.6;max-width:280px;">
+          O envio de reports está temporariamente pausado pelo administrador do projeto.
+        </div>
+      `
+      panel.appendChild(pausedMsg)
+      return
+    }
+
     if (config.limitReached) {
       const limitMsg = document.createElement('div')
       limitMsg.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;text-align:center;gap:12px;flex:1;'
@@ -2095,11 +2112,6 @@ function createWidget(config: WidgetConfig) {
 async function init() {
   const config = await fetchConfig()
   if (config.blocked) return
-  if (config.paused) {
-    // Retry every 30s to detect unpause without page refresh
-    setTimeout(init, 30000)
-    return
-  }
   createWidget(config)
 }
 

@@ -38,9 +38,10 @@ export async function GET(
       return corsJson({ error: 'Project not found' }, 404)
     }
 
-    // Origin validation — block unauthorized sites
+    // Origin validation — block unauthorized sites (skip for localhost dev)
     const origin = req.headers.get('origin') || req.headers.get('referer') || ''
-    if (origin && project.targetUrl) {
+    const isLocalhost = origin.includes('localhost') || origin.includes('127.0.0.1')
+    if (origin && project.targetUrl && !isLocalhost) {
       const originDomain = normalizeDomain(origin)
       const projectDomain = normalizeDomain(project.targetUrl)
       if (originDomain !== projectDomain) {
@@ -51,9 +52,15 @@ export async function GET(
       }
     }
 
-    // Paused check — widget should not appear
+    // Paused check — widget appears but form is disabled
     if (project.embedPaused) {
-      return corsJson({ paused: true })
+      return corsJson({
+        paused: true,
+        widgetPosition: project.widgetPosition || 'bottom-right',
+        widgetColor: project.widgetColor || '#4f46e5',
+        widgetStyle: project.widgetStyle || 'text',
+        widgetText: project.widgetText || 'Reportar Bug',
+      })
     }
 
     // Record embed ping (fire-and-forget, non-blocking)
