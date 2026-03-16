@@ -96,8 +96,8 @@ export function OrgProvider({ children }: { children: ReactNode }) {
   const switchOrg = useCallback((orgId: string) => {
     setCurrentOrgId(orgId)
     localStorage.setItem(STORAGE_KEY, orgId)
-    // Reload the page to refresh all org-dependent data
-    window.location.reload()
+    // Navigate to dashboard to avoid showing stale data from another org
+    window.location.href = '/dashboard'
   }, [])
 
   const currentOrg = orgs.find((o) => o.id === currentOrgId) || null
