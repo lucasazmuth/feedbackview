@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, Suspense } from 'react'
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   Column,
@@ -13,6 +13,87 @@ import {
 } from '@once-ui-system/core'
 import AppLayout from '@/components/ui/AppLayout'
 import { type Plan } from '@/lib/limits'
+
+function ConfettiCanvas() {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
+
+    const colors = ['#10b981', '#6366f1', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899']
+    const particles: { x: number; y: number; w: number; h: number; color: string; vx: number; vy: number; rot: number; rotSpeed: number; opacity: number }[] = []
+
+    for (let i = 0; i < 150; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height - canvas.height,
+        w: Math.random() * 8 + 4,
+        h: Math.random() * 6 + 2,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        vx: (Math.random() - 0.5) * 4,
+        vy: Math.random() * 3 + 2,
+        rot: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.2,
+        opacity: 1,
+      })
+    }
+
+    let animId: number
+    let frame = 0
+    const maxFrames = 180
+
+    function animate() {
+      frame++
+      ctx!.clearRect(0, 0, canvas!.width, canvas!.height)
+
+      for (const p of particles) {
+        p.x += p.vx
+        p.y += p.vy
+        p.rot += p.rotSpeed
+        p.vy += 0.05
+        if (frame > maxFrames - 60) {
+          p.opacity = Math.max(0, p.opacity - 0.02)
+        }
+
+        ctx!.save()
+        ctx!.translate(p.x, p.y)
+        ctx!.rotate(p.rot)
+        ctx!.globalAlpha = p.opacity
+        ctx!.fillStyle = p.color
+        ctx!.fillRect(-p.w / 2, -p.h / 2, p.w, p.h)
+        ctx!.restore()
+      }
+
+      if (frame < maxFrames) {
+        animId = requestAnimationFrame(animate)
+      }
+    }
+
+    animate()
+    return () => cancelAnimationFrame(animId)
+  }, [])
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        pointerEvents: 'none',
+        zIndex: 9999,
+      }}
+    />
+  )
+}
 
 const PLANS: {
   key: Plan
@@ -165,7 +246,45 @@ function UpgradeContent() {
         </Column>
 
         {success && (
-          <Feedback variant="success">Assinatura ativada com sucesso! Seus limites foram atualizados.</Feedback>
+          <>
+            <ConfettiCanvas />
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '1rem',
+              padding: '3rem 2rem',
+              borderRadius: '1.5rem',
+              background: 'linear-gradient(135deg, var(--success-alpha-weak), var(--brand-alpha-weak))',
+              border: '1px solid var(--success-border-medium)',
+              textAlign: 'center',
+            }}>
+              <div style={{
+                width: 64,
+                height: 64,
+                borderRadius: '50%',
+                background: 'var(--success-solid-strong)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </div>
+              <Heading variant="heading-strong-l">Assinatura ativada!</Heading>
+              <Text variant="body-default-m" onBackground="neutral-medium" style={{ maxWidth: 400 }}>
+                Parabéns! Seu plano foi atualizado com sucesso. Seus novos limites já estão disponíveis.
+              </Text>
+              <Button
+                variant="primary"
+                size="m"
+                label="Ir para Projetos"
+                onClick={() => router.push('/dashboard')}
+                style={{ marginTop: '0.5rem' }}
+              />
+            </div>
+          </>
         )}
         {canceled && (
           <Feedback variant="warning">Pagamento cancelado. Nenhuma alteração foi feita no seu plano.</Feedback>
