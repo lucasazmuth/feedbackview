@@ -94,22 +94,32 @@ export async function GET(
       if (org && org.maxReportsPerMonth > 0) {
         const isLifetime = org.plan === 'FREE'
 
-        let reportsQuery = supabase
-          .from('Feedback')
-          .select('id', { count: 'exact', head: true })
+        // Get all project IDs in this organization
+        const { data: orgProjects } = await supabase
+          .from('Project')
+          .select('id')
           .eq('organizationId', project.organizationId)
 
-        if (!isLifetime) {
-          const startOfMonth = new Date()
-          startOfMonth.setDate(1)
-          startOfMonth.setHours(0, 0, 0, 0)
-          reportsQuery = reportsQuery.gte('createdAt', startOfMonth.toISOString())
-        }
+        const projectIds = orgProjects?.map((p: any) => p.id) || []
 
-        const { count } = await reportsQuery
+        if (projectIds.length > 0) {
+          let reportsQuery = supabase
+            .from('Feedback')
+            .select('id', { count: 'exact', head: true })
+            .in('projectId', projectIds)
 
-        if (count !== null && count >= org.maxReportsPerMonth) {
-          limitReached = true
+          if (!isLifetime) {
+            const startOfMonth = new Date()
+            startOfMonth.setDate(1)
+            startOfMonth.setHours(0, 0, 0, 0)
+            reportsQuery = reportsQuery.gte('createdAt', startOfMonth.toISOString())
+          }
+
+          const { count } = await reportsQuery
+
+          if (count !== null && count >= org.maxReportsPerMonth) {
+            limitReached = true
+          }
         }
       }
     }

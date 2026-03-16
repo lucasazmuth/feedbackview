@@ -68,25 +68,35 @@ export async function POST(req: NextRequest) {
       if (org && org.maxReportsPerMonth > 0) {
         const isLifetime = org.plan === 'FREE'
 
-        let reportsQuery = supabase
-          .from('Feedback')
-          .select('id', { count: 'exact', head: true })
-          .eq('projectId', data.projectId)
+        // Get all project IDs in this organization
+        const { data: orgProjects } = await supabase
+          .from('Project')
+          .select('id')
+          .eq('organizationId', project.organizationId)
 
-        if (!isLifetime) {
-          const startOfMonth = new Date()
-          startOfMonth.setDate(1)
-          startOfMonth.setHours(0, 0, 0, 0)
-          reportsQuery = reportsQuery.gte('createdAt', startOfMonth.toISOString())
-        }
+        const projectIds = orgProjects?.map((p: any) => p.id) || []
 
-        const { count } = await reportsQuery
+        if (projectIds.length > 0) {
+          let reportsQuery = supabase
+            .from('Feedback')
+            .select('id', { count: 'exact', head: true })
+            .in('projectId', projectIds)
 
-        if (count !== null && count >= org.maxReportsPerMonth) {
-          const periodLabel = isLifetime ? '' : '/mês'
-          return corsJson({
-            error: `Limite de ${org.maxReportsPerMonth} reports${periodLabel} atingido. Faça upgrade do plano.`,
-          }, 429)
+          if (!isLifetime) {
+            const startOfMonth = new Date()
+            startOfMonth.setDate(1)
+            startOfMonth.setHours(0, 0, 0, 0)
+            reportsQuery = reportsQuery.gte('createdAt', startOfMonth.toISOString())
+          }
+
+          const { count } = await reportsQuery
+
+          if (count !== null && count >= org.maxReportsPerMonth) {
+            const periodLabel = isLifetime ? '' : '/mês'
+            return corsJson({
+              error: `Limite de ${org.maxReportsPerMonth} reports${periodLabel} atingido. Faça upgrade do plano.`,
+            }, 429)
+          }
         }
       }
     }
