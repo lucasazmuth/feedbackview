@@ -2079,9 +2079,19 @@ function createWidget(config: WidgetConfig) {
     } catch (err: any) {
       isSubmitting = false
       submitBtn.disabled = false
-      const currentType = (panel.querySelector('#fv-type') as HTMLInputElement)?.value || 'BUG'
+      const currentType = (shadow.querySelector('#fv-type') as HTMLInputElement)?.value || 'BUG'
       const tLabels: Record<string, string> = { BUG: 'Bug', SUGGESTION: 'Sugestão', QUESTION: 'Dúvida', PRAISE: 'Elogio' }
       submitBtn.innerHTML = `Enviar ${tLabels[currentType] || 'Bug'}`
+
+      // If limit reached (429), update config so next open shows limit message
+      if (err.message?.includes('Limite')) {
+        config.limitReached = true
+        close()
+        // Reopen to show limit reached UI
+        setTimeout(() => { isOpen = true; submitted = false; renderPanel() }, 300)
+        return
+      }
+
       if (serverErrorEl) {
         serverErrorEl.textContent = err.message || 'Erro ao enviar feedback.'
         serverErrorEl.style.display = 'block'
