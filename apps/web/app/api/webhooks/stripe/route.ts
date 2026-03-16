@@ -20,23 +20,43 @@ function getOrgUpdatesForPlan(plan: Plan) {
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const orgId = session.metadata?.orgId
-  if (!orgId) return
+  if (!orgId) {
+    console.error('Webhook: no orgId in session metadata')
+    return
+  }
 
   const subscriptionId = typeof session.subscription === 'string'
     ? session.subscription
-    : session.subscription?.id
+    : (session.subscription as unknown as { id: string })?.id
 
-  if (!subscriptionId) return
+  if (!subscriptionId) {
+    console.error('Webhook: no subscriptionId in session')
+    return
+  }
 
-  // Get the subscription to find the price
+  // Try to get plan from metadata first (most reliable), then fallback to price lookup
+  let plan: 'PRO' | 'BUSINESS' | null = (session.metadata?.plan as 'PRO' | 'BUSINESS') || null
+
   const subscription = await stripe.subscriptions.retrieve(subscriptionId)
   const priceId = subscription.items.data[0]?.price.id
-  if (!priceId) return
 
-  const plan = priceIdToPlan(priceId)
-  if (!plan) return
+  if (!plan && priceId) {
+    plan = priceIdToPlan(priceId)
+  }
 
-  const period = priceIdToPeriod(priceId)
+  if (!plan) {
+    // Last resort: determine from price amount
+    const amount = subscription.items.data[0]?.price.unit_amount
+    if (amount === 4900) plan = 'PRO'
+    else if (amount === 14900) plan = 'BUSINESS'
+  }
+
+  if (!plan) {
+    console.error('Webhook: could not determine plan from session', { priceId, metadata: session.metadata })
+    return
+  }
+
+  const period = priceIdToPeriod(priceId || '')
   const planUpdates = getOrgUpdatesForPlan(plan)
 
   await supabase

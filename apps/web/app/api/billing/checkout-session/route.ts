@@ -70,9 +70,9 @@ export async function POST(req: NextRequest) {
       mode: 'subscription',
       success_url: `${origin}/plans/upgrade?success=true`,
       cancel_url: `${origin}/plans/upgrade?canceled=true`,
-      metadata: { orgId: org.id },
+      metadata: { orgId: org.id, plan: body.plan },
       subscription_data: {
-        metadata: { orgId: org.id },
+        metadata: { orgId: org.id, plan: body.plan },
       },
     })
 
