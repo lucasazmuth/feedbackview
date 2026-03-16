@@ -171,7 +171,10 @@ function UpgradeContent() {
           {PLANS.map((plan) => {
             const isCurrentPlan = plan.key === currentPlan
             const isFreePlan = plan.key === 'FREE'
-            const canUpgrade = !isCurrentPlan && !isFreePlan
+            const planOrder = { FREE: 0, PRO: 1, BUSINESS: 2 } as Record<string, number>
+            const isUpgrade = (planOrder[plan.key] || 0) > (planOrder[currentPlan] || 0)
+            const isDowngrade = (planOrder[plan.key] || 0) < (planOrder[currentPlan] || 0) && !isFreePlan
+            const canChange = !isCurrentPlan && !isFreePlan
 
             return (
               <div
@@ -259,7 +262,7 @@ function UpgradeContent() {
                       >
                         Plano atual
                       </div>
-                    ) : canUpgrade ? (
+                    ) : canChange ? (
                       <button
                         onClick={() => handleUpgrade(plan.key)}
                         disabled={!!upgradeLoading}
@@ -267,16 +270,22 @@ function UpgradeContent() {
                           width: '100%',
                           padding: '0.75rem',
                           borderRadius: '0.75rem',
-                          border: 'none',
-                          background: plan.highlight ? 'var(--brand-solid-strong)' : 'var(--neutral-on-background-strong)',
-                          color: 'white',
+                          border: isDowngrade ? '1px solid var(--neutral-border-medium)' : 'none',
+                          background: isDowngrade
+                            ? 'transparent'
+                            : plan.highlight ? 'var(--brand-solid-strong)' : 'var(--neutral-on-background-strong)',
+                          color: isDowngrade ? 'var(--neutral-on-background-strong)' : 'white',
                           fontWeight: 600,
                           fontSize: '0.95rem',
                           cursor: upgradeLoading ? 'wait' : 'pointer',
                           opacity: upgradeLoading ? 0.7 : 1,
                         }}
                       >
-                        {upgradeLoading === plan.key ? 'Redirecionando...' : `Assinar ${plan.name}`}
+                        {upgradeLoading === plan.key
+                          ? 'Processando...'
+                          : isUpgrade
+                            ? `Upgrade para ${plan.name}`
+                            : `Downgrade para ${plan.name}`}
                       </button>
                     ) : (
                       <div
@@ -292,7 +301,7 @@ function UpgradeContent() {
                           fontSize: '0.95rem',
                         }}
                       >
-                        Plano atual
+                        Plano gratuito
                       </div>
                     )}
                   </div>
