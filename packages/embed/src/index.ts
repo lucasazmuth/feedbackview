@@ -41,6 +41,34 @@ const rrwebEvents: RRWebEvent[] = []
 const MAX_RRWEB_EVENTS = 200
 const MAX_LOGS = 100
 
+// Listen for tracker data forwarded from ViewerClient (shared URL / proxy mode)
+// The tracker.js inside the iframe captures rrweb, console, network, errors
+// and sends via postMessage → ViewerClient dispatches as custom events here
+window.addEventListener('feedbackview:tracker-data', ((e: CustomEvent) => {
+  const { type, payload } = e.detail || {}
+  switch (type) {
+    case 'RRWEB_EVENT':
+      rrwebEvents.push(payload as RRWebEvent)
+      trimRrwebEvents()
+      break
+    case 'CONSOLE_LOG':
+      consoleLogs.push(payload as ConsoleLog)
+      if (consoleLogs.length > MAX_LOGS) consoleLogs.shift()
+      break
+    case 'NETWORK_LOG':
+      networkLogs.push(payload as NetworkLog)
+      if (networkLogs.length > MAX_LOGS) networkLogs.shift()
+      break
+    case 'JS_ERROR':
+      consoleLogs.push({ level: 'error', args: [payload?.message || String(payload)], timestamp: Date.now() })
+      if (consoleLogs.length > MAX_LOGS) consoleLogs.shift()
+      break
+    case 'PAGE_URL':
+    case 'PAGE_CHANGE':
+      break
+  }
+}) as EventListener)
+
 // Console interception
 const levels = ['log', 'warn', 'error', 'info'] as const
 levels.forEach((level) => {
