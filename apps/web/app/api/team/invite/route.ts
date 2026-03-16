@@ -39,25 +39,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Check member limit
-    const { count: activeCount } = await supabaseAdmin
-      .from('TeamMember')
-      .select('id', { count: 'exact', head: true })
-      .eq('organizationId', orgId)
-      .eq('status', 'ACTIVE')
-
-    const { data: org } = await supabaseAdmin
-      .from('Organization')
-      .select('maxMembers')
-      .eq('id', orgId)
-      .single()
-
-    if (org && activeCount !== null && activeCount >= (org.maxMembers || 1)) {
-      return NextResponse.json({
-        error: `Limite de ${org.maxMembers || 1} membro(s) atingido. Faça upgrade para convidar mais membros.`,
-      }, { status: 403 })
-    }
-
     // Check if already has a pending invite for this email in this org
     const { data: existingInvite } = await supabaseAdmin
       .from('TeamMember')

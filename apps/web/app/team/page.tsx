@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
 import {
   Column,
   Row,
@@ -40,13 +39,11 @@ const ROLE_VARIANTS: Record<string, 'brand' | 'success' | 'neutral' | 'warning'>
 }
 
 export default function TeamPage() {
-  const router = useRouter()
   const { currentOrg } = useOrg()
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteLoading, setInviteLoading] = useState(false)
   const [loading, setLoading] = useState(true)
   const [members, setMembers] = useState<Member[]>([])
-  const [maxMembers, setMaxMembers] = useState(1)
   const [message, setMessage] = useState<{ type: 'success' | 'danger' | 'warning'; text: string } | null>(null)
 
   const fetchData = useCallback(async () => {
@@ -56,7 +53,6 @@ export default function TeamPage() {
 
       const data = await res.json()
       const orgId = data.organization.id
-      setMaxMembers(data.organization.maxMembers ?? 999999)
 
       const supabase = createClient()
 
@@ -90,10 +86,6 @@ export default function TeamPage() {
   useEffect(() => {
     fetchData()
   }, [fetchData])
-
-  const activeMembers = members.filter((m) => m.status === 'ACTIVE').length
-  const isUnlimitedMembers = maxMembers >= 999999
-  const canInvite = isUnlimitedMembers || activeMembers < maxMembers
 
   const handleInvite = async () => {
     if (!inviteEmail.trim() || !currentOrg) return
@@ -172,18 +164,8 @@ export default function TeamPage() {
           <Column gap="4">
             <Heading variant="heading-strong-m">Convidar membro</Heading>
             <Text variant="body-default-s" onBackground="neutral-weak">
-              {canInvite
-                ? `Convide membros para sua organização (${activeMembers}/${isUnlimitedMembers ? '∞' : maxMembers})`
-                : `Limite de ${maxMembers} membro(s) atingido.`}
+              Convide membros para sua organização
             </Text>
-            {!canInvite && (
-              <Button
-                variant="tertiary"
-                size="s"
-                label="Fazer upgrade para mais membros"
-                onClick={() => router.push('/plans/upgrade')}
-              />
-            )}
           </Column>
 
           <Row gap="s" fillWidth vertical="end">
@@ -195,7 +177,6 @@ export default function TeamPage() {
                 value={inviteEmail}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInviteEmail(e.target.value)}
                 placeholder="colega@empresa.com"
-                disabled={!canInvite}
               />
             </div>
             <Button
@@ -203,7 +184,7 @@ export default function TeamPage() {
               size="m"
               label={inviteLoading ? 'Enviando...' : 'Convidar'}
               onClick={handleInvite}
-              disabled={!canInvite || inviteLoading || !inviteEmail.trim()}
+              disabled={inviteLoading || !inviteEmail.trim()}
             />
           </Row>
         </Column>
