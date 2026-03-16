@@ -19,6 +19,8 @@ function getOrgUpdatesForPlan(plan: Plan) {
 }
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+  console.log('handleCheckoutCompleted: start', JSON.stringify({ metadata: session.metadata, subscription: session.subscription }))
+
   const orgId = session.metadata?.orgId
   if (!orgId) {
     console.error('Webhook: no orgId in session metadata')
@@ -34,52 +36,90 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     return
   }
 
-  // Try to get plan from metadata first (most reliable), then fallback to price lookup
-  let plan: 'PRO' | 'BUSINESS' | null = (session.metadata?.plan as 'PRO' | 'BUSINESS') || null
+  // Get plan from metadata (most reliable)
+  let plan: 'PRO' | 'BUSINESS' | null = null
+  const metaPlan = session.metadata?.plan
+  if (metaPlan === 'PRO' || metaPlan === 'BUSINESS') {
+    plan = metaPlan
+  }
 
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId)
-  const priceId = subscription.items.data[0]?.price.id
+  // Try to retrieve subscription for additional info, but don't fail if it errors
+  let subscriptionObj: Stripe.Subscription | null = null
+  let priceId: string | undefined
+  try {
+    subscriptionObj = await stripe.subscriptions.retrieve(subscriptionId)
+    priceId = subscriptionObj.items.data[0]?.price.id
+    console.log('handleCheckoutCompleted: subscription retrieved', { priceId })
+  } catch (err) {
+    console.error('handleCheckoutCompleted: failed to retrieve subscription, continuing with metadata', err)
+  }
 
+  // Fallback plan detection
   if (!plan && priceId) {
     plan = priceIdToPlan(priceId)
   }
-
-  if (!plan) {
-    // Last resort: determine from price amount
-    const amount = subscription.items.data[0]?.price.unit_amount
+  if (!plan && subscriptionObj) {
+    const amount = subscriptionObj.items.data[0]?.price.unit_amount
     if (amount === 4900) plan = 'PRO'
     else if (amount === 14900) plan = 'BUSINESS'
   }
 
   if (!plan) {
-    console.error('Webhook: could not determine plan from session', { priceId, metadata: session.metadata })
+    console.error('Webhook: could not determine plan', { priceId, metadata: session.metadata })
     return
   }
+
+  console.log('handleCheckoutCompleted: plan resolved', { plan, orgId })
 
   const period = priceIdToPeriod(priceId || '')
   const planUpdates = getOrgUpdatesForPlan(plan)
 
-  await supabase
+  // Calculate expiry — use subscription data if available, otherwise 30 days from now
+  let planExpiresAt: string
+  try {
+    const sub = subscriptionObj as unknown as Record<string, unknown>
+    const periodEnd = sub?.current_period_end as number
+    if (periodEnd && typeof periodEnd === 'number') {
+      planExpiresAt = new Date(periodEnd * 1000).toISOString()
+    } else {
+      // Fallback: 30 days from now
+      planExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+    }
+  } catch {
+    planExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+  }
+
+  const { error: updateError } = await supabase
     .from('Organization')
     .update({
       ...planUpdates,
       planPeriod: period,
       stripeSubscriptionId: subscriptionId,
-      planExpiresAt: new Date((subscription as unknown as { current_period_end: number }).current_period_end * 1000).toISOString(),
+      planExpiresAt,
     })
     .eq('id', orgId)
 
-  // Notify workspace owner about plan activation
-  const ownerUserId = await getOrgOwnerUserId(orgId)
-  if (ownerUserId) {
-    const { data: org } = await supabase.from('Organization').select('name').eq('id', orgId).single()
-    createNotification({
-      userId: ownerUserId,
-      type: 'PLAN_ACTIVATED',
-      title: `Plano ${plan} ativado`,
-      message: org?.name ? `Plano atualizado em ${org.name}` : 'Plano atualizado no workspace',
-      metadata: { orgId, plan },
-    })
+  if (updateError) {
+    console.error('handleCheckoutCompleted: supabase update error', updateError)
+  } else {
+    console.log('handleCheckoutCompleted: org updated successfully', { orgId, plan })
+  }
+
+  // Notify workspace owner (fire and forget, don't let it break the handler)
+  try {
+    const ownerUserId = await getOrgOwnerUserId(orgId)
+    if (ownerUserId) {
+      const { data: org } = await supabase.from('Organization').select('name').eq('id', orgId).single()
+      createNotification({
+        userId: ownerUserId,
+        type: 'PLAN_ACTIVATED',
+        title: `Plano ${plan} ativado`,
+        message: org?.name ? `Plano atualizado em ${org.name}` : 'Plano atualizado no workspace',
+        metadata: { orgId, plan },
+      })
+    }
+  } catch (err) {
+    console.error('handleCheckoutCompleted: notification error (non-fatal)', err)
   }
 }
 
@@ -207,6 +247,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    console.log('Webhook received:', event.type)
     switch (event.type) {
       case 'checkout.session.completed':
         await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session)
@@ -221,12 +262,15 @@ export async function POST(req: NextRequest) {
         await handleSubscriptionDeleted(event.data.object as Stripe.Subscription)
         break
       default:
-        // Unhandled event type
+        console.log('Webhook: unhandled event type', event.type)
         break
     }
-  } catch (err) {
-    console.error(`Error handling ${event.type}:`, err)
-    return NextResponse.json({ error: 'Webhook handler error' }, { status: 500 })
+  } catch (err: unknown) {
+    const errMsg = err instanceof Error ? err.message : String(err)
+    const errStack = err instanceof Error ? err.stack : undefined
+    console.error(`Error handling ${event.type}:`, errMsg, errStack)
+    // Return 200 anyway so Stripe doesn't keep retrying — the error is logged
+    return NextResponse.json({ received: true, warning: 'Handler had an error but event acknowledged' })
   }
 
   return NextResponse.json({ received: true })
