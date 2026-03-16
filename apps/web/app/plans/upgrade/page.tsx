@@ -110,17 +110,19 @@ function UpgradeContent() {
     fetchData()
   }, [fetchData])
 
-  const handleUpgrade = async (priceId: string) => {
-    setUpgradeLoading(priceId)
+  const handleUpgrade = async (planKey: string) => {
+    setUpgradeLoading(planKey)
     try {
       const res = await fetch('/api/billing/checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ priceId }),
+        body: JSON.stringify({ plan: planKey }),
       })
       const data = await res.json()
       if (data.url) {
         window.location.href = data.url
+      } else {
+        alert(data.error || 'Erro ao criar sessão de pagamento')
       }
     } catch {
       alert('Erro ao criar sessão de pagamento')
@@ -268,7 +270,7 @@ function UpgradeContent() {
                       </div>
                     ) : canUpgrade ? (
                       <button
-                        onClick={() => handleUpgrade(plan.monthlyPriceId)}
+                        onClick={() => handleUpgrade(plan.key)}
                         disabled={!!upgradeLoading}
                         style={{
                           width: '100%',
@@ -283,7 +285,7 @@ function UpgradeContent() {
                           opacity: upgradeLoading ? 0.7 : 1,
                         }}
                       >
-                        {upgradeLoading === plan.monthlyPriceId ? 'Redirecionando...' : `Assinar ${plan.name}`}
+                        {upgradeLoading === plan.key ? 'Redirecionando...' : `Assinar ${plan.name}`}
                       </button>
                     ) : (
                       <div

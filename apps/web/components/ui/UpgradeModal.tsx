@@ -84,17 +84,19 @@ export default function UpgradeModal({
   const selectedPlan = PLANS.find((p) => p.key === selected)!
 
   const handleUpgrade = async () => {
-    if (!selectedPlan.monthlyPriceId || selected === currentPlan) return
+    if (selected === currentPlan || selected === 'FREE') return
     setUpgradeLoading(true)
     try {
       const res = await fetch('/api/billing/checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ priceId: selectedPlan.monthlyPriceId }),
+        body: JSON.stringify({ plan: selected }),
       })
       const data = await res.json()
       if (data.url) {
         window.location.href = data.url
+      } else {
+        alert(data.error || 'Erro ao criar sessão de pagamento')
       }
     } catch {
       alert('Erro ao criar sessão de pagamento')
