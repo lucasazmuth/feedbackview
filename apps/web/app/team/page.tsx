@@ -56,7 +56,7 @@ export default function TeamPage() {
 
       const data = await res.json()
       const orgId = data.organization.id
-      setMaxMembers(data.organization.maxMembers)
+      setMaxMembers(data.organization.maxMembers ?? 999999)
 
       const supabase = createClient()
 
@@ -92,7 +92,8 @@ export default function TeamPage() {
   }, [fetchData])
 
   const activeMembers = members.filter((m) => m.status === 'ACTIVE').length
-  const canInvite = activeMembers < maxMembers
+  const isUnlimitedMembers = maxMembers >= 999999
+  const canInvite = isUnlimitedMembers || activeMembers < maxMembers
 
   const handleInvite = async () => {
     if (!inviteEmail.trim() || !currentOrg) return
@@ -123,7 +124,7 @@ export default function TeamPage() {
   if (loading) {
     return (
       <AppLayout>
-        <Column as="main" fillWidth paddingX="xl" paddingY="l" gap="l">
+        <Column as="main" fillWidth paddingX="l" paddingY="m" gap="l">
           <style>{`@keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:.4 } }`}</style>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <SkeletonBar width="6rem" height="1.75rem" />
@@ -156,7 +157,7 @@ export default function TeamPage() {
 
   return (
     <AppLayout>
-      <Column as="main" fillWidth paddingX="xl" paddingY="l" gap="l">
+      <Column as="main" fillWidth paddingX="l" paddingY="m" gap="l">
         <Column gap="xs">
           <Heading variant="heading-strong-l">Equipe</Heading>
           <Text variant="body-default-s" onBackground="neutral-weak">
@@ -172,7 +173,7 @@ export default function TeamPage() {
             <Heading variant="heading-strong-m">Convidar membro</Heading>
             <Text variant="body-default-s" onBackground="neutral-weak">
               {canInvite
-                ? `Convide membros para sua organização (${activeMembers}/${maxMembers === 999999 ? '∞' : maxMembers})`
+                ? `Convide membros para sua organização (${activeMembers}/${isUnlimitedMembers ? '∞' : maxMembers})`
                 : `Limite de ${maxMembers} membro(s) atingido.`}
             </Text>
             {!canInvite && (

@@ -2094,7 +2094,12 @@ function createWidget(config: WidgetConfig) {
 // Initialize widget
 async function init() {
   const config = await fetchConfig()
-  if (config.blocked || config.paused) return
+  if (config.blocked) return
+  if (config.paused) {
+    // Retry every 30s to detect unpause without page refresh
+    setTimeout(init, 30000)
+    return
+  }
   createWidget(config)
 }
 

@@ -3,7 +3,7 @@ import { SkeletonShell, pulse } from '@/components/ui/LoadingSkeleton'
 export default function Loading() {
   return (
     <SkeletonShell>
-      <div style={{ maxWidth: '72rem', margin: '0 auto', padding: '2rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <div style={{ padding: '24px 40px', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {/* Breadcrumb */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <div style={{ ...pulse, width: '4rem', height: '1rem' }} />

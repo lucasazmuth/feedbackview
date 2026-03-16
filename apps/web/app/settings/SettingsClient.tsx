@@ -202,7 +202,7 @@ export default function SettingsClient({
 
   return (
     <AppLayout>
-      <Column as="main" fillWidth paddingX="xl" paddingY="l" gap="l">
+      <Column as="main" fillWidth paddingX="l" paddingY="m" gap="l">
         {/* Page header */}
         <Column gap="xs">
           <Heading variant="heading-strong-l">Configurações</Heading>

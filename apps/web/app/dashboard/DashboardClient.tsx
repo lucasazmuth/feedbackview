@@ -25,6 +25,7 @@ interface Project {
   _count?: { feedbacks: number }
   createdAt: string
   embedLastSeenAt?: string | null
+  embedPaused?: boolean
 }
 
 interface ArchivedProject {
@@ -50,7 +51,10 @@ function formatDate(dateStr: string) {
   })
 }
 
-function getEmbedStatus(embedLastSeenAt?: string | null): { label: string; color: string; dotColor: string } {
+function getEmbedStatus(embedLastSeenAt?: string | null, embedPaused?: boolean): { label: string; color: string; dotColor: string } {
+  if (embedPaused) {
+    return { label: 'Pausado', color: '#d97706', dotColor: '#f59e0b' }
+  }
   if (!embedLastSeenAt) {
     return { label: 'Offline', color: '#9ca3af', dotColor: '#9ca3af' }
   }
@@ -445,7 +449,7 @@ export default function DashboardClient({
           <Grid fillWidth columns={3} gap="m" s={{ columns: 1 }} m={{ columns: 2 }}>
             {filteredProjects.map((project) => {
               const openCount = project.openFeedbackCount ?? project._count?.feedbacks ?? 0
-              const embedStatus = getEmbedStatus(project.embedLastSeenAt)
+              const embedStatus = getEmbedStatus(project.embedLastSeenAt, project.embedPaused)
               return (
                 <Column
                   key={project.id}
@@ -521,7 +525,7 @@ export default function DashboardClient({
             </div>
             {filteredProjects.map((project, i) => {
               const openCount = project.openFeedbackCount ?? project._count?.feedbacks ?? 0
-              const embedStatus = getEmbedStatus(project.embedLastSeenAt)
+              const embedStatus = getEmbedStatus(project.embedLastSeenAt, project.embedPaused)
               return (
                 <div
                   key={project.id}

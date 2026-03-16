@@ -3,7 +3,7 @@ import { SkeletonShell, pulse } from '@/components/ui/LoadingSkeleton'
 export default function Loading() {
   return (
     <SkeletonShell>
-      <div style={{ maxWidth: '72rem', margin: '0 auto', padding: '2rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <div style={{ padding: '24px 40px', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {/* Title row */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>

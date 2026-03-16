@@ -64,6 +64,7 @@ export async function GET(req: NextRequest) {
         maxReportsPerMonth: org.maxReportsPerMonth,
         stripeCustomerId: org.stripeCustomerId,
         stripeSubscriptionId: org.stripeSubscriptionId,
+        maxMembers: org.maxMembers,
       },
       usage: {
         reportsUsed: reportsResult.count || 0,
