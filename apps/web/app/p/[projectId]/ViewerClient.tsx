@@ -21,11 +21,12 @@ export default function ViewerClient({ projectId, widgetColor = '#4f46e5', widge
   // Forward rrweb/tracker data from iframe to the embed widget via custom events
   useEffect(() => {
     function handleMessage(event: MessageEvent) {
-      const { type, payload } = event.data || {}
-      if (!type || !payload) return
+      const { source, type, payload } = event.data || {}
+      if (source !== 'feedbackview-tracker' || !type || !payload) return
 
       // Forward tracker messages as custom events so embed.js can pick them up
-      if (['CONSOLE_LOG', 'JS_ERROR', 'NETWORK_LOG', 'RRWEB_EVENT', 'SCREENSHOT_RESULT', 'PAGE_URL', 'PAGE_CHANGE'].includes(type)) {
+      // Note: SCREENSHOT_RESULT is handled directly by embed.js via message listener
+      if (['CONSOLE_LOG', 'JS_ERROR', 'NETWORK_LOG', 'RRWEB_EVENT', 'PAGE_URL', 'PAGE_CHANGE'].includes(type)) {
         window.dispatchEvent(new CustomEvent('feedbackview:tracker-data', { detail: { type, payload } }))
       }
     }

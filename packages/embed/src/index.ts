@@ -2201,6 +2201,10 @@ async function init() {
   // Don't render widget inside iframes (proxy mode uses parent's embed.js)
   if (window.self !== window.top) return
 
+  // Prevent duplicate widget initialization
+  if ((window as any).__feedbackview_initialized) return
+  ;(window as any).__feedbackview_initialized = true
+
   const config = await fetchConfig()
   if (config.blocked) return
   createWidget(config)
