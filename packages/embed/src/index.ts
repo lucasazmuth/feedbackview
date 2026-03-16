@@ -1043,6 +1043,10 @@ function createWidget(config: WidgetConfig) {
         </div>
       `
       panel.appendChild(pausedMsg)
+      const pausedFooter = document.createElement('div')
+      pausedFooter.style.cssText = 'padding:12px 16px;text-align:center;font-size:11px;color:#9ca3af;border-top:1px solid #f3f4f6;'
+      pausedFooter.innerHTML = 'Powered by <strong style="color:#6b7280;">Report Bug</strong>'
+      panel.appendChild(pausedFooter)
       return
     }
 
@@ -1061,6 +1065,10 @@ function createWidget(config: WidgetConfig) {
         </div>
       `
       panel.appendChild(limitMsg)
+      const limitFooter = document.createElement('div')
+      limitFooter.style.cssText = 'padding:12px 16px;text-align:center;font-size:11px;color:#9ca3af;border-top:1px solid #f3f4f6;'
+      limitFooter.innerHTML = 'Powered by <strong style="color:#6b7280;">Report Bug</strong>'
+      panel.appendChild(limitFooter)
       return
     }
 
