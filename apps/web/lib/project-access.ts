@@ -27,23 +27,25 @@ export async function getProjectWriteAccess(
 
   if (error || !project) return null
 
+  const proj = project as Record<string, any>
+
   // Direct owner always has access
-  if (project.ownerId === userId) {
-    return { project, role: 'OWNER' }
+  if (proj.ownerId === userId) {
+    return { project: proj, role: 'OWNER' }
   }
 
   // Check org membership role
-  if (project.organizationId) {
+  if (proj.organizationId) {
     const { data: membership } = await supabaseAdmin
       .from('TeamMember')
       .select('role')
       .eq('userId', userId)
-      .eq('organizationId', project.organizationId)
+      .eq('organizationId', proj.organizationId)
       .eq('status', 'ACTIVE')
       .single()
 
     if (membership && (membership.role === 'OWNER' || membership.role === 'ADMIN')) {
-      return { project, role: membership.role }
+      return { project: proj, role: membership.role }
     }
   }
 
@@ -58,22 +60,24 @@ export async function getProjectRole(
   userId: string,
   projectId: string
 ): Promise<string | null> {
-  const { data: project } = await supabaseAdmin
+  const { data: project2 } = await supabaseAdmin
     .from('Project')
     .select('ownerId, organizationId')
     .eq('id', projectId)
     .single()
 
-  if (!project) return null
+  if (!project2) return null
 
-  if (project.ownerId === userId) return 'OWNER'
+  const p = project2 as Record<string, any>
 
-  if (project.organizationId) {
+  if (p.ownerId === userId) return 'OWNER'
+
+  if (p.organizationId) {
     const { data: membership } = await supabaseAdmin
       .from('TeamMember')
       .select('role')
       .eq('userId', userId)
-      .eq('organizationId', project.organizationId)
+      .eq('organizationId', p.organizationId)
       .eq('status', 'ACTIVE')
       .single()
 
