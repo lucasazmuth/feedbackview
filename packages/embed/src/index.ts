@@ -449,6 +449,27 @@ function createWidget(config: WidgetConfig) {
       box-shadow: 0 6px 20px ${hexToRgba(color, 0.5)};
     }
 
+    @keyframes fv-border-spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .fv-trigger.fv-trigger-loading {
+      pointer-events: none;
+      position: relative;
+    }
+    .fv-trigger.fv-trigger-loading::before {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: inherit;
+      padding: 3px;
+      background: conic-gradient(from 0deg, transparent 0%, transparent 40%, rgba(255,255,255,0.9) 100%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      animation: fv-border-spin 0.8s linear infinite;
+    }
+
     .fv-backdrop {
       position: fixed;
       inset: 0;
@@ -2030,6 +2051,9 @@ function createWidget(config: WidgetConfig) {
   }
 
   async function open() {
+    // Show loading animation on trigger while preparing
+    trigger.classList.add('fv-trigger-loading')
+
     // Pause recording — we only want events from before the modal opened
     pauseRecording()
 
@@ -2044,6 +2068,7 @@ function createWidget(config: WidgetConfig) {
     submitted = false
     isCapturing = true
     screenshotUrl = null
+    trigger.classList.remove('fv-trigger-loading')
     trigger.style.display = 'none'
     renderPanel()
 
