@@ -1118,7 +1118,7 @@ function createWidget(config: WidgetConfig) {
   const trigger = document.createElement('button')
   trigger.className = hiddenTrigger ? 'fv-trigger fv-trigger-hidden' : 'fv-trigger'
   trigger.innerHTML = config.widgetStyle === 'icon'
-    ? `<span class="fv-trigger-icon-text">BUUG</span>`
+    ? `<span class="fv-trigger-icon-text">BU\nUG</span>`
     : `<span class="fv-trigger-brand">Buug</span>`
   trigger.title = 'Enviar feedback'
   shadow.appendChild(trigger)
