@@ -353,7 +353,7 @@ export default function NewProjectPage() {
       <Column
         as="main"
         fillWidth
-        maxWidth={step === 4 ? 56 : 36}
+        maxWidth={step === 4 ? 56 : step === 2 ? 48 : 36}
         paddingX="l"
         paddingY="xl"
         gap="xl"
@@ -700,15 +700,15 @@ export default function NewProjectPage() {
                 </SvgIcon>
                 <span style={{ fontSize: '0.8125rem', color: proxyBlocked ? '#991b1b' : recommendedMode === 'embed' ? '#1e40af' : '#166534', flex: 1 }}>
                   {proxyBlocked
-                    ? `${siteType} detectado — Link Rápido não é compatível com este tipo de site.`
+                    ? `${siteType} detectado — Link Rápido não é compatível com este tipo de site. Use a Instalação no Site.`
                     : recommendedMode === 'embed'
-                    ? `${siteType} detectado — recomendamos a Instalação no Site para melhor compatibilidade.`
-                    : `${siteType} detectado — compatível com Link Rápido!`}
+                    ? `${siteType} detectado — recomendamos Instalação no Site para Session Replay e melhor compatibilidade.`
+                    : `${siteType} detectado — compatível com Link Rápido! Para Session Replay, use Instalação no Site.`}
                 </span>
               </div>
             )}
 
-            <Column gap="12">
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
               {/* Proxy mode */}
               <div
                 onClick={() => !proxyBlocked && setMode('proxy')}
@@ -720,65 +720,39 @@ export default function NewProjectPage() {
                   cursor: proxyBlocked ? 'not-allowed' : 'pointer',
                   transition: 'all 0.15s',
                   opacity: proxyBlocked ? 0.5 : 1,
-                  position: 'relative',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.75rem',
                 }}
               >
-                <div style={{ display: 'flex', gap: '0.875rem', alignItems: 'flex-start' }}>
-                  <div
-                    style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: '0.625rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      background: proxyBlocked ? 'var(--neutral-alpha-medium)' : mode === 'proxy' ? 'var(--brand-solid-strong)' : 'var(--neutral-alpha-medium)',
-                      color: proxyBlocked ? 'var(--neutral-on-background-weak)' : mode === 'proxy' ? '#fff' : 'var(--neutral-on-background-weak)',
-                      transition: 'all 0.15s',
-                    }}
-                  >
-                    <SvgIcon><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></SvgIcon>
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)' }}>Link Rápido</span>
-                      <span style={{ fontSize: '0.6875rem', fontWeight: 500, padding: '0.125rem 0.5rem', borderRadius: '1rem', background: 'var(--neutral-alpha-weak)', color: 'var(--neutral-on-background-weak)' }}>Sem instalação</span>
-                      {proxyBlocked && (
-                        <span style={{ fontSize: '0.6875rem', fontWeight: 500, padding: '0.125rem 0.5rem', borderRadius: '1rem', background: '#fef2f2', color: '#991b1b' }}>Indisponível</span>
-                      )}
-                      {!proxyBlocked && recommendedMode === 'proxy' && (
-                        <span style={{ fontSize: '0.6875rem', fontWeight: 500, padding: '0.125rem 0.5rem', borderRadius: '1rem', background: 'var(--success-alpha-weak)', color: 'var(--success-on-background-strong)' }}>Recomendado</span>
-                      )}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+                    <div style={{ width: 36, height: 36, borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: proxyBlocked ? 'var(--neutral-alpha-medium)' : mode === 'proxy' ? 'var(--brand-solid-strong)' : 'var(--neutral-alpha-medium)', color: proxyBlocked ? 'var(--neutral-on-background-weak)' : mode === 'proxy' ? '#fff' : 'var(--neutral-on-background-weak)', transition: 'all 0.15s' }}>
+                      <SvgIcon><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></SvgIcon>
                     </div>
-                    <p style={{ fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)', margin: 0, lineHeight: 1.5 }}>
-                      Cole a URL do site e compartilhe o link de QA. Nada para instalar.
-                    </p>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', margin: '0.25rem 0 0', opacity: 0.7 }}>
-                      Ideal para sites simples, landing pages e testes rápidos.
-                    </p>
+                    <span style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)' }}>Link Rápido</span>
                   </div>
-                  <div
-                    style={{
-                      width: 20,
-                      height: 20,
-                      borderRadius: '50%',
-                      border: `2px solid ${proxyBlocked ? 'var(--neutral-border-medium)' : mode === 'proxy' ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)'}`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      marginTop: 2,
-                      transition: 'all 0.15s',
-                    }}
-                  >
-                    {!proxyBlocked && mode === 'proxy' && (
-                      <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--brand-solid-strong)' }} />
-                    )}
-                    {proxyBlocked && (
-                      <SvgIcon size={12}><line x1="18" y1="6" x2="6" y2="18" stroke="var(--neutral-on-background-weak)" /><line x1="6" y1="6" x2="18" y2="18" stroke="var(--neutral-on-background-weak)" /></SvgIcon>
-                    )}
+                  <div style={{ width: 20, height: 20, borderRadius: '50%', border: `2px solid ${proxyBlocked ? 'var(--neutral-border-medium)' : mode === 'proxy' ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s' }}>
+                    {!proxyBlocked && mode === 'proxy' && <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--brand-solid-strong)' }} />}
+                    {proxyBlocked && <SvgIcon size={12}><line x1="18" y1="6" x2="6" y2="18" stroke="var(--neutral-on-background-weak)" /><line x1="6" y1="6" x2="18" y2="18" stroke="var(--neutral-on-background-weak)" /></SvgIcon>}
                   </div>
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
+                  <span style={{ fontSize: '0.6875rem', fontWeight: 500, padding: '0.125rem 0.5rem', borderRadius: '1rem', background: 'var(--neutral-alpha-weak)', color: 'var(--neutral-on-background-weak)' }}>Sem instalação</span>
+                  {proxyBlocked && <span style={{ fontSize: '0.6875rem', fontWeight: 500, padding: '0.125rem 0.5rem', borderRadius: '1rem', background: '#fef2f2', color: '#991b1b' }}>Indisponível</span>}
+                  {!proxyBlocked && recommendedMode === 'proxy' && <span style={{ fontSize: '0.6875rem', fontWeight: 500, padding: '0.125rem 0.5rem', borderRadius: '1rem', background: 'var(--success-alpha-weak)', color: 'var(--success-on-background-strong)' }}>Recomendado</span>}
+                </div>
+                <p style={{ fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)', margin: 0, lineHeight: 1.5 }}>
+                  Cole a URL do site e compartilhe o link de QA. Nada para instalar.
+                </p>
+                <p style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', margin: 0, opacity: 0.7 }}>
+                  Ideal para sites simples, landing pages e testes rápidos.
+                </p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem', marginTop: 'auto', paddingTop: '0.25rem' }}>
+                  <span style={{ fontSize: '0.6875rem', padding: '0.125rem 0.5rem', borderRadius: '1rem', background: 'var(--success-alpha-weak)', color: 'var(--success-on-background-strong)' }}>✓ Screenshot</span>
+                  <span style={{ fontSize: '0.6875rem', padding: '0.125rem 0.5rem', borderRadius: '1rem', background: 'var(--success-alpha-weak)', color: 'var(--success-on-background-strong)' }}>✓ Console Logs</span>
+                  <span style={{ fontSize: '0.6875rem', padding: '0.125rem 0.5rem', borderRadius: '1rem', background: 'var(--success-alpha-weak)', color: 'var(--success-on-background-strong)' }}>✓ Network Logs</span>
+                  <span style={{ fontSize: '0.6875rem', padding: '0.125rem 0.5rem', borderRadius: '1rem', background: 'var(--danger-alpha-weak)', color: 'var(--danger-on-background-strong)' }}>✗ Session Replay</span>
                 </div>
               </div>
 
@@ -792,60 +766,39 @@ export default function NewProjectPage() {
                   background: mode === 'embed' ? 'var(--brand-alpha-weak)' : 'var(--surface-background)',
                   cursor: 'pointer',
                   transition: 'all 0.15s',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.75rem',
                 }}
               >
-                <div style={{ display: 'flex', gap: '0.875rem', alignItems: 'flex-start' }}>
-                  <div
-                    style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: '0.625rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      background: mode === 'embed' ? 'var(--brand-solid-strong)' : 'var(--neutral-alpha-medium)',
-                      color: mode === 'embed' ? '#fff' : 'var(--neutral-on-background-weak)',
-                      transition: 'all 0.15s',
-                    }}
-                  >
-                    <SvgIcon><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></SvgIcon>
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)' }}>Instalação no Site</span>
-                      {recommendedMode === 'embed' && (
-                        <span style={{ fontSize: '0.6875rem', fontWeight: 500, padding: '0.125rem 0.5rem', borderRadius: '1rem', background: 'var(--success-alpha-weak)', color: 'var(--success-on-background-strong)' }}>Recomendado</span>
-                      )}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+                    <div style={{ width: 36, height: 36, borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, background: mode === 'embed' ? 'var(--brand-solid-strong)' : 'var(--neutral-alpha-medium)', color: mode === 'embed' ? '#fff' : 'var(--neutral-on-background-weak)', transition: 'all 0.15s' }}>
+                      <SvgIcon><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></SvgIcon>
                     </div>
-                    <p style={{ fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)', margin: 0, lineHeight: 1.5 }}>
-                      Adicione uma linha de código ao seu site. Funciona em qualquer lugar.
-                    </p>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', margin: '0.25rem 0 0', opacity: 0.7 }}>
-                      Ideal para SPAs, sites com autenticação e produção.
-                    </p>
+                    <span style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)' }}>Instalação no Site</span>
                   </div>
-                  <div
-                    style={{
-                      width: 20,
-                      height: 20,
-                      borderRadius: '50%',
-                      border: `2px solid ${mode === 'embed' ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)'}`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      marginTop: 2,
-                      transition: 'all 0.15s',
-                    }}
-                  >
-                    {mode === 'embed' && (
-                      <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--brand-solid-strong)' }} />
-                    )}
+                  <div style={{ width: 20, height: 20, borderRadius: '50%', border: `2px solid ${mode === 'embed' ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s' }}>
+                    {mode === 'embed' && <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--brand-solid-strong)' }} />}
                   </div>
                 </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
+                  {recommendedMode === 'embed' && <span style={{ fontSize: '0.6875rem', fontWeight: 500, padding: '0.125rem 0.5rem', borderRadius: '1rem', background: 'var(--success-alpha-weak)', color: 'var(--success-on-background-strong)' }}>Recomendado</span>}
+                </div>
+                <p style={{ fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)', margin: 0, lineHeight: 1.5 }}>
+                  Adicione uma linha de código ao seu site. Funciona em qualquer lugar.
+                </p>
+                <p style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', margin: 0, opacity: 0.7 }}>
+                  Ideal para SPAs, sites com autenticação e produção.
+                </p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem', marginTop: 'auto', paddingTop: '0.25rem' }}>
+                  <span style={{ fontSize: '0.6875rem', padding: '0.125rem 0.5rem', borderRadius: '1rem', background: 'var(--success-alpha-weak)', color: 'var(--success-on-background-strong)' }}>✓ Screenshot</span>
+                  <span style={{ fontSize: '0.6875rem', padding: '0.125rem 0.5rem', borderRadius: '1rem', background: 'var(--success-alpha-weak)', color: 'var(--success-on-background-strong)' }}>✓ Session Replay</span>
+                  <span style={{ fontSize: '0.6875rem', padding: '0.125rem 0.5rem', borderRadius: '1rem', background: 'var(--success-alpha-weak)', color: 'var(--success-on-background-strong)' }}>✓ Console Logs</span>
+                  <span style={{ fontSize: '0.6875rem', padding: '0.125rem 0.5rem', borderRadius: '1rem', background: 'var(--success-alpha-weak)', color: 'var(--success-on-background-strong)' }}>✓ Network Logs</span>
+                </div>
               </div>
-            </Column>
+            </div>
 
             <Row gap="s" paddingTop="s">
               <Button
