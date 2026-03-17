@@ -17,7 +17,6 @@ import {
   Card,
   Input,
   Textarea,
-  Select,
   Tag,
   Icon,
   Feedback as FeedbackAlert,
@@ -2680,19 +2679,27 @@ export default function ProjectClient({
                           <Heading variant="heading-strong-s">Status</Heading>
                           <Tag variant={getTagVariant(selectedFeedback.status)} size="s" label={getStatusLabel(selectedFeedback.status)} />
                         </Row>
-                        <style>{`#modal-status-select { padding-top: 8px !important; padding-bottom: 8px !important; }`}</style>
-                        <Select
-                          id="modal-status-select"
-                          label=""
-                          options={[
+                        <Row gap="xs" wrap>
+                          {[
                             { value: 'OPEN', label: 'Aberto' },
                             { value: 'IN_PROGRESS', label: 'Em andamento' },
                             { value: 'RESOLVED', label: 'Resolvido' },
                             { value: 'CLOSED', label: 'Fechado' },
-                          ]}
-                          value={selectedFeedback.status}
-                          onSelect={handleFeedbackStatusChange}
-                        />
+                          ].map((opt) => (
+                            <Tag
+                              key={opt.value}
+                              variant={selectedFeedback.status === opt.value ? getTagVariant(opt.value) : 'neutral'}
+                              size="s"
+                              label={opt.label}
+                              onClick={() => handleFeedbackStatusChange(opt.value)}
+                              style={{
+                                cursor: feedbackStatusSaving ? 'wait' : 'pointer',
+                                opacity: selectedFeedback.status === opt.value ? 1 : 0.6,
+                                transition: 'opacity 0.15s',
+                              }}
+                            />
+                          ))}
+                        </Row>
                         {feedbackStatusSaving && (
                           <Row gap="xs" vertical="center">
                             <Spinner size="s" />
