@@ -992,7 +992,7 @@ export default function NewProjectPage() {
                             </div>
                           ) : (
                             <div style={{ width: 44, height: 44, borderRadius: '50%', background: widgetColor, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 900, fontSize: 9, letterSpacing: '-0.04em', lineHeight: 0.95, textAlign: 'left', textTransform: 'uppercase', whiteSpace: 'pre' }}>{'BU\nUG'}</span>
+                              <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 900, fontSize: 13, letterSpacing: '-0.04em', lineHeight: 0.95, textAlign: 'left', textTransform: 'uppercase', whiteSpace: 'pre' }}>{'BU\nUG'}</span>
                             </div>
                           )}
                         </div>
@@ -1193,7 +1193,7 @@ export default function NewProjectPage() {
                           justifyContent: 'center',
                           boxShadow: `0 4px 12px ${widgetColor}66`,
                         }}>
-                          <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 900, fontSize: 7, letterSpacing: '-0.04em', lineHeight: 0.95, textAlign: 'left', textTransform: 'uppercase', whiteSpace: 'pre' }}>{'BU\nUG'}</span>
+                          <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 900, fontSize: 10, letterSpacing: '-0.04em', lineHeight: 0.95, textAlign: 'left', textTransform: 'uppercase', whiteSpace: 'pre' }}>{'BU\nUG'}</span>
                         </div>
                       ) : (
                         <div style={{

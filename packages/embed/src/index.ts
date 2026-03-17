@@ -445,7 +445,7 @@ function createWidget(config: WidgetConfig) {
     .fv-trigger .fv-trigger-icon-text {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       font-weight: 900;
-      font-size: 9px;
+      font-size: 13px;
       letter-spacing: -0.04em;
       line-height: 0.95;
       text-align: left;
