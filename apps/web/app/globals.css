@@ -227,6 +227,41 @@ body {
   }
 }
 
+/* Hero step visual transition */
+@keyframes hero-step-fade-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.hero-step-visual {
+  animation: hero-step-fade-in 0.35s ease-out both;
+}
+
+/* Step timer progress bar */
+@keyframes hero-step-timer-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.hero-step-timer {
+  background: linear-gradient(90deg, #4f46e5, #818cf8);
+  transform-origin: left;
+  animation: hero-step-timer-fill 6s linear both;
+  border-radius: 0 0 2px 2px;
+}
+
+/* Typing cursor blink */
+@keyframes hero-typing-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.hero-typing-cursor {
+  animation: hero-typing-blink 1s step-end infinite;
+}
+
+/* Step labels: hide text on small screens */
+@media (max-width: 540px) {
+  .hero-step-label { display: none; }
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 6px;

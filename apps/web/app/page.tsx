@@ -125,6 +125,14 @@ export default function LandingPage() {
       .catch(() => {})
   }, [])
 
+  const [heroStep, setHeroStep] = useState(0)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setHeroStep(s => (s + 1) % 4)
+    }, 6000)
+    return () => clearInterval(timer)
+  }, [heroStep])
+
   const [demoOpen, setDemoOpen] = useState(false)
   const [demoStep, setDemoStep] = useState(0)
 
@@ -301,92 +309,203 @@ export default function LandingPage() {
             </a>
           </Row>
 
-          {/* Hero visual */}
-          <Card
-            fillWidth
-            padding="0"
-            radius="l"
-            className="hero-card"
-            style={{
-              marginTop: '1.5rem',
-              overflow: 'hidden',
-              border: '1px solid var(--neutral-border-medium)',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.08)',
-            }}
-          >
-            <div style={{
-              background: '#f8f9fa',
-              width: '100%',
-              position: 'relative',
-            }}>
-              {/* Browser chrome */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                padding: '10px 16px',
-                background: '#1a1a2e',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
-              }}>
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#ff5f57' }} />
-                  <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#febc2e' }} />
-                  <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#28c840' }} />
-                </div>
-                <div style={{
-                  flex: 1,
-                  padding: '4px 12px',
-                  background: 'rgba(255,255,255,0.06)',
-                  borderRadius: '6px',
-                  fontSize: '0.7rem',
-                  fontFamily: 'monospace',
-                  color: 'rgba(255,255,255,0.4)',
-                }}>
-                  app.seusite.com.br
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span className="hero-recording-dot" />
-                  <Tag variant="success" size="s" label="Capturando" />
-                </div>
-              </div>
-
-              {/* Site content with widget panel sliding in */}
-              <div style={{ display: 'flex', minHeight: 520, position: 'relative' }}>
-                {/* Mock page — dimmed behind overlay */}
-                <div style={{ flex: 1, background: '#fff', position: 'relative', overflow: 'hidden', display: 'flex' }}>
-                  {/* Mini sidebar */}
-                  <div style={{ width: 44, background: '#fafafa', borderRight: '1px solid #f3f4f6', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px 0', gap: 6, flexShrink: 0 }}>
-                    <div style={{ width: 22, height: 22, borderRadius: 6, background: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 6 }}>
-                      <span style={{ color: '#fff', fontSize: 7, fontWeight: 800 }}>RB</span>
-                    </div>
-                    {[1,2,3,4].map(n => <div key={n} style={{ width: 16, height: 16, borderRadius: 4, background: n === 1 ? '#ede9fe' : '#f3f4f6' }} />)}
-                    <div style={{ flex: 1 }} />
-                    <div style={{ width: 16, height: 16, borderRadius: 4, background: '#f3f4f6' }} />
+          {/* Hero — Animated browser demo */}
+          {(() => {
+            const heroLabels = ['Configurar', 'Widget', 'Report', 'Dashboard']
+            const heroUrls = ['buug.io/projects/new', 'meusite.com.br', 'meusite.com.br', 'buug.io/projects/meu-ecommerce']
+            const stepVisuals = [
+              /* Step 0: Project config */
+              <div key="s0" style={{ background: '#fff' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 20px', borderBottom: '1px solid #f3f4f6', background: '#fafafa' }}>
+                  <div style={{ width: 24, height: 24, borderRadius: 6, background: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ color: '#fff', fontSize: 8, fontWeight: 800, fontFamily: 'var(--font-logo)' }}>B</span>
                   </div>
-                  <div style={{ flex: 1, padding: '16px 20px' }}>
-                    {/* Top nav */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
-                        <span style={{ fontSize: 10, color: '#9ca3af' }}>Projetos</span>
-                        <span style={{ fontSize: 10, color: '#d1d5db' }}>/</span>
-                        <span style={{ fontSize: 10, fontWeight: 600, color: '#111' }}>Meu E-commerce</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: '#111' }}>Novo Projeto</span>
+                </div>
+                <div style={{ padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 6 }}>Nome do projeto</label>
+                    <div style={{ padding: '10px 14px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, color: '#111' }}>Meu E-commerce</div>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 6 }}>URL do site</label>
+                    <div style={{ padding: '10px 14px', border: '2px solid #4f46e5', borderRadius: 8, fontSize: 13, color: '#111', background: 'rgba(79,70,229,0.03)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" strokeWidth="2" strokeLinecap="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                      <span>meusite.com.br</span>
+                      <span className="hero-typing-cursor" style={{ width: 2, height: 16, background: '#4f46e5', marginLeft: -2 }} />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 6 }}>Modo de integração</label>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <div style={{ flex: 1, padding: '12px', borderRadius: 10, border: '2px solid #4f46e5', background: 'rgba(79,70,229,0.04)', textAlign: 'center' }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" strokeWidth="2" strokeLinecap="round" style={{ display: 'block', margin: '0 auto 4px' }}><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                        <div style={{ fontSize: 11, fontWeight: 600, color: '#4f46e5' }}>Script Embed</div>
+                        <div style={{ fontSize: 9, color: '#6b7280', marginTop: 2 }}>1 linha de código</div>
                       </div>
-                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <div style={{ flex: 1, padding: '12px', borderRadius: 10, border: '1px solid #d1d5db', textAlign: 'center' }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" style={{ display: 'block', margin: '0 auto 4px' }}><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                        <div style={{ fontSize: 11, fontWeight: 500, color: '#374151' }}>Link Compartilhado</div>
+                        <div style={{ fontSize: 9, color: '#9ca3af', marginTop: 2 }}>Sem instalação</div>
+                      </div>
+                    </div>
+                  </div>
+                  <button style={{ width: '100%', padding: '12px', borderRadius: 10, border: 'none', background: '#4f46e5', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'default' }}>
+                    Criar Projeto
+                  </button>
+                </div>
+              </div>,
+
+              /* Step 1: Widget on site */
+              <div key="s1" style={{ background: '#fff', padding: 20, minHeight: 280, position: 'relative' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{ width: 28, height: 28, borderRadius: 6, background: '#4f46e5' }} />
+                      <div style={{ height: 8, width: 80, background: '#e5e7eb', borderRadius: 4 }} />
+                    </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <div style={{ height: 28, width: 50, background: '#e5e7eb', borderRadius: 6 }} />
+                      <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#e5e7eb' }} />
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+                    {[{ v: '2,847', l: 'Visitantes' }, { v: '89%', l: 'Conversão' }, { v: 'R$ 12.4k', l: 'Receita' }].map((c, i) => (
+                      <div key={i} style={{ flex: 1, background: '#f9fafb', borderRadius: 10, padding: 14, border: '1px solid #f3f4f6' }}>
+                        <div style={{ height: 6, width: '60%', background: '#e5e7eb', borderRadius: 3, marginBottom: 6 }} />
+                        <div style={{ fontSize: 20, fontWeight: 700, color: '#111' }}>{c.v}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ height: 40, borderRadius: 8, background: '#f3f4f6', marginBottom: 10 }} />
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <div style={{ height: 40, borderRadius: 8, background: '#f3f4f6', flex: 2 }} />
+                    <div style={{ height: 40, borderRadius: 8, background: '#f3f4f6', flex: 1 }} />
+                  </div>
+                  <div className="demo-widget-pulse" style={{ position: 'absolute', bottom: 16, right: 16, padding: '10px 22px', background: '#4f46e5', color: '#fff', borderRadius: 24, fontWeight: 700, fontSize: 13, boxShadow: '0 4px 16px rgba(79,70,229,0.35)', border: 'none', fontFamily: 'var(--font-logo)', letterSpacing: '-0.01em' }}>
+                    Buug report
+                  </div>
+              </div>,
+
+              /* Step 2: Report form */
+              <div key="s2" style={{ background: '#fff' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid #e5e7eb' }}>
+                  <span style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>Reportar</span>
+                  <div style={{ width: 28, height: 28, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', minHeight: 0 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    {/* Session Replay */}
+                    <div style={{ padding: '12px 16px', borderBottom: '1px solid #f3f4f6' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 500, color: '#374151', marginBottom: 8 }}>
+                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444' }} />
+                        Session Replay
+                        <span style={{ fontSize: 10, fontWeight: 400, color: '#9ca3af' }}>(gravação automática)</span>
+                      </div>
+                      <div style={{ borderRadius: 8, overflow: 'hidden', border: '1px solid #1e293b', background: '#0f172a' }}>
+                        <div style={{ minHeight: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 8, position: 'relative' }}>
+                          <div style={{ width: '85%', height: 40, background: '#1e293b', borderRadius: 3, display: 'flex', flexDirection: 'column', padding: 6, gap: 3 }}>
+                            <div style={{ height: 3, width: '40%', background: '#334155', borderRadius: 2 }} />
+                            <div style={{ height: 3, width: '65%', background: '#334155', borderRadius: 2 }} />
+                            <div style={{ display: 'flex', gap: 3, marginTop: 3 }}>
+                              <div style={{ flex: 1, height: 10, background: '#334155', borderRadius: 2 }} />
+                              <div style={{ flex: 1, height: 10, background: '#334155', borderRadius: 2 }} />
+                            </div>
+                          </div>
+                          <div style={{ position: 'absolute', top: '48%', left: '55%', width: 8, height: 8, borderRadius: '50%', background: 'rgba(73,80,246,0.5)', border: '1.5px solid rgba(73,80,246,0.8)' }} />
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderTop: '1px solid #1e293b' }}>
+                          <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <svg width="8" height="8" viewBox="0 0 24 24" fill="#fff"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                          </div>
+                          <div style={{ flex: 1, height: 3, borderRadius: 2, background: '#334155' }}>
+                            <div style={{ width: '60%', height: '100%', borderRadius: 2, background: '#4f46e5' }} />
+                          </div>
+                          <span style={{ fontSize: 8, color: '#64748b', fontFamily: 'monospace' }}>00:21 / 00:32</span>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Form */}
+                    <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#374151', marginBottom: 4 }}>Título</label>
+                        <div style={{ padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 7, fontSize: 11, color: '#111827' }}>Botão de pagamento não funciona</div>
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#374151', marginBottom: 4 }}>Descrição <span style={{ color: '#ef4444' }}>*</span></label>
+                        <div style={{ padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 7, fontSize: 10, color: '#374151', lineHeight: 1.5 }}>Ao clicar em &quot;Finalizar compra&quot;, o botão fica carregando e retorna erro 500.</div>
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#374151', marginBottom: 4 }}>Tipo</label>
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          {[{ l: 'Bug', a: true }, { l: 'Sugestão', a: false }, { l: 'Dúvida', a: false }, { l: 'Elogio', a: false }].map(t => (
+                            <div key={t.l} style={{ flex: 1, padding: '5px 2px', borderRadius: 7, fontSize: 9, border: t.a ? '2px solid #4f46e5' : '1px solid #d1d5db', background: t.a ? 'rgba(79,70,229,0.05)' : '#fff', color: t.a ? '#4f46e5' : '#374151', fontWeight: t.a ? 600 : 400, textAlign: 'center' }}>{t.l}</div>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#374151', marginBottom: 4 }}>Prioridade</label>
+                        <div style={{ display: 'flex', gap: 4 }}>
+                          {[{ l: 'Baixa', c: '#22c55e', a: false }, { l: 'Média', c: '#f59e0b', a: false }, { l: 'Alta', c: '#f97316', a: true }, { l: 'Crítica', c: '#ef4444', a: false }].map(s => (
+                            <div key={s.l} style={{ flex: 1, padding: '5px 2px', borderRadius: 7, fontSize: 9, border: s.a ? `2px solid ${s.c}` : '1px solid #d1d5db', background: s.a ? `${s.c}15` : '#fff', color: s.a ? s.c : '#374151', fontWeight: s.a ? 600 : 400, textAlign: 'center' }}>{s.l}</div>
+                          ))}
+                        </div>
+                      </div>
+                      <button style={{ width: '100%', padding: '9px', borderRadius: 8, border: 'none', background: '#4f46e5', color: '#fff', fontWeight: 700, fontSize: 12, cursor: 'default' }}>
+                        Enviar Bug
+                      </button>
+                    </div>
+                  </div>
+                  {/* Preview sidebar */}
+                  <div className="demo-bg-site" style={{ width: 180, flexShrink: 0, borderLeft: '1px solid #e5e7eb', background: '#f9fafb', padding: 12 }}>
+                    <div style={{ fontSize: 9, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>Preview</div>
+                    <div style={{ background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb', padding: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <span style={{ display: 'inline-flex', padding: '2px 6px', borderRadius: 4, fontSize: 9, fontWeight: 600, background: '#fef2f2', color: '#dc2626', alignSelf: 'flex-start' }}>Bug</span>
+                      <div style={{ fontSize: 10, fontWeight: 600, color: '#111' }}>Botão de pagamento não funciona</div>
+                      <div style={{ fontSize: 9, color: '#6b7280' }}>Erro 500 ao finalizar...</div>
+                      <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: 6, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 8, color: '#9ca3af' }}>
+                          <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#4f46e5' }} />meusite.com.br
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 8, color: '#9ca3af' }}>
+                          <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#22c55e' }} />3 errors • 12 warns
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>,
+
+              /* Step 3: Dashboard */
+              <div key="s3" style={{ background: '#fff', display: 'flex', minHeight: 300 }}>
+                  {/* Sidebar */}
+                  <div style={{ width: 44, background: '#fafafa', borderRight: '1px solid #f3f4f6', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 0', gap: 4, flexShrink: 0 }}>
+                    <div style={{ width: 24, height: 24, borderRadius: 6, background: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 6 }}>
+                      <span style={{ color: '#fff', fontSize: 8, fontWeight: 800 }}>B</span>
+                    </div>
+                    {[1,2,3].map(n => <div key={n} style={{ width: 18, height: 18, borderRadius: 4, background: n === 1 ? '#ede9fe' : '#f3f4f6' }} />)}
+                  </div>
+                  {/* Main */}
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderBottom: '1px solid #f3f4f6' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ fontSize: 11, color: '#9ca3af' }}>Projetos /</span>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: '#111' }}>Meu E-commerce</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                         <div style={{ padding: '2px 6px', borderRadius: 4, background: '#ede9fe', fontSize: 8, fontWeight: 600, color: '#4f46e5' }}>PRO</div>
                         <div style={{ width: 22, height: 22, borderRadius: 11, background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <span style={{ color: '#fff', fontSize: 8, fontWeight: 700 }}>LC</span>
                         </div>
                       </div>
                     </div>
-                    {/* Project title + stats */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                    {/* Stats */}
+                    <div style={{ padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
                           <span style={{ fontSize: 14, fontWeight: 700, color: '#111' }}>Meu E-commerce</span>
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '1px 6px', borderRadius: 999, background: '#ecfdf5', fontSize: 8, fontWeight: 600, color: '#059669' }}>
-                            <span style={{ width: 4, height: 4, borderRadius: '50%', background: '#10b981' }} />Ativo
-                          </span>
+                          <span style={{ padding: '1px 6px', borderRadius: 999, background: '#ecfdf5', fontSize: 8, fontWeight: 600, color: '#059669' }}>Ativo</span>
                         </div>
                         <span style={{ fontSize: 9, color: '#9ca3af', fontFamily: 'monospace' }}>meusite.com.br</span>
                       </div>
@@ -400,176 +519,111 @@ export default function LandingPage() {
                       </div>
                     </div>
                     {/* Tabs */}
-                    <div style={{ display: 'flex', gap: 0, borderBottom: '2px solid #f3f4f6', marginBottom: 12 }}>
+                    <div style={{ display: 'flex', gap: 0, borderBottom: '2px solid #f3f4f6', padding: '0 14px' }}>
                       {['Reports', 'Histórico', 'Config'].map((t, i) => (
                         <div key={t} style={{ padding: '5px 10px 7px', borderBottom: `2px solid ${i === 0 ? '#4f46e5' : 'transparent'}`, marginBottom: -2, fontSize: 10, fontWeight: i === 0 ? 600 : 400, color: i === 0 ? '#4f46e5' : '#9ca3af' }}>{t}</div>
                       ))}
                     </div>
-                    {/* List rows */}
-                    <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden' }}>
-                      <div style={{ display: 'flex', padding: '5px 8px', background: '#fafafa', borderBottom: '1px solid #e5e7eb', fontSize: 7, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', gap: 4 }}>
-                        <span style={{ width: 36 }}>Tipo</span><span style={{ flex: 1 }}>Descrição</span><span style={{ width: 36 }}>Status</span>
+                    {/* List */}
+                    <div style={{ margin: '10px 14px', border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', flex: 1 }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '44px 1fr 44px 50px', gap: 4, padding: '5px 8px', background: '#fafafa', borderBottom: '1px solid #e5e7eb', fontSize: 7, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase' }}>
+                        <span>Tipo</span><span>Descrição</span><span>Sever.</span><span>Status</span>
                       </div>
                       {[
-                        { type: 'Bug', desc: 'Botão de pagamento não funciona', st: 'Aberto', stBg: '#fefce8', stC: '#a16207' },
-                        { type: 'Bug', desc: 'Imagem quebrada na página', st: 'Aberto', stBg: '#fefce8', stC: '#a16207' },
-                        { type: 'Bug', desc: 'Carrinho não atualiza', st: 'Em prog.', stBg: '#dbeafe', stC: '#1d4ed8' },
-                        { type: 'Sugestão', desc: 'Adicionar modo escuro', st: 'Resolvido', stBg: '#ecfdf5', stC: '#059669' },
+                        { type: 'Bug', typeBg: '#fef2f2', typeC: '#dc2626', desc: 'Botão de pagamento não funciona', sev: 'Alta', sevBg: '#fef2f2', sevC: '#dc2626', st: 'Aberto', stBg: '#fefce8', stC: '#a16207' },
+                        { type: 'Bug', typeBg: '#fef2f2', typeC: '#dc2626', desc: 'Imagem quebrada na página', sev: 'Média', sevBg: '#fefce8', sevC: '#a16207', st: 'Aberto', stBg: '#fefce8', stC: '#a16207' },
+                        { type: 'Bug', typeBg: '#fef2f2', typeC: '#dc2626', desc: 'Carrinho não atualiza', sev: 'Alta', sevBg: '#fef2f2', sevC: '#dc2626', st: 'Em prog.', stBg: '#dbeafe', stC: '#1d4ed8' },
+                        { type: 'Sugestão', typeBg: '#dbeafe', typeC: '#1d4ed8', desc: 'Adicionar modo escuro', sev: 'Baixa', sevBg: '#f3f4f6', sevC: '#6b7280', st: 'Resolvido', stBg: '#ecfdf5', stC: '#059669' },
                       ].map((r, i, arr) => (
-                        <div key={i} style={{ display: 'flex', alignItems: 'center', padding: '5px 8px', borderBottom: i < arr.length - 1 ? '1px solid #f3f4f6' : 'none', gap: 4, fontSize: 9 }}>
-                          <span style={{ padding: '1px 4px', borderRadius: 3, fontSize: 7, fontWeight: 600, background: r.type === 'Bug' ? '#fef2f2' : '#dbeafe', color: r.type === 'Bug' ? '#dc2626' : '#1d4ed8', width: 36, textAlign: 'center' }}>{r.type}</span>
-                          <span style={{ flex: 1, color: '#374151', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.desc}</span>
-                          <span style={{ padding: '1px 4px', borderRadius: 3, fontSize: 7, fontWeight: 600, background: r.stBg, color: r.stC, width: 36, textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.st}</span>
+                        <div key={i} style={{ display: 'grid', gridTemplateColumns: '44px 1fr 44px 50px', gap: 4, padding: '5px 8px', borderBottom: i < arr.length - 1 ? '1px solid #f3f4f6' : 'none', alignItems: 'center', fontSize: 9, background: i === 0 ? 'rgba(79,70,229,0.03)' : 'transparent' }}>
+                          <span style={{ padding: '1px 4px', borderRadius: 3, fontSize: 7, fontWeight: 600, background: r.typeBg, color: r.typeC, textAlign: 'center' }}>{r.type}</span>
+                          <span style={{ color: '#374151', fontWeight: i === 0 ? 600 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.desc}</span>
+                          <span style={{ padding: '1px 4px', borderRadius: 3, fontSize: 7, fontWeight: 600, background: r.sevBg, color: r.sevC, textAlign: 'center' }}>{r.sev}</span>
+                          <span style={{ padding: '1px 4px', borderRadius: 3, fontSize: 7, fontWeight: 600, background: r.stBg, color: r.stC, textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.st}</span>
                         </div>
                       ))}
                     </div>
                   </div>
-                  {/* Floating widget button */}
-                  <div className="demo-widget-pulse" style={{ position: 'absolute', bottom: 14, right: 14, padding: '8px 18px', background: '#4f46e5', color: '#fff', borderRadius: 20, fontWeight: 700, fontSize: 11, boxShadow: '0 4px 16px rgba(79,70,229,0.35)', border: 'none', zIndex: 1, fontFamily: 'var(--font-logo)', letterSpacing: '-0.01em' }}>
-                    Buug report
+              </div>,
+            ]
+
+            return (
+              <div style={{ marginTop: '2rem', width: '100%', maxWidth: 680, margin: '2rem auto 0' }}>
+                {/* Browser window */}
+                <div style={{
+                  borderRadius: 16,
+                  overflow: 'hidden',
+                  border: '1px solid var(--neutral-border-medium)',
+                  boxShadow: '0 16px 64px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)',
+                  background: '#fff',
+                }}>
+                  {/* macOS chrome */}
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '10px 16px',
+                    background: '#1a1a2e',
+                    borderBottom: '1px solid rgba(255,255,255,0.06)',
+                  }}>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#ff5f57' }} />
+                      <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#febc2e' }} />
+                      <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#28c840' }} />
+                    </div>
+                    <div style={{
+                      flex: 1, padding: '5px 14px',
+                      background: 'rgba(255,255,255,0.07)',
+                      borderRadius: 8,
+                      fontSize: 12, fontFamily: 'monospace',
+                      color: 'rgba(255,255,255,0.45)',
+                      transition: 'all 0.3s ease',
+                    }}>
+                      {heroUrls[heroStep]}
+                    </div>
+                    {heroStep >= 1 && heroStep <= 2 && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span className="hero-recording-dot" />
+                        <span style={{ fontSize: 10, fontWeight: 600, color: '#22c55e' }}>REC</span>
+                      </div>
+                    )}
                   </div>
-                  {/* Dark overlay — animated */}
-                  <div className="demo-hero-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', pointerEvents: 'none' }} />
-                  {/* Animated cursor */}
-                  <svg className="hero-cursor" width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ position: 'absolute', zIndex: 2 }}>
-                    <path d="M5 3l14 8-6 2-4 6-4-16z" fill="var(--brand-solid-strong)" stroke="#fff" strokeWidth="1.5" />
-                  </svg>
+
+                  {/* Screen content — transitions between steps */}
+                  <div style={{ position: 'relative', minHeight: 420, overflow: 'hidden' }}>
+                    <div key={heroStep} className="hero-step-visual">
+                      {stepVisuals[heroStep]}
+                    </div>
+                  </div>
                 </div>
 
-                {/* Widget panel — exact replica of real embed, slides in as overlay */}
-                <div className="demo-bg-site demo-hero-panel" style={{
-                  position: 'absolute',
-                  top: 0,
-                  right: 0,
-                  bottom: 0,
-                  width: 320,
-                  background: '#fff',
-                  borderLeft: '1px solid #e5e7eb',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  boxShadow: '-4px 0 24px rgba(0,0,0,0.15)',
-                  zIndex: 3,
-                }}>
-                  {/* Panel header */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid #e5e7eb' }}>
-                    <span style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>Reportar</span>
-                    <div style={{ width: 28, height: 28, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                    </div>
-                  </div>
-
-                  {/* Session Replay */}
-                  <div style={{ padding: '12px 16px', borderBottom: '1px solid #f3f4f6' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 500, color: '#374151', marginBottom: 8 }}>
-                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444' }} />
-                      Session Replay
-                      <span style={{ fontSize: 10, fontWeight: 400, color: '#9ca3af' }}>(gravação automática)</span>
-                    </div>
-                    <div style={{ borderRadius: 8, overflow: 'hidden', border: '1px solid #1e293b', background: '#0f172a' }}>
-                      <div style={{ minHeight: 65, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 8, position: 'relative' }}>
-                        <div style={{ width: '85%', height: 44, background: '#1e293b', borderRadius: 3, display: 'flex', flexDirection: 'column', padding: 6, gap: 3 }}>
-                          <div style={{ height: 3, width: '40%', background: '#334155', borderRadius: 2 }} />
-                          <div style={{ height: 3, width: '65%', background: '#334155', borderRadius: 2 }} />
-                          <div style={{ display: 'flex', gap: 3, marginTop: 3 }}>
-                            <div style={{ flex: 1, height: 12, background: '#334155', borderRadius: 2 }} />
-                            <div style={{ flex: 1, height: 12, background: '#334155', borderRadius: 2 }} />
-                            <div style={{ flex: 1, height: 12, background: '#334155', borderRadius: 2 }} />
-                          </div>
-                        </div>
-                        {/* Cursor in replay */}
-                        <div style={{ position: 'absolute', top: '48%', left: '55%', width: 8, height: 8, borderRadius: '50%', background: 'rgba(73,80,246,0.5)', border: '1.5px solid rgba(73,80,246,0.8)' }} />
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderTop: '1px solid #1e293b' }}>
-                        <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <svg width="9" height="9" viewBox="0 0 24 24" fill="#fff"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                        </div>
-                        <div style={{ flex: 1, height: 3, borderRadius: 2, background: '#334155' }}>
-                          <div style={{ width: '60%', height: '100%', borderRadius: 2, background: '#4f46e5' }} />
-                        </div>
-                        <span style={{ fontSize: 8, color: '#64748b', fontFamily: 'monospace' }}>00:21 / 00:32</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Form fields */}
-                  <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
-                    {/* Title */}
-                    <div>
-                      <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#374151', marginBottom: 4 }}>Título</label>
-                      <div style={{ padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 7, fontSize: 11, color: '#111827' }}>Botão de pagamento não funciona</div>
-                    </div>
-                    {/* Description */}
-                    <div>
-                      <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#374151', marginBottom: 4 }}>Descrição <span style={{ color: '#ef4444' }}>*</span></label>
-                      <div style={{ padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 7, fontSize: 10, color: '#374151', lineHeight: 1.5, minHeight: 36 }}>Ao clicar em &quot;Finalizar compra&quot;, o botão fica carregando e retorna erro 500.</div>
-                    </div>
-                    {/* Type segmented buttons with icons */}
-                    <div>
-                      <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#374151', marginBottom: 4 }}>Tipo</label>
-                      <div style={{ display: 'flex', gap: 4 }}>
-                        {[
-                          { label: 'Bug', active: true, icon: <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2l1.88 1.88"/><path d="M14.12 3.88L16 2"/><path d="M9 7.13v-1a3.003 3.003 0 116 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 014-4h4a4 4 0 014 4v3c0 3.3-2.7 6-6 6"/></svg> },
-                          { label: 'Sugestão', active: false, icon: <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 006 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg> },
-                          { label: 'Dúvida', active: false, icon: <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg> },
-                          { label: 'Elogio', active: false, icon: <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 10v12"/><path d="M15 5.88L14 10h5.83a2 2 0 011.92 2.56l-2.33 8A2 2 0 0117.5 22H4a2 2 0 01-2-2v-8a2 2 0 012-2h2.76a2 2 0 001.79-1.11L12 2a3.13 3.13 0 013 3.88z"/></svg> },
-                        ].map(t => (
-                          <div key={t.label} style={{ flex: 1, padding: '5px 2px', borderRadius: 7, fontSize: 9, border: t.active ? '2px solid #4f46e5' : '1px solid #d1d5db', background: t.active ? 'rgba(79,70,229,0.05)' : '#fff', color: t.active ? '#4f46e5' : '#374151', fontWeight: t.active ? 600 : 400, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
-                            {t.icon} {t.label}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    {/* Priority segmented buttons */}
-                    <div>
-                      <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#374151', marginBottom: 4 }}>Prioridade</label>
-                      <div style={{ display: 'flex', gap: 4 }}>
-                        {[
-                          { label: 'Baixa', color: '#22c55e', active: false },
-                          { label: 'Média', color: '#f59e0b', active: false },
-                          { label: 'Alta', color: '#f97316', active: true },
-                          { label: 'Crítica', color: '#ef4444', active: false },
-                        ].map(s => (
-                          <div key={s.label} style={{ flex: 1, padding: '5px 2px', borderRadius: 7, fontSize: 9, border: s.active ? `2px solid ${s.color}` : '1px solid #d1d5db', background: s.active ? `${s.color}15` : '#fff', color: s.active ? s.color : '#374151', fontWeight: s.active ? 600 : 400, textAlign: 'center' }}>
-                            {s.label}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    {/* Passos para reproduzir */}
-                    <div>
-                      <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#374151', marginBottom: 4 }}>Passos para reproduzir</label>
-                      <div style={{ padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 7, fontSize: 10, color: '#374151', lineHeight: 1.5, minHeight: 40 }}>
-                        1. Abra a página de checkout{'\n'}2. Clique em &quot;Finalizar compra&quot;{'\n'}3. Observe o erro
-                      </div>
-                    </div>
-                    {/* Resultado esperado / Resultado real */}
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <div style={{ flex: 1 }}>
-                        <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#374151', marginBottom: 4 }}>Resultado esperado</label>
-                        <div style={{ padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 7, fontSize: 10, color: '#374151', lineHeight: 1.5, minHeight: 32 }}>Pagamento processado com sucesso</div>
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#374151', marginBottom: 4 }}>Resultado real</label>
-                        <div style={{ padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 7, fontSize: 10, color: '#374151', lineHeight: 1.5, minHeight: 32 }}>Erro 500 e botão trava</div>
-                      </div>
-                    </div>
-                    {/* Anexos */}
-                    <div>
-                      <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#374151', marginBottom: 4 }}>Anexos</label>
-                      <div style={{ padding: '10px', border: '1.5px dashed #d1d5db', borderRadius: 7, textAlign: 'center', color: '#9ca3af', fontSize: 9, lineHeight: 1.5 }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', margin: '0 auto 2px' }}><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                        Arraste ou clique para anexar
-                      </div>
-                    </div>
-                    {/* Submit */}
-                    <button style={{ width: '100%', padding: '9px', borderRadius: 8, border: 'none', background: '#4f46e5', color: '#fff', fontWeight: 700, fontSize: 12, cursor: 'pointer', marginTop: 'auto' }}>
-                      Enviar Bug
+                {/* Step progress dots + labels */}
+                <div style={{ display: 'flex', justifyContent: 'center', gap: 24, marginTop: 20 }}>
+                  {heroLabels.map((label, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setHeroStep(i)}
+                      style={{
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                        background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                      }}
+                    >
+                      <div style={{
+                        width: i === heroStep ? 24 : 8, height: 8, borderRadius: 4,
+                        background: i === heroStep ? '#4f46e5' : i < heroStep ? 'rgba(79,70,229,0.3)' : 'var(--neutral-alpha-medium)',
+                        transition: 'all 0.3s ease',
+                      }} />
+                      <span style={{
+                        fontSize: 11, fontWeight: i === heroStep ? 600 : 400,
+                        color: i === heroStep ? 'var(--neutral-on-background-strong)' : 'var(--neutral-on-background-weak)',
+                        transition: 'all 0.3s ease',
+                      }}>
+                        {label}
+                      </span>
                     </button>
-                  </div>
+                  ))}
                 </div>
               </div>
-            </div>
-          </Card>
+            )
+          })()}
         </Column>
       </Flex>
 
