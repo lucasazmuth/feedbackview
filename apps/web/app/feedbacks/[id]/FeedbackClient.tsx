@@ -51,7 +51,7 @@ interface Feedback {
   projectId: string
   consoleLogs?: ConsoleLog[]
   networkLogs?: NetworkLog[]
-  metadata?: { rrwebEvents?: any[]; stepsToReproduce?: string; expectedResult?: string; actualResult?: string } | null
+  metadata?: { rrwebEvents?: any[]; stepsToReproduce?: string; expectedResult?: string; actualResult?: string; source?: string } | null
   Project?: { ownerId: string; name: string } | null
 }
 
@@ -230,15 +230,28 @@ export default function FeedbackClient({
         >
           {/* Left column */}
           <Column gap="l" fillWidth style={{ flex: 2, minWidth: 0 }}>
-            {/* Session Replay (hidden for shared-url source — replay is unreliable in proxy mode) */}
-            {feedback.metadata?.rrwebEvents && feedback.metadata.rrwebEvents.length > 0 && feedback.metadata?.source !== 'shared-url' && (
+            {/* Warning for non-embed reports that have rrweb events */}
+            {feedback.metadata?.rrwebEvents && feedback.metadata.rrwebEvents.length > 0 && feedback.metadata?.source !== 'embed' && (
+              <Card fillWidth padding="m" radius="l" style={{ background: 'var(--warning-alpha-weak)', border: '1px solid var(--warning-border-medium)' }}>
+                <Row gap="s" vertical="center">
+                  <Icon name="warning" size="s" onBackground="warning-strong" />
+                  <Column gap="4">
+                    <Text variant="label-default-s" onBackground="warning-strong">Report via URL compartilhada</Text>
+                    <Text variant="body-default-xs" onBackground="warning-medium">O Session Replay não está disponível para reports enviados via URL compartilhada. Utilize o screenshot como referência visual.</Text>
+                  </Column>
+                </Row>
+              </Card>
+            )}
+
+            {/* Session Replay (only for embed source — replay is unreliable in proxy mode) */}
+            {feedback.metadata?.rrwebEvents && feedback.metadata.rrwebEvents.length > 0 && feedback.metadata?.source === 'embed' && (
               <Card fillWidth radius="l" style={{ overflow: 'hidden', padding: 0 }}>
                 <SessionReplay events={feedback.metadata.rrwebEvents} />
               </Card>
             )}
 
-            {/* Screenshot (when no replay or shared-url source) */}
-            {feedback.screenshotUrl && (feedback.metadata?.source === 'shared-url' || !(feedback.metadata?.rrwebEvents && feedback.metadata.rrwebEvents.length > 0)) && (
+            {/* Screenshot */}
+            {feedback.screenshotUrl && (
               <Card fillWidth padding="l" radius="l">
                 <Column gap="s">
                   <Heading variant="heading-strong-s">Screenshot</Heading>
@@ -438,15 +451,6 @@ export default function FeedbackClient({
             <Card fillWidth padding="l" radius="l">
               <Column gap="m">
                 <Heading variant="heading-strong-s">Detalhes</Heading>
-
-                {/* Screenshot in sidebar (when replay exists and not shared-url) */}
-                {feedback.screenshotUrl && feedback.metadata?.rrwebEvents && feedback.metadata.rrwebEvents.length > 0 && feedback.metadata?.source !== 'shared-url' && (
-                  <img
-                    src={feedback.screenshotUrl}
-                    alt="Screenshot"
-                    style={{ width: '100%', borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)' }}
-                  />
-                )}
 
                 {/* Tags */}
                 <Column gap="xs">

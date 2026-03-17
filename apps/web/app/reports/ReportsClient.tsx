@@ -689,10 +689,21 @@ export default function ReportsClient({ feedbacks, projects, error }: ReportsCli
                 <div style={{ padding: '1.5rem', display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
                   {/* Left column */}
                   <div style={{ flex: 2, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    {selectedFeedback.metadata?.rrwebEvents && selectedFeedback.metadata.rrwebEvents.length > 0 && selectedFeedback.metadata?.source !== 'shared-url' && (
+                    {selectedFeedback.metadata?.rrwebEvents && selectedFeedback.metadata.rrwebEvents.length > 0 && selectedFeedback.metadata?.source !== 'embed' && (
+                      <Card fillWidth padding="m" radius="l" style={{ background: 'var(--warning-alpha-weak)', border: '1px solid var(--warning-border-medium)' }}>
+                        <Row gap="s" vertical="center">
+                          <Icon name="warning" size="s" onBackground="warning-strong" />
+                          <Column gap="4">
+                            <Text variant="label-default-s" onBackground="warning-strong">Report via URL compartilhada</Text>
+                            <Text variant="body-default-xs" onBackground="warning-medium">O Session Replay não está disponível para reports enviados via URL compartilhada. Utilize o screenshot como referência visual.</Text>
+                          </Column>
+                        </Row>
+                      </Card>
+                    )}
+                    {selectedFeedback.metadata?.rrwebEvents && selectedFeedback.metadata.rrwebEvents.length > 0 && selectedFeedback.metadata?.source === 'embed' && (
                       <Card fillWidth radius="l" style={{ overflow: 'hidden', padding: 0 }}><SessionReplay events={selectedFeedback.metadata.rrwebEvents} /></Card>
                     )}
-                    {selectedFeedback.screenshotUrl && (selectedFeedback.metadata?.source === 'shared-url' || !(selectedFeedback.metadata?.rrwebEvents && selectedFeedback.metadata.rrwebEvents.length > 0)) && (
+                    {selectedFeedback.screenshotUrl && (
                       <Card fillWidth padding="l" radius="l"><Column gap="s"><Heading variant="heading-strong-s">Screenshot</Heading><img src={selectedFeedback.screenshotUrl} alt="Screenshot" style={{ width: '100%', borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)' }} /></Column></Card>
                     )}
                     <Card fillWidth padding="l" radius="l">

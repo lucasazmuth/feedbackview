@@ -2531,15 +2531,28 @@ export default function ProjectClient({
                 <div style={{ padding: '1.5rem', display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
                   {/* Left column */}
                   <div style={{ flex: 2, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    {/* Session Replay (hidden for shared-url source — replay is unreliable in proxy mode) */}
-                    {selectedFeedback.metadata?.rrwebEvents && selectedFeedback.metadata.rrwebEvents.length > 0 && selectedFeedback.metadata?.source !== 'shared-url' && (
+                    {/* Warning for non-embed reports that have rrweb events */}
+                    {selectedFeedback.metadata?.rrwebEvents && selectedFeedback.metadata.rrwebEvents.length > 0 && selectedFeedback.metadata?.source !== 'embed' && (
+                      <Card fillWidth padding="m" radius="l" style={{ background: 'var(--warning-alpha-weak)', border: '1px solid var(--warning-border-medium)' }}>
+                        <Row gap="s" vertical="center">
+                          <Icon name="warning" size="s" onBackground="warning-strong" />
+                          <Column gap="4">
+                            <Text variant="label-default-s" onBackground="warning-strong">Report via URL compartilhada</Text>
+                            <Text variant="body-default-xs" onBackground="warning-medium">O Session Replay não está disponível para reports enviados via URL compartilhada. Utilize o screenshot como referência visual.</Text>
+                          </Column>
+                        </Row>
+                      </Card>
+                    )}
+
+                    {/* Session Replay (only for embed source — replay is unreliable in proxy mode) */}
+                    {selectedFeedback.metadata?.rrwebEvents && selectedFeedback.metadata.rrwebEvents.length > 0 && selectedFeedback.metadata?.source === 'embed' && (
                       <Card fillWidth radius="l" style={{ overflow: 'hidden', padding: 0 }}>
                         <SessionReplay events={selectedFeedback.metadata.rrwebEvents} />
                       </Card>
                     )}
 
-                    {/* Screenshot (when no replay or shared-url source) */}
-                    {selectedFeedback.screenshotUrl && (selectedFeedback.metadata?.source === 'shared-url' || !(selectedFeedback.metadata?.rrwebEvents && selectedFeedback.metadata.rrwebEvents.length > 0)) && (
+                    {/* Screenshot */}
+                    {selectedFeedback.screenshotUrl && (
                       <Card fillWidth padding="l" radius="l">
                         <Column gap="s">
                           <Heading variant="heading-strong-s">Screenshot</Heading>
@@ -2713,15 +2726,6 @@ export default function ProjectClient({
                     <Card fillWidth padding="l" radius="l">
                       <Column gap="m">
                         <Heading variant="heading-strong-s">Detalhes</Heading>
-
-                        {/* Screenshot thumb (when replay exists and not shared-url) */}
-                        {selectedFeedback.screenshotUrl && selectedFeedback.metadata?.rrwebEvents && selectedFeedback.metadata.rrwebEvents.length > 0 && selectedFeedback.metadata?.source !== 'shared-url' && (
-                          <img
-                            src={selectedFeedback.screenshotUrl}
-                            alt="Screenshot"
-                            style={{ width: '100%', borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)' }}
-                          />
-                        )}
 
                         {/* Tags */}
                         <Column gap="xs">

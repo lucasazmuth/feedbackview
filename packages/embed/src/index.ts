@@ -613,6 +613,28 @@ function createWidget(config: WidgetConfig) {
       padding: 20px;
       border-bottom: 1px solid #f3f4f6;
     }
+    .fv-replay-proxy-warning {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+      background: #fef3c7;
+      border: 1px solid #fcd34d;
+      border-radius: 10px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #92400e;
+    }
+    .fv-replay-proxy-warning svg {
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .fv-replay-proxy-warning strong {
+      display: block;
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
     .fv-replay-label {
       font-size: 13px;
       font-weight: 500;
@@ -1166,6 +1188,7 @@ function createWidget(config: WidgetConfig) {
     body.appendChild(bodyForm)
 
     // ── Session Replay section ──
+    const isProxyModeNow = !!getProxyIframe()
     const replaySection = document.createElement('div')
     replaySection.className = 'fv-replay-section'
 
@@ -1173,6 +1196,15 @@ function createWidget(config: WidgetConfig) {
     replayLabel.className = 'fv-replay-label'
     replayLabel.innerHTML = '<span class="fv-replay-dot"></span> Session Replay <span class="fv-hint">(gravação automática)</span> <span class="fv-replay-info">!<span class="fv-replay-tooltip">A sessão é gravada automaticamente enquanto você navega. Ao abrir o report, os últimos segundos de interação são capturados. Campos sensíveis como senhas ficam borrados automaticamente.</span></span>'
     replaySection.appendChild(replayLabel)
+
+    if (isProxyModeNow) {
+      // Show warning instead of replay player in proxy/shared URL mode
+      const proxyWarning = document.createElement('div')
+      proxyWarning.className = 'fv-replay-proxy-warning'
+      proxyWarning.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#92400e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div><strong>Indisponível neste modo</strong>O Session Replay não funciona no modo URL compartilhada. O screenshot será capturado como referência visual.</div>`
+      replaySection.appendChild(proxyWarning)
+      bodyForm.appendChild(replaySection)
+    } else {
 
     const replayCard = document.createElement('div')
     replayCard.className = 'fv-replay-card'
@@ -1394,6 +1426,7 @@ function createWidget(config: WidgetConfig) {
 
     replaySection.appendChild(replayCard)
     bodyForm.appendChild(replaySection)
+    } // end else (non-proxy mode)
 
     // ── Form fields section ──
     const formSection = document.createElement('div')

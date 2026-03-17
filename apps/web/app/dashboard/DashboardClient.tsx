@@ -29,6 +29,7 @@ interface Project {
   createdAt: string
   embedLastSeenAt?: string | null
   embedPaused?: boolean
+  mode?: string | null
 }
 
 interface ArchivedProject {
@@ -54,7 +55,19 @@ function formatDate(dateStr: string) {
   })
 }
 
-function getEmbedStatus(embedLastSeenAt?: string | null, embedPaused?: boolean): { label: string; color: string; dotColor: string } {
+function getEmbedStatus(embedLastSeenAt?: string | null, embedPaused?: boolean, mode?: string | null, feedbackCount?: number): { label: string; color: string; dotColor: string } {
+  // Proxy mode (shared URL) — no heartbeat, status based on reports
+  if (mode === 'proxy') {
+    if (embedPaused) {
+      return { label: 'Pausado', color: '#d97706', dotColor: '#f59e0b' }
+    }
+    const hasReports = (feedbackCount ?? 0) > 0
+    return hasReports
+      ? { label: 'Ativo', color: '#059669', dotColor: '#10b981' }
+      : { label: 'Aguardando', color: '#9ca3af', dotColor: '#9ca3af' }
+  }
+
+  // Embed mode — heartbeat-based status
   if (embedPaused) {
     return { label: 'Pausado', color: '#d97706', dotColor: '#f59e0b' }
   }
@@ -460,7 +473,7 @@ export default function DashboardClient({
           <Grid fillWidth columns={3} gap="m" s={{ columns: 1 }} m={{ columns: 2 }}>
             {filteredProjects.map((project) => {
               const openCount = project.openFeedbackCount ?? project._count?.feedbacks ?? 0
-              const embedStatus = getEmbedStatus(project.embedLastSeenAt, project.embedPaused)
+              const embedStatus = getEmbedStatus(project.embedLastSeenAt, project.embedPaused, project.mode, project._count?.feedbacks)
               return (
                 <Column
                   key={project.id}
@@ -529,14 +542,14 @@ export default function DashboardClient({
             >
               <Text variant="label-default-xs" onBackground="neutral-weak">Nome</Text>
               <Text variant="label-default-xs" onBackground="neutral-weak">URL</Text>
-              <Text variant="label-default-xs" onBackground="neutral-weak">Embed</Text>
+              <Text variant="label-default-xs" onBackground="neutral-weak">Status</Text>
               <Text variant="label-default-xs" onBackground="neutral-weak">Reports</Text>
               <Text variant="label-default-xs" onBackground="neutral-weak">Criado</Text>
               <span />
             </div>
             {filteredProjects.map((project, i) => {
               const openCount = project.openFeedbackCount ?? project._count?.feedbacks ?? 0
-              const embedStatus = getEmbedStatus(project.embedLastSeenAt, project.embedPaused)
+              const embedStatus = getEmbedStatus(project.embedLastSeenAt, project.embedPaused, project.mode, project._count?.feedbacks)
               return (
                 <div
                   key={project.id}
