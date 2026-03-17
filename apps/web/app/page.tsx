@@ -1183,6 +1183,12 @@ export default function LandingPage() {
                     {viewerUrl}
                   </code>
                 </Card>
+                <Row gap="4" style={{ flexWrap: 'wrap' }}>
+                  <Tag variant="success" size="s" label="✓ Screenshot" />
+                  <Tag variant="success" size="s" label="✓ Console Logs" />
+                  <Tag variant="success" size="s" label="✓ Network Logs" />
+                  <Tag variant="danger" size="s" label="✗ Session Replay" />
+                </Row>
               </Column>
             </Card>
 
@@ -1214,6 +1220,12 @@ export default function LandingPage() {
                     {embedSnippet}
                   </code>
                 </Card>
+                <Row gap="4" style={{ flexWrap: 'wrap' }}>
+                  <Tag variant="success" size="s" label="✓ Screenshot" />
+                  <Tag variant="success" size="s" label="✓ Console Logs" />
+                  <Tag variant="success" size="s" label="✓ Network Logs" />
+                  <Tag variant="success" size="s" label="✓ Session Replay" />
+                </Row>
               </Column>
             </Card>
           </div>
