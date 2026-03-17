@@ -180,7 +180,18 @@ export async function POST(req: NextRequest) {
       networkLogs: data.networkLogs || null,
       pageUrl: data.pageUrl || null,
       userAgent: data.userAgent || null,
-      metadata: data.rrwebEvents?.length > 0 ? { rrwebEvents: data.rrwebEvents, source: data.source || 'embed' } : (data.source ? { source: data.source } : null),
+      metadata: (() => {
+        const meta: any = {}
+        if (data.rrwebEvents?.length > 0) meta.rrwebEvents = data.rrwebEvents
+        if (data.source) meta.source = data.source
+        else meta.source = 'embed'
+        if (data.viewport) meta.viewport = data.viewport
+        // Bug-specific metadata from client
+        if (data.metadata?.stepsToReproduce) meta.stepsToReproduce = data.metadata.stepsToReproduce
+        if (data.metadata?.expectedResult) meta.expectedResult = data.metadata.expectedResult
+        if (data.metadata?.actualResult) meta.actualResult = data.metadata.actualResult
+        return Object.keys(meta).length > 0 ? meta : null
+      })(),
       attachmentUrls: attachmentUrls.length > 0 ? attachmentUrls : null,
     })
 

@@ -28,6 +28,7 @@ import {
   HiOutlineShieldExclamation,
   HiOutlineDocumentDuplicate,
   HiOutlineBugAnt,
+  HiOutlineDeviceTablet,
 } from 'react-icons/hi2'
 
 export const iconLibrary: Record<string, IconType> = {
@@ -64,6 +65,7 @@ export const iconLibrary: Record<string, IconType> = {
   info: HiOutlineInformationCircle,
   xCircle: HiOutlineXCircle,
   bug: HiOutlineBugAnt,
+  viewport: HiOutlineDeviceTablet,
   feedback: HiOutlineChatBubbleOvalLeft,
 }
 

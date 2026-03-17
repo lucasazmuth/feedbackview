@@ -51,7 +51,7 @@ interface Feedback {
   projectId: string
   consoleLogs?: ConsoleLog[]
   networkLogs?: NetworkLog[]
-  metadata?: { rrwebEvents?: any[]; stepsToReproduce?: string; expectedResult?: string; actualResult?: string; source?: string } | null
+  metadata?: { rrwebEvents?: any[]; stepsToReproduce?: string; expectedResult?: string; actualResult?: string; source?: string; viewport?: string } | null
   Project?: { ownerId: string; name: string } | null
 }
 
@@ -119,6 +119,21 @@ function formatDate(dateStr: string) {
     hour: '2-digit',
     minute: '2-digit',
   })
+}
+
+function parseUserAgent(ua: string): { os: string; browser: string } {
+  let os = 'Desconhecido'
+  let browser = 'Desconhecido'
+  if (ua.includes('Mac OS X')) { const v = ua.match(/Mac OS X ([\d_.]+)/); os = 'macOS ' + (v ? v[1].replace(/_/g, '.') : '') }
+  else if (ua.includes('Windows NT')) { const v = ua.match(/Windows NT ([\d.]+)/); const map: Record<string, string> = { '10.0': '10/11', '6.3': '8.1', '6.2': '8', '6.1': '7' }; os = 'Windows ' + (v ? (map[v[1]] || v[1]) : '') }
+  else if (ua.includes('Android')) { const v = ua.match(/Android ([\d.]+)/); os = 'Android ' + (v ? v[1] : '') }
+  else if (ua.includes('Linux')) os = 'Linux'
+  else if (ua.includes('iPhone') || ua.includes('iPad')) { const v = ua.match(/OS ([\d_]+)/); os = 'iOS ' + (v ? v[1].replace(/_/g, '.') : '') }
+  if (ua.includes('Edg/')) { const v = ua.match(/Edg\/([\d.]+)/); browser = 'Edge ' + (v ? v[1] : '') }
+  else if (ua.includes('Chrome/') && !ua.includes('Edg/')) { const v = ua.match(/Chrome\/([\d.]+)/); browser = 'Chrome ' + (v ? v[1] : '') }
+  else if (ua.includes('Firefox/')) { const v = ua.match(/Firefox\/([\d.]+)/); browser = 'Firefox ' + (v ? v[1] : '') }
+  else if (ua.includes('Safari/') && !ua.includes('Chrome')) { const v = ua.match(/Version\/([\d.]+)/); browser = 'Safari ' + (v ? v[1] : '') }
+  return { os, browser }
 }
 
 export default function FeedbackClient({
@@ -497,38 +512,60 @@ export default function FeedbackClient({
                   </Row>
                 </Column>
 
-                {/* User Agent */}
-                {feedback.userAgent && (
-                  <Column gap="xs">
-                    <Text variant="label-default-s" onBackground="neutral-weak">Navegador</Text>
-                    <Text variant="body-default-xs" style={{ wordBreak: 'break-all' }}>{feedback.userAgent}</Text>
-                  </Column>
-                )}
+                {/* User Agent (parsed) + Viewport */}
+                {feedback.userAgent && (() => {
+                  const { os, browser } = parseUserAgent(feedback.userAgent)
+                  return (
+                    <Column gap="xs">
+                      <Text variant="label-default-s" onBackground="neutral-weak">Navegador</Text>
+                      <Row gap="xs" vertical="center">
+                        <Icon name="monitor" size="xs" />
+                        <Text variant="body-default-xs">{os} • {browser}</Text>
+                      </Row>
+                      {feedback.metadata?.viewport && (
+                        <Row gap="xs" vertical="center">
+                          <Icon name="viewport" size="xs" />
+                          <Text variant="body-default-xs">Viewport: {feedback.metadata.viewport}</Text>
+                        </Row>
+                      )}
+                    </Column>
+                  )
+                })()}
 
                 {/* Captured Events Summary */}
-                <Column gap="xs">
-                  <Text variant="label-default-s" onBackground="neutral-weak">Eventos Capturados</Text>
-                  <Column gap="xs">
-                    <Row gap="xs" vertical="center">
-                      <Icon name="monitor" size="xs" />
-                      <Text variant="body-default-xs">
-                        {feedback.metadata?.rrwebEvents?.length ?? 0} eventos de sessão
-                      </Text>
-                    </Row>
-                    <Row gap="xs" vertical="center">
-                      <Icon name="message" size="xs" />
-                      <Text variant="body-default-xs">
-                        {consoleLogs.length} console log{consoleLogs.length !== 1 ? 's' : ''}
-                      </Text>
-                    </Row>
-                    <Row gap="xs" vertical="center">
-                      <Icon name="openLink" size="xs" />
-                      <Text variant="body-default-xs">
-                        {networkLogs.length} requisição{networkLogs.length !== 1 ? 'ões' : ''} de rede
-                      </Text>
-                    </Row>
-                  </Column>
-                </Column>
+                {(() => {
+                  const errorCount = consoleLogs.filter((l: any) => l.level === 'error').length
+                  const warnCount = consoleLogs.filter((l: any) => l.level === 'warn' || l.level === 'warning').length
+                  const failedRequests = networkLogs.filter((l: any) => l.status && l.status >= 400).length
+                  return (
+                    <Column gap="xs">
+                      <Text variant="label-default-s" onBackground="neutral-weak">Eventos Capturados</Text>
+                      <Column gap="xs">
+                        <Row gap="xs" vertical="center">
+                          <Icon name="monitor" size="xs" />
+                          <Text variant="body-default-xs">
+                            {feedback.metadata?.rrwebEvents?.length ?? 0} eventos de sessão
+                          </Text>
+                        </Row>
+                        <Row gap="xs" vertical="center">
+                          <Icon name="message" size="xs" />
+                          <Text variant="body-default-xs">
+                            {consoleLogs.length} console log{consoleLogs.length !== 1 ? 's' : ''}
+                            {errorCount > 0 && <span style={{ color: 'var(--danger-solid-strong)' }}> ({errorCount} {errorCount === 1 ? 'erro' : 'erros'})</span>}
+                            {warnCount > 0 && <span style={{ color: 'var(--warning-solid-strong)' }}> ({warnCount} {warnCount === 1 ? 'aviso' : 'avisos'})</span>}
+                          </Text>
+                        </Row>
+                        <Row gap="xs" vertical="center">
+                          <Icon name="openLink" size="xs" />
+                          <Text variant="body-default-xs">
+                            {networkLogs.length} requisição{networkLogs.length !== 1 ? 'ões' : ''} de rede
+                            {failedRequests > 0 && <span style={{ color: 'var(--danger-solid-strong)' }}> ({failedRequests} {failedRequests === 1 ? 'falha' : 'falhas'})</span>}
+                          </Text>
+                        </Row>
+                      </Column>
+                    </Column>
+                  )
+                })()}
               </Column>
             </Card>
           </Column>

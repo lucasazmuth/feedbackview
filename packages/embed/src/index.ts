@@ -2229,6 +2229,7 @@ function createWidget(config: WidgetConfig) {
       rrwebEvents: isProxyMode ? [] : rrwebEvents.slice(-MAX_RRWEB_EVENTS),
       pageUrl: isProxyMode && proxyPageUrl ? proxyPageUrl : window.location.href,
       userAgent: navigator.userAgent,
+      viewport: `${window.innerWidth} × ${window.innerHeight}`,
       attachments: embedAttachments.length > 0 ? embedAttachments : undefined,
       source: isProxyMode ? 'shared-url' : 'embed',
     }
