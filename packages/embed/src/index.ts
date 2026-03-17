@@ -897,6 +897,33 @@ function createWidget(config: WidgetConfig) {
     }
     .fv-events-summary .fv-log-tag { margin-right: 2px; }
 
+    .fv-details-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 0;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      color: #6b7280;
+      user-select: none;
+      transition: color 0.15s;
+    }
+    .fv-details-toggle:hover { color: #374151; }
+    .fv-details-toggle svg {
+      transition: transform 0.2s ease;
+    }
+    .fv-details-toggle.open svg {
+      transform: rotate(180deg);
+    }
+    .fv-details-content {
+      display: none;
+      padding-bottom: 4px;
+    }
+    .fv-details-content.open {
+      display: block;
+    }
+
     .fv-footer {
       padding: 16px 20px;
       border-top: 1px solid #e5e7eb;
@@ -1442,9 +1469,8 @@ function createWidget(config: WidgetConfig) {
     titleInput.placeholder = 'Resumo breve do feedback'
     titleInput.id = 'fv-title'
     titleField.appendChild(titleInput)
-    formSection.appendChild(titleField)
 
-    // Description
+    // Description (first field — most important)
     const commentField = document.createElement('div')
     commentField.className = 'fv-field'
     commentField.innerHTML = `<label class="fv-label">Descrição <span class="fv-required">*</span></label>`
@@ -1569,7 +1595,6 @@ function createWidget(config: WidgetConfig) {
       sevBtnGroup.appendChild(btn)
     })
     severityField.appendChild(sevBtnGroup)
-    formSection.appendChild(severityField)
     updateSevBtns('MEDIUM')
 
     // ── Bug-specific fields (steps, expected, actual) ──
@@ -1618,7 +1643,26 @@ function createWidget(config: WidgetConfig) {
     resultsRow.appendChild(actualField)
 
     bugFieldsContainer.appendChild(resultsRow)
-    formSection.appendChild(bugFieldsContainer)
+
+    // ── "Mais detalhes" expandable section ──
+    const detailsToggle = document.createElement('div')
+    detailsToggle.className = 'fv-details-toggle'
+    detailsToggle.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg> Mais detalhes`
+    const detailsContent = document.createElement('div')
+    detailsContent.className = 'fv-details-content'
+
+    detailsToggle.addEventListener('click', () => {
+      const isOpen = detailsContent.classList.toggle('open')
+      detailsToggle.classList.toggle('open', isOpen)
+    })
+
+    // Move title, severity, and bug fields into details section
+    detailsContent.appendChild(titleField)
+    detailsContent.appendChild(severityField)
+    detailsContent.appendChild(bugFieldsContainer)
+
+    formSection.appendChild(detailsToggle)
+    formSection.appendChild(detailsContent)
 
     // Attachments
     const attachField = document.createElement('div')
