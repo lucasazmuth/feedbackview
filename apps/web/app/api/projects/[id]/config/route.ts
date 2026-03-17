@@ -41,14 +41,14 @@ export async function GET(
     // Origin validation — block unauthorized sites (skip for localhost dev and own app)
     const origin = req.headers.get('origin') || req.headers.get('referer') || ''
     const isLocalhost = origin.includes('localhost') || origin.includes('127.0.0.1')
-    const isOwnApp = origin.includes('feedbackview-web.vercel.app') || origin.includes('reportbug.pro')
+    const isOwnApp = origin.includes('feedbackview-web.vercel.app') || origin.includes('reportbug.pro') || origin.includes('buug.io')
     if (origin && project.targetUrl && !isLocalhost && !isOwnApp) {
       const originDomain = normalizeDomain(origin)
       const projectDomain = normalizeDomain(project.targetUrl)
       if (originDomain !== projectDomain) {
         return corsJson({
           error: 'blocked',
-          message: 'Site não autorizado. Crie sua conta em reportbug.pro',
+          message: 'Site não autorizado. Crie sua conta em buug.io',
         }, 403)
       }
     }

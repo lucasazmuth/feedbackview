@@ -1027,8 +1027,8 @@ export default function FeedbackModal({
             </button>
             <p style={{ textAlign: 'center', marginTop: 8, fontSize: 11, color: '#9ca3af' }}>
               Powered by{' '}
-              <a href="https://www.reportbug.pro" target="_blank" rel="noopener noreferrer" style={{ color: '#6b7280', textDecoration: 'none' }}>
-                Report Bug
+              <a href="https://buug.io" target="_blank" rel="noopener noreferrer" style={{ color: '#6b7280', textDecoration: 'none' }}>
+                Buug
               </a>
             </p>
           </div>

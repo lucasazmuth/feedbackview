@@ -10,7 +10,7 @@ const inter = Inter({ subsets: ['latin'] })
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], weight: ['700'] })
 
 export const metadata: Metadata = {
-  title: 'Report Bug — QA com Captura em Tempo Real',
+  title: 'Buug — QA com Captura em Tempo Real',
   description: 'Plataforma de QA com captura automática de bugs: screenshot, session replay e logs.',
 }
 

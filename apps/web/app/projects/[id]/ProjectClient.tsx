@@ -1801,7 +1801,7 @@ export default function ProjectClient({
                             <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'center' }}>
                               {s === 'text' ? (
                                 <div style={{ height: 32, paddingLeft: 12, paddingRight: 14, borderRadius: 16, background: widgetColor, color: '#fff', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                                  <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: 11, letterSpacing: '-0.02em' }}>Report Bug</span>
+                                  <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: 11, letterSpacing: '-0.02em' }}>Buug</span>
                                 </div>
                               ) : (
                                 <div style={{ width: 44, height: 44, borderRadius: '50%', background: widgetColor, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -1813,7 +1813,7 @@ export default function ProjectClient({
                               {s === 'text' ? 'Texto' : 'Ícone'}
                             </span>
                             <p style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', margin: '0.25rem 0 0' }}>
-                              {s === 'text' ? 'Botão com logo Report Bug' : 'Botão circular com logo'}
+                              {s === 'text' ? 'Botão com logo Buug' : 'Botão circular com logo'}
                             </p>
                           </div>
                         ))}
@@ -2020,7 +2020,7 @@ export default function ProjectClient({
                               boxShadow: `0 4px 12px ${widgetColor}66`,
                               whiteSpace: 'nowrap',
                             }}>
-                              <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: 10, letterSpacing: '-0.02em' }}>Report Bug</span>
+                              <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: 10, letterSpacing: '-0.02em' }}>Buug</span>
                             </div>
                           )}
                         </div>

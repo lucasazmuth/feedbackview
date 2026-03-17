@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
         const isDev = process.env.NODE_ENV === 'development'
         const isLocalhost = originDomain === 'localhost' || originDomain === '127.0.0.1'
         // Allow requests from own app (proxy/shared URL mode)
-        const isOwnApp = origin.includes('feedbackview-web.vercel.app') || origin.includes('reportbug.pro')
+        const isOwnApp = origin.includes('feedbackview-web.vercel.app') || origin.includes('reportbug.pro') || origin.includes('buug.io')
         if (!(isDev && isLocalhost) && !isOwnApp) {
           return corsJson({ error: 'Site não autorizado.' }, 403)
         }

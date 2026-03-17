@@ -133,7 +133,7 @@ export default function PageHeader() {
             color: 'var(--neutral-on-background-strong)',
           }}
         >
-          Report Bug
+          Buug
         </span>
         <span
           style={{

@@ -81,12 +81,12 @@ const steps = [
 
 const faqs = [
   {
-    question: 'O Report Bug é gratuito?',
+    question: 'O Buug é gratuito?',
     answer: 'Sim! Oferecemos um plano gratuito com 10 reports incluídos, sem necessidade de cartão de crédito. Você pode criar projetos, convidar membros e usar todas as funcionalidades principais.',
   },
   {
     question: 'Como funciona a captura de session replay?',
-    answer: 'O Report Bug usa a biblioteca rrweb para gravar as interações do usuário em tempo real. Cada ação (clique, scroll, digitação) é capturada e pode ser reproduzida como um vídeo, permitindo que você veja exatamente o que aconteceu antes do bug.',
+    answer: 'O Buug usa a biblioteca rrweb para gravar as interações do usuário em tempo real. Cada ação (clique, scroll, digitação) é capturada e pode ser reproduzida como um vídeo, permitindo que você veja exatamente o que aconteceu antes do bug.',
   },
   {
     question: 'Preciso instalar algo no meu site?',
@@ -98,7 +98,7 @@ const faqs = [
   },
   {
     question: 'Funciona com React, Next.js, Vue?',
-    answer: 'Sim! O Report Bug funciona com qualquer tecnologia web. O script embed é framework-agnóstico e o modo de link compartilhado funciona com qualquer URL acessível.',
+    answer: 'Sim! O Buug funciona com qualquer tecnologia web. O script embed é framework-agnóstico e o modo de link compartilhado funciona com qualquer URL acessível.',
   },
   {
     question: 'Quantos membros da equipe posso convidar?',
@@ -106,8 +106,8 @@ const faqs = [
   },
 ]
 
-const viewerUrl = 'https://app.reportbug.pro/p/seu-projeto-id'
-const embedSnippet = '<script src="https://app.reportbug.pro/embed.js"\n  data-project="SEU_PROJECT_ID">\n</script>'
+const viewerUrl = 'https://buug.io/p/seu-projeto-id'
+const embedSnippet = '<script src="https://buug.io/embed.js"\n  data-project="SEU_PROJECT_ID">\n</script>'
 
 export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null)
@@ -143,7 +143,7 @@ export default function LandingPage() {
         style={{ position: 'sticky', top: 0, zIndex: 50 }}
       >
         <Row gap="s" vertical="center">
-          <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '1.25rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-strong)' }}>Report Bug</span>
+          <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '1.25rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-strong)' }}>Buug</span>
         </Row>
         <Row gap="s" vertical="center">
           {isLoggedIn ? (
@@ -893,7 +893,7 @@ export default function LandingPage() {
               <div style={{ ...S.browser, background: '#fff' }}>
                 <div style={S.browserBar}>
                   <div style={S.dot('#ff5f57')} /><div style={S.dot('#febc2e')} /><div style={S.dot('#28c840')} />
-                  <div style={S.urlBar}>app.reportbug.pro/projects/meu-site</div>
+                  <div style={S.urlBar}>buug.io/projects/meu-site</div>
                 </div>
                 <div style={{ background: '#fff', display: 'flex', minHeight: 310 }}>
                   {/* Sidebar */}
@@ -1032,7 +1032,7 @@ export default function LandingPage() {
               {/* Header */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderBottom: '1px solid var(--neutral-border-medium)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '1.1rem', color: 'var(--neutral-on-background-strong)' }}>Report Bug</span>
+                  <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '1.1rem', color: 'var(--neutral-on-background-strong)' }}>Buug</span>
                   <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: 'var(--brand-alpha-weak)', color: 'var(--brand-on-background-strong)' }}>Demo interativa</span>
                 </div>
                 <button onClick={() => setDemoOpen(false)} style={{ background: 'var(--neutral-alpha-weak)', border: 'none', cursor: 'pointer', color: 'var(--neutral-on-background-weak)', width: 32, height: 32, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
@@ -1229,7 +1229,7 @@ export default function LandingPage() {
               Funciona com qualquer stack
             </Heading>
             <Text variant="body-default-m" onBackground="neutral-weak" style={{ maxWidth: '36rem' }}>
-              O Report Bug é compatível com todas as tecnologias web e mobile modernas. Basta adicionar uma linha de código e pronto.
+              O Buug é compatível com todas as tecnologias web e mobile modernas. Basta adicionar uma linha de código e pronto.
             </Text>
           </Column>
 
@@ -1406,7 +1406,7 @@ export default function LandingPage() {
               Perguntas frequentes
             </Heading>
             <Text variant="body-default-m" onBackground="neutral-weak" style={{ maxWidth: '32rem' }}>
-              Tudo que você precisa saber sobre o Report Bug.
+              Tudo que você precisa saber sobre o Buug.
             </Text>
           </Column>
 
@@ -1531,7 +1531,7 @@ export default function LandingPage() {
           vertical="center"
         >
           <Row gap="xs" vertical="center">
-            <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '0.8rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-weak)' }}>Report Bug</span>
+            <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '0.8rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-weak)' }}>Buug</span>
             <Text variant="body-default-xs" onBackground="neutral-weak">
               &copy; {new Date().getFullYear()}
             </Text>

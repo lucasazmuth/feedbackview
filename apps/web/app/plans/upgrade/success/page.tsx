@@ -216,7 +216,7 @@ function SuccessContent() {
           color: '#9ca3af',
           margin: 0,
         }}>
-          Powered by <strong>Report Bug</strong>
+          Powered by <strong>Buug</strong>
         </p>
       </div>
 

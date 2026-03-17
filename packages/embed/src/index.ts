@@ -1,5 +1,5 @@
 // @feedbackview/embed — standalone feedback widget
-// Injected via <script src="https://www.reportbug.pro/embed.js" data-project="ID"></script>
+// Injected via <script src="https://buug.io/embed.js" data-project="ID"></script>
 // Collects console, network, errors, rrweb session replay + shows feedback UI
 
 import { record, Replayer } from 'rrweb'
@@ -1118,8 +1118,8 @@ function createWidget(config: WidgetConfig) {
   const trigger = document.createElement('button')
   trigger.className = hiddenTrigger ? 'fv-trigger fv-trigger-hidden' : 'fv-trigger'
   trigger.innerHTML = config.widgetStyle === 'icon'
-    ? `<span class="fv-trigger-icon-text">RE\nPORT\nBUG</span>`
-    : `<span class="fv-trigger-brand">Report Bug</span>`
+    ? `<span class="fv-trigger-icon-text">BUUG</span>`
+    : `<span class="fv-trigger-brand">Buug</span>`
   trigger.title = 'Enviar feedback'
   shadow.appendChild(trigger)
 
@@ -1181,7 +1181,7 @@ function createWidget(config: WidgetConfig) {
       panel.appendChild(pausedMsg)
       const pausedFooter = document.createElement('div')
       pausedFooter.style.cssText = 'padding:12px 16px;text-align:center;font-size:11px;color:#9ca3af;border-top:1px solid #f3f4f6;'
-      pausedFooter.innerHTML = 'Powered by <strong style="color:#6b7280;">Report Bug</strong>'
+      pausedFooter.innerHTML = 'Powered by <strong style="color:#6b7280;">Buug</strong>'
       panel.appendChild(pausedFooter)
       return
     }
@@ -1203,7 +1203,7 @@ function createWidget(config: WidgetConfig) {
       panel.appendChild(limitMsg)
       const limitFooter = document.createElement('div')
       limitFooter.style.cssText = 'padding:12px 16px;text-align:center;font-size:11px;color:#9ca3af;border-top:1px solid #f3f4f6;'
-      limitFooter.innerHTML = 'Powered by <strong style="color:#6b7280;">Report Bug</strong>'
+      limitFooter.innerHTML = 'Powered by <strong style="color:#6b7280;">Buug</strong>'
       panel.appendChild(limitFooter)
       return
     }
@@ -2068,7 +2068,7 @@ function createWidget(config: WidgetConfig) {
 
     const powered = document.createElement('div')
     powered.className = 'fv-powered'
-    powered.innerHTML = 'Powered by <a href="https://www.reportbug.pro" target="_blank">Report Bug</a>'
+    powered.innerHTML = 'Powered by <a href="https://buug.io" target="_blank">Buug</a>'
     footer.appendChild(powered)
     panel.appendChild(footer)
   }
