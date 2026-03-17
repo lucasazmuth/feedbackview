@@ -1245,7 +1245,7 @@ export default function LandingPage() {
             </Text>
           </Column>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 140px)', gap: '1.25rem', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem', justifyContent: 'center' }}>
             {[
               { name: 'React', logo: '/logos/react.svg' },
               { name: 'Next.js', logo: '/logos/nextjs.svg' },
