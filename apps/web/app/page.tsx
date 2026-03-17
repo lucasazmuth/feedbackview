@@ -358,32 +358,32 @@ export default function LandingPage() {
 
               /* Step 1: Widget on site */
               <div key="s1" style={{ background: '#fff', padding: 20, minHeight: 280, position: 'relative' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div style={{ width: 28, height: 28, borderRadius: 6, background: '#4f46e5' }} />
-                      <div style={{ height: 8, width: 80, background: '#e5e7eb', borderRadius: 4 }} />
-                    </div>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <div style={{ height: 28, width: 50, background: '#e5e7eb', borderRadius: 6 }} />
-                      <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#e5e7eb' }} />
-                    </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: 6, background: '#4f46e5' }} />
+                    <div style={{ height: 8, width: 80, background: '#e5e7eb', borderRadius: 4 }} />
                   </div>
-                  <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
-                    {[{ v: '2,847', l: 'Visitantes' }, { v: '89%', l: 'Conversão' }, { v: 'R$ 12.4k', l: 'Receita' }].map((c, i) => (
-                      <div key={i} style={{ flex: 1, background: '#f9fafb', borderRadius: 10, padding: 14, border: '1px solid #f3f4f6' }}>
-                        <div style={{ height: 6, width: '60%', background: '#e5e7eb', borderRadius: 3, marginBottom: 6 }} />
-                        <div style={{ fontSize: 20, fontWeight: 700, color: '#111' }}>{c.v}</div>
-                      </div>
-                    ))}
-                  </div>
-                  <div style={{ height: 40, borderRadius: 8, background: '#f3f4f6', marginBottom: 10 }} />
                   <div style={{ display: 'flex', gap: 8 }}>
-                    <div style={{ height: 40, borderRadius: 8, background: '#f3f4f6', flex: 2 }} />
-                    <div style={{ height: 40, borderRadius: 8, background: '#f3f4f6', flex: 1 }} />
+                    <div style={{ height: 28, width: 50, background: '#e5e7eb', borderRadius: 6 }} />
+                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#e5e7eb' }} />
                   </div>
-                  <div className="demo-widget-pulse" style={{ position: 'absolute', bottom: 16, right: 16, padding: '10px 22px', background: '#4f46e5', color: '#fff', borderRadius: 24, fontWeight: 700, fontSize: 13, boxShadow: '0 4px 16px rgba(79,70,229,0.35)', border: 'none', fontFamily: 'var(--font-logo)', letterSpacing: '-0.01em' }}>
-                    Buug report
-                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+                  {[{ v: '2,847', l: 'Visitantes' }, { v: '89%', l: 'Conversão' }, { v: 'R$ 12.4k', l: 'Receita' }].map((c, i) => (
+                    <div key={i} style={{ flex: 1, background: '#f9fafb', borderRadius: 10, padding: 14, border: '1px solid #f3f4f6' }}>
+                      <div style={{ height: 6, width: '60%', background: '#e5e7eb', borderRadius: 3, marginBottom: 6 }} />
+                      <div style={{ fontSize: 20, fontWeight: 700, color: '#111' }}>{c.v}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ height: 40, borderRadius: 8, background: '#f3f4f6', marginBottom: 10 }} />
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <div style={{ height: 40, borderRadius: 8, background: '#f3f4f6', flex: 2 }} />
+                  <div style={{ height: 40, borderRadius: 8, background: '#f3f4f6', flex: 1 }} />
+                </div>
+                <div className="demo-widget-pulse" style={{ position: 'absolute', bottom: 16, right: 16, padding: '10px 22px', background: '#4f46e5', color: '#fff', borderRadius: 24, fontWeight: 700, fontSize: 13, boxShadow: '0 4px 16px rgba(79,70,229,0.35)', border: 'none', fontFamily: 'var(--font-logo)', letterSpacing: '-0.01em' }}>
+                  Buug report
+                </div>
               </div>,
 
               /* Step 2: Report form */
@@ -479,71 +479,71 @@ export default function LandingPage() {
 
               /* Step 3: Dashboard */
               <div key="s3" style={{ background: '#fff', display: 'flex', minHeight: 300 }}>
-                  {/* Sidebar */}
-                  <div style={{ width: 44, background: '#fafafa', borderRight: '1px solid #f3f4f6', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 0', gap: 4, flexShrink: 0 }}>
-                    <div style={{ width: 24, height: 24, borderRadius: 6, background: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 6 }}>
-                      <span style={{ color: '#fff', fontSize: 8, fontWeight: 800 }}>B</span>
-                    </div>
-                    {[1,2,3].map(n => <div key={n} style={{ width: 18, height: 18, borderRadius: 4, background: n === 1 ? '#ede9fe' : '#f3f4f6' }} />)}
+                {/* Sidebar */}
+                <div style={{ width: 44, background: '#fafafa', borderRight: '1px solid #f3f4f6', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 0', gap: 4, flexShrink: 0 }}>
+                  <div style={{ width: 24, height: 24, borderRadius: 6, background: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 6 }}>
+                    <span style={{ color: '#fff', fontSize: 8, fontWeight: 800 }}>B</span>
                   </div>
-                  {/* Main */}
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderBottom: '1px solid #f3f4f6' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontSize: 11, color: '#9ca3af' }}>Projetos /</span>
-                        <span style={{ fontSize: 11, fontWeight: 600, color: '#111' }}>Meu E-commerce</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <div style={{ padding: '2px 6px', borderRadius: 4, background: '#ede9fe', fontSize: 8, fontWeight: 600, color: '#4f46e5' }}>PRO</div>
-                        <div style={{ width: 22, height: 22, borderRadius: 11, background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <span style={{ color: '#fff', fontSize: 8, fontWeight: 700 }}>LC</span>
-                        </div>
+                  {[1,2,3].map(n => <div key={n} style={{ width: 18, height: 18, borderRadius: 4, background: n === 1 ? '#ede9fe' : '#f3f4f6' }} />)}
+                </div>
+                {/* Main */}
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderBottom: '1px solid #f3f4f6' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontSize: 11, color: '#9ca3af' }}>Projetos /</span>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: '#111' }}>Meu E-commerce</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div style={{ padding: '2px 6px', borderRadius: 4, background: '#ede9fe', fontSize: 8, fontWeight: 600, color: '#4f46e5' }}>PRO</div>
+                      <div style={{ width: 22, height: 22, borderRadius: 11, background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <span style={{ color: '#fff', fontSize: 8, fontWeight: 700 }}>LC</span>
                       </div>
                     </div>
-                    {/* Stats */}
-                    <div style={{ padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                          <span style={{ fontSize: 14, fontWeight: 700, color: '#111' }}>Meu E-commerce</span>
-                          <span style={{ padding: '1px 6px', borderRadius: 999, background: '#ecfdf5', fontSize: 8, fontWeight: 600, color: '#059669' }}>Ativo</span>
-                        </div>
-                        <span style={{ fontSize: 9, color: '#9ca3af', fontFamily: 'monospace' }}>meusite.com.br</span>
+                  </div>
+                  {/* Stats */}
+                  <div style={{ padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                        <span style={{ fontSize: 14, fontWeight: 700, color: '#111' }}>Meu E-commerce</span>
+                        <span style={{ padding: '1px 6px', borderRadius: 999, background: '#ecfdf5', fontSize: 8, fontWeight: 600, color: '#059669' }}>Ativo</span>
                       </div>
-                      <div style={{ display: 'flex', gap: 12 }}>
-                        {[{ n: '15', l: 'Total', c: '#111' }, { n: '3', l: 'Abertos', c: '#d97706' }, { n: '12', l: 'Resolvidos', c: '#059669' }].map(s => (
-                          <div key={s.l} style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: 14, fontWeight: 700, color: s.c }}>{s.n}</div>
-                            <div style={{ fontSize: 7, color: '#9ca3af', textTransform: 'uppercase' }}>{s.l}</div>
-                          </div>
-                        ))}
-                      </div>
+                      <span style={{ fontSize: 9, color: '#9ca3af', fontFamily: 'monospace' }}>meusite.com.br</span>
                     </div>
-                    {/* Tabs */}
-                    <div style={{ display: 'flex', gap: 0, borderBottom: '2px solid #f3f4f6', padding: '0 14px' }}>
-                      {['Reports', 'Histórico', 'Config'].map((t, i) => (
-                        <div key={t} style={{ padding: '5px 10px 7px', borderBottom: `2px solid ${i === 0 ? '#4f46e5' : 'transparent'}`, marginBottom: -2, fontSize: 10, fontWeight: i === 0 ? 600 : 400, color: i === 0 ? '#4f46e5' : '#9ca3af' }}>{t}</div>
-                      ))}
-                    </div>
-                    {/* List */}
-                    <div style={{ margin: '10px 14px', border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', flex: 1 }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: '44px 1fr 44px 50px', gap: 4, padding: '5px 8px', background: '#fafafa', borderBottom: '1px solid #e5e7eb', fontSize: 7, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase' }}>
-                        <span>Tipo</span><span>Descrição</span><span>Sever.</span><span>Status</span>
-                      </div>
-                      {[
-                        { type: 'Bug', typeBg: '#fef2f2', typeC: '#dc2626', desc: 'Botão de pagamento não funciona', sev: 'Alta', sevBg: '#fef2f2', sevC: '#dc2626', st: 'Aberto', stBg: '#fefce8', stC: '#a16207' },
-                        { type: 'Bug', typeBg: '#fef2f2', typeC: '#dc2626', desc: 'Imagem quebrada na página', sev: 'Média', sevBg: '#fefce8', sevC: '#a16207', st: 'Aberto', stBg: '#fefce8', stC: '#a16207' },
-                        { type: 'Bug', typeBg: '#fef2f2', typeC: '#dc2626', desc: 'Carrinho não atualiza', sev: 'Alta', sevBg: '#fef2f2', sevC: '#dc2626', st: 'Em prog.', stBg: '#dbeafe', stC: '#1d4ed8' },
-                        { type: 'Sugestão', typeBg: '#dbeafe', typeC: '#1d4ed8', desc: 'Adicionar modo escuro', sev: 'Baixa', sevBg: '#f3f4f6', sevC: '#6b7280', st: 'Resolvido', stBg: '#ecfdf5', stC: '#059669' },
-                      ].map((r, i, arr) => (
-                        <div key={i} style={{ display: 'grid', gridTemplateColumns: '44px 1fr 44px 50px', gap: 4, padding: '5px 8px', borderBottom: i < arr.length - 1 ? '1px solid #f3f4f6' : 'none', alignItems: 'center', fontSize: 9, background: i === 0 ? 'rgba(79,70,229,0.03)' : 'transparent' }}>
-                          <span style={{ padding: '1px 4px', borderRadius: 3, fontSize: 7, fontWeight: 600, background: r.typeBg, color: r.typeC, textAlign: 'center' }}>{r.type}</span>
-                          <span style={{ color: '#374151', fontWeight: i === 0 ? 600 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.desc}</span>
-                          <span style={{ padding: '1px 4px', borderRadius: 3, fontSize: 7, fontWeight: 600, background: r.sevBg, color: r.sevC, textAlign: 'center' }}>{r.sev}</span>
-                          <span style={{ padding: '1px 4px', borderRadius: 3, fontSize: 7, fontWeight: 600, background: r.stBg, color: r.stC, textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.st}</span>
+                    <div style={{ display: 'flex', gap: 12 }}>
+                      {[{ n: '15', l: 'Total', c: '#111' }, { n: '3', l: 'Abertos', c: '#d97706' }, { n: '12', l: 'Resolvidos', c: '#059669' }].map(s => (
+                        <div key={s.l} style={{ textAlign: 'center' }}>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: s.c }}>{s.n}</div>
+                          <div style={{ fontSize: 7, color: '#9ca3af', textTransform: 'uppercase' }}>{s.l}</div>
                         </div>
                       ))}
                     </div>
                   </div>
+                  {/* Tabs */}
+                  <div style={{ display: 'flex', gap: 0, borderBottom: '2px solid #f3f4f6', padding: '0 14px' }}>
+                    {['Reports', 'Histórico', 'Config'].map((t, i) => (
+                      <div key={t} style={{ padding: '5px 10px 7px', borderBottom: `2px solid ${i === 0 ? '#4f46e5' : 'transparent'}`, marginBottom: -2, fontSize: 10, fontWeight: i === 0 ? 600 : 400, color: i === 0 ? '#4f46e5' : '#9ca3af' }}>{t}</div>
+                    ))}
+                  </div>
+                  {/* List */}
+                  <div style={{ margin: '10px 14px', border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', flex: 1 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '44px 1fr 44px 50px', gap: 4, padding: '5px 8px', background: '#fafafa', borderBottom: '1px solid #e5e7eb', fontSize: 7, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase' }}>
+                      <span>Tipo</span><span>Descrição</span><span>Sever.</span><span>Status</span>
+                    </div>
+                    {[
+                      { type: 'Bug', typeBg: '#fef2f2', typeC: '#dc2626', desc: 'Botão de pagamento não funciona', sev: 'Alta', sevBg: '#fef2f2', sevC: '#dc2626', st: 'Aberto', stBg: '#fefce8', stC: '#a16207' },
+                      { type: 'Bug', typeBg: '#fef2f2', typeC: '#dc2626', desc: 'Imagem quebrada na página', sev: 'Média', sevBg: '#fefce8', sevC: '#a16207', st: 'Aberto', stBg: '#fefce8', stC: '#a16207' },
+                      { type: 'Bug', typeBg: '#fef2f2', typeC: '#dc2626', desc: 'Carrinho não atualiza', sev: 'Alta', sevBg: '#fef2f2', sevC: '#dc2626', st: 'Em prog.', stBg: '#dbeafe', stC: '#1d4ed8' },
+                      { type: 'Sugestão', typeBg: '#dbeafe', typeC: '#1d4ed8', desc: 'Adicionar modo escuro', sev: 'Baixa', sevBg: '#f3f4f6', sevC: '#6b7280', st: 'Resolvido', stBg: '#ecfdf5', stC: '#059669' },
+                    ].map((r, i, arr) => (
+                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '44px 1fr 44px 50px', gap: 4, padding: '5px 8px', borderBottom: i < arr.length - 1 ? '1px solid #f3f4f6' : 'none', alignItems: 'center', fontSize: 9, background: i === 0 ? 'rgba(79,70,229,0.03)' : 'transparent' }}>
+                        <span style={{ padding: '1px 4px', borderRadius: 3, fontSize: 7, fontWeight: 600, background: r.typeBg, color: r.typeC, textAlign: 'center' }}>{r.type}</span>
+                        <span style={{ color: '#374151', fontWeight: i === 0 ? 600 : 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.desc}</span>
+                        <span style={{ padding: '1px 4px', borderRadius: 3, fontSize: 7, fontWeight: 600, background: r.sevBg, color: r.sevC, textAlign: 'center' }}>{r.sev}</span>
+                        <span style={{ padding: '1px 4px', borderRadius: 3, fontSize: 7, fontWeight: 600, background: r.stBg, color: r.stC, textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.st}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>,
             ]
 
