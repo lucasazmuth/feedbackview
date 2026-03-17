@@ -2677,10 +2677,7 @@ export default function ProjectClient({
                     {/* Status */}
                     <Card fillWidth padding="l" radius="l">
                       <Column gap="m">
-                        <Row horizontal="between" vertical="center">
-                          <Heading variant="heading-strong-s">Status</Heading>
-                          <Tag variant={getTagVariant(selectedFeedback.status)} size="s" label={getStatusLabel(selectedFeedback.status)} />
-                        </Row>
+                        <Heading variant="heading-strong-s">Status</Heading>
                         <Row gap="xs" wrap>
                           {[
                             { value: 'OPEN', label: 'Aberto' },
