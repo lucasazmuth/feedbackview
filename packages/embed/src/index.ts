@@ -450,14 +450,14 @@ function createWidget(config: WidgetConfig) {
     }
 
     @keyframes fv-pulse-ring {
-      0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.6); }
-      50% { box-shadow: 0 0 0 6px rgba(255,255,255,0); }
-      100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+      0% { box-shadow: 0 0 0 0 ${hexToRgba(color, 0.5)}; }
+      70% { box-shadow: 0 0 0 10px ${hexToRgba(color, 0)}; }
+      100% { box-shadow: 0 0 0 0 ${hexToRgba(color, 0)}; }
     }
     .fv-trigger.fv-trigger-loading {
       pointer-events: none;
-      animation: fv-pulse-ring 1s ease-in-out infinite;
-      opacity: 0.85;
+      animation: fv-pulse-ring 1.2s ease-out infinite;
+      transform: scale(0.95);
     }
 
     .fv-backdrop {
@@ -2047,8 +2047,12 @@ function createWidget(config: WidgetConfig) {
     // Pause recording — we only want events from before the modal opened
     pauseRecording()
 
-    // Re-fetch config to check for limit/pause changes since last open
-    const freshConfig = await fetchConfig()
+    // Do all async work (config fetch + screenshot) while trigger stays visible with loading
+    const [freshConfig, ss] = await Promise.all([
+      fetchConfig(),
+      captureScreenshot(),
+    ])
+
     if (!freshConfig.blocked) {
       config.limitReached = freshConfig.limitReached
       config.paused = freshConfig.paused
@@ -2056,19 +2060,17 @@ function createWidget(config: WidgetConfig) {
 
     isOpen = true
     submitted = false
-    isCapturing = true
-    screenshotUrl = null
+    isCapturing = false
+    screenshotUrl = ss
+
+    // Now hide trigger and show modal
     trigger.classList.remove('fv-trigger-loading')
     trigger.style.display = 'none'
     renderPanel()
 
-    // Skip screenshot capture if limit reached or paused (form won't show)
+    // Skip screenshot update if limit reached or paused (form won't show)
     if (config.limitReached || config.paused) return
 
-    // Capture screenshot and update only the preview screenshot area (avoid full re-render)
-    const ss = await captureScreenshot()
-    screenshotUrl = ss
-    isCapturing = false
     // Update screenshot in preview panel without re-rendering the whole modal
     const previewImg = shadow.querySelector('.fv-preview-screenshot') as HTMLImageElement
     const previewCapturing = shadow.querySelector('.fv-preview-capturing') as HTMLElement
