@@ -645,7 +645,7 @@ export default function LandingPage() {
             <div className="hero-split" style={{
               position: 'relative', zIndex: 1,
               width: '100%', maxWidth: 1200, margin: '0 auto',
-              padding: '80px 48px 64px',
+              padding: '80px clamp(24px, 5vw, 64px) 64px',
               display: 'flex', gap: 56, alignItems: 'center',
             }}>
               {/* Left side — Text content using design system */}
