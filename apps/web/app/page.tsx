@@ -142,8 +142,40 @@ export default function LandingPage() {
         background="surface"
         style={{ position: 'sticky', top: 0, zIndex: 50 }}
       >
-        <Row gap="s" vertical="center">
-          <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '1.25rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-strong)' }}>Buug</span>
+        <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '1.25rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-strong)' }}>Buug</span>
+        <Row as="ul" gap="2" vertical="center" className="nav-links" style={{ listStyle: 'none', margin: 0, padding: 0, position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
+          {[
+            { label: 'Funcionalidades', href: '#funcionalidades' },
+            { label: 'Integração', href: '#integracao' },
+            { label: 'Demo', href: '#demo' },
+            { label: 'Planos', href: '#planos' },
+            { label: 'FAQ', href: '#faq' },
+          ].map((item) => (
+            <li key={item.href}>
+              <a
+                href={item.href}
+                style={{
+                  fontSize: '0.85rem',
+                  fontWeight: 500,
+                  color: 'var(--neutral-on-background-weak)',
+                  textDecoration: 'none',
+                  padding: '0.35rem 0.6rem',
+                  borderRadius: '6px',
+                  transition: 'color 0.15s, background 0.15s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = 'var(--neutral-on-background-strong)'
+                  e.currentTarget.style.background = 'var(--neutral-alpha-weak)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'var(--neutral-on-background-weak)'
+                  e.currentTarget.style.background = 'transparent'
+                }}
+              >
+                {item.label}
+              </a>
+            </li>
+          ))}
         </Row>
         <Row gap="s" vertical="center">
           {isLoggedIn ? (
@@ -170,8 +202,62 @@ export default function LandingPage() {
         style={{
           background: 'linear-gradient(180deg, var(--surface-background) 0%, var(--page-background) 100%)',
           overflow: 'hidden',
+          position: 'relative',
         }}
       >
+        {/* Animated grid background */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            overflow: 'hidden',
+            pointerEvents: 'none',
+            zIndex: 0,
+          }}
+        >
+          {/* Grid lines */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              maskImage: 'radial-gradient(ellipse 80% 50% at 50% 30%, black 0%, transparent 70%)',
+              WebkitMaskImage: 'radial-gradient(ellipse 80% 50% at 50% 30%, black 0%, transparent 70%)',
+            }}
+          >
+            <div
+              className="hero-dot-grid"
+              style={{
+                position: 'absolute',
+                inset: '-50%',
+                backgroundImage:
+                  'linear-gradient(rgba(0,0,0,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.07) 1px, transparent 1px)',
+                backgroundSize: '48px 48px',
+              }}
+            />
+          </div>
+          {/* Floating gradient orbs */}
+          <div className="hero-orb-1" style={{
+            position: 'absolute',
+            width: '600px',
+            height: '600px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(79,70,229,0.06) 0%, transparent 70%)',
+            top: '-10%',
+            right: '-5%',
+            filter: 'blur(60px)',
+          }} />
+          <div className="hero-orb-2" style={{
+            position: 'absolute',
+            width: '500px',
+            height: '500px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(79,70,229,0.05) 0%, transparent 70%)',
+            bottom: '5%',
+            left: '-8%',
+            filter: 'blur(60px)',
+          }} />
+        </div>
+
         <Column
           maxWidth={64}
           fillWidth
@@ -179,7 +265,7 @@ export default function LandingPage() {
           paddingY="xl"
           gap="l"
           horizontal="center"
-          style={{ textAlign: 'center' }}
+          style={{ textAlign: 'center', position: 'relative', zIndex: 1 }}
         >
           <Tag variant="brand" size="l" label="Plataforma de QA em tempo real" />
 
@@ -488,7 +574,7 @@ export default function LandingPage() {
       </Flex>
 
       {/* Features */}
-      <Flex fillWidth horizontal="center" background="page">
+      <Flex fillWidth horizontal="center" background="page" id="funcionalidades">
         <Column maxWidth={64} fillWidth paddingX="l" paddingY="xl" gap="xl">
           <Column horizontal="center" gap="s" style={{ textAlign: 'center' }}>
             <Tag variant="neutral" size="m" label="Funcionalidades" />
@@ -1137,7 +1223,7 @@ export default function LandingPage() {
       </Flex>
 
       {/* Integration modes */}
-      <Flex fillWidth horizontal="center" background="surface">
+      <Flex fillWidth horizontal="center" background="surface" id="integracao">
         <Column maxWidth={64} fillWidth paddingX="l" paddingY="xl" gap="xl">
           <Column horizontal="center" gap="s" style={{ textAlign: 'center' }}>
             <Tag variant="neutral" size="m" label="Integração" />
@@ -1496,7 +1582,7 @@ export default function LandingPage() {
       <Flex fillWidth horizontal="center" background="surface">
         <Column maxWidth={64} fillWidth paddingX="l" paddingY="l" gap="m" horizontal="center" style={{ textAlign: 'center' }}>
           {typingAnim && (
-            <div style={{ width: '100%', maxWidth: '16rem', margin: '0 auto' }}>
+            <div style={{ width: '100%', maxWidth: '28rem', margin: '0 auto' }}>
               <Lottie animationData={typingAnim} loop autoplay />
             </div>
           )}

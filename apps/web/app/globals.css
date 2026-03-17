@@ -79,6 +79,11 @@ body {
   overflow: hidden;
 }
 
+/* Nav links: hide on mobile */
+@media (max-width: 768px) {
+  .nav-links { display: none !important; }
+}
+
 /* Auth pages: split layout responsive */
 .auth-mobile-logo { display: none !important; }
 @media (max-width: 768px) {
@@ -160,6 +165,29 @@ body {
   background: #22c55e;
   display: inline-block;
   animation: hero-pulse-dot 1.5s ease-in-out infinite;
+}
+
+/* Hero animated dot grid */
+@keyframes hero-grid-drift {
+  0%   { transform: translate(0, 0); }
+  100% { transform: translate(48px, 48px); }
+}
+.hero-dot-grid {
+  animation: hero-grid-drift 12s linear infinite;
+}
+@keyframes hero-orb-float-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-30px, 20px) scale(1.05); }
+}
+@keyframes hero-orb-float-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(25px, -15px) scale(1.08); }
+}
+.hero-orb-1 {
+  animation: hero-orb-float-1 16s ease-in-out infinite;
+}
+.hero-orb-2 {
+  animation: hero-orb-float-2 20s ease-in-out infinite;
 }
 
 /* Landing page animations */
