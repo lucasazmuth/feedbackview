@@ -2530,15 +2530,15 @@ export default function ProjectClient({
                 <div style={{ padding: '1.5rem', display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
                   {/* Left column */}
                   <div style={{ flex: 2, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    {/* Session Replay */}
-                    {selectedFeedback.metadata?.rrwebEvents && selectedFeedback.metadata.rrwebEvents.length > 0 && (
+                    {/* Session Replay (hidden for shared-url source — replay is unreliable in proxy mode) */}
+                    {selectedFeedback.metadata?.rrwebEvents && selectedFeedback.metadata.rrwebEvents.length > 0 && selectedFeedback.metadata?.source !== 'shared-url' && (
                       <Card fillWidth radius="l" style={{ overflow: 'hidden', padding: 0 }}>
                         <SessionReplay events={selectedFeedback.metadata.rrwebEvents} />
                       </Card>
                     )}
 
-                    {/* Screenshot (when no replay) */}
-                    {selectedFeedback.screenshotUrl && !(selectedFeedback.metadata?.rrwebEvents && selectedFeedback.metadata.rrwebEvents.length > 0) && (
+                    {/* Screenshot (when no replay or shared-url source) */}
+                    {selectedFeedback.screenshotUrl && (selectedFeedback.metadata?.source === 'shared-url' || !(selectedFeedback.metadata?.rrwebEvents && selectedFeedback.metadata.rrwebEvents.length > 0)) && (
                       <Card fillWidth padding="l" radius="l">
                         <Column gap="s">
                           <Heading variant="heading-strong-s">Screenshot</Heading>
@@ -2707,8 +2707,8 @@ export default function ProjectClient({
                       <Column gap="m">
                         <Heading variant="heading-strong-s">Detalhes</Heading>
 
-                        {/* Screenshot thumb (when replay exists) */}
-                        {selectedFeedback.screenshotUrl && selectedFeedback.metadata?.rrwebEvents && selectedFeedback.metadata.rrwebEvents.length > 0 && (
+                        {/* Screenshot thumb (when replay exists and not shared-url) */}
+                        {selectedFeedback.screenshotUrl && selectedFeedback.metadata?.rrwebEvents && selectedFeedback.metadata.rrwebEvents.length > 0 && selectedFeedback.metadata?.source !== 'shared-url' && (
                           <img
                             src={selectedFeedback.screenshotUrl}
                             alt="Screenshot"

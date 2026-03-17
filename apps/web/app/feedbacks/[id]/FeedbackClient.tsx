@@ -227,15 +227,15 @@ export default function FeedbackClient({
         >
           {/* Left column */}
           <Column gap="l" fillWidth style={{ flex: 2, minWidth: 0 }}>
-            {/* Session Replay */}
-            {feedback.metadata?.rrwebEvents && feedback.metadata.rrwebEvents.length > 0 && (
+            {/* Session Replay (hidden for shared-url source — replay is unreliable in proxy mode) */}
+            {feedback.metadata?.rrwebEvents && feedback.metadata.rrwebEvents.length > 0 && feedback.metadata?.source !== 'shared-url' && (
               <Card fillWidth radius="l" style={{ overflow: 'hidden', padding: 0 }}>
                 <SessionReplay events={feedback.metadata.rrwebEvents} />
               </Card>
             )}
 
-            {/* Screenshot (if no replay) */}
-            {feedback.screenshotUrl && !(feedback.metadata?.rrwebEvents && feedback.metadata.rrwebEvents.length > 0) && (
+            {/* Screenshot (when no replay or shared-url source) */}
+            {feedback.screenshotUrl && (feedback.metadata?.source === 'shared-url' || !(feedback.metadata?.rrwebEvents && feedback.metadata.rrwebEvents.length > 0)) && (
               <Card fillWidth padding="l" radius="l">
                 <Column gap="s">
                   <Heading variant="heading-strong-s">Screenshot</Heading>
@@ -436,8 +436,8 @@ export default function FeedbackClient({
               <Column gap="m">
                 <Heading variant="heading-strong-s">Detalhes</Heading>
 
-                {/* Screenshot in sidebar (when replay exists, show thumb here) */}
-                {feedback.screenshotUrl && feedback.metadata?.rrwebEvents && feedback.metadata.rrwebEvents.length > 0 && (
+                {/* Screenshot in sidebar (when replay exists and not shared-url) */}
+                {feedback.screenshotUrl && feedback.metadata?.rrwebEvents && feedback.metadata.rrwebEvents.length > 0 && feedback.metadata?.source !== 'shared-url' && (
                   <img
                     src={feedback.screenshotUrl}
                     alt="Screenshot"
