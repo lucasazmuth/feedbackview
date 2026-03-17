@@ -340,7 +340,7 @@ export default function LandingPage() {
                   </div>
                   {/* Floating widget button */}
                   <div className="demo-widget-pulse" style={{ position: 'absolute', bottom: 14, right: 14, padding: '8px 18px', background: '#4f46e5', color: '#fff', borderRadius: 20, fontWeight: 700, fontSize: 11, boxShadow: '0 4px 16px rgba(79,70,229,0.35)', border: 'none', zIndex: 1, fontFamily: 'var(--font-logo)', letterSpacing: '-0.01em' }}>
-                    Reportar Bug
+                    Buug report
                   </div>
                   {/* Dark overlay — animated */}
                   <div className="demo-hero-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', pointerEvents: 'none' }} />
@@ -639,7 +639,7 @@ export default function LandingPage() {
                   </div>
                   {/* Widget button */}
                   <div className="demo-widget-pulse" style={S.widgetBtn}>
-                    <span style={{ fontFamily: 'var(--font-logo)' }}>Reportar Bug</span>
+                    <span style={{ fontFamily: 'var(--font-logo)' }}>Buug report</span>
                   </div>
                   {/* Cursor animation hint */}
                   <div style={{ position: 'absolute', bottom: 42, right: 48, fontSize: 18, opacity: 0.7, animation: 'none' }}>
