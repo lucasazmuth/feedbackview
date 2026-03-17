@@ -203,10 +203,91 @@ export default function LandingPage() {
         </Row>
       </Row>
 
-      {/* Hero — Dark section */}
+      {/* Hero — Main heading */}
       <Flex
         fillWidth
         horizontal="center"
+        style={{
+          background: 'linear-gradient(180deg, var(--surface-background) 0%, var(--page-background) 100%)',
+          overflow: 'hidden',
+          position: 'relative',
+        }}
+      >
+        {/* Animated grid background */}
+        <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
+          <div style={{
+            position: 'absolute', inset: 0,
+            maskImage: 'radial-gradient(ellipse 80% 50% at 50% 30%, black 0%, transparent 70%)',
+            WebkitMaskImage: 'radial-gradient(ellipse 80% 50% at 50% 30%, black 0%, transparent 70%)',
+          }}>
+            <div className="hero-dot-grid" style={{
+              position: 'absolute', inset: '-50%',
+              backgroundImage: 'linear-gradient(rgba(0,0,0,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.07) 1px, transparent 1px)',
+              backgroundSize: '48px 48px',
+            }} />
+          </div>
+          <div className="hero-orb-1" style={{
+            position: 'absolute', width: '600px', height: '600px', borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(79,70,229,0.06) 0%, transparent 70%)',
+            top: '-10%', right: '-5%', filter: 'blur(60px)',
+          }} />
+          <div className="hero-orb-2" style={{
+            position: 'absolute', width: '500px', height: '500px', borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(79,70,229,0.05) 0%, transparent 70%)',
+            bottom: '5%', left: '-8%', filter: 'blur(60px)',
+          }} />
+        </div>
+
+        <Column
+          maxWidth={64}
+          fillWidth
+          paddingX="l"
+          paddingY="xl"
+          gap="l"
+          horizontal="center"
+          style={{ textAlign: 'center', position: 'relative', zIndex: 1 }}
+        >
+          <Tag variant="brand" size="l" label="Plataforma de QA em tempo real" />
+
+          <Heading
+            variant="display-strong-l"
+            as="h1"
+            style={{ maxWidth: '48rem' }}
+          >
+            Cada bug com screenshot, replay e logs. Automaticamente.
+          </Heading>
+
+          <Text
+            variant="body-default-l"
+            onBackground="neutral-weak"
+            style={{ maxWidth: '36rem' }}
+          >
+            Sua equipe de QA reporta bugs com contexto técnico completo.
+            Sem prints manuais, sem &ldquo;não consigo reproduzir&rdquo;.
+          </Text>
+
+          <Row gap="m" style={{ marginTop: '0.5rem' }}>
+            {isLoggedIn ? (
+              <Link href="/dashboard">
+                <Button variant="primary" size="l" label="Acessar Painel" />
+              </Link>
+            ) : (
+              <Link href="/auth/register">
+                <Button variant="primary" size="l" label="Começar grátis" />
+              </Link>
+            )}
+            <a href="#como-funciona">
+              <Button variant="secondary" size="l" label="Como funciona" />
+            </a>
+          </Row>
+        </Column>
+      </Flex>
+
+      {/* How it works — Dark split demo */}
+      <Flex
+        fillWidth
+        horizontal="center"
+        id="como-funciona"
         style={{
           background: '#0f0f1a',
           overflow: 'hidden',
@@ -220,7 +301,7 @@ export default function LandingPage() {
             maskImage: 'radial-gradient(ellipse 80% 50% at 50% 40%, black 0%, transparent 70%)',
             WebkitMaskImage: 'radial-gradient(ellipse 80% 50% at 50% 40%, black 0%, transparent 70%)',
           }}>
-            <div className="hero-dot-grid" style={{
+            <div style={{
               position: 'absolute', inset: '-50%',
               backgroundImage: 'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
               backgroundSize: '48px 48px',
@@ -238,7 +319,7 @@ export default function LandingPage() {
           }} />
         </div>
 
-        {/* Hero — Dark split layout like Cursor */}
+        {/* Dark split layout */}
         {(() => {
           const heroLabels = ['Configurar', 'Widget', 'Report', 'Dashboard']
           const heroUrls = ['buug.io/projects/new', 'meusite.com.br', 'meusite.com.br', 'buug.io/projects/meu-ecommerce']
@@ -567,39 +648,28 @@ export default function LandingPage() {
               padding: '80px 48px 64px',
               display: 'flex', gap: 56, alignItems: 'center',
             }}>
-              {/* Left side — Text content */}
-              <div className="hero-split-text" style={{ flex: '0 0 340px', display: 'flex', flexDirection: 'column', gap: 24 }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 14px', borderRadius: 999, background: 'rgba(79,70,229,0.12)', border: '1px solid rgba(79,70,229,0.2)', alignSelf: 'flex-start' }}>
-                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#818cf8' }} />
-                  <span style={{ fontSize: 12, fontWeight: 600, color: '#a5b4fc', letterSpacing: '-0.01em' }}>Plataforma de QA em tempo real</span>
-                </div>
+              {/* Left side — Text content using design system */}
+              <Column className="hero-split-text" gap="l" style={{ flex: '0 0 380px' }}>
+                <Tag variant="brand" size="l" label="Como funciona" />
 
-                <div key={`title-${heroStep}`} className="hero-step-visual" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <h1 style={{ fontSize: 32, fontWeight: 800, color: '#fff', lineHeight: 1.2, letterSpacing: '-0.03em', margin: 0 }}>
+                <Column key={`title-${heroStep}`} className="hero-step-visual" gap="s">
+                  <Heading
+                    variant="display-strong-m"
+                    as="h2"
+                    style={{ color: '#fff' }}
+                  >
                     {heroTitles[heroStep]}
-                  </h1>
-                  <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.55)', lineHeight: 1.6, margin: 0 }}>
+                  </Heading>
+                  <Text
+                    variant="body-default-l"
+                    style={{ color: 'rgba(255,255,255,0.55)' }}
+                  >
                     {heroDescs[heroStep]}
-                  </p>
-                </div>
-
-                <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-                  {isLoggedIn ? (
-                    <Link href="/dashboard">
-                      <button style={{ padding: '12px 28px', borderRadius: 10, border: 'none', background: '#4f46e5', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer', boxShadow: '0 2px 12px rgba(79,70,229,0.4)' }}>Acessar Painel</button>
-                    </Link>
-                  ) : (
-                    <Link href="/auth/register">
-                      <button style={{ padding: '12px 28px', borderRadius: 10, border: 'none', background: '#4f46e5', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer', boxShadow: '0 2px 12px rgba(79,70,229,0.4)' }}>Começar grátis</button>
-                    </Link>
-                  )}
-                  <a href="#como-funciona">
-                    <button style={{ padding: '12px 28px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.8)', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>Como funciona</button>
-                  </a>
-                </div>
+                  </Text>
+                </Column>
 
                 {/* Step indicators */}
-                <div style={{ display: 'flex', gap: 6, marginTop: 12 }}>
+                <Row gap="xs" style={{ marginTop: 'var(--static-space-8)' }}>
                   {heroLabels.map((label, i) => (
                     <button
                       key={i}
@@ -625,8 +695,8 @@ export default function LandingPage() {
                       }}>{label}</span>
                     </button>
                   ))}
-                </div>
-              </div>
+                </Row>
+              </Column>
 
               {/* Right side — Browser mockup */}
               <div style={{ flex: 1, minWidth: 0 }}>
