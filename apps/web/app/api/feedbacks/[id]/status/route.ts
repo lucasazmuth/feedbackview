@@ -47,8 +47,9 @@ export async function PATCH(
   const statusLabels: Record<string, string> = {
     OPEN: 'Aberto',
     IN_PROGRESS: 'Em andamento',
-    RESOLVED: 'Resolvido',
-    CLOSED: 'Fechado',
+    UNDER_REVIEW: 'Sob revisão',
+    RESOLVED: 'Concluída',
+    CANCELLED: 'Cancelado',
   }
   const feedbackTitle = feedback.title || feedback.comment?.slice(0, 60) || 'Report'
 

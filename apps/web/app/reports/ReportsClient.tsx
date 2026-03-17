@@ -62,7 +62,9 @@ function getTagVariant(value: string): 'brand' | 'danger' | 'warning' | 'success
     LOW: 'neutral',
     OPEN: 'warning',
     IN_PROGRESS: 'info',
+    UNDER_REVIEW: 'brand',
     RESOLVED: 'success',
+    CANCELLED: 'danger',
     CLOSED: 'neutral',
   }
   return map[value] || 'neutral'
@@ -74,7 +76,7 @@ function getTypeLabel(type: string) {
 }
 
 function getStatusLabel(status: string) {
-  const map: Record<string, string> = { OPEN: 'Aberto', IN_PROGRESS: 'Em andamento', RESOLVED: 'Resolvido', CLOSED: 'Fechado' }
+  const map: Record<string, string> = { OPEN: 'Aberto', IN_PROGRESS: 'Em andamento', UNDER_REVIEW: 'Sob revisão', RESOLVED: 'Concluída', CANCELLED: 'Cancelado' }
   return map[status] || status
 }
 
@@ -355,7 +357,7 @@ export default function ReportsClient({ feedbacks, projects, error }: ReportsCli
 
                   <Text variant="label-default-s" onBackground="neutral-strong">Status</Text>
                   <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
-                    {([['', 'Todos'], ['OPEN', 'Aberto'], ['IN_PROGRESS', 'Em andamento'], ['RESOLVED', 'Resolvido'], ['CLOSED', 'Fechado']] as const).map(([val, label]) => (
+                    {([['', 'Todos'], ['OPEN', 'Aberto'], ['IN_PROGRESS', 'Em andamento'], ['UNDER_REVIEW', 'Sob revisão'], ['RESOLVED', 'Concluída'], ['CANCELLED', 'Cancelado']] as const).map(([val, label]) => (
                       <button
                         key={val}
                         onClick={() => setStatusFilter(val)}

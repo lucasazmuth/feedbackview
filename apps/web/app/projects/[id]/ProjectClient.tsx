@@ -97,7 +97,9 @@ function getTagVariant(value: string): 'brand' | 'danger' | 'warning' | 'success
     LOW: 'neutral',
     OPEN: 'warning',
     IN_PROGRESS: 'info',
+    UNDER_REVIEW: 'brand',
     RESOLVED: 'success',
+    CANCELLED: 'danger',
     CLOSED: 'neutral',
   }
   return map[value] || 'neutral'
@@ -109,7 +111,7 @@ function getTypeLabel(type: string) {
 }
 
 function getStatusLabel(status: string) {
-  const map: Record<string, string> = { OPEN: 'Aberto', IN_PROGRESS: 'Em andamento', RESOLVED: 'Resolvido', CLOSED: 'Fechado' }
+  const map: Record<string, string> = { OPEN: 'Aberto', IN_PROGRESS: 'Em andamento', UNDER_REVIEW: 'Sob revisão', RESOLVED: 'Concluída', CANCELLED: 'Cancelado' }
   return map[status] || status
 }
 
@@ -754,7 +756,7 @@ export default function ProjectClient({
             )}
             <div style={{ textAlign: 'center' }}>
               <Text variant="heading-strong-m" onBackground="success-strong">{resolvedCount}</Text>
-              <Text variant="body-default-xs" onBackground="neutral-weak" style={{ display: 'block' }}>Resolvidos</Text>
+              <Text variant="body-default-xs" onBackground="neutral-weak" style={{ display: 'block' }}>Concluídas</Text>
             </div>
           </Row>
         </Row>
@@ -1074,7 +1076,7 @@ export default function ProjectClient({
 
                       <Text variant="label-default-s" onBackground="neutral-strong">Status</Text>
                       <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
-                        {([['', 'Todos'], ['OPEN', 'Aberto'], ['IN_PROGRESS', 'Em andamento'], ['RESOLVED', 'Resolvido'], ['CLOSED', 'Fechado']] as const).map(([val, label]) => (
+                        {([['', 'Todos'], ['OPEN', 'Aberto'], ['IN_PROGRESS', 'Em andamento'], ['UNDER_REVIEW', 'Sob revisão'], ['RESOLVED', 'Concluída'], ['CANCELLED', 'Cancelado']] as const).map(([val, label]) => (
                           <button
                             key={val}
                             onClick={() => setStatusFilter(val)}
@@ -2683,8 +2685,9 @@ export default function ProjectClient({
                           {[
                             { value: 'OPEN', label: 'Aberto' },
                             { value: 'IN_PROGRESS', label: 'Em andamento' },
-                            { value: 'RESOLVED', label: 'Resolvido' },
-                            { value: 'CLOSED', label: 'Fechado' },
+                            { value: 'UNDER_REVIEW', label: 'Sob revisão' },
+                            { value: 'RESOLVED', label: 'Concluída' },
+                            { value: 'CANCELLED', label: 'Cancelado' },
                           ].map((opt) => (
                             <Tag
                               key={opt.value}

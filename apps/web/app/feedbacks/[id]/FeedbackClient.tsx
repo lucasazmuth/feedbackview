@@ -63,8 +63,9 @@ interface FeedbackClientProps {
 const STATUS_OPTIONS = [
   { value: 'OPEN', label: 'Aberto' },
   { value: 'IN_PROGRESS', label: 'Em andamento' },
-  { value: 'RESOLVED', label: 'Resolvido' },
-  { value: 'CLOSED', label: 'Fechado' },
+  { value: 'UNDER_REVIEW', label: 'Sob revisão' },
+  { value: 'RESOLVED', label: 'Concluída' },
+  { value: 'CANCELLED', label: 'Cancelado' },
 ]
 
 function getTypeLabel(type: string) {
@@ -73,7 +74,7 @@ function getTypeLabel(type: string) {
 }
 
 function getStatusLabel(status: string) {
-  const map: Record<string, string> = { OPEN: 'Aberto', IN_PROGRESS: 'Em andamento', RESOLVED: 'Resolvido', CLOSED: 'Fechado' }
+  const map: Record<string, string> = { OPEN: 'Aberto', IN_PROGRESS: 'Em andamento', UNDER_REVIEW: 'Sob revisão', RESOLVED: 'Concluída', CANCELLED: 'Cancelado' }
   return map[status] || status
 }
 
@@ -99,11 +100,13 @@ function getSeverityTagVariant(severity: string): 'danger' | 'warning' | 'neutra
   }
 }
 
-function getStatusTagVariant(status: string): 'warning' | 'info' | 'success' | 'neutral' {
+function getStatusTagVariant(status: string): 'brand' | 'warning' | 'info' | 'success' | 'danger' | 'neutral' {
   switch (status) {
     case 'OPEN': return 'warning'
     case 'IN_PROGRESS': return 'info'
+    case 'UNDER_REVIEW': return 'brand'
     case 'RESOLVED': return 'success'
+    case 'CANCELLED': return 'danger'
     default: return 'neutral'
   }
 }
