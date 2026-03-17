@@ -40,6 +40,7 @@ const networkLogs: NetworkLog[] = []
 const rrwebEvents: RRWebEvent[] = []
 const MAX_RRWEB_EVENTS = 100
 const MAX_LOGS = 100
+let proxyPageUrl: string | null = null // URL of the actual site in proxy/shared-url mode
 
 // Listen for tracker data forwarded from ViewerClient (shared URL / proxy mode)
 // The tracker.js inside the iframe captures rrweb, console, network, errors
@@ -65,6 +66,8 @@ window.addEventListener('feedbackview:tracker-data', ((e: CustomEvent) => {
       break
     case 'PAGE_URL':
     case 'PAGE_CHANGE':
+      if (payload && typeof payload === 'string') proxyPageUrl = payload
+      else if (payload?.url) proxyPageUrl = payload.url
       break
   }
 }) as EventListener)
@@ -2224,7 +2227,7 @@ function createWidget(config: WidgetConfig) {
       consoleLogs: consoleLogs.slice(-50),
       networkLogs: networkLogs.slice(-50),
       rrwebEvents: isProxyMode ? [] : rrwebEvents.slice(-MAX_RRWEB_EVENTS),
-      pageUrl: window.location.href,
+      pageUrl: isProxyMode && proxyPageUrl ? proxyPageUrl : window.location.href,
       userAgent: navigator.userAgent,
       attachments: embedAttachments.length > 0 ? embedAttachments : undefined,
       source: isProxyMode ? 'shared-url' : 'embed',
