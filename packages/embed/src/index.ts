@@ -2135,6 +2135,10 @@ function createWidget(config: WidgetConfig) {
 
     const feedbackTitle = titleEl?.value?.trim() || ''
 
+    // In proxy/shared URL mode, rrweb replay is unreliable (resources from
+    // proxied site don't load correctly), so we skip sending rrweb events.
+    const isProxyMode = !!getProxyIframe()
+
     const payload: any = {
       projectId: PROJECT_ID,
       title: feedbackTitle || undefined,
@@ -2142,10 +2146,11 @@ function createWidget(config: WidgetConfig) {
       type: feedbackType,
       consoleLogs: consoleLogs.slice(-50),
       networkLogs: networkLogs.slice(-50),
-      rrwebEvents: rrwebEvents.slice(-MAX_RRWEB_EVENTS),
+      rrwebEvents: isProxyMode ? [] : rrwebEvents.slice(-MAX_RRWEB_EVENTS),
       pageUrl: window.location.href,
       userAgent: navigator.userAgent,
       attachments: embedAttachments.length > 0 ? embedAttachments : undefined,
+      source: isProxyMode ? 'shared-url' : 'embed',
     }
 
     if (feedbackType === 'BUG') {

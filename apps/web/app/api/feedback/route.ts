@@ -180,7 +180,7 @@ export async function POST(req: NextRequest) {
       networkLogs: data.networkLogs || null,
       pageUrl: data.pageUrl || null,
       userAgent: data.userAgent || null,
-      metadata: data.rrwebEvents ? { rrwebEvents: data.rrwebEvents } : null,
+      metadata: data.rrwebEvents?.length > 0 ? { rrwebEvents: data.rrwebEvents, source: data.source || 'embed' } : (data.source ? { source: data.source } : null),
       attachmentUrls: attachmentUrls.length > 0 ? attachmentUrls : null,
     })
 
