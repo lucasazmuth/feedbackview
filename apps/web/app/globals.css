@@ -257,6 +257,37 @@ body {
   animation: hero-typing-blink 1s step-end infinite;
 }
 
+/* Cursor click animation on widget step */
+@keyframes hero-cursor-move-click {
+  0% { top: 30%; right: 50%; opacity: 1; }
+  50% { top: calc(100% - 46px); right: 50px; opacity: 1; }
+  55% { top: calc(100% - 46px); right: 50px; opacity: 1; transform: scale(0.8); }
+  62% { top: calc(100% - 46px); right: 50px; opacity: 1; transform: scale(1); }
+  85% { top: calc(100% - 46px); right: 50px; opacity: 1; }
+  95% { top: calc(100% - 46px); right: 50px; opacity: 0; }
+  100% { top: 30%; right: 50%; opacity: 0; }
+}
+.hero-cursor-click {
+  animation: hero-cursor-move-click 4s ease-in-out infinite;
+}
+@keyframes hero-cursor-ripple-anim {
+  0%, 54% { opacity: 0; transform: scale(0); }
+  55% { opacity: 0.35; transform: scale(0.5); }
+  65% { opacity: 0; transform: scale(2.5); }
+  100% { opacity: 0; transform: scale(0); }
+}
+.hero-cursor-ripple {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.15);
+  animation: hero-cursor-ripple-anim 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
 /* Step labels: hide text on small screens */
 @media (max-width: 540px) {
   .hero-step-label { display: none; }

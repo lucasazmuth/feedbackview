@@ -153,9 +153,7 @@ export default function LandingPage() {
         <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '1.25rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-strong)' }}>Buug</span>
         <Row as="ul" gap="2" vertical="center" className="nav-links" style={{ listStyle: 'none', margin: 0, padding: 0, position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
           {[
-            { label: 'Funcionalidades', href: '#funcionalidades' },
-            { label: 'Integração', href: '#integracao' },
-            { label: 'Demo', href: '#demo' },
+            { label: 'Demo', href: '#como-funciona' },
             { label: 'Planos', href: '#planos' },
             { label: 'FAQ', href: '#faq' },
           ].map((item) => (
@@ -283,43 +281,36 @@ export default function LandingPage() {
         </Column>
       </Flex>
 
-      {/* How it works — Dark split demo */}
+      {/* Metrics bar */}
+      <Flex fillWidth horizontal="center" background="page" style={{ borderTop: '1px solid var(--neutral-border-medium)', borderBottom: '1px solid var(--neutral-border-medium)' }}>
+        <Row maxWidth={64} fillWidth paddingX="l" paddingY="l" horizontal="center" gap="xl" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
+          {[
+            { value: '50.000+', label: 'Reports processados' },
+            { value: '500+', label: 'Projetos ativos' },
+            { value: '30+', label: 'Países' },
+            { value: '99.9%', label: 'Uptime' },
+          ].map((stat, i) => (
+            <div key={i} style={{ textAlign: 'center', minWidth: 120, flex: '1 1 120px', maxWidth: 180 }}>
+              <div style={{ fontSize: 28, fontWeight: 800, color: '#111', letterSpacing: '-0.03em', lineHeight: 1.1 }}>{stat.value}</div>
+              <div style={{ fontSize: 12, color: 'var(--neutral-on-background-weak)', marginTop: 4, fontWeight: 500 }}>{stat.label}</div>
+            </div>
+          ))}
+        </Row>
+      </Flex>
+
+      {/* How it works — Clean split demo */}
       <Flex
         fillWidth
         horizontal="center"
+        background="surface"
         id="como-funciona"
         style={{
-          background: '#0f0f1a',
           overflow: 'hidden',
           position: 'relative',
         }}
       >
-        {/* Subtle grid + orbs on dark */}
-        <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
-          <div style={{
-            position: 'absolute', inset: 0,
-            maskImage: 'radial-gradient(ellipse 80% 50% at 50% 40%, black 0%, transparent 70%)',
-            WebkitMaskImage: 'radial-gradient(ellipse 80% 50% at 50% 40%, black 0%, transparent 70%)',
-          }}>
-            <div style={{
-              position: 'absolute', inset: '-50%',
-              backgroundImage: 'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
-              backgroundSize: '48px 48px',
-            }} />
-          </div>
-          <div className="hero-orb-1" style={{
-            position: 'absolute', width: '600px', height: '600px', borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(79,70,229,0.15) 0%, transparent 70%)',
-            top: '-10%', right: '-5%', filter: 'blur(80px)',
-          }} />
-          <div className="hero-orb-2" style={{
-            position: 'absolute', width: '500px', height: '500px', borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(79,70,229,0.1) 0%, transparent 70%)',
-            bottom: '5%', left: '-8%', filter: 'blur(80px)',
-          }} />
-        </div>
 
-        {/* Dark split layout */}
+        {/* Split layout */}
         {(() => {
           const heroLabels = ['Configurar', 'Widget', 'Report', 'Dashboard']
           const heroUrls = ['buug.io/projects/new', 'meusite.com.br', 'meusite.com.br', 'buug.io/projects/meu-ecommerce']
@@ -337,48 +328,39 @@ export default function LandingPage() {
           ]
             const stepVisuals = [
               /* Step 0: Project config — Buug app-like UI */
-              <div key="s0" style={{ background: '#fafbfc', minHeight: 420 }}>
+              <div key="s0" style={{ background: '#fafbfc', height: 400 }}>
                 {/* App header */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 24px', borderBottom: '1px solid #eef0f2', background: '#fff' }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 8, background: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ color: '#fff', fontSize: 10, fontWeight: 800, fontFamily: 'var(--font-logo)' }}>B</span>
-                  </div>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: '#111', letterSpacing: '-0.01em' }}>Novo Projeto</span>
-                  <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <div style={{ padding: '4px 10px', borderRadius: 6, background: '#f3f4f6', fontSize: 11, color: '#9ca3af' }}>Passo 1 de 2</div>
-                  </div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 24px', borderBottom: '1px solid #eef0f2', background: '#fff' }}>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: '#111' }}>Novo Projeto</span>
+                  <span style={{ fontSize: 11, color: '#9ca3af' }}>Passo 1 de 2</span>
                 </div>
                 {/* Form body — centered card */}
-                <div style={{ padding: '32px 40px', maxWidth: 440, margin: '0 auto' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#111', marginBottom: 8, letterSpacing: '-0.01em' }}>Nome do projeto</label>
-                      <div style={{ padding: '11px 14px', border: '1px solid #e5e7eb', borderRadius: 10, fontSize: 13, color: '#111', background: '#fff' }}>Meu E-commerce</div>
-                    </div>
+                <div style={{ padding: '24px 36px', maxWidth: 440, margin: '0 auto' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     <div>
                       <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#111', marginBottom: 8, letterSpacing: '-0.01em' }}>URL do site</label>
-                      <div style={{ padding: '11px 14px', border: '2px solid #4f46e5', borderRadius: 10, fontSize: 13, color: '#111', background: 'rgba(79,70,229,0.02)', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 0 0 3px rgba(79,70,229,0.08)' }}>
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" strokeWidth="2" strokeLinecap="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                      <div style={{ padding: '11px 14px', border: '2px solid #111', borderRadius: 10, fontSize: 13, color: '#111', background: 'rgba(0,0,0,0.01)', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 0 0 3px rgba(0,0,0,0.04)' }}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinecap="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
                         <span>meusite.com.br</span>
-                        <span className="hero-typing-cursor" style={{ width: 2, height: 16, background: '#4f46e5', marginLeft: -2 }} />
+                        <span className="hero-typing-cursor" style={{ width: 2, height: 16, background: '#111', marginLeft: -2 }} />
                       </div>
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#111', marginBottom: 8, letterSpacing: '-0.01em' }}>Modo de integração</label>
                       <div style={{ display: 'flex', gap: 10 }}>
-                        <div style={{ flex: 1, padding: '16px 12px', borderRadius: 12, border: '2px solid #4f46e5', background: 'rgba(79,70,229,0.03)', textAlign: 'center', boxShadow: '0 0 0 3px rgba(79,70,229,0.06)' }}>
-                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" strokeWidth="2" strokeLinecap="round" style={{ display: 'block', margin: '0 auto 6px' }}><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-                          <div style={{ fontSize: 12, fontWeight: 600, color: '#4f46e5' }}>Script Embed</div>
-                          <div style={{ fontSize: 10, color: '#6b7280', marginTop: 3 }}>1 linha de código</div>
+                        <div style={{ flex: 1, padding: '10px 10px', borderRadius: 10, border: '2px solid #111', background: 'rgba(0,0,0,0.02)', textAlign: 'center' }}>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinecap="round" style={{ display: 'block', margin: '0 auto 4px' }}><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                          <div style={{ fontSize: 11, fontWeight: 600, color: '#111' }}>URL Compartilhada</div>
+                          <div style={{ fontSize: 9, color: '#6b7280', marginTop: 2 }}>Sem instalação</div>
                         </div>
-                        <div style={{ flex: 1, padding: '16px 12px', borderRadius: 12, border: '1px solid #e5e7eb', textAlign: 'center', background: '#fff' }}>
-                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" style={{ display: 'block', margin: '0 auto 6px' }}><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-                          <div style={{ fontSize: 12, fontWeight: 500, color: '#374151' }}>Link Compartilhado</div>
-                          <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 3 }}>Sem instalação</div>
+                        <div style={{ flex: 1, padding: '10px 10px', borderRadius: 10, border: '1px solid #e5e7eb', textAlign: 'center', background: '#fff' }}>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" style={{ display: 'block', margin: '0 auto 4px' }}><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                          <div style={{ fontSize: 11, fontWeight: 500, color: '#374151' }}>Script Embed</div>
+                          <div style={{ fontSize: 9, color: '#9ca3af', marginTop: 2 }}>1 linha de código</div>
                         </div>
                       </div>
                     </div>
-                    <button style={{ width: '100%', padding: '13px', borderRadius: 10, border: 'none', background: '#4f46e5', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'default', boxShadow: '0 2px 8px rgba(79,70,229,0.25)' }}>
+                    <button style={{ width: '100%', padding: '10px', borderRadius: 8, border: 'none', background: '#111', color: '#fff', fontWeight: 600, fontSize: 12, cursor: 'default' }}>
                       Criar Projeto
                     </button>
                   </div>
@@ -386,11 +368,11 @@ export default function LandingPage() {
               </div>,
 
               /* Step 1: Widget on user's site — realistic site mock */
-              <div key="s1" style={{ background: '#f8f9fa', minHeight: 420, position: 'relative' }}>
+              <div key="s1" style={{ background: '#f8f9fa', height: 400, position: 'relative' }}>
                 {/* Site nav mock */}
                 <div style={{ display: 'flex', alignItems: 'center', padding: '12px 24px', background: '#fff', borderBottom: '1px solid #eef0f2' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }} />
+                    <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, #374151, #111)' }} />
                     <div style={{ height: 9, width: 72, background: '#e5e7eb', borderRadius: 4 }} />
                   </div>
                   <div style={{ marginLeft: 'auto', display: 'flex', gap: 20 }}>
@@ -400,7 +382,7 @@ export default function LandingPage() {
                   </div>
                   <div style={{ marginLeft: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
                     <div style={{ width: 24, height: 24, borderRadius: 6, background: '#f3f4f6' }} />
-                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg, #e0e7ff, #c7d2fe)', border: '2px solid #fff' }} />
+                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg, #e5e7eb, #d1d5db)', border: '2px solid #fff' }} />
                   </div>
                 </div>
                 {/* Dashboard content */}
@@ -428,7 +410,7 @@ export default function LandingPage() {
                     <div style={{ fontSize: 11, fontWeight: 600, color: '#111', marginBottom: 12 }}>Vendas por dia</div>
                     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 48 }}>
                       {[35, 52, 40, 65, 48, 72, 58, 80, 62, 75, 55, 68].map((h, i) => (
-                        <div key={i} style={{ flex: 1, height: `${h}%`, borderRadius: 3, background: i === 7 ? '#4f46e5' : '#e0e7ff' }} />
+                        <div key={i} style={{ flex: 1, height: `${h}%`, borderRadius: 3, background: i === 7 ? '#111' : '#e5e7eb' }} />
                       ))}
                     </div>
                   </div>
@@ -449,178 +431,160 @@ export default function LandingPage() {
                   </div>
                 </div>
                 {/* Buug widget button */}
-                <div className="demo-widget-pulse" style={{ position: 'absolute', bottom: 20, right: 20, padding: '10px 24px', background: '#4f46e5', color: '#fff', borderRadius: 24, fontWeight: 700, fontSize: 13, boxShadow: '0 4px 20px rgba(79,70,229,0.35)', border: 'none', fontFamily: 'var(--font-logo)', letterSpacing: '-0.01em' }}>
+                <div className="demo-widget-pulse" style={{ position: 'absolute', bottom: 20, right: 20, padding: '10px 24px', background: '#111', color: '#fff', borderRadius: 24, fontWeight: 700, fontSize: 13, boxShadow: '0 4px 20px rgba(0,0,0,0.2)', border: 'none', fontFamily: 'var(--font-logo)', letterSpacing: '-0.01em' }}>
                   Buug report
+                </div>
+                {/* Animated cursor */}
+                <div className="hero-cursor-click" style={{ position: 'absolute', pointerEvents: 'none', zIndex: 10 }}>
+                  <svg width="18" height="22" viewBox="0 0 24 28" fill="none">
+                    <path d="M5 2L5 19.5L9.5 15.5L13.5 23L16.5 21.5L12.5 13.5L18 12.5L5 2Z" fill="#111" stroke="#fff" strokeWidth="1.5"/>
+                  </svg>
+                  <div className="hero-cursor-ripple" />
                 </div>
               </div>,
 
-              /* Step 2: Report form — clean widget panel */
-              <div key="s2" style={{ background: '#fff', minHeight: 420, display: 'flex', flexDirection: 'column' }}>
-                {/* Panel header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', borderBottom: '1px solid #eef0f2' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div style={{ width: 24, height: 24, borderRadius: 6, background: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <span style={{ color: '#fff', fontSize: 8, fontWeight: 800 }}>B</span>
+              /* Step 2: Report popup over site background */
+              <div key="s2" style={{ background: '#f8f9fa', height: 400, position: 'relative' }}>
+                {/* Site background (dimmed) */}
+                <div style={{ opacity: 0.35, pointerEvents: 'none' }}>
+                  {/* Site nav mock */}
+                  <div style={{ display: 'flex', alignItems: 'center', padding: '12px 24px', background: '#fff', borderBottom: '1px solid #eef0f2' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }} />
+                      <div style={{ height: 9, width: 72, background: '#e5e7eb', borderRadius: 4 }} />
                     </div>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: '#111', letterSpacing: '-0.01em' }}>Reportar Bug</span>
+                    <div style={{ marginLeft: 'auto', display: 'flex', gap: 20 }}>
+                      {['Home', 'Produtos', 'Pedidos'].map(t => (
+                        <span key={t} style={{ fontSize: 11, color: t === 'Home' ? '#111' : '#9ca3af', fontWeight: t === 'Home' ? 600 : 400 }}>{t}</span>
+                      ))}
+                    </div>
                   </div>
-                  <div style={{ width: 28, height: 28, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', background: '#f3f4f6', cursor: 'default' }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                  <div style={{ padding: '20px 24px' }}>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: '#111', marginBottom: 6 }}>Dashboard</div>
+                    <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+                      {[{ v: '2,847', l: 'Visitantes' }, { v: '89%', l: 'Conversão' }, { v: 'R$ 12.4k', l: 'Receita' }].map((c, i) => (
+                        <div key={i} style={{ flex: 1, background: '#fff', borderRadius: 12, padding: '14px 16px', border: '1px solid #eef0f2' }}>
+                          <span style={{ fontSize: 10, color: '#9ca3af' }}>{c.l}</span>
+                          <div style={{ fontSize: 18, fontWeight: 700, color: '#111', marginTop: 4 }}>{c.v}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #eef0f2', padding: 16 }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 48 }}>
+                        {[35, 52, 40, 65, 48, 72, 58, 80, 62, 75, 55, 68].map((h, i) => (
+                          <div key={i} style={{ flex: 1, height: `${h}%`, borderRadius: 3, background: i === 7 ? '#111' : '#e5e7eb' }} />
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
-                {/* Content */}
-                <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
-                  {/* Form side */}
-                  <div style={{ flex: 1, padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0 }}>
-                    {/* Session Replay */}
+                {/* Report popup overlay */}
+                <div style={{ position: 'absolute', top: 16, right: 20, width: 300, background: '#fff', borderRadius: 12, boxShadow: '0 16px 48px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.08)', border: '1px solid #eef0f2', overflow: 'hidden' }}>
+                  {/* Popup header */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 14px', borderBottom: '1px solid #eef0f2' }}>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: '#111' }}>Reportar Bug</span>
+                    <div style={{ width: 18, height: 18, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                    </div>
+                  </div>
+                  {/* Popup content */}
+                  <div style={{ padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {/* Session Replay mini */}
                     <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: '#111', marginBottom: 8 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 600, color: '#111', marginBottom: 4 }}>
                         <span className="hero-recording-dot" />
                         Session Replay
-                        <span style={{ fontSize: 10, fontWeight: 400, color: '#9ca3af', marginLeft: 2 }}>gravação automática</span>
                       </div>
-                      <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid #1e293b', background: '#0f172a' }}>
-                        <div style={{ height: 72, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 10, position: 'relative' }}>
-                          <div style={{ width: '88%', height: 48, background: '#1e293b', borderRadius: 4, display: 'flex', flexDirection: 'column', padding: 8, gap: 4 }}>
-                            <div style={{ height: 4, width: '35%', background: '#334155', borderRadius: 2 }} />
-                            <div style={{ height: 4, width: '60%', background: '#334155', borderRadius: 2 }} />
-                            <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
-                              <div style={{ flex: 1, height: 14, background: '#334155', borderRadius: 3 }} />
-                              <div style={{ flex: 1, height: 14, background: '#334155', borderRadius: 3 }} />
+                      <div style={{ borderRadius: 6, overflow: 'hidden', border: '1px solid #1e293b', background: '#0f172a' }}>
+                        <div style={{ height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 6, position: 'relative' }}>
+                          <div style={{ width: '85%', height: 28, background: '#1e293b', borderRadius: 3, display: 'flex', flexDirection: 'column', padding: 5, gap: 2 }}>
+                            <div style={{ height: 2, width: '35%', background: '#334155', borderRadius: 2 }} />
+                            <div style={{ height: 2, width: '60%', background: '#334155', borderRadius: 2 }} />
+                            <div style={{ display: 'flex', gap: 2, marginTop: 2 }}>
+                              <div style={{ flex: 1, height: 8, background: '#334155', borderRadius: 2 }} />
+                              <div style={{ flex: 1, height: 8, background: '#334155', borderRadius: 2 }} />
                             </div>
                           </div>
-                          <div style={{ position: 'absolute', top: '45%', left: '58%', width: 10, height: 10, borderRadius: '50%', background: 'rgba(79,70,229,0.4)', border: '2px solid rgba(79,70,229,0.7)', boxShadow: '0 0 8px rgba(79,70,229,0.3)' }} />
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderTop: '1px solid #1e293b', background: 'rgba(15,23,42,0.8)' }}>
-                          <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <svg width="8" height="8" viewBox="0 0 24 24" fill="#fff"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderTop: '1px solid #1e293b' }}>
+                          <div style={{ width: 14, height: 14, borderRadius: '50%', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <svg width="5" height="5" viewBox="0 0 24 24" fill="#fff"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                           </div>
-                          <div style={{ flex: 1, height: 4, borderRadius: 2, background: '#334155' }}>
-                            <div style={{ width: '65%', height: '100%', borderRadius: 2, background: 'linear-gradient(90deg, #4f46e5, #818cf8)' }} />
+                          <div style={{ flex: 1, height: 2, borderRadius: 2, background: '#334155' }}>
+                            <div style={{ width: '65%', height: '100%', borderRadius: 2, background: 'linear-gradient(90deg, #111, #374151)' }} />
                           </div>
-                          <span style={{ fontSize: 9, color: '#64748b', fontFamily: 'monospace' }}>00:21 / 00:32</span>
+                          <span style={{ fontSize: 7, color: '#64748b', fontFamily: 'monospace' }}>00:21</span>
                         </div>
                       </div>
                     </div>
                     {/* Form fields */}
                     <div>
-                      <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#111', marginBottom: 6 }}>Título</label>
-                      <div style={{ padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12, color: '#111', background: '#fff' }}>Botão de pagamento não funciona</div>
+                      <label style={{ display: 'block', fontSize: 10, fontWeight: 600, color: '#111', marginBottom: 3 }}>Título</label>
+                      <div style={{ padding: '6px 8px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 10, color: '#111', background: '#fff' }}>Botão de pagamento não funciona</div>
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#111', marginBottom: 6 }}>Descrição <span style={{ color: '#ef4444' }}>*</span></label>
-                      <div style={{ padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 11, color: '#374151', lineHeight: 1.6, background: '#fff' }}>Ao clicar em &quot;Finalizar compra&quot;, o botão fica carregando e retorna erro 500.</div>
+                      <label style={{ display: 'block', fontSize: 10, fontWeight: 600, color: '#111', marginBottom: 3 }}>Descrição</label>
+                      <div style={{ padding: '6px 8px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 9, color: '#374151', lineHeight: 1.4, background: '#fff' }}>Erro 500 ao finalizar compra</div>
                     </div>
-                    <div style={{ display: 'flex', gap: 12 }}>
+                    <div style={{ display: 'flex', gap: 6 }}>
                       <div style={{ flex: 1 }}>
-                        <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#111', marginBottom: 6 }}>Tipo</label>
-                        <div style={{ display: 'flex', gap: 5 }}>
-                          {[{ l: 'Bug', a: true }, { l: 'Sugestão', a: false }, { l: 'Dúvida', a: false }].map(t => (
-                            <div key={t.l} style={{ flex: 1, padding: '6px 4px', borderRadius: 8, fontSize: 10, border: t.a ? '2px solid #4f46e5' : '1px solid #e5e7eb', background: t.a ? 'rgba(79,70,229,0.05)' : '#fff', color: t.a ? '#4f46e5' : '#6b7280', fontWeight: t.a ? 600 : 500, textAlign: 'center' }}>{t.l}</div>
+                        <label style={{ display: 'block', fontSize: 10, fontWeight: 600, color: '#111', marginBottom: 3 }}>Tipo</label>
+                        <div style={{ display: 'flex', gap: 3 }}>
+                          {[{ l: 'Bug', a: true }, { l: 'Sugestão', a: false }].map(t => (
+                            <div key={t.l} style={{ flex: 1, padding: '4px 3px', borderRadius: 5, fontSize: 9, border: t.a ? '2px solid #111' : '1px solid #e5e7eb', background: t.a ? 'rgba(0,0,0,0.04)' : '#fff', color: t.a ? '#111' : '#6b7280', fontWeight: t.a ? 600 : 500, textAlign: 'center' }}>{t.l}</div>
                           ))}
                         </div>
                       </div>
                       <div style={{ flex: 1 }}>
-                        <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#111', marginBottom: 6 }}>Prioridade</label>
-                        <div style={{ display: 'flex', gap: 5 }}>
-                          {[{ l: 'Baixa', a: false }, { l: 'Alta', c: '#f97316', a: true }, { l: 'Crítica', a: false }].map(s => (
-                            <div key={s.l} style={{ flex: 1, padding: '6px 4px', borderRadius: 8, fontSize: 10, border: s.a ? `2px solid ${s.c}` : '1px solid #e5e7eb', background: s.a ? `${s.c}12` : '#fff', color: s.a ? s.c : '#6b7280', fontWeight: s.a ? 600 : 500, textAlign: 'center' }}>{s.l}</div>
+                        <label style={{ display: 'block', fontSize: 10, fontWeight: 600, color: '#111', marginBottom: 3 }}>Prioridade</label>
+                        <div style={{ display: 'flex', gap: 3 }}>
+                          {[{ l: 'Alta', c: '#f97316', a: true }, { l: 'Baixa', a: false }].map(s => (
+                            <div key={s.l} style={{ flex: 1, padding: '4px 3px', borderRadius: 5, fontSize: 9, border: s.a ? `2px solid ${s.c}` : '1px solid #e5e7eb', background: s.a ? `${s.c}12` : '#fff', color: s.a ? s.c : '#6b7280', fontWeight: s.a ? 600 : 500, textAlign: 'center' }}>{s.l}</div>
                           ))}
                         </div>
                       </div>
                     </div>
-                    <button style={{ width: '100%', padding: '11px', borderRadius: 10, border: 'none', background: '#4f46e5', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'default', boxShadow: '0 2px 8px rgba(79,70,229,0.25)', marginTop: 2 }}>
+                    <button style={{ width: '100%', padding: '8px', borderRadius: 6, border: 'none', background: '#111', color: '#fff', fontWeight: 600, fontSize: 11, cursor: 'default' }}>
                       Enviar Report
                     </button>
-                  </div>
-                  {/* Preview sidebar */}
-                  <div className="demo-bg-site" style={{ width: 190, flexShrink: 0, borderLeft: '1px solid #eef0f2', background: '#fafbfc', padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Preview do report</div>
-                    <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #eef0f2', padding: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      <span style={{ display: 'inline-flex', padding: '3px 8px', borderRadius: 5, fontSize: 10, fontWeight: 600, background: '#fef2f2', color: '#dc2626', alignSelf: 'flex-start' }}>Bug</span>
-                      <div style={{ fontSize: 11, fontWeight: 600, color: '#111', lineHeight: 1.3 }}>Botão de pagamento não funciona</div>
-                      <div style={{ fontSize: 10, color: '#6b7280', lineHeight: 1.4 }}>Erro 500 ao finalizar compra...</div>
-                      <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: 8, display: 'flex', flexDirection: 'column', gap: 5 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 9, color: '#9ca3af' }}>
-                          <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#4f46e5' }} />meusite.com.br
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 9, color: '#9ca3af' }}>
-                          <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#22c55e' }} />3 errors · 12 warns
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 9, color: '#9ca3af' }}>
-                          <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#ef4444' }} />Replay: 00:32
-                        </div>
-                      </div>
-                    </div>
-                    {/* Screenshot preview */}
-                    <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #eef0f2', padding: 10 }}>
-                      <div style={{ fontSize: 9, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', marginBottom: 6 }}>Screenshot</div>
-                      <div style={{ background: '#f3f4f6', borderRadius: 6, height: 64, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>,
 
               /* Step 3: Dashboard — polished Buug app */
-              <div key="s3" style={{ background: '#fff', display: 'flex', minHeight: 420 }}>
+              <div key="s3" style={{ background: '#fff', display: 'flex', height: 400 }}>
                 {/* Sidebar */}
-                <div style={{ width: 52, background: '#fafbfc', borderRight: '1px solid #eef0f2', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '14px 0', gap: 6, flexShrink: 0 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 8, background: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
-                    <span style={{ color: '#fff', fontSize: 10, fontWeight: 800, fontFamily: 'var(--font-logo)' }}>B</span>
-                  </div>
+                <div style={{ width: 44, background: '#fafbfc', borderRight: '1px solid #eef0f2', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '12px 0', gap: 4, flexShrink: 0 }}>
                   {[{ active: true, icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
                     { active: false, icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
                     { active: false, icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' }].map((n, i) => (
-                    <div key={i} style={{ width: 32, height: 32, borderRadius: 8, background: n.active ? '#ede9fe' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={n.active ? '#4f46e5' : '#9ca3af'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d={n.icon}/></svg>
+                    <div key={i} style={{ width: 28, height: 28, borderRadius: 6, background: n.active ? '#f3f4f6' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={n.active ? '#111' : '#9ca3af'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d={n.icon}/></svg>
                     </div>
                   ))}
                 </div>
                 {/* Main content */}
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                   {/* Top bar */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', borderBottom: '1px solid #eef0f2' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ fontSize: 12, color: '#9ca3af' }}>Projetos</span>
-                      <span style={{ fontSize: 12, color: '#d1d5db' }}>/</span>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: '#111' }}>Meu E-commerce</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 16px', borderBottom: '1px solid #eef0f2' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                      <span style={{ fontSize: 11, color: '#9ca3af' }}>Projetos</span>
+                      <span style={{ fontSize: 11, color: '#d1d5db' }}>/</span>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: '#111' }}>Meu E-commerce</span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div style={{ padding: '3px 8px', borderRadius: 5, background: '#ede9fe', fontSize: 9, fontWeight: 700, color: '#4f46e5' }}>PRO</div>
-                      <div style={{ width: 26, height: 26, borderRadius: '50%', background: 'linear-gradient(135deg, #1e1b4b, #312e81)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                        <span style={{ color: '#fff', fontSize: 9, fontWeight: 700 }}>LC</span>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Stats row */}
-                  <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
-                        <span style={{ fontSize: 16, fontWeight: 700, color: '#111', letterSpacing: '-0.02em' }}>Meu E-commerce</span>
-                        <span style={{ padding: '2px 8px', borderRadius: 999, background: '#ecfdf5', fontSize: 9, fontWeight: 600, color: '#059669' }}>Ativo</span>
-                      </div>
-                      <span style={{ fontSize: 11, color: '#9ca3af', fontFamily: 'monospace' }}>meusite.com.br</span>
-                    </div>
-                    <div style={{ display: 'flex', gap: 16 }}>
-                      {[{ n: '15', l: 'Total', c: '#111' }, { n: '3', l: 'Abertos', c: '#d97706' }, { n: '12', l: 'Resolvidos', c: '#059669' }].map(s => (
-                        <div key={s.l} style={{ textAlign: 'center', padding: '6px 0' }}>
-                          <div style={{ fontSize: 18, fontWeight: 700, color: s.c, letterSpacing: '-0.02em' }}>{s.n}</div>
-                          <div style={{ fontSize: 9, color: '#9ca3af', textTransform: 'uppercase', fontWeight: 500, letterSpacing: '0.03em' }}>{s.l}</div>
-                        </div>
-                      ))}
+                    <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <span style={{ fontSize: 8, fontWeight: 600, color: '#374151' }}>LC</span>
                     </div>
                   </div>
                   {/* Tabs */}
-                  <div style={{ display: 'flex', gap: 0, borderBottom: '2px solid #eef0f2', padding: '0 20px' }}>
+                  <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #eef0f2', padding: '0 16px' }}>
                     {['Reports', 'Histórico', 'Config'].map((t, i) => (
-                      <div key={t} style={{ padding: '8px 14px 10px', borderBottom: `2px solid ${i === 0 ? '#4f46e5' : 'transparent'}`, marginBottom: -2, fontSize: 12, fontWeight: i === 0 ? 600 : 400, color: i === 0 ? '#4f46e5' : '#9ca3af' }}>{t}</div>
+                      <div key={t} style={{ padding: '6px 10px 8px', borderBottom: `2px solid ${i === 0 ? '#111' : 'transparent'}`, marginBottom: -1, fontSize: 11, fontWeight: i === 0 ? 600 : 400, color: i === 0 ? '#111' : '#9ca3af' }}>{t}</div>
                     ))}
                   </div>
                   {/* Report list */}
-                  <div style={{ margin: '12px 20px', border: '1px solid #eef0f2', borderRadius: 10, overflow: 'hidden', flex: 1 }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '48px 1fr 52px 56px', gap: 8, padding: '8px 14px', background: '#fafbfc', borderBottom: '1px solid #eef0f2', fontSize: 9, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  <div style={{ margin: '8px 16px', border: '1px solid #eef0f2', borderRadius: 8, overflow: 'hidden', flex: 1 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '44px 1fr 48px 52px', gap: 6, padding: '6px 12px', background: '#fafbfc', borderBottom: '1px solid #eef0f2', fontSize: 8, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                       <span>Tipo</span><span>Descrição</span><span>Sever.</span><span>Status</span>
                     </div>
                     {[
@@ -629,11 +593,11 @@ export default function LandingPage() {
                       { type: 'Bug', typeBg: '#fef2f2', typeC: '#dc2626', desc: 'Carrinho não atualiza quantidade', sev: 'Alta', sevBg: '#fef2f2', sevC: '#dc2626', st: 'Em prog.', stBg: '#dbeafe', stC: '#1d4ed8' },
                       { type: 'Sugestão', typeBg: '#ede9fe', typeC: '#7c3aed', desc: 'Adicionar modo escuro', sev: 'Baixa', sevBg: '#f3f4f6', sevC: '#6b7280', st: 'Resolvido', stBg: '#ecfdf5', stC: '#059669' },
                     ].map((r, i, arr) => (
-                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '48px 1fr 52px 56px', gap: 8, padding: '9px 14px', borderBottom: i < arr.length - 1 ? '1px solid #f3f4f6' : 'none', alignItems: 'center', fontSize: 11, background: i === 0 ? 'rgba(79,70,229,0.02)' : 'transparent' }}>
-                        <span style={{ padding: '2px 6px', borderRadius: 5, fontSize: 9, fontWeight: 600, background: r.typeBg, color: r.typeC, textAlign: 'center' }}>{r.type}</span>
+                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '44px 1fr 48px 52px', gap: 6, padding: '7px 12px', borderBottom: i < arr.length - 1 ? '1px solid #f3f4f6' : 'none', alignItems: 'center', fontSize: 10, background: i === 0 ? 'rgba(0,0,0,0.02)' : 'transparent' }}>
+                        <span style={{ padding: '2px 5px', borderRadius: 4, fontSize: 8, fontWeight: 600, background: r.typeBg, color: r.typeC, textAlign: 'center' }}>{r.type}</span>
                         <span style={{ color: '#374151', fontWeight: i === 0 ? 600 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.desc}</span>
-                        <span style={{ padding: '2px 6px', borderRadius: 5, fontSize: 9, fontWeight: 600, background: r.sevBg, color: r.sevC, textAlign: 'center' }}>{r.sev}</span>
-                        <span style={{ padding: '2px 6px', borderRadius: 5, fontSize: 9, fontWeight: 600, background: r.stBg, color: r.stC, textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.st}</span>
+                        <span style={{ padding: '2px 5px', borderRadius: 4, fontSize: 8, fontWeight: 600, background: r.sevBg, color: r.sevC, textAlign: 'center' }}>{r.sev}</span>
+                        <span style={{ padding: '2px 5px', borderRadius: 4, fontSize: 8, fontWeight: 600, background: r.stBg, color: r.stC, textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.st}</span>
                       </div>
                     ))}
                   </div>
@@ -656,13 +620,12 @@ export default function LandingPage() {
                   <Heading
                     variant="display-strong-m"
                     as="h2"
-                    style={{ color: '#fff' }}
                   >
                     {heroTitles[heroStep]}
                   </Heading>
                   <Text
                     variant="body-default-l"
-                    style={{ color: 'rgba(255,255,255,0.55)' }}
+                    onBackground="neutral-weak"
                   >
                     {heroDescs[heroStep]}
                   </Text>
@@ -676,7 +639,7 @@ export default function LandingPage() {
                       onClick={() => setHeroStep(i)}
                       style={{
                         padding: '8px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                        background: i === heroStep ? 'rgba(79,70,229,0.2)' : 'transparent',
+                        background: i === heroStep ? 'var(--brand-alpha-weak)' : 'transparent',
                         transition: 'all 0.3s ease',
                         display: 'flex', alignItems: 'center', gap: 6,
                       }}
@@ -684,13 +647,13 @@ export default function LandingPage() {
                       <span style={{
                         width: 20, height: 20, borderRadius: 6, fontSize: 10, fontWeight: 700,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        background: i === heroStep ? '#4f46e5' : 'rgba(255,255,255,0.08)',
-                        color: i === heroStep ? '#fff' : 'rgba(255,255,255,0.35)',
+                        background: i === heroStep ? '#111' : 'var(--neutral-alpha-weak)',
+                        color: i === heroStep ? '#fff' : 'var(--neutral-on-background-weak)',
                         transition: 'all 0.3s ease',
                       }}>{i + 1}</span>
                       <span className="hero-step-label" style={{
                         fontSize: 12, fontWeight: i === heroStep ? 600 : 400,
-                        color: i === heroStep ? '#fff' : 'rgba(255,255,255,0.4)',
+                        color: i === heroStep ? 'var(--neutral-on-background-strong)' : 'var(--neutral-on-background-weak)',
                         transition: 'all 0.3s ease',
                       }}>{label}</span>
                     </button>
@@ -702,16 +665,16 @@ export default function LandingPage() {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
                   borderRadius: 14, overflow: 'hidden',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  boxShadow: '0 24px 80px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.2)',
+                  border: '1px solid var(--neutral-border-medium)',
+                  boxShadow: '0 16px 48px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04)',
                   background: '#fff',
                 }}>
-                  {/* macOS chrome */}
+                  {/* macOS chrome — light */}
                   <div style={{
                     display: 'flex', alignItems: 'center', gap: 8,
                     padding: '10px 16px',
-                    background: '#141422',
-                    borderBottom: '1px solid rgba(255,255,255,0.06)',
+                    background: '#f8f9fa',
+                    borderBottom: '1px solid var(--neutral-border-medium)',
                   }}>
                     <div style={{ display: 'flex', gap: 6 }}>
                       <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#ff5f57' }} />
@@ -720,10 +683,11 @@ export default function LandingPage() {
                     </div>
                     <div style={{
                       flex: 1, padding: '5px 14px',
-                      background: 'rgba(255,255,255,0.06)',
+                      background: '#fff',
                       borderRadius: 7,
+                      border: '1px solid var(--neutral-border-medium)',
                       fontSize: 12, fontFamily: 'monospace',
-                      color: 'rgba(255,255,255,0.4)',
+                      color: 'var(--neutral-on-background-weak)',
                       transition: 'all 0.3s ease',
                     }}>
                       {heroUrls[heroStep]}
@@ -737,7 +701,7 @@ export default function LandingPage() {
                   </div>
 
                   {/* Screen content */}
-                  <div style={{ position: 'relative', minHeight: 420, overflow: 'hidden' }}>
+                  <div style={{ position: 'relative', height: 400, overflow: 'hidden' }}>
                     <div key={heroStep} className="hero-step-visual">
                       {stepVisuals[heroStep]}
                     </div>
@@ -795,52 +759,6 @@ export default function LandingPage() {
         </Column>
       </Flex>
 
-      {/* Demo section */}
-      <Flex fillWidth horizontal="center" background="surface" id="demo">
-        <Column maxWidth={64} fillWidth paddingX="l" paddingY="xl" gap="l" horizontal="center" style={{ textAlign: 'center' }}>
-          <Tag variant="neutral" size="m" label="Demo ao vivo" />
-          <Heading variant="display-strong-s" as="h2">
-            Veja como funciona
-          </Heading>
-          <Text variant="body-default-m" onBackground="neutral-weak" style={{ maxWidth: '32rem' }}>
-            Explore cada etapa do widget de report: do botão flutuante até o envio completo com screenshot, replay e logs.
-          </Text>
-          <button
-            onClick={() => { setDemoStep(0); setDemoOpen(true) }}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              padding: '1rem 2rem',
-              borderRadius: '1rem',
-              border: '2px solid var(--brand-solid-strong)',
-              background: 'var(--brand-alpha-weak)',
-              color: 'var(--brand-on-background-strong)',
-              fontSize: '1.1rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'var(--brand-solid-strong)'
-              e.currentTarget.style.color = '#fff'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'var(--brand-alpha-weak)'
-              e.currentTarget.style.color = 'var(--brand-on-background-strong)'
-            }}
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m8 2 1.88 1.88" /><path d="M14.12 3.88 16 2" /><path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1" />
-              <path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6" />
-              <path d="M12 20v-9" /><path d="M6.53 9C4.6 8.8 3 7.1 3 5" /><path d="M6 13H2" />
-              <path d="M3 21c0-2.1 1.7-3.9 3.8-4" /><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4" />
-              <path d="M22 13h-4" /><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4" />
-            </svg>
-            Ver demo interativa
-          </button>
-        </Column>
-      </Flex>
 
       {/* Demo Modal — replica exacta da UI real do produto */}
       {demoOpen && (() => {
@@ -1532,6 +1450,42 @@ export default function LandingPage() {
         </Column>
       </Flex>
 
+      {/* Testimonials */}
+      <Flex fillWidth horizontal="center" background="surface">
+        <Column maxWidth={64} fillWidth paddingX="l" paddingY="xl" gap="xl" horizontal="center">
+          <Column horizontal="center" gap="s" style={{ textAlign: 'center' }}>
+            <Tag variant="neutral" size="m" label="Depoimentos" />
+            <Heading variant="display-strong-s" as="h2">
+              Quem usa, recomenda
+            </Heading>
+            <Text variant="body-default-m" onBackground="neutral-weak">
+              Veja o que equipes de produto e QA estão dizendo sobre o Buug.
+            </Text>
+          </Column>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, width: '100%' }}>
+            {[
+              { quote: 'O Buug reduziu nosso tempo de triagem de bugs em 70%. Antes era print + Slack, agora é tudo automático.', name: 'Lucas M.', role: 'Tech Lead', company: 'SaaS B2B', initials: 'LM', color: '#111' },
+              { quote: 'Session replay mudou nosso QA. Não precisamos mais pedir "me manda o print" — já vem tudo no report.', name: 'Ana R.', role: 'QA Engineer', company: 'E-commerce', initials: 'AR', color: '#6366f1' },
+              { quote: 'Integrei em 2 minutos com script embed. Minha equipe começou a usar no mesmo dia.', name: 'Pedro S.', role: 'CTO', company: 'Startup', initials: 'PS', color: '#059669' },
+            ].map((t, i) => (
+              <div key={i} style={{ background: '#fff', border: '1px solid var(--neutral-border-medium)', borderRadius: 16, padding: '28px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M10 8c0-2.2-1.8-4-4-4S2 5.8 2 8c0 1.85 1.28 3.42 3 3.87V14c0 2.76 2.24 5 5 5h1v-2H10c-1.66 0-3-1.34-3-3v-2.13c2.28-.46 4-2.48 4-4.87zm12 0c0-2.2-1.8-4-4-4s-4 1.8-4 4c0 1.85 1.28 3.42 3 3.87V14c0 2.76 2.24 5 5 5h1v-2h-1c-1.66 0-3-1.34-3-3v-2.13c2.28-.46 4-2.48 4-4.87z" fill="#e5e7eb"/></svg>
+                <Text variant="body-default-m" onBackground="neutral-strong" style={{ lineHeight: 1.6, flex: 1 }}>
+                  {t.quote}
+                </Text>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingTop: 8, borderTop: '1px solid var(--neutral-border-medium)' }}>
+                  <div style={{ width: 36, height: 36, borderRadius: '50%', background: t.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 13, fontWeight: 700, flexShrink: 0 }}>{t.initials}</div>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#111' }}>{t.name}</div>
+                    <div style={{ fontSize: 11, color: 'var(--neutral-on-background-weak)' }}>{t.role} · {t.company}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Column>
+      </Flex>
+
       {/* Pricing */}
       <Flex fillWidth horizontal="center" background="page" id="planos">
         <Column maxWidth={64} fillWidth paddingX="l" paddingY="xl" gap="xl" horizontal="center">
@@ -1784,6 +1738,30 @@ export default function LandingPage() {
               </>
             )}
           </Row>
+          {/* Trust badges */}
+          <Row gap="l" style={{ marginTop: '0.25rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+            {[
+              { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>, text: 'Sem cartão de crédito' },
+              { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>, text: 'Setup em 2 minutos' },
+              { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>, text: 'Cancele a qualquer momento' },
+            ].map((b, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--neutral-on-background-weak)', fontSize: 13 }}>
+                {b.icon}
+                <span>{b.text}</span>
+              </div>
+            ))}
+          </Row>
+          {/* Avatars row */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8 }}>
+            <div style={{ display: 'flex' }}>
+              {['#111', '#6366f1', '#059669', '#d97706', '#dc2626'].map((c, i) => (
+                <div key={i} style={{ width: 28, height: 28, borderRadius: '50%', background: c, border: '2px solid #fff', marginLeft: i > 0 ? -8 : 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#fff' }}>
+                  {['L', 'A', 'P', 'M', 'J'][i]}
+                </div>
+              ))}
+            </div>
+            <span style={{ fontSize: 12, color: 'var(--neutral-on-background-weak)' }}>Junte-se a +500 equipes</span>
+          </div>
         </Column>
       </Flex>
 
@@ -1795,51 +1773,87 @@ export default function LandingPage() {
         borderTop="neutral-medium"
         background="surface"
       >
-        <Row
-          maxWidth={64}
-          fillWidth
-          paddingX="l"
-          paddingY="m"
-          horizontal="between"
-          vertical="center"
-        >
-          <Row gap="xs" vertical="center">
-            <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '0.8rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-weak)' }}>Buug</span>
+        <Column maxWidth={64} fillWidth paddingX="l" paddingY="xl" gap="xl">
+          {/* Footer grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 32, width: '100%' }}>
+            {/* Brand column */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 800, fontSize: '1.1rem', letterSpacing: '-0.03em', color: '#111' }}>Buug</span>
+              <Text variant="body-default-xs" onBackground="neutral-weak" style={{ lineHeight: 1.6 }}>
+                Plataforma de QA em tempo real. Cada bug com screenshot, replay e logs.
+              </Text>
+              <div style={{ display: 'flex', gap: 12, marginTop: 4 }}>
+                {/* LinkedIn */}
+                <a href="https://www.linkedin.com/company/buug/about" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--neutral-on-background-weak)' }} aria-label="LinkedIn">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                </a>
+                {/* Instagram */}
+                <a href="https://instagram.com/buug.io" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--neutral-on-background-weak)' }} aria-label="Instagram">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                </a>
+              </div>
+            </div>
+
+            {/* Produto */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#111', letterSpacing: '-0.01em' }}>Produto</span>
+              {[
+                { label: 'Funcionalidades', href: '#funcionalidades' },
+                { label: 'Integrações', href: '#integracao' },
+                { label: 'Planos', href: '#planos' },
+                { label: 'FAQ', href: '#faq' },
+                { label: 'Demo', href: '#como-funciona' },
+              ].map(link => (
+                <a key={link.label} href={link.href} style={{ fontSize: 13, color: 'var(--neutral-on-background-weak)', textDecoration: 'none' }}>{link.label}</a>
+              ))}
+            </div>
+
+            {/* Empresa */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#111', letterSpacing: '-0.01em' }}>Empresa</span>
+              {[
+                { label: 'Sobre', href: '#' },
+                { label: 'Blog', href: '#' },
+                { label: 'Contato', href: '/contato' },
+                { label: 'Carreiras', href: '#' },
+              ].map(link => (
+                <a key={link.label} href={link.href} style={{ fontSize: 13, color: 'var(--neutral-on-background-weak)', textDecoration: 'none' }}>{link.label}</a>
+              ))}
+            </div>
+
+            {/* Legal */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#111', letterSpacing: '-0.01em' }}>Legal</span>
+              {[
+                { label: 'Termos de Uso', href: '/termos' },
+                { label: 'Privacidade', href: '/privacidade' },
+                { label: 'Segurança', href: '#' },
+                { label: 'Status', href: '#' },
+              ].map(link => (
+                <a key={link.label} href={link.href} style={{ fontSize: 13, color: 'var(--neutral-on-background-weak)', textDecoration: 'none' }}>{link.label}</a>
+              ))}
+            </div>
+          </div>
+
+          {/* Bottom bar */}
+          <div style={{ borderTop: '1px solid var(--neutral-border-medium)', paddingTop: 20, display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
             <Text variant="body-default-xs" onBackground="neutral-weak">
-              &copy; {new Date().getFullYear()}
+              &copy; {new Date().getFullYear()} Buug. Todos os direitos reservados.
             </Text>
-          </Row>
-          <Row gap="m">
-            <Link href="/termos">
-              <Text variant="body-default-xs" onBackground="neutral-weak" style={{ textDecoration: 'none' }}>
-                Termos
-              </Text>
-            </Link>
-            <Link href="/privacidade">
-              <Text variant="body-default-xs" onBackground="neutral-weak" style={{ textDecoration: 'none' }}>
-                Privacidade
-              </Text>
-            </Link>
-            <Link href="/contato">
-              <Text variant="body-default-xs" onBackground="neutral-weak" style={{ textDecoration: 'none' }}>
-                Contato
-              </Text>
-            </Link>
-            {isLoggedIn ? (
-              <Link href="/dashboard">
-                <Text variant="body-default-xs" onBackground="neutral-weak" style={{ textDecoration: 'none' }}>
-                  Painel
-                </Text>
-              </Link>
-            ) : (
-              <Link href="/auth/login">
-                <Text variant="body-default-xs" onBackground="neutral-weak" style={{ textDecoration: 'none' }}>
-                  Entrar
-                </Text>
-              </Link>
-            )}
-          </Row>
-        </Row>
+            <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+              {[
+                { icon: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>, text: 'LGPD' },
+                { icon: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>, text: 'SSL' },
+                { icon: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/><circle cx="12" cy="16" r="1"/></svg>, text: 'Dados criptografados' },
+              ].map((badge, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--neutral-on-background-weak)', fontSize: 11 }}>
+                  {badge.icon}
+                  <span>{badge.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Column>
       </Flex>
 
     </Column>
