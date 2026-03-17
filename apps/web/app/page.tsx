@@ -1241,7 +1241,6 @@ export default function LandingPage() {
               { name: 'Angular', logo: '/logos/angular.svg' },
               { name: 'Svelte', logo: '/logos/svelte.svg' },
               { name: 'HTML/JS', logo: '/logos/html.svg' },
-              { name: 'React Native', logo: '/logos/react-native.svg' },
               { name: 'Flutter', logo: '/logos/flutter.svg' },
             ].map((tech) => (
               <div key={tech.name} style={{ width: 140, height: 140, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', borderRadius: '1rem', border: '1px solid var(--neutral-border-medium)', background: 'var(--surface-background)' }}>
