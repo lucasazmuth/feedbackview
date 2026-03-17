@@ -38,7 +38,7 @@ interface RRWebEvent { type: number; data: any; timestamp: number }
 const consoleLogs: ConsoleLog[] = []
 const networkLogs: NetworkLog[] = []
 const rrwebEvents: RRWebEvent[] = []
-const MAX_RRWEB_EVENTS = 200
+const MAX_RRWEB_EVENTS = 100
 const MAX_LOGS = 100
 
 // Listen for tracker data forwarded from ViewerClient (shared URL / proxy mode)
@@ -280,7 +280,20 @@ async function captureScreenshot(): Promise<string | null> {
       windowWidth: window.innerWidth,
       windowHeight: window.innerHeight,
     })
-    return canvas.toDataURL('image/jpeg', 0.85)
+    // Downscale if too large to keep payload under Vercel's 4.5MB limit
+    const MAX_WIDTH = 1280
+    if (canvas.width > MAX_WIDTH) {
+      const ratio = MAX_WIDTH / canvas.width
+      const small = document.createElement('canvas')
+      small.width = MAX_WIDTH
+      small.height = Math.round(canvas.height * ratio)
+      const sCtx = small.getContext('2d')
+      if (sCtx) {
+        sCtx.drawImage(canvas, 0, 0, small.width, small.height)
+        return small.toDataURL('image/jpeg', 0.6)
+      }
+    }
+    return canvas.toDataURL('image/jpeg', 0.6)
   } catch {
     return null
   }
@@ -1040,7 +1053,7 @@ function createWidget(config: WidgetConfig) {
     if (!ctx) return screenshotUrl
     ctx.drawImage(baseCanvas, 0, 0)
     if (overlayCanvas) ctx.drawImage(overlayCanvas, 0, 0)
-    return merged.toDataURL('image/jpeg', 0.85)
+    return merged.toDataURL('image/jpeg', 0.6)
   }
 
   // Icons
@@ -2152,6 +2165,18 @@ function createWidget(config: WidgetConfig) {
     const finalScreenshot = getFinalScreenshot()
     if (finalScreenshot) {
       payload.screenshotBase64 = finalScreenshot
+    }
+
+    // Ensure payload doesn't exceed ~4MB (Vercel limit is 4.5MB)
+    const payloadStr = JSON.stringify(payload)
+    if (payloadStr.length > 3_800_000) {
+      // Drop rrweb events first (heaviest part), then screenshot quality
+      payload.rrwebEvents = payload.rrwebEvents?.slice(-20) || []
+      const reducedStr = JSON.stringify(payload)
+      if (reducedStr.length > 3_800_000 && payload.screenshotBase64) {
+        // Still too large — remove screenshot
+        payload.screenshotBase64 = undefined
+      }
     }
 
     try {

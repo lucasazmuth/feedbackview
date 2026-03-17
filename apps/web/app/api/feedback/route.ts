@@ -3,6 +3,9 @@ import { createClient } from '@supabase/supabase-js'
 import { logActivity } from '@/lib/activity-log'
 import { normalizeDomain } from '@/lib/url-utils'
 
+// Increase body size limit (default 4.5MB is too small for screenshot + rrweb events)
+export const maxDuration = 30
+
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
