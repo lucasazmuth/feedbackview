@@ -262,6 +262,13 @@ body {
   .hero-step-label { display: none; }
 }
 
+/* Hero split layout: stack on mobile */
+@media (max-width: 900px) {
+  .hero-split { flex-direction: column !important; padding: 48px 20px 40px !important; gap: 32px !important; }
+  .hero-split-text { flex: none !important; }
+  .hero-split-text h1 { font-size: 26px !important; }
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 6px;
