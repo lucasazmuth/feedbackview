@@ -1119,7 +1119,7 @@ function createWidget(config: WidgetConfig) {
   trigger.className = hiddenTrigger ? 'fv-trigger fv-trigger-hidden' : 'fv-trigger'
   trigger.innerHTML = config.widgetStyle === 'icon'
     ? `<span class="fv-trigger-icon-text">BU\nUG</span>`
-    : `<span class="fv-trigger-brand">Buug</span>`
+    : `<span class="fv-trigger-brand">Buug report</span>`
   trigger.title = 'Enviar feedback'
   shadow.appendChild(trigger)
 
