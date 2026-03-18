@@ -586,7 +586,7 @@ function getPositionCSS(position: string, style: string) {
       return `${vert} left: 50%; transform: translateX(-50%); ${radius}`
     }
     // Lateral: vertical, grudado left/right
-    const vert = position.includes('top') ? 'top: 70px;' : 'bottom: 24px;'
+    const vert = position.includes('top') ? 'top: 70px;' : position.includes('middle') ? 'top: 50%; transform: translateY(-50%);' : 'bottom: 24px;'
     if (position.includes('left')) {
       return `${vert} left: 0; border-radius: 0 8px 8px 0;`
     }
@@ -597,6 +597,8 @@ function getPositionCSS(position: string, style: string) {
     case 'top-left': return 'top: 70px; left: 24px;'
     case 'top-center': return 'top: 70px; left: 50%; transform: translateX(-50%);'
     case 'top-right': return 'top: 70px; right: 24px;'
+    case 'middle-left': return 'top: 50%; left: 24px; transform: translateY(-50%);'
+    case 'middle-right': return 'top: 50%; right: 24px; transform: translateY(-50%);'
     case 'bottom-left': return 'bottom: 24px; left: 24px;'
     case 'bottom-center': return 'bottom: 24px; left: 50%; transform: translateX(-50%);'
     default: return 'bottom: 24px; right: 24px;'
@@ -718,7 +720,7 @@ function createWidget(config: WidgetConfig) {
       animation: fv-trigger-bounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
     .fv-trigger:hover {
-      ${config.widgetPosition.includes('center') ? '' : 'transform: scale(1.05);'}
+      ${(config.widgetPosition.includes('center') || config.widgetPosition.includes('middle')) ? '' : 'transform: scale(1.05);'}
       box-shadow: 0 6px 20px ${hexToRgba(color, 0.5)};
     }
 

@@ -1972,11 +1972,13 @@ export default function ProjectClient({
                           <div style={{ width: '80%', height: 3, borderRadius: 2, background: '#bbb' }} />
                           <div style={{ width: '65%', height: 3, borderRadius: 2, background: '#bbb' }} />
                         </div>
-                        {/* 6 clickable dots */}
+                        {/* 8 clickable dots */}
                         {([
                           { value: 'top-left', style: { top: 8, left: 8 } },
                           { value: 'top-center', style: { top: 8, left: '50%', transform: 'translateX(-50%)' } },
                           { value: 'top-right', style: { top: 8, right: 8 } },
+                          { value: 'middle-left', style: { top: '50%', left: 8, transform: 'translateY(-50%)' } },
+                          { value: 'middle-right', style: { top: '50%', right: 8, transform: 'translateY(-50%)' } },
                           { value: 'bottom-left', style: { bottom: 8, left: 8 } },
                           { value: 'bottom-center', style: { bottom: 8, left: '50%', transform: 'translateX(-50%)' } },
                           { value: 'bottom-right', style: { bottom: 8, right: 8 } },
@@ -1986,7 +1988,7 @@ export default function ProjectClient({
                             <button
                               key={pos.value}
                               onClick={() => setWidgetPosition(pos.value)}
-                              title={pos.value.replace('top-', 'Superior ').replace('bottom-', 'Inferior ').replace('left', 'esquerda').replace('right', 'direita').replace('center', 'centro')}
+                              title={pos.value.replace('top-', 'Superior ').replace('bottom-', 'Inferior ').replace('middle-', 'Meio ').replace('left', 'esquerda').replace('right', 'direita').replace('center', 'centro')}
                               style={{
                                 position: 'absolute',
                                 ...pos.style,
@@ -2005,7 +2007,7 @@ export default function ProjectClient({
                         })}
                       </div>
                       <span style={{ fontSize: '0.6875rem', color: 'var(--neutral-on-background-weak)', marginTop: 6, display: 'block' }}>
-                        {widgetPosition.replace('top-', 'Superior ').replace('bottom-', 'Inferior ').replace('left', 'esquerda').replace('right', 'direita').replace('center', 'centro')}
+                        {widgetPosition.replace('top-', 'Superior ').replace('bottom-', 'Inferior ').replace('middle-', 'Meio ').replace('left', 'esquerda').replace('right', 'direita').replace('center', 'centro')}
                       </span>
                     </div>
 
@@ -2129,7 +2131,7 @@ export default function ProjectClient({
                           position: 'absolute',
                           transition: 'all 0.3s ease',
                           ...(widgetStyle === 'icon' ? {
-                            ...(widgetPosition.includes('top') ? { top: 10 } : { bottom: 10 }),
+                            ...(widgetPosition.includes('top') ? { top: 10 } : widgetPosition.includes('middle') ? { top: '50%', transform: 'translateY(-50%)' } : { bottom: 10 }),
                             ...(widgetPosition.includes('left') ? { left: 10 } : widgetPosition.includes('center') ? { left: '50%', transform: 'translateX(-50%)' } : { right: 10 }),
                           } : {
                             // Text style: tag grudada na borda
@@ -2139,7 +2141,7 @@ export default function ProjectClient({
                               left: '50%', transform: 'translateX(-50%)',
                             } : {
                               // Laterais: vertical, grudado left/right
-                              ...(widgetPosition.includes('top') ? { top: 10 } : { bottom: 10 }),
+                              ...(widgetPosition.includes('top') ? { top: 10 } : widgetPosition.includes('middle') ? { top: '50%', transform: 'translateY(-50%)' } : { bottom: 10 }),
                               ...(widgetPosition.includes('left') ? { left: 0 } : { right: 0 }),
                             }),
                           }),
