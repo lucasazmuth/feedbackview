@@ -576,16 +576,35 @@ async function fetchConfig(): Promise<WidgetConfig> {
 }
 
 // ─── Position helpers ───────────────────────────────────────────────────────
-function getPositionCSS(position: string) {
+function getPositionCSS(position: string, style: string) {
+  if (style === 'text') {
+    // Text style: tag grudada na borda
+    if (position.includes('center')) {
+      // Centro: horizontal, grudado top/bottom
+      const vert = position.includes('top') ? 'top: 0;' : 'bottom: 0;'
+      const radius = position.includes('top') ? 'border-radius: 0 0 8px 8px;' : 'border-radius: 8px 8px 0 0;'
+      return `${vert} left: 50%; transform: translateX(-50%); ${radius}`
+    }
+    // Lateral: vertical, grudado left/right
+    const vert = position.includes('top') ? 'top: 30%;' : 'bottom: 30%;'
+    if (position.includes('left')) {
+      return `${vert} left: 0; border-radius: 0 8px 8px 0;`
+    }
+    return `${vert} right: 0; border-radius: 8px 0 0 8px;`
+  }
+  // Icon style: floating with offset
   switch (position) {
     case 'top-left': return 'top: 24px; left: 24px;'
+    case 'top-center': return 'top: 24px; left: 50%; transform: translateX(-50%);'
     case 'top-right': return 'top: 24px; right: 24px;'
     case 'bottom-left': return 'bottom: 24px; left: 24px;'
+    case 'bottom-center': return 'bottom: 24px; left: 50%; transform: translateX(-50%);'
     default: return 'bottom: 24px; right: 24px;'
   }
 }
 
 function getPanelSide(position: string) {
+  if (position.includes('center')) return 'right'
   return position.includes('left') ? 'left' : 'right'
 }
 
@@ -647,16 +666,18 @@ function createWidget(config: WidgetConfig) {
 
     .fv-trigger {
       position: fixed;
-      ${getPositionCSS(config.widgetPosition)}
+      ${getPositionCSS(config.widgetPosition, config.widgetStyle)}
       ${config.widgetStyle === 'icon' ? `
       width: 48px;
       height: 48px;
       padding: 0;
       border-radius: 50%;
+      ` : config.widgetPosition.includes('center') ? `
+      padding: 8px 16px;
       ` : `
-      height: 44px;
-      padding: 0 20px;
-      border-radius: 22px;
+      padding: 12px 8px;
+      writing-mode: ${config.widgetPosition.includes('left') ? 'vertical-lr' : 'vertical-rl'};
+      text-orientation: mixed;
       `}
       background: ${color};
       color: white;

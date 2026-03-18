@@ -1934,8 +1934,8 @@ export default function ProjectClient({
                           >
                             <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'center' }}>
                               {s === 'text' ? (
-                                <div style={{ height: 32, paddingLeft: 12, paddingRight: 14, borderRadius: 16, background: widgetColor, color: '#fff', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                                  <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: 11, letterSpacing: '-0.02em' }}>Buug report</span>
+                                <div style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', padding: '10px 6px', borderRadius: '8px 0 0 8px', background: widgetColor, color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: 10, letterSpacing: '-0.02em' }}>Buug report</span>
                                 </div>
                               ) : (
                                 <div style={{ width: 44, height: 44, borderRadius: '50%', background: widgetColor, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -1947,7 +1947,7 @@ export default function ProjectClient({
                               {s === 'text' ? 'Texto' : 'Ícone'}
                             </span>
                             <p style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', margin: '0.25rem 0 0' }}>
-                              {s === 'text' ? 'Botão com logo Buug' : 'Botão circular com logo'}
+                              {s === 'text' ? 'Tag lateral com texto' : 'Botão circular com logo'}
                             </p>
                           </div>
                         ))}
@@ -1957,25 +1957,27 @@ export default function ProjectClient({
                     {/* Widget position */}
                     <div>
                       <Text variant="label-default-s" onBackground="neutral-strong" style={{ marginBottom: '0.5rem', display: 'block' }}>Posição</Text>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
                         {[
-                          { value: 'top-left', label: 'Superior esquerda' },
-                          { value: 'top-right', label: 'Superior direita' },
-                          { value: 'bottom-left', label: 'Inferior esquerda' },
-                          { value: 'bottom-right', label: 'Inferior direita' },
+                          { value: 'top-left', label: 'Sup. esquerda' },
+                          { value: 'top-center', label: 'Sup. centro' },
+                          { value: 'top-right', label: 'Sup. direita' },
+                          { value: 'bottom-left', label: 'Inf. esquerda' },
+                          { value: 'bottom-center', label: 'Inf. centro' },
+                          { value: 'bottom-right', label: 'Inf. direita' },
                         ].map((pos) => (
                           <button
                             key={pos.value}
                             onClick={() => setWidgetPosition(pos.value)}
                             style={{
-                              padding: '0.625rem',
+                              padding: '0.5rem',
                               borderRadius: '0.5rem',
                               border: `2px solid ${widgetPosition === pos.value ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)'}`,
                               background: widgetPosition === pos.value ? 'var(--brand-alpha-weak)' : 'transparent',
                               cursor: 'pointer',
                               display: 'flex',
                               alignItems: 'center',
-                              gap: '0.5rem',
+                              gap: '0.375rem',
                               transition: 'all 0.15s',
                             }}
                           >
@@ -1994,10 +1996,10 @@ export default function ProjectClient({
                                 background: widgetPosition === pos.value ? 'var(--brand-solid-strong)' : 'var(--neutral-on-background-weak)',
                                 position: 'absolute',
                                 ...(pos.value.includes('top') ? { top: 2 } : { bottom: 2 }),
-                                ...(pos.value.includes('left') ? { left: 2 } : { right: 2 }),
+                                ...(pos.value.includes('left') ? { left: 2 } : pos.value.includes('center') ? { left: '50%', transform: 'translateX(-50%)' } : { right: 2 }),
                               }} />
                             </div>
-                            <span style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-strong)', fontWeight: widgetPosition === pos.value ? 600 : 400 }}>
+                            <span style={{ fontSize: '0.6875rem', color: 'var(--neutral-on-background-strong)', fontWeight: widgetPosition === pos.value ? 600 : 400 }}>
                               {pos.label}
                             </span>
                           </button>
@@ -2123,9 +2125,22 @@ export default function ProjectClient({
                         {/* Widget preview */}
                         <div style={{
                           position: 'absolute',
-                          ...(widgetPosition.includes('top') ? { top: 10 } : { bottom: 10 }),
-                          ...(widgetPosition.includes('left') ? { left: 10 } : { right: 10 }),
                           transition: 'all 0.3s ease',
+                          ...(widgetStyle === 'icon' ? {
+                            ...(widgetPosition.includes('top') ? { top: 10 } : { bottom: 10 }),
+                            ...(widgetPosition.includes('left') ? { left: 10 } : widgetPosition.includes('center') ? { left: '50%', transform: 'translateX(-50%)' } : { right: 10 }),
+                          } : {
+                            // Text style: tag grudada na borda
+                            ...(widgetPosition.includes('center') ? {
+                              // Centro: horizontal, grudado top/bottom
+                              ...(widgetPosition.includes('top') ? { top: 0 } : { bottom: 0 }),
+                              left: '50%', transform: 'translateX(-50%)',
+                            } : {
+                              // Laterais: vertical, grudado left/right
+                              ...(widgetPosition.includes('top') ? { top: '25%' } : { bottom: '25%' }),
+                              ...(widgetPosition.includes('left') ? { left: 0 } : { right: 0 }),
+                            }),
+                          }),
                         }}>
                           {widgetStyle === 'icon' ? (
                             <div style={{
@@ -2141,20 +2156,35 @@ export default function ProjectClient({
                             }}>
                               <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 900, fontSize: 10, letterSpacing: '-0.04em', lineHeight: 0.95, textAlign: 'left', textTransform: 'uppercase', whiteSpace: 'pre' }}>{'BU\nUG'}</span>
                             </div>
-                          ) : (
+                          ) : widgetPosition.includes('center') ? (
+                            // Text + center: horizontal tab grudada top/bottom
                             <div style={{
-                              height: 28,
-                              paddingLeft: 10,
-                              paddingRight: 12,
-                              borderRadius: 14,
+                              padding: '4px 12px',
                               background: widgetColor,
                               color: '#fff',
                               display: 'inline-flex',
                               alignItems: 'center',
                               boxShadow: `0 4px 12px ${widgetColor}66`,
                               whiteSpace: 'nowrap',
+                              borderRadius: widgetPosition.includes('top') ? '0 0 6px 6px' : '6px 6px 0 0',
                             }}>
-                              <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: 10, letterSpacing: '-0.02em' }}>Buug report</span>
+                              <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: 9, letterSpacing: '-0.02em' }}>Buug report</span>
+                            </div>
+                          ) : (
+                            // Text + lateral: vertical tag grudada left/right
+                            <div style={{
+                              writingMode: widgetPosition.includes('left') ? 'vertical-lr' : 'vertical-rl',
+                              textOrientation: 'mixed',
+                              padding: '10px 5px',
+                              background: widgetColor,
+                              color: '#fff',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              boxShadow: `0 4px 12px ${widgetColor}66`,
+                              borderRadius: widgetPosition.includes('left') ? '0 6px 6px 0' : '6px 0 0 6px',
+                            }}>
+                              <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: 9, letterSpacing: '-0.02em' }}>Buug report</span>
                             </div>
                           )}
                         </div>
