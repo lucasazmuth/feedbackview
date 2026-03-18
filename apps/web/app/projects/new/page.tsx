@@ -68,6 +68,7 @@ export default function NewProjectPage() {
   const [showPathWarning, setShowPathWarning] = useState(false)
   const [cleanUrl, setCleanUrl] = useState('')
   const [detectedPlatform, setDetectedPlatform] = useState<string | null>(null)
+  const [platformPathHint, setPlatformPathHint] = useState<string | null>(null)
 
   // Widget customization state
   const [widgetStyle, setWidgetStyle] = useState<'text' | 'icon'>('text')
@@ -94,10 +95,12 @@ export default function NewProjectPage() {
     setUrlError(null)
     setShowPathWarning(false)
     setDetectedPlatform(null)
+    setPlatformPathHint(null)
     setTargetUrl(value)
   }
 
   // Detect known platforms from hostname
+  const platformsRequiringPath = new Set(['bubbleapps.io', 'bubble.io'])
   function detectPlatform(hostname: string): string | null {
     const platforms: Record<string, string> = {
       'bubbleapps.io': 'Bubble',
@@ -121,6 +124,12 @@ export default function NewProjectPage() {
       if (hostname.endsWith(domain)) return name
     }
     return null
+  }
+  function requiresPath(hostname: string): boolean {
+    for (const domain of platformsRequiringPath) {
+      if (hostname.endsWith(domain)) return true
+    }
+    return false
   }
 
   async function handleUrlBlur() {
@@ -147,6 +156,7 @@ export default function NewProjectPage() {
       // Detect platform
       const platform = detectPlatform(parsed.hostname)
       setDetectedPlatform(platform)
+      setPlatformPathHint(null)
       // Checar se tem path significativo
       const hasPath = parsed.pathname !== '/' && parsed.pathname !== ''
       if (hasPath && !platform) {
@@ -156,6 +166,12 @@ export default function NewProjectPage() {
       } else if (hasPath && platform) {
         // Plataforma conhecida com path — manter automaticamente (path é necessário)
         setShowPathWarning(false)
+      } else if (!hasPath && platform && requiresPath(parsed.hostname)) {
+        // Plataforma que exige path mas usuário não incluiu — avisar
+        url = parsed.origin
+        setTargetUrl(url)
+        setShowPathWarning(false)
+        setPlatformPathHint(`O ${platform} geralmente precisa de um caminho na URL (ex: /version-test). Verifique se o endereço está completo.`)
       } else {
         url = parsed.origin
         setTargetUrl(url)
@@ -641,6 +657,21 @@ export default function NewProjectPage() {
                     </svg>
                     <span style={{ fontSize: '0.8125rem', color: 'var(--brand-on-background-strong)' }}>
                       Detectamos que você usa <strong>{detectedPlatform}</strong> — funciona perfeitamente com o Buug!
+                    </span>
+                  </div>
+                )}
+
+                {/* Platform path hint — missing required path */}
+                {platformPathHint && (
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '8px 12px',
+                    borderRadius: '0.75rem', background: 'var(--warning-alpha-weak)', border: '1px solid var(--warning-border-medium)',
+                  }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--warning-on-background-strong)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg>
+                    <span style={{ fontSize: '0.8125rem', color: 'var(--warning-on-background-strong)' }}>
+                      {platformPathHint}
                     </span>
                   </div>
                 )}
