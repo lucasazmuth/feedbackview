@@ -116,11 +116,14 @@ or you can use record.mirror to access the mirror instance during recording.`,Bf
       pointer-events: none;
     }
     .fv-trigger.fv-trigger-entering {
-      animation: fv-trigger-bounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      ${r.widgetPosition.includes("center")||r.widgetPosition.includes("middle")?"":"animation: fv-trigger-bounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;"}
     }
     .fv-trigger:hover {
       ${r.widgetPosition.includes("center")||r.widgetPosition.includes("middle")?"":"transform: scale(1.05);"}
       box-shadow: 0 6px 20px ${fr(t,.5)};
+    }
+    .fv-trigger:active {
+      ${r.widgetPosition.includes("center")||r.widgetPosition.includes("middle")?"":"transform: scale(0.95);"}
     }
 
     @keyframes fv-pulse-ring {

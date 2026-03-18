@@ -717,11 +717,14 @@ function createWidget(config: WidgetConfig) {
       pointer-events: none;
     }
     .fv-trigger.fv-trigger-entering {
-      animation: fv-trigger-bounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      ${(config.widgetPosition.includes('center') || config.widgetPosition.includes('middle')) ? '' : 'animation: fv-trigger-bounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;'}
     }
     .fv-trigger:hover {
       ${(config.widgetPosition.includes('center') || config.widgetPosition.includes('middle')) ? '' : 'transform: scale(1.05);'}
       box-shadow: 0 6px 20px ${hexToRgba(color, 0.5)};
+    }
+    .fv-trigger:active {
+      ${(config.widgetPosition.includes('center') || config.widgetPosition.includes('middle')) ? '' : 'transform: scale(0.95);'}
     }
 
     @keyframes fv-pulse-ring {
