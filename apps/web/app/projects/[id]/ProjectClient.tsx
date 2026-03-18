@@ -1966,12 +1966,7 @@ export default function ProjectClient({
                         background: 'var(--surface-background)',
                         position: 'relative',
                       }}>
-                        {/* Screen skeleton */}
-                        <div style={{ opacity: 0.25, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                          <div style={{ width: '50%', height: 4, borderRadius: 2, background: '#aaa' }} />
-                          <div style={{ width: '80%', height: 3, borderRadius: 2, background: '#bbb' }} />
-                          <div style={{ width: '65%', height: 3, borderRadius: 2, background: '#bbb' }} />
-                        </div>
+                        {/* Empty space for clean look */}
                         {/* 8 clickable dots */}
                         {([
                           { value: 'top-left', style: { top: 8, left: 8 } },
