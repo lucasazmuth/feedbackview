@@ -718,7 +718,7 @@ function createWidget(config: WidgetConfig) {
       animation: fv-trigger-bounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
     .fv-trigger:hover {
-      transform: scale(1.05);
+      ${config.widgetPosition.includes('center') ? '' : 'transform: scale(1.05);'}
       box-shadow: 0 6px 20px ${hexToRgba(color, 0.5)};
     }
 

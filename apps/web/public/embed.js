@@ -119,7 +119,7 @@ or you can use record.mirror to access the mirror instance during recording.`,Bf
       animation: fv-trigger-bounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
     .fv-trigger:hover {
-      transform: scale(1.05);
+      ${r.widgetPosition.includes("center")?"":"transform: scale(1.05);"}
       box-shadow: 0 6px 20px ${fr(t,.5)};
     }
 
