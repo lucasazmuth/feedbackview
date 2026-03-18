@@ -49,6 +49,37 @@ export const api = {
       }
     },
 
+    async assign(id: string, userIds: string[]) {
+      const res = await fetch(`/api/feedbacks/${id}/assign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userIds }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Erro ao atribuir')
+      }
+    },
+
+    async unassign(id: string, userId: string) {
+      const res = await fetch(`/api/feedbacks/${id}/assign`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Erro ao remover atribuição')
+      }
+    },
+
+    async getAssignees(id: string) {
+      const res = await fetch(`/api/feedbacks/${id}/assign`)
+      if (!res.ok) throw new Error('Erro ao buscar responsáveis')
+      const data = await res.json()
+      return data.assignees as { id: string; userId: string; name: string | null; email: string; assignedAt: string }[]
+    },
+
     async updateComment(id: string, comment: string) {
       const supabase = createClient()
       const { error } = await supabase
