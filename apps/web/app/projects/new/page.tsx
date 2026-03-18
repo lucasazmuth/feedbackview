@@ -65,6 +65,8 @@ export default function NewProjectPage() {
   const [urlWarnings, setUrlWarnings] = useState<UrlWarning[]>([])
   const [urlChecked, setUrlChecked] = useState(false)
   const [urlValid, setUrlValid] = useState(false)
+  const [showPathWarning, setShowPathWarning] = useState(false)
+  const [cleanUrl, setCleanUrl] = useState('')
 
   // Widget customization state
   const [widgetStyle, setWidgetStyle] = useState<'text' | 'icon'>('text')
@@ -89,6 +91,7 @@ export default function NewProjectPage() {
     setUrlChecked(false)
     setUrlWarnings([])
     setUrlError(null)
+    setShowPathWarning(false)
     setTargetUrl(value)
   }
 
@@ -113,9 +116,17 @@ export default function NewProjectPage() {
         setUrlError('URL inválida. Insira um domínio válido (ex: meusite.com.br)')
         return
       }
-      // Extrair apenas o domínio (sem path, query, hash)
-      url = parsed.origin
-      setTargetUrl(url)
+      // Checar se tem path significativo
+      const hasPath = parsed.pathname !== '/' && parsed.pathname !== ''
+      if (hasPath) {
+        setCleanUrl(parsed.origin)
+        setShowPathWarning(true)
+        // Manter a URL com path por enquanto — usuário decide
+      } else {
+        url = parsed.origin
+        setTargetUrl(url)
+        setShowPathWarning(false)
+      }
     } catch {
       setUrlError('URL inválida. Insira um domínio válido (ex: meusite.com.br)')
       return
@@ -537,10 +548,50 @@ export default function NewProjectPage() {
                 )}
 
                 {/* Valid URL hint */}
-                {!urlError && !targetUrl && (
+                {!urlError && !targetUrl && !showPathWarning && (
                   <Text variant="body-default-xs" onBackground="neutral-weak" align="center">
                     Insira o endereço completo do site que deseja monitorar
                   </Text>
+                )}
+
+                {/* Path warning */}
+                {showPathWarning && (
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '10px 14px',
+                    borderRadius: '0.75rem', background: 'var(--warning-alpha-weak)', border: '1px solid var(--warning-border-medium)',
+                    flexWrap: 'wrap',
+                  }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--warning-on-background-strong)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg>
+                    <span style={{ fontSize: '0.8125rem', color: 'var(--warning-on-background-strong)', flex: 1 }}>
+                      Detectamos um caminho na URL. Deseja manter?
+                    </span>
+                    <div style={{ display: 'flex', gap: '0.375rem' }}>
+                      <button
+                        type="button"
+                        onClick={() => setShowPathWarning(false)}
+                        style={{
+                          padding: '0.375rem 0.75rem', borderRadius: '0.375rem', border: '1px solid var(--warning-border-medium)',
+                          background: 'transparent', color: 'var(--warning-on-background-strong)', fontSize: '0.75rem',
+                          fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
+                        }}
+                      >
+                        Manter completa
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setTargetUrl(cleanUrl); setShowPathWarning(false) }}
+                        style={{
+                          padding: '0.375rem 0.75rem', borderRadius: '0.375rem', border: 'none',
+                          background: 'var(--warning-solid-strong)', color: '#fff', fontSize: '0.75rem',
+                          fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
+                        }}
+                      >
+                        Usar só domínio
+                      </button>
+                    </div>
+                  </div>
                 )}
 
                 {/* Analyzing state */}
@@ -594,7 +645,7 @@ export default function NewProjectPage() {
               {[
                 { icon: <><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></>, text: 'Verificação segura' },
                 { icon: <><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></>, text: 'Setup em minutos' },
-                { icon: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></>, text: 'Sem limite de feedbacks' },
+                { icon: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></>, text: 'Comece grátis' },
               ].map((f, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <div style={{
