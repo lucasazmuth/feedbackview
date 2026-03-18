@@ -70,7 +70,7 @@ export default function NewProjectPage() {
   const [widgetStyle, setWidgetStyle] = useState<'text' | 'icon'>('text')
   const [widgetText, setWidgetText] = useState('Reportar Bug')
   const [widgetPosition, setWidgetPosition] = useState('middle-right')
-  const [widgetColor, setWidgetColor] = useState('#4f46e5')
+  const [widgetColor, setWidgetColor] = useState('#dc2626')
   const [savedFormData, setSavedFormData] = useState<ProjectForm | null>(null)
 
   const [serverError, setServerError] = useState<string | null>(null)

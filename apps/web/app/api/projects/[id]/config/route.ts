@@ -58,7 +58,7 @@ export async function GET(
       return corsJson({
         paused: true,
         widgetPosition: project.widgetPosition || 'middle-right',
-        widgetColor: project.widgetColor || '#4f46e5',
+        widgetColor: project.widgetColor || '#dc2626',
         widgetStyle: project.widgetStyle || 'text',
         widgetText: project.widgetText || 'Reportar Bug',
       })
@@ -127,7 +127,7 @@ export async function GET(
 
     return corsJson({
       widgetPosition: project.widgetPosition || 'middle-right',
-      widgetColor: project.widgetColor || '#4f46e5',
+      widgetColor: project.widgetColor || '#dc2626',
       widgetStyle: project.widgetStyle || 'text',
       widgetText: project.widgetText || 'Reportar Bug',
       limitReached,

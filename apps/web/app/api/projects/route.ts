@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
       widgetStyle: data.widgetStyle || 'text',
       widgetText: data.widgetText || 'Reportar Bug',
       widgetPosition: data.widgetPosition || 'middle-right',
-      widgetColor: data.widgetColor || '#4f46e5',
+      widgetColor: data.widgetColor || '#dc2626',
       ownerId: user.id,
       organizationId: membership?.organizationId || null,
     })
