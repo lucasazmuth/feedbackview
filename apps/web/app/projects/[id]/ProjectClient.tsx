@@ -1957,54 +1957,56 @@ export default function ProjectClient({
                     {/* Widget position */}
                     <div>
                       <Text variant="label-default-s" onBackground="neutral-strong" style={{ marginBottom: '0.5rem', display: 'block' }}>Posição</Text>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
-                        {[
-                          { value: 'top-left', label: 'Sup. esquerda' },
-                          { value: 'top-center', label: 'Sup. centro' },
-                          { value: 'top-right', label: 'Sup. direita' },
-                          { value: 'bottom-left', label: 'Inf. esquerda' },
-                          { value: 'bottom-center', label: 'Inf. centro' },
-                          { value: 'bottom-right', label: 'Inf. direita' },
-                        ].map((pos) => (
-                          <button
-                            key={pos.value}
-                            onClick={() => setWidgetPosition(pos.value)}
-                            style={{
-                              padding: '0.5rem',
-                              borderRadius: '0.5rem',
-                              border: `2px solid ${widgetPosition === pos.value ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)'}`,
-                              background: widgetPosition === pos.value ? 'var(--brand-alpha-weak)' : 'transparent',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.375rem',
-                              transition: 'all 0.15s',
-                            }}
-                          >
-                            <div style={{
-                              width: 24,
-                              height: 18,
-                              borderRadius: 3,
-                              border: '1px solid var(--neutral-border-medium)',
-                              position: 'relative',
-                              flexShrink: 0,
-                            }}>
-                              <div style={{
-                                width: 5,
-                                height: 5,
-                                borderRadius: '50%',
-                                background: widgetPosition === pos.value ? 'var(--brand-solid-strong)' : 'var(--neutral-on-background-weak)',
+                      <div style={{
+                        width: '100%',
+                        aspectRatio: '16 / 10',
+                        maxWidth: 260,
+                        borderRadius: '0.75rem',
+                        border: '1px solid var(--neutral-border-medium)',
+                        background: 'var(--surface-background)',
+                        position: 'relative',
+                      }}>
+                        {/* Screen skeleton */}
+                        <div style={{ opacity: 0.25, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                          <div style={{ width: '50%', height: 4, borderRadius: 2, background: '#aaa' }} />
+                          <div style={{ width: '80%', height: 3, borderRadius: 2, background: '#bbb' }} />
+                          <div style={{ width: '65%', height: 3, borderRadius: 2, background: '#bbb' }} />
+                        </div>
+                        {/* 6 clickable dots */}
+                        {([
+                          { value: 'top-left', style: { top: 8, left: 8 } },
+                          { value: 'top-center', style: { top: 8, left: '50%', transform: 'translateX(-50%)' } },
+                          { value: 'top-right', style: { top: 8, right: 8 } },
+                          { value: 'bottom-left', style: { bottom: 8, left: 8 } },
+                          { value: 'bottom-center', style: { bottom: 8, left: '50%', transform: 'translateX(-50%)' } },
+                          { value: 'bottom-right', style: { bottom: 8, right: 8 } },
+                        ] as { value: string; style: React.CSSProperties }[]).map((pos) => {
+                          const isActive = widgetPosition === pos.value
+                          return (
+                            <button
+                              key={pos.value}
+                              onClick={() => setWidgetPosition(pos.value)}
+                              title={pos.value.replace('top-', 'Superior ').replace('bottom-', 'Inferior ').replace('left', 'esquerda').replace('right', 'direita').replace('center', 'centro')}
+                              style={{
                                 position: 'absolute',
-                                ...(pos.value.includes('top') ? { top: 2 } : { bottom: 2 }),
-                                ...(pos.value.includes('left') ? { left: 2 } : pos.value.includes('center') ? { left: '50%', transform: 'translateX(-50%)' } : { right: 2 }),
-                              }} />
-                            </div>
-                            <span style={{ fontSize: '0.6875rem', color: 'var(--neutral-on-background-strong)', fontWeight: widgetPosition === pos.value ? 600 : 400 }}>
-                              {pos.label}
-                            </span>
-                          </button>
-                        ))}
+                                ...pos.style,
+                                width: isActive ? 16 : 10,
+                                height: isActive ? 16 : 10,
+                                borderRadius: '50%',
+                                background: isActive ? widgetColor : 'var(--neutral-alpha-medium)',
+                                border: isActive ? '2px solid #fff' : '2px solid transparent',
+                                boxShadow: isActive ? `0 0 0 2px ${widgetColor}, 0 2px 8px ${widgetColor}66` : 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                padding: 0,
+                              }}
+                            />
+                          )
+                        })}
                       </div>
+                      <span style={{ fontSize: '0.6875rem', color: 'var(--neutral-on-background-weak)', marginTop: 6, display: 'block' }}>
+                        {widgetPosition.replace('top-', 'Superior ').replace('bottom-', 'Inferior ').replace('left', 'esquerda').replace('right', 'direita').replace('center', 'centro')}
+                      </span>
                     </div>
 
                     {/* Widget color */}
