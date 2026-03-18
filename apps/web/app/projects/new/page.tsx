@@ -145,13 +145,17 @@ export default function NewProjectPage() {
         return
       }
       // Detect platform
-      setDetectedPlatform(detectPlatform(parsed.hostname))
+      const platform = detectPlatform(parsed.hostname)
+      setDetectedPlatform(platform)
       // Checar se tem path significativo
       const hasPath = parsed.pathname !== '/' && parsed.pathname !== ''
-      if (hasPath) {
+      if (hasPath && !platform) {
+        // Domínio próprio com path — perguntar ao usuário
         setCleanUrl(parsed.origin)
         setShowPathWarning(true)
-        // Manter a URL com path por enquanto — usuário decide
+      } else if (hasPath && platform) {
+        // Plataforma conhecida com path — manter automaticamente (path é necessário)
+        setShowPathWarning(false)
       } else {
         url = parsed.origin
         setTargetUrl(url)
