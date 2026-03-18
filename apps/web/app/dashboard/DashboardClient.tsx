@@ -444,26 +444,42 @@ export default function DashboardClient({
           </div>
         )}
 
-        {/* Empty state */}
+        {/* Empty state — onboarding checklist */}
         {orgProjects.length === 0 && !error && (
-          <Column fillWidth horizontal="center" vertical="center" paddingY="xl" gap="m">
-            <Heading variant="heading-strong-m">Nenhum projeto ainda</Heading>
-            <Text
-              variant="body-default-s"
-              onBackground="neutral-weak"
-              align="center"
-              style={{ maxWidth: '24rem' }}
-            >
-              Crie seu primeiro projeto para começar a capturar reports com screenshot e session
-              replay.
-            </Text>
+          <Column fillWidth horizontal="center" vertical="center" paddingY="xl" gap="l">
+            <Column horizontal="center" gap="s" style={{ textAlign: 'center' }}>
+              <Heading variant="heading-strong-l">Bem-vindo ao Buug!</Heading>
+              <Text variant="body-default-m" onBackground="neutral-weak" style={{ maxWidth: '28rem' }}>
+                Siga os passos abaixo para começar a capturar reports com screenshot, replay e Web Vitals.
+              </Text>
+            </Column>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 400 }}>
+              {[
+                { done: true, label: 'Criar sua conta', desc: 'Conta criada com sucesso' },
+                { done: false, label: 'Criar seu primeiro projeto', desc: 'Adicione a URL do seu site' },
+                { done: false, label: 'Instalar o widget', desc: 'Cole o script ou compartilhe o link' },
+                { done: false, label: 'Receber o primeiro report', desc: 'Teste enviando um bug report' },
+              ].map((step, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', borderRadius: 12, border: '1px solid var(--neutral-border-medium)', background: step.done ? 'var(--success-alpha-weak)' : '#fff' }}>
+                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: step.done ? '#059669' : 'var(--neutral-alpha-weak)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: step.done ? '#fff' : 'var(--neutral-on-background-weak)', fontSize: 13, fontWeight: 700 }}>
+                    {step.done ? '✓' : i + 1}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: step.done ? '#059669' : '#111' }}>{step.label}</div>
+                    <div style={{ fontSize: 12, color: 'var(--neutral-on-background-weak)' }}>{step.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
             <Button
               variant="primary"
               prefixIcon="plus"
-              size="m"
+              size="l"
               href="/projects/new"
             >
-              Novo Projeto
+              Criar primeiro projeto
             </Button>
           </Column>
         )}

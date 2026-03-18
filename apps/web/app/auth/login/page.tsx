@@ -159,14 +159,19 @@ function LoginFormContent() {
               {...register('email')}
             />
 
-            <PasswordInput
-              id="password"
-              label="Senha"
-              placeholder="••••••••"
-              error={!!errors.password}
-              errorMessage={errors.password?.message}
-              {...register('password')}
-            />
+            <Column gap="xs">
+              <PasswordInput
+                id="password"
+                label="Senha"
+                placeholder="••••••••"
+                error={!!errors.password}
+                errorMessage={errors.password?.message}
+                {...register('password')}
+              />
+              <Link href="/auth/forgot-password" style={{ alignSelf: 'flex-end', fontSize: '0.8rem', color: 'var(--brand-on-background-strong)', textDecoration: 'none', fontWeight: 500 }}>
+                Esqueceu a senha?
+              </Link>
+            </Column>
 
             <Button
               type="submit"

@@ -51,7 +51,16 @@ interface Feedback {
   projectId: string
   consoleLogs?: ConsoleLog[]
   networkLogs?: NetworkLog[]
-  metadata?: { rrwebEvents?: any[]; stepsToReproduce?: string; expectedResult?: string; actualResult?: string; source?: string; viewport?: string } | null
+  metadata?: {
+    rrwebEvents?: any[]; stepsToReproduce?: string; expectedResult?: string; actualResult?: string; source?: string; viewport?: string;
+    clickBreadcrumbs?: { ts: number; tag: string; text: string; sel: string; x: number; y: number }[];
+    rageClicks?: { ts: number; count: number; sel: string; tag: string; text: string }[];
+    deadClicks?: { ts: number; sel: string; tag: string; text: string }[];
+    performance?: { lcp?: number; cls?: number; inp?: number; pageLoadMs?: number; memoryMB?: number };
+    connection?: { effectiveType?: string; downlink?: number; rtt?: number; saveData?: boolean };
+    display?: { screenW: number; screenH: number; dpr: number; colorDepth: number; touch: boolean };
+    geo?: { tz: string; lang: string; langs?: string[] };
+  } | null
   Project?: { ownerId: string; name: string } | null
 }
 
@@ -566,8 +575,149 @@ export default function FeedbackClient({
                     </Column>
                   )
                 })()}
+
+                {/* Performance Metrics (Core Web Vitals) */}
+                {feedback.metadata?.performance && (() => {
+                  const p = feedback.metadata.performance
+                  const hasData = p.lcp || p.cls !== undefined || p.inp || p.pageLoadMs
+                  if (!hasData) return null
+
+                  const lcpColor = p.lcp ? (p.lcp <= 2500 ? 'var(--success-solid-strong)' : p.lcp <= 4000 ? 'var(--warning-solid-strong)' : 'var(--danger-solid-strong)') : undefined
+                  const clsColor = p.cls !== undefined ? (p.cls <= 0.1 ? 'var(--success-solid-strong)' : p.cls <= 0.25 ? 'var(--warning-solid-strong)' : 'var(--danger-solid-strong)') : undefined
+                  const inpColor = p.inp ? (p.inp <= 200 ? 'var(--success-solid-strong)' : p.inp <= 500 ? 'var(--warning-solid-strong)' : 'var(--danger-solid-strong)') : undefined
+
+                  return (
+                    <Column gap="xs">
+                      <Text variant="label-default-s" onBackground="neutral-weak">Performance</Text>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                        {p.lcp !== undefined && (
+                          <div style={{ padding: '6px 8px', borderRadius: 6, background: 'var(--neutral-alpha-weak)' }}>
+                            <Text variant="body-default-xs" onBackground="neutral-weak">LCP</Text>
+                            <Text variant="label-default-s" style={{ color: lcpColor }}>{(p.lcp / 1000).toFixed(1)}s</Text>
+                          </div>
+                        )}
+                        {p.cls !== undefined && (
+                          <div style={{ padding: '6px 8px', borderRadius: 6, background: 'var(--neutral-alpha-weak)' }}>
+                            <Text variant="body-default-xs" onBackground="neutral-weak">CLS</Text>
+                            <Text variant="label-default-s" style={{ color: clsColor }}>{p.cls.toFixed(3)}</Text>
+                          </div>
+                        )}
+                        {p.inp !== undefined && (
+                          <div style={{ padding: '6px 8px', borderRadius: 6, background: 'var(--neutral-alpha-weak)' }}>
+                            <Text variant="body-default-xs" onBackground="neutral-weak">INP</Text>
+                            <Text variant="label-default-s" style={{ color: inpColor }}>{p.inp}ms</Text>
+                          </div>
+                        )}
+                        {p.pageLoadMs !== undefined && (
+                          <div style={{ padding: '6px 8px', borderRadius: 6, background: 'var(--neutral-alpha-weak)' }}>
+                            <Text variant="body-default-xs" onBackground="neutral-weak">Load</Text>
+                            <Text variant="label-default-s">{(p.pageLoadMs / 1000).toFixed(1)}s</Text>
+                          </div>
+                        )}
+                      </div>
+                      {p.memoryMB !== undefined && (
+                        <Row gap="xs" vertical="center">
+                          <Text variant="body-default-xs" onBackground="neutral-weak">Memória: {p.memoryMB}MB</Text>
+                        </Row>
+                      )}
+                    </Column>
+                  )
+                })()}
+
+                {/* Rage Clicks */}
+                {feedback.metadata?.rageClicks && feedback.metadata.rageClicks.length > 0 && (
+                  <Column gap="xs">
+                    <Row gap="xs" vertical="center">
+                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--danger-solid-strong)' }} />
+                      <Text variant="label-default-s" style={{ color: 'var(--danger-solid-strong)' }}>
+                        {feedback.metadata.rageClicks.length} Rage Click{feedback.metadata.rageClicks.length > 1 ? 's' : ''}
+                      </Text>
+                    </Row>
+                    {feedback.metadata.rageClicks.map((rc, i) => (
+                      <Text key={i} variant="body-default-xs" onBackground="neutral-weak">
+                        {rc.count}x em &lt;{rc.tag.toLowerCase()}&gt; {rc.text ? `"${rc.text}"` : rc.sel}
+                      </Text>
+                    ))}
+                  </Column>
+                )}
+
+                {/* Dead Clicks */}
+                {feedback.metadata?.deadClicks && feedback.metadata.deadClicks.length > 0 && (
+                  <Column gap="xs">
+                    <Row gap="xs" vertical="center">
+                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--warning-solid-strong)' }} />
+                      <Text variant="label-default-s" style={{ color: 'var(--warning-solid-strong)' }}>
+                        {feedback.metadata.deadClicks.length} Dead Click{feedback.metadata.deadClicks.length > 1 ? 's' : ''}
+                      </Text>
+                    </Row>
+                    {feedback.metadata.deadClicks.map((dc, i) => (
+                      <Text key={i} variant="body-default-xs" onBackground="neutral-weak">
+                        &lt;{dc.tag.toLowerCase()}&gt; {dc.text ? `"${dc.text}"` : dc.sel}
+                      </Text>
+                    ))}
+                  </Column>
+                )}
+
+                {/* Display + Connection + Geo */}
+                {(feedback.metadata?.display || feedback.metadata?.connection || feedback.metadata?.geo) && (
+                  <Column gap="xs">
+                    <Text variant="label-default-s" onBackground="neutral-weak">Ambiente</Text>
+                    {feedback.metadata?.display && (
+                      <Row gap="xs" vertical="center">
+                        <Icon name="monitor" size="xs" />
+                        <Text variant="body-default-xs">
+                          Tela: {feedback.metadata.display.screenW}×{feedback.metadata.display.screenH} ({feedback.metadata.display.dpr}x)
+                          {feedback.metadata.display.touch ? ' • Touch' : ''}
+                        </Text>
+                      </Row>
+                    )}
+                    {feedback.metadata?.connection && feedback.metadata.connection.effectiveType && (
+                      <Row gap="xs" vertical="center">
+                        <Icon name="openLink" size="xs" />
+                        <Text variant="body-default-xs">
+                          Rede: {feedback.metadata.connection.effectiveType.toUpperCase()}
+                          {feedback.metadata.connection.downlink ? ` • ${feedback.metadata.connection.downlink}Mbps` : ''}
+                          {feedback.metadata.connection.rtt ? ` • ${feedback.metadata.connection.rtt}ms RTT` : ''}
+                        </Text>
+                      </Row>
+                    )}
+                    {feedback.metadata?.geo && (
+                      <Row gap="xs" vertical="center">
+                        <Icon name="globe" size="xs" />
+                        <Text variant="body-default-xs">
+                          {feedback.metadata.geo.tz} • {feedback.metadata.geo.lang}
+                        </Text>
+                      </Row>
+                    )}
+                  </Column>
+                )}
               </Column>
             </Card>
+
+            {/* Click Breadcrumbs (separate card, collapsible) */}
+            {feedback.metadata?.clickBreadcrumbs && feedback.metadata.clickBreadcrumbs.length > 0 && (
+              <Card padding="0" radius="l" border="neutral-medium">
+                <details>
+                  <summary style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', cursor: 'pointer' }}>
+                    <Text variant="label-default-s">
+                      Breadcrumbs ({feedback.metadata.clickBreadcrumbs.length} cliques)
+                    </Text>
+                  </summary>
+                  <div style={{ maxHeight: '300px', overflowY: 'auto', borderTop: '1px solid var(--neutral-border-medium)' }}>
+                    {feedback.metadata.clickBreadcrumbs.map((bc, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', padding: '0.4rem 1rem', borderTop: i > 0 ? '1px solid var(--neutral-border-medium)' : 'none' }}>
+                        <Text variant="body-default-xs" onBackground="neutral-weak" style={{ whiteSpace: 'nowrap', minWidth: '1.5rem' }}>
+                          {i + 1}.
+                        </Text>
+                        <Text variant="body-default-xs" style={{ fontFamily: 'var(--font-code)' }}>
+                          &lt;{bc.tag.toLowerCase()}&gt;{bc.text ? ` "${bc.text}"` : ''}
+                        </Text>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              </Card>
+            )}
           </Column>
         </Row>
       </Flex>

@@ -42,6 +42,224 @@ const MAX_RRWEB_EVENTS = 100
 const MAX_LOGS = 100
 let proxyPageUrl: string | null = null // URL of the actual site in proxy/shared-url mode
 
+// ─── Enhanced session capture ────────────────────────────────────────────────
+interface ClickBreadcrumb { ts: number; tag: string; text: string; sel: string; x: number; y: number }
+interface RageClick { ts: number; count: number; sel: string; tag: string; text: string }
+interface DeadClick { ts: number; sel: string; tag: string; text: string }
+
+const clickBreadcrumbs: ClickBreadcrumb[] = []
+const rageClicks: RageClick[] = []
+const deadClicks: DeadClick[] = []
+const MAX_BREADCRUMBS = 30
+const MAX_RAGE_CLICKS = 10
+const MAX_DEAD_CLICKS = 10
+
+// Performance metrics (collected via PerformanceObserver)
+let perfLCP: number | undefined
+let perfCLS = 0
+let perfINP: number | undefined
+const inpCandidates: number[] = []
+
+// Selector generation: build short CSS path (max 3 levels)
+function getSelector(el: Element | null): string {
+  if (!el || el === document.body || el === document.documentElement) return 'body'
+  const parts: string[] = []
+  let curr: Element | null = el
+  for (let i = 0; i < 3 && curr && curr !== document.body; i++) {
+    if (curr.id) { parts.unshift(`#${curr.id}`); break }
+    let part = curr.tagName.toLowerCase()
+    if (curr.className && typeof curr.className === 'string') {
+      const cls = curr.className.trim().split(/\s+/).slice(0, 2).join('.')
+      if (cls) part += `.${cls}`
+    }
+    parts.unshift(part)
+    curr = curr.parentElement
+  }
+  return parts.join(' > ').slice(0, 200)
+}
+
+function getElText(el: Element): string {
+  const text = (el as HTMLElement).innerText || el.textContent || ''
+  return text.trim().slice(0, 50)
+}
+
+// Click breadcrumbs + rage click detection
+document.addEventListener('click', (e: MouseEvent) => {
+  const target = e.target as Element
+  if (!target) return
+  // Ignore clicks inside our own widget
+  if (target.closest?.('[data-feedbackview-host]')) return
+
+  const bc: ClickBreadcrumb = {
+    ts: Date.now(),
+    tag: target.tagName,
+    text: getElText(target),
+    sel: getSelector(target),
+    x: Math.round(e.clientX),
+    y: Math.round(e.clientY),
+  }
+  clickBreadcrumbs.push(bc)
+  if (clickBreadcrumbs.length > MAX_BREADCRUMBS) clickBreadcrumbs.shift()
+
+  // Rage click detection: 3+ clicks within 800ms in ~30px radius
+  const now = bc.ts
+  const recent = clickBreadcrumbs.filter(
+    (c) => now - c.ts < 800 && Math.abs(c.x - bc.x) < 30 && Math.abs(c.y - bc.y) < 30
+  )
+  if (recent.length >= 3) {
+    // Avoid duplicate rage click events for the same burst
+    const lastRage = rageClicks[rageClicks.length - 1]
+    if (!lastRage || now - lastRage.ts > 1000) {
+      rageClicks.push({
+        ts: now,
+        count: recent.length,
+        sel: bc.sel,
+        tag: bc.tag,
+        text: bc.text,
+      })
+      if (rageClicks.length > MAX_RAGE_CLICKS) rageClicks.shift()
+    }
+  }
+
+  // Dead click detection
+  detectDeadClick(target, bc)
+}, true) // capture phase
+
+// Dead click: click on non-interactive element with no DOM mutation within 1s
+let pendingDeadClick = false
+function detectDeadClick(target: Element, bc: ClickBreadcrumb) {
+  if (pendingDeadClick) return
+  // Check if target or ancestors (3 levels) are interactive
+  const interactiveTags = ['A', 'BUTTON', 'INPUT', 'SELECT', 'TEXTAREA', 'LABEL']
+  const interactiveAttrs = ['onclick', 'role', 'tabindex', 'data-action']
+  let el: Element | null = target
+  for (let i = 0; i < 4 && el; i++) {
+    if (interactiveTags.includes(el.tagName)) return
+    if (el.getAttribute('role') === 'button' || el.getAttribute('role') === 'link') return
+    for (const attr of interactiveAttrs) {
+      if (el.hasAttribute(attr)) return
+    }
+    // Check computed cursor style
+    try {
+      if (getComputedStyle(el).cursor === 'pointer') return
+    } catch {}
+    el = el.parentElement
+  }
+
+  pendingDeadClick = true
+  let mutated = false
+  const obs = new MutationObserver(() => { mutated = true })
+  obs.observe(document.body, { childList: true, subtree: true, attributes: true })
+
+  const onNav = () => { mutated = true }
+  window.addEventListener('hashchange', onNav)
+  window.addEventListener('popstate', onNav)
+
+  setTimeout(() => {
+    obs.disconnect()
+    window.removeEventListener('hashchange', onNav)
+    window.removeEventListener('popstate', onNav)
+    pendingDeadClick = false
+    if (!mutated) {
+      deadClicks.push({ ts: bc.ts, sel: bc.sel, tag: bc.tag, text: bc.text })
+      if (deadClicks.length > MAX_DEAD_CLICKS) deadClicks.shift()
+    }
+  }, 1000)
+}
+
+// Performance metrics via PerformanceObserver
+try {
+  // LCP
+  const lcpObs = new PerformanceObserver((list) => {
+    const entries = list.getEntries()
+    if (entries.length > 0) perfLCP = entries[entries.length - 1].startTime
+  })
+  lcpObs.observe({ type: 'largest-contentful-paint', buffered: true })
+
+  // CLS
+  const clsObs = new PerformanceObserver((list) => {
+    for (const entry of list.getEntries()) {
+      if (!(entry as any).hadRecentInput) {
+        perfCLS += (entry as any).value || 0
+      }
+    }
+  })
+  clsObs.observe({ type: 'layout-shift', buffered: true })
+
+  // INP
+  const inpObs = new PerformanceObserver((list) => {
+    for (const entry of list.getEntries()) {
+      inpCandidates.push((entry as any).duration || 0)
+    }
+  })
+  inpObs.observe({ type: 'event', buffered: true, durationThreshold: 16 } as any)
+} catch {
+  // PerformanceObserver not available — metrics will be undefined
+}
+
+// Snapshot collectors (called at submit time)
+function collectPerformanceMetrics() {
+  // INP = p98 of interaction durations
+  let inp: number | undefined
+  if (inpCandidates.length > 0) {
+    const sorted = [...inpCandidates].sort((a, b) => a - b)
+    inp = sorted[Math.min(Math.floor(sorted.length * 0.98), sorted.length - 1)]
+  }
+
+  let pageLoadMs: number | undefined
+  try {
+    const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming
+    if (nav?.loadEventEnd > 0) pageLoadMs = Math.round(nav.loadEventEnd)
+  } catch {}
+
+  let memoryMB: number | undefined
+  try {
+    const mem = (performance as any).memory
+    if (mem?.usedJSHeapSize) memoryMB = Math.round(mem.usedJSHeapSize / 1048576 * 10) / 10
+  } catch {}
+
+  return {
+    lcp: perfLCP ? Math.round(perfLCP) : undefined,
+    cls: perfCLS > 0 ? Math.round(perfCLS * 1000) / 1000 : undefined,
+    inp,
+    pageLoadMs,
+    memoryMB,
+  }
+}
+
+function collectConnectionInfo() {
+  try {
+    const conn = (navigator as any).connection
+    if (!conn) return undefined
+    return {
+      effectiveType: conn.effectiveType,
+      downlink: conn.downlink,
+      rtt: conn.rtt,
+      saveData: conn.saveData || false,
+    }
+  } catch { return undefined }
+}
+
+function collectDisplayInfo() {
+  return {
+    screenW: screen.width,
+    screenH: screen.height,
+    dpr: Math.round(window.devicePixelRatio * 100) / 100,
+    colorDepth: screen.colorDepth,
+    touch: 'ontouchstart' in window || navigator.maxTouchPoints > 0,
+  }
+}
+
+function collectGeoHint() {
+  try {
+    return {
+      tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      lang: navigator.language,
+      langs: navigator.languages ? Array.from(navigator.languages).slice(0, 3) : undefined,
+    }
+  } catch { return undefined }
+}
+
 // Listen for tracker data forwarded from ViewerClient (shared URL / proxy mode)
 // The tracker.js inside the iframe captures rrweb, console, network, errors
 // and sends via postMessage → ViewerClient dispatches as custom events here
@@ -68,6 +286,24 @@ window.addEventListener('feedbackview:tracker-data', ((e: CustomEvent) => {
     case 'PAGE_CHANGE':
       if (payload && typeof payload === 'string') proxyPageUrl = payload
       else if (payload?.url) proxyPageUrl = payload.url
+      break
+    case 'CLICK_BREADCRUMB':
+      if (payload?.breadcrumb) {
+        clickBreadcrumbs.push(payload.breadcrumb)
+        if (clickBreadcrumbs.length > MAX_BREADCRUMBS) clickBreadcrumbs.shift()
+      }
+      break
+    case 'RAGE_CLICK':
+      if (payload?.rageClick) {
+        rageClicks.push(payload.rageClick)
+        if (rageClicks.length > MAX_RAGE_CLICKS) rageClicks.shift()
+      }
+      break
+    case 'DEAD_CLICK':
+      if (payload?.deadClick) {
+        deadClicks.push(payload.deadClick)
+        if (deadClicks.length > MAX_DEAD_CLICKS) deadClicks.shift()
+      }
       break
   }
 }) as EventListener)
@@ -2246,6 +2482,23 @@ function createWidget(config: WidgetConfig) {
           ...(actual ? { actualResult: actual } : {}),
         }
       }
+    }
+
+    // Enhanced session capture data
+    const sessionCapture: any = {}
+    if (clickBreadcrumbs.length > 0) sessionCapture.clickBreadcrumbs = clickBreadcrumbs.slice(-MAX_BREADCRUMBS)
+    if (rageClicks.length > 0) sessionCapture.rageClicks = rageClicks.slice(-MAX_RAGE_CLICKS)
+    if (deadClicks.length > 0) sessionCapture.deadClicks = deadClicks.slice(-MAX_DEAD_CLICKS)
+    const perf = collectPerformanceMetrics()
+    if (perf.lcp || perf.cls || perf.inp || perf.pageLoadMs) sessionCapture.performance = perf
+    const conn = collectConnectionInfo()
+    if (conn) sessionCapture.connection = conn
+    sessionCapture.display = collectDisplayInfo()
+    const geo = collectGeoHint()
+    if (geo) sessionCapture.geo = geo
+
+    if (Object.keys(sessionCapture).length > 0) {
+      payload.metadata = { ...payload.metadata, ...sessionCapture }
     }
 
     const finalScreenshot = getFinalScreenshot()

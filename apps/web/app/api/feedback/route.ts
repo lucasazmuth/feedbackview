@@ -22,8 +22,38 @@ function corsJson(body: any, status = 200) {
   return NextResponse.json(body, { status, headers: CORS_HEADERS })
 }
 
+// ─── IP-based rate limiting (in-memory, 10 requests/minute per IP) ──────────
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
+const RATE_LIMIT_WINDOW = 60_000 // 1 minute
+const RATE_LIMIT_MAX = 10
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now()
+  const entry = rateLimitMap.get(ip)
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW })
+    return false
+  }
+  entry.count++
+  return entry.count > RATE_LIMIT_MAX
+}
+
+// Clean up stale entries every 5 minutes
+setInterval(() => {
+  const now = Date.now()
+  for (const [ip, entry] of rateLimitMap) {
+    if (now > entry.resetAt) rateLimitMap.delete(ip)
+  }
+}, 300_000)
+
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit check
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || 'unknown'
+    if (isRateLimited(ip)) {
+      return corsJson({ error: 'Muitas requisições. Tente novamente em 1 minuto.' }, 429)
+    }
+
     const data = await req.json()
 
     if (!data.projectId || !data.comment || !data.type) {
@@ -190,6 +220,60 @@ export async function POST(req: NextRequest) {
         if (data.metadata?.stepsToReproduce) meta.stepsToReproduce = data.metadata.stepsToReproduce
         if (data.metadata?.expectedResult) meta.expectedResult = data.metadata.expectedResult
         if (data.metadata?.actualResult) meta.actualResult = data.metadata.actualResult
+        // Enhanced session capture data (sanitized)
+        if (Array.isArray(data.metadata?.clickBreadcrumbs)) {
+          meta.clickBreadcrumbs = data.metadata.clickBreadcrumbs.slice(-30).map((b: any) => ({
+            ts: Number(b.ts) || 0, tag: String(b.tag || '').slice(0, 20), text: String(b.text || '').slice(0, 50),
+            sel: String(b.sel || '').slice(0, 200), x: Number(b.x) || 0, y: Number(b.y) || 0,
+          }))
+        }
+        if (Array.isArray(data.metadata?.rageClicks)) {
+          meta.rageClicks = data.metadata.rageClicks.slice(-10).map((r: any) => ({
+            ts: Number(r.ts) || 0, count: Number(r.count) || 0, sel: String(r.sel || '').slice(0, 200),
+            tag: String(r.tag || '').slice(0, 20), text: String(r.text || '').slice(0, 50),
+          }))
+        }
+        if (Array.isArray(data.metadata?.deadClicks)) {
+          meta.deadClicks = data.metadata.deadClicks.slice(-10).map((d: any) => ({
+            ts: Number(d.ts) || 0, sel: String(d.sel || '').slice(0, 200),
+            tag: String(d.tag || '').slice(0, 20), text: String(d.text || '').slice(0, 50),
+          }))
+        }
+        if (data.metadata?.performance && typeof data.metadata.performance === 'object') {
+          const p = data.metadata.performance
+          meta.performance = {
+            lcp: p.lcp != null ? Number(p.lcp) : undefined,
+            cls: p.cls != null ? Number(p.cls) : undefined,
+            inp: p.inp != null ? Number(p.inp) : undefined,
+            pageLoadMs: p.pageLoadMs != null ? Number(p.pageLoadMs) : undefined,
+            memoryMB: p.memoryMB != null ? Number(p.memoryMB) : undefined,
+          }
+        }
+        if (data.metadata?.connection && typeof data.metadata.connection === 'object') {
+          const c = data.metadata.connection
+          meta.connection = {
+            effectiveType: String(c.effectiveType || '').slice(0, 10),
+            downlink: c.downlink != null ? Number(c.downlink) : undefined,
+            rtt: c.rtt != null ? Number(c.rtt) : undefined,
+            saveData: !!c.saveData,
+          }
+        }
+        if (data.metadata?.display && typeof data.metadata.display === 'object') {
+          const d = data.metadata.display
+          meta.display = {
+            screenW: Number(d.screenW) || 0, screenH: Number(d.screenH) || 0,
+            dpr: Number(d.dpr) || 1, colorDepth: Number(d.colorDepth) || 0,
+            touch: !!d.touch,
+          }
+        }
+        if (data.metadata?.geo && typeof data.metadata.geo === 'object') {
+          const g = data.metadata.geo
+          meta.geo = {
+            tz: String(g.tz || '').slice(0, 50),
+            lang: String(g.lang || '').slice(0, 10),
+            langs: Array.isArray(g.langs) ? g.langs.slice(0, 3).map((l: any) => String(l).slice(0, 10)) : undefined,
+          }
+        }
         return Object.keys(meta).length > 0 ? meta : null
       })(),
       attachmentUrls: attachmentUrls.length > 0 ? attachmentUrls : null,

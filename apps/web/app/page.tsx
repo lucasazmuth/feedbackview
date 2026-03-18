@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import { IoMdClose } from 'react-icons/io'
 
 const Lottie = dynamic(() => import('lottie-react'), { ssr: false })
 import { createClient } from '@/lib/supabase/client'
@@ -26,6 +25,9 @@ const featureIcons: Record<string, React.ReactNode> = {
   bolt: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>,
   lock: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>,
   dashboard: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="9" rx="1" /><rect x="14" y="3" width="7" height="5" rx="1" /><rect x="14" y="12" width="7" height="9" rx="1" /><rect x="3" y="16" width="7" height="5" rx="1" /></svg>,
+  vitals: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,
+  click: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 9l5 12 1.8-5.2L21 14 9 9z"/><path d="M7.2 2.2L8 5.1"/><path d="M5.1 8l-2.9-.8"/><path d="M14 4.1L12 6"/><path d="M6 12l-1.9 2"/></svg>,
+  globe: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
 }
 
 const features = [
@@ -35,29 +37,29 @@ const features = [
     description: 'Grave e reproduza a sessão completa do usuário. Veja exatamente o que aconteceu antes do bug.',
   },
   {
-    iconKey: 'screenshot',
-    title: 'Screenshot Automático',
-    description: 'Captura automática de tela com anotações visuais. Destaque áreas com problemas diretamente.',
+    iconKey: 'vitals',
+    title: 'Core Web Vitals',
+    description: 'LCP, CLS e INP em cada report. Saiba se o problema é de performance ou de código — sem abrir o Lighthouse.',
+  },
+  {
+    iconKey: 'click',
+    title: 'Rage & Dead Clicks',
+    description: 'Detecta cliques de frustração e em elementos sem ação. Identifique problemas de UX automaticamente.',
   },
   {
     iconKey: 'logs',
-    title: 'Console & Network Logs',
-    description: 'Logs de console e requisições de rede capturados automaticamente junto com cada report.',
+    title: 'Console, Network & Screenshot',
+    description: 'Logs de console, requisições de rede e screenshot automático — tudo capturado junto com cada report.',
+  },
+  {
+    iconKey: 'globe',
+    title: 'Contexto Completo',
+    description: 'Device, rede, timezone, resolução, breadcrumb de cliques e mais. Senhas mascaradas automaticamente.',
   },
   {
     iconKey: 'bolt',
-    title: 'Integração em 1 Minuto',
-    description: 'Cole um script no HTML ou compartilhe um link. Sem SDK complexo, sem configuração.',
-  },
-  {
-    iconKey: 'lock',
-    title: 'Dados Sensíveis Protegidos',
-    description: 'Campos de senha mascarados automaticamente. Controle total sobre o que é capturado.',
-  },
-  {
-    iconKey: 'dashboard',
-    title: 'Gestão de Reports',
-    description: 'Dashboard completo para gerenciar, priorizar e resolver reports da sua equipe.',
+    title: 'Setup em 1 Minuto',
+    description: 'Cole um script no HTML ou compartilhe um link. Sem SDK complexo. Dashboard completo para a equipe.',
   },
 ]
 
@@ -75,7 +77,7 @@ const steps = [
   {
     number: '3',
     title: 'Receba reports completos',
-    description: 'Cada report vem com screenshot, replay, logs e contexto técnico.',
+    description: 'Screenshot, replay, logs, Web Vitals, rage clicks, breadcrumbs e contexto técnico completo.',
   },
 ]
 
@@ -133,8 +135,6 @@ export default function LandingPage() {
     return () => clearInterval(timer)
   }, [heroStep])
 
-  const [demoOpen, setDemoOpen] = useState(false)
-  const [demoStep, setDemoStep] = useState(0)
 
   return (
     <Column fillWidth style={{ minHeight: '100vh' }}>
@@ -252,7 +252,7 @@ export default function LandingPage() {
             as="h1"
             style={{ maxWidth: '48rem' }}
           >
-            Cada bug com screenshot, replay e logs. Automaticamente.
+            Bug reporting com Web Vitals, replay e rage clicks.
           </Heading>
 
           <Text
@@ -260,8 +260,7 @@ export default function LandingPage() {
             onBackground="neutral-weak"
             style={{ maxWidth: '36rem' }}
           >
-            Sua equipe de QA reporta bugs com contexto técnico completo.
-            Sem prints manuais, sem &ldquo;não consigo reproduzir&rdquo;.
+            O único QA tool que captura Core Web Vitals, rage clicks e session replay em cada report. Setup em 1 minuto, sem SDK complexo.
           </Text>
 
           <Row gap="m" style={{ marginTop: '0.5rem' }}>
@@ -322,9 +321,9 @@ export default function LandingPage() {
           ]
           const heroDescs = [
             'Cole a URL do seu site, escolha o modo de integração e pronto — o Buug está ativo.',
-            'Um botão discreto aparece no canto do site. Session replay, screenshot e logs são capturados automaticamente.',
-            'O formulário já vem com replay da sessão, logs e screenshot. Zero atrito para o usuário.',
-            'Visualize todos os reports com severidade, status e contexto técnico completo em um só lugar.',
+            'Um botão discreto aparece no canto do site. Replay, screenshot, Web Vitals e clicks são capturados automaticamente.',
+            'O formulário já vem com replay, logs, rage clicks e contexto técnico. Zero atrito para o usuário.',
+            'Reports com Web Vitals, breadcrumbs, device info, rede e mais — tudo organizado para resolver rápido.',
           ]
             const stepVisuals = [
               /* Step 0: Project config — Buug app-like UI */
@@ -722,7 +721,7 @@ export default function LandingPage() {
               Tudo que sua equipe precisa para QA
             </Heading>
             <Text variant="body-default-m" onBackground="neutral-weak" style={{ maxWidth: '32rem' }}>
-              Cada report inclui contexto técnico completo, automaticamente.
+              De screenshot a Core Web Vitals — cada report inclui tudo que o dev precisa para resolver sem reproduzir.
             </Text>
           </Column>
 
@@ -760,517 +759,6 @@ export default function LandingPage() {
       </Flex>
 
 
-      {/* Demo Modal — replica exacta da UI real do produto */}
-      {demoOpen && (() => {
-        const S = {
-          browser: { background: '#1a1a2e', borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)' } as React.CSSProperties,
-          browserBar: { display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: '#12121f', borderBottom: '1px solid rgba(255,255,255,0.06)' } as React.CSSProperties,
-          dot: (c: string) => ({ width: 8, height: 8, borderRadius: '50%', background: c }) as React.CSSProperties,
-          urlBar: { flex: 1, marginLeft: 8, background: 'rgba(255,255,255,0.06)', borderRadius: 6, padding: '4px 12px', fontSize: 11, color: 'rgba(255,255,255,0.4)', fontFamily: 'monospace' } as React.CSSProperties,
-          pageBg: { background: '#fff', padding: '20px', minHeight: 280, position: 'relative' } as React.CSSProperties,
-          skeletonLine: (w: string) => ({ height: 8, borderRadius: 4, background: '#e5e7eb', width: w, marginBottom: 6 }) as React.CSSProperties,
-          skeletonBlock: { height: 40, borderRadius: 8, background: '#f3f4f6', marginBottom: 10 } as React.CSSProperties,
-          widgetBtn: { position: 'absolute', bottom: 16, right: 16, padding: '10px 22px', background: '#4f46e5', color: '#fff', borderRadius: 24, fontWeight: 700, fontSize: 13, boxShadow: '0 4px 16px rgba(79,70,229,0.35)', letterSpacing: '-0.01em', border: 'none' } as React.CSSProperties,
-          panel: { background: '#fff', borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.12)', border: '1px solid #e5e7eb', overflow: 'hidden' } as React.CSSProperties,
-          panelHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid #f3f4f6' } as React.CSSProperties,
-          input: { width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, color: '#111', background: '#fafafa', outline: 'none' } as React.CSSProperties,
-          textarea: { width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, color: '#374151', background: '#fafafa', minHeight: 60, resize: 'none' as const, outline: 'none', fontFamily: 'inherit' } as React.CSSProperties,
-          pill: (active: boolean, color?: string) => ({ padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600, border: 'none', cursor: 'pointer', background: active ? (color || '#4f46e5') : '#f3f4f6', color: active ? '#fff' : '#6b7280', transition: 'all 0.15s' }) as React.CSSProperties,
-          submitBtn: { width: '100%', padding: '12px', borderRadius: 10, border: 'none', background: '#4f46e5', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer' } as React.CSSProperties,
-          tag: (bg: string, color: string) => ({ padding: '3px 8px', borderRadius: 6, fontSize: 11, fontWeight: 600, background: bg, color, display: 'inline-block' }) as React.CSSProperties,
-          logRow: { display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 6, fontSize: 11, fontFamily: 'monospace', background: '#fafafa', borderLeft: '3px solid transparent' } as React.CSSProperties,
-        }
-
-        const demoSteps = [
-          {
-            title: 'Widget aparece no seu site',
-            description: 'Um botão flutuante é adicionado automaticamente. Basta uma linha de código.',
-            visual: (
-              <div style={S.browser}>
-                <div style={S.browserBar}>
-                  <div style={S.dot('#ff5f57')} /><div style={S.dot('#febc2e')} /><div style={S.dot('#28c840')} />
-                  <div style={S.urlBar}>app.seusite.com.br/dashboard</div>
-                </div>
-                <div style={S.pageBg}>
-                  {/* Fake page content */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div style={{ width: 28, height: 28, borderRadius: 6, background: '#4f46e5' }} />
-                      <div style={S.skeletonLine('80px')} />
-                    </div>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <div style={{ ...S.skeletonLine('50px'), background: '#e5e7eb', borderRadius: 6, height: 28, marginBottom: 0 }} />
-                      <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#e5e7eb' }} />
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
-                    {[1,2,3].map(n => (
-                      <div key={n} style={{ flex: 1, background: '#f9fafb', borderRadius: 10, padding: 14, border: '1px solid #f3f4f6' }}>
-                        <div style={S.skeletonLine('60%')} />
-                        <div style={{ fontSize: 22, fontWeight: 700, color: '#111', marginTop: 4 }}>{n === 1 ? '2,847' : n === 2 ? '89%' : '$12.4k'}</div>
-                        <div style={{ ...S.skeletonLine('80%'), marginTop: 6 }} />
-                      </div>
-                    ))}
-                  </div>
-                  <div style={S.skeletonBlock} />
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <div style={{ ...S.skeletonBlock, flex: 2 }} />
-                    <div style={{ ...S.skeletonBlock, flex: 1 }} />
-                  </div>
-                  {/* Widget button */}
-                  <div className="demo-widget-pulse" style={S.widgetBtn}>
-                    <span style={{ fontFamily: 'var(--font-logo)' }}>Buug report</span>
-                  </div>
-                  {/* Cursor animation hint */}
-                  <div style={{ position: 'absolute', bottom: 42, right: 48, fontSize: 18, opacity: 0.7, animation: 'none' }}>
-                    <svg width="16" height="20" viewBox="0 0 16 20" fill="none"><path d="M1 1L1 14.5L5.5 10.5L9 18L12 16.5L8.5 9H14.5L1 1Z" fill="#111" stroke="#fff" strokeWidth="1"/></svg>
-                  </div>
-                </div>
-              </div>
-            ),
-          },
-          {
-            title: 'Usuário preenche o report',
-            description: 'Painel lateral desliza com o formulário completo — idêntico ao widget real.',
-            visual: (
-              <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid #e5e7eb', boxShadow: '0 4px 24px rgba(0,0,0,0.08)', background: '#fff' }}>
-                {/* Header — exact fv-header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid #e5e7eb' }}>
-                  <h2 style={{ fontSize: 16, fontWeight: 600, color: '#111827', margin: 0 }}>Reportar</h2>
-                  <div style={{ width: 28, height: 28, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                  </div>
-                </div>
-
-                {/* Two-column body — form left, preview right */}
-                <div style={{ display: 'flex', minHeight: 0 }}>
-                  {/* Left: form */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    {/* Session Replay section */}
-                    <div style={{ padding: '14px 16px', borderBottom: '1px solid #f3f4f6' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 8 }}>
-                        <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#ef4444', flexShrink: 0 }} />
-                        Session Replay <span style={{ fontSize: 11, fontWeight: 400, color: '#9ca3af' }}>(gravação automática)</span>
-                      </div>
-                      <div style={{ borderRadius: 10, border: '1px solid #1e293b', overflow: 'hidden', background: '#0f172a' }}>
-                        <div style={{ minHeight: 70, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', padding: 8 }}>
-                          <div style={{ width: '85%', height: 50, background: '#1e293b', borderRadius: 3, display: 'flex', flexDirection: 'column', padding: 6, gap: 3 }}>
-                            <div style={{ height: 3, width: '35%', background: '#334155', borderRadius: 2 }} />
-                            <div style={{ height: 3, width: '60%', background: '#334155', borderRadius: 2 }} />
-                            <div style={{ display: 'flex', gap: 3, marginTop: 3 }}>
-                              <div style={{ flex: 1, height: 14, background: '#334155', borderRadius: 2 }} />
-                              <div style={{ flex: 1, height: 14, background: '#334155', borderRadius: 2 }} />
-                            </div>
-                          </div>
-                          <div style={{ position: 'absolute', top: '52%', left: '58%', width: 10, height: 10, borderRadius: '50%', background: 'rgba(73,80,246,0.5)', border: '1.5px solid rgba(73,80,246,0.8)' }} />
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 10px', borderTop: '1px solid #1e293b', background: '#0f172a' }}>
-                          <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="#fff"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                          </div>
-                          <div style={{ flex: 1, height: 3, borderRadius: 2, background: '#334155', position: 'relative' }}>
-                            <div style={{ width: '65%', height: '100%', borderRadius: 2, background: '#4f46e5' }} />
-                          </div>
-                          <span style={{ fontSize: 9, color: '#64748b', fontFamily: 'monospace' }}>00:21 / 00:32</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Form fields */}
-                    <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-                      <div>
-                        <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 5 }}>Título</label>
-                        <div style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 12, color: '#111827' }}>Botão de pagamento não funciona</div>
-                      </div>
-                      <div>
-                        <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 5 }}>Descrição <span style={{ color: '#ef4444' }}>*</span></label>
-                        <div style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 11, color: '#374151', lineHeight: 1.5, minHeight: 44 }}>Ao clicar em &quot;Finalizar compra&quot;, o botão fica carregando infinitamente e retorna erro 500.</div>
-                      </div>
-                      {/* Type — segmented buttons */}
-                      <div>
-                        <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 5 }}>Tipo</label>
-                        <div style={{ display: 'flex', gap: 5 }}>
-                          {[
-                            { label: 'Bug', active: true, icon: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2l1.88 1.88"/><path d="M14.12 3.88L16 2"/><path d="M9 7.13v-1a3.003 3.003 0 116 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 014-4h4a4 4 0 014 4v3c0 3.3-2.7 6-6 6"/></svg> },
-                            { label: 'Sugestão', active: false, icon: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 006 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg> },
-                            { label: 'Dúvida', active: false, icon: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg> },
-                            { label: 'Elogio', active: false, icon: <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 10v12"/><path d="M15 5.88L14 10h5.83a2 2 0 011.92 2.56l-2.33 8A2 2 0 0117.5 22H4a2 2 0 01-2-2v-8a2 2 0 012-2h2.76a2 2 0 001.79-1.11L12 2a3.13 3.13 0 013 3.88z"/></svg> },
-                          ].map(t => (
-                            <div key={t.label} style={{ flex: 1, padding: '6px 2px', borderRadius: 8, fontSize: 10, border: t.active ? '2px solid #4f46e5' : '1px solid #d1d5db', background: t.active ? 'rgba(79,70,229,0.05)' : '#fff', color: t.active ? '#4f46e5' : '#374151', fontWeight: t.active ? 600 : 400, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
-                              {t.icon} {t.label}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      {/* Priority — segmented buttons with colors */}
-                      <div>
-                        <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 5 }}>Prioridade</label>
-                        <div style={{ display: 'flex', gap: 5 }}>
-                          {[
-                            { label: 'Baixa', color: '#22c55e', active: false },
-                            { label: 'Média', color: '#f59e0b', active: false },
-                            { label: 'Alta', color: '#f97316', active: true },
-                            { label: 'Crítica', color: '#ef4444', active: false },
-                          ].map(s => (
-                            <div key={s.label} style={{ flex: 1, padding: '6px 2px', borderRadius: 8, fontSize: 10, border: s.active ? `2px solid ${s.color}` : '1px solid #d1d5db', background: s.active ? `${s.color}15` : '#fff', color: s.active ? s.color : '#374151', fontWeight: s.active ? 600 : 400, textAlign: 'center' }}>
-                              {s.label}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      {/* Attachments */}
-                      <div>
-                        <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: '#374151', marginBottom: 5 }}>Anexos</label>
-                        <div style={{ padding: 8, borderRadius: 8, border: '2px dashed #d1d5db', fontSize: 11, color: '#6b7280', textAlign: 'center' }}>
-                          Clique para anexar arquivos (máx. 5)
-                        </div>
-                      </div>
-                      <button style={{ width: '100%', padding: '10px', borderRadius: 10, border: 'none', background: '#4f46e5', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
-                        Enviar Bug
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Right: live preview */}
-                  <div className="demo-bg-site" style={{ width: 200, flexShrink: 0, borderLeft: '1px solid #e5e7eb', background: '#f9fafb', padding: 14 }}>
-                    <div style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>Pré-visualização</div>
-                    <div style={{ background: '#fff', borderRadius: 10, border: '1px solid #e5e7eb', padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '2px 7px', borderRadius: 6, fontSize: 10, fontWeight: 600, background: '#fef2f2', color: '#dc2626', alignSelf: 'flex-start' }}>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 014-4h4a4 4 0 014 4v3c0 3.3-2.7 6-6 6"/></svg>
-                        Bug
-                      </span>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: '#111827' }}>Botão de pagamento não funciona</div>
-                      <p style={{ fontSize: 10, color: '#374151', lineHeight: 1.5, margin: 0 }}>Ao clicar em &quot;Finalizar compra&quot;, o botão fica carregando...</p>
-                      <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9 }}>
-                          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-                          <span style={{ color: '#2563eb' }}>meusite.com.br/checkout</span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9 }}>
-                          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-                          <span style={{ color: '#374151' }}>macOS • Chrome</span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9 }}>
-                          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
-                          <span style={{ color: '#374151' }}>3 errors • 12 warns</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ),
-          },
-          {
-            title: 'Dados capturados automaticamente',
-            description: 'Sem esforço do usuário: screenshot, replay da sessão, logs do console e requisições de rede.',
-            visual: (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {/* Session Replay — exact replica of FeedbackModal replay player */}
-                <div style={{ borderRadius: 12, border: '1px solid #1e293b', overflow: 'hidden' }}>
-                  {/* Dark replay viewport */}
-                  <div style={{ background: '#0f172a', minHeight: 100, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {/* Miniature page rendering */}
-                    <div style={{ width: '80%', height: 70, background: '#1e293b', borderRadius: 4, display: 'flex', flexDirection: 'column', padding: 8, gap: 4 }}>
-                      <div style={{ height: 4, width: '40%', background: '#334155', borderRadius: 2 }} />
-                      <div style={{ height: 4, width: '70%', background: '#334155', borderRadius: 2 }} />
-                      <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
-                        <div style={{ flex: 1, height: 20, background: '#334155', borderRadius: 2 }} />
-                        <div style={{ flex: 1, height: 20, background: '#334155', borderRadius: 2 }} />
-                      </div>
-                      {/* Animated cursor */}
-                      <div style={{ position: 'absolute', top: '55%', left: '60%' }}>
-                        <svg width="12" height="16" viewBox="0 0 16 20" fill="none"><path d="M1 1L1 14.5L5.5 10.5L9 18L12 16.5L8.5 9H14.5L1 1Z" fill="#fff" stroke="#0f172a" strokeWidth="1"/></svg>
-                      </div>
-                    </div>
-                    {/* Stats bar — matches embed */}
-                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, display: 'flex', justifyContent: 'space-between', padding: '6px 16px', background: '#1e293b', fontSize: 11, color: '#94a3b8' }}>
-                      <span>142 eventos</span>
-                      <span>32s gravados</span>
-                    </div>
-                  </div>
-                  {/* Replay controls — matches embed player exactly */}
-                  <div style={{ background: '#fff', padding: '12px 16px', borderTop: '1px solid #e5e7eb' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      {/* Play button */}
-                      <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                      </div>
-                      {/* Timeline */}
-                      <div style={{ flex: 1 }}>
-                        <div style={{ height: 6, background: '#e5e7eb', borderRadius: 3, position: 'relative' }}>
-                          <div style={{ width: '65%', height: '100%', background: '#4f46e5', borderRadius: 3 }} />
-                          <div style={{ position: 'absolute', top: -4, left: '65%', width: 14, height: 14, borderRadius: '50%', background: '#4f46e5', border: '2px solid #fff', boxShadow: '0 1px 3px rgba(0,0,0,0.15)' }} />
-                        </div>
-                      </div>
-                      <span style={{ fontSize: 11, color: '#6b7280', fontFamily: 'monospace', flexShrink: 0 }}>00:21 / 00:32</span>
-                    </div>
-                    <div style={{ display: 'flex', gap: 4, marginTop: 8 }}>
-                      {['0.5x', '1x', '2x', '4x'].map((s, i) => (
-                        <span key={s} style={{ padding: '4px 8px', borderRadius: 6, fontSize: 11, fontWeight: i === 1 ? 600 : 400, background: i === 1 ? '#4f46e5' : 'transparent', color: i === 1 ? '#fff' : '#9ca3af', cursor: 'pointer' }}>{s}</span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                {/* Expandable sections — matches FeedbackModal exactly */}
-                {/* Console Logs */}
-                <div style={{ border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#f9fafb' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 13, fontWeight: 500, color: '#374151' }}>Console Logs</span>
-                      <span style={{ padding: '1px 6px', borderRadius: 4, fontSize: 10, fontWeight: 700, background: '#fee2e2', color: '#b91c1c' }}>3 errors</span>
-                      <span style={{ padding: '1px 6px', borderRadius: 4, fontSize: 10, fontWeight: 700, background: '#fef9c3', color: '#a16207' }}>12 warn</span>
-                    </div>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
-                  </div>
-                  <div style={{ maxHeight: 120, overflowY: 'auto' }}>
-                    {[
-                      { level: 'ERROR', msg: 'TypeError: Cannot read properties of undefined (reading \'id\')', bg: '#fee2e2', color: '#b91c1c' },
-                      { level: 'ERROR', msg: 'POST /api/checkout 500 (Internal Server Error)', bg: '#fee2e2', color: '#b91c1c' },
-                      { level: 'ERROR', msg: 'Uncaught (in promise) Error: Payment failed', bg: '#fee2e2', color: '#b91c1c' },
-                      { level: 'WARN', msg: 'componentWillMount has been renamed', bg: '#fef9c3', color: '#a16207' },
-                      { level: 'INFO', msg: 'React DevTools: Connected', bg: '#dbeafe', color: '#1d4ed8' },
-                    ].map((log, i) => (
-                      <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 6, padding: '5px 14px', borderTop: '1px solid #f3f4f6' }}>
-                        <span style={{ flexShrink: 0, padding: '1px 6px', borderRadius: 4, fontSize: 10, fontWeight: 700, lineHeight: '16px', background: log.bg, color: log.color }}>{log.level}</span>
-                        <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#6b7280', wordBreak: 'break-word' }}>{log.msg}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                {/* Network Logs */}
-                <div style={{ border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#f9fafb' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontSize: 13, fontWeight: 500, color: '#374151' }}>Network Requests</span>
-                      <span style={{ padding: '1px 6px', borderRadius: 4, fontSize: 10, fontWeight: 700, background: '#fee2e2', color: '#b91c1c' }}>1 failed</span>
-                    </div>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><path d="m6 9 6 6 6-6"/></svg>
-                  </div>
-                  <div>
-                    {[
-                      { method: 'GET', url: '/api/products?category=electronics', status: 200, time: '45ms', mColor: '#2563eb' },
-                      { method: 'GET', url: '/api/cart/items', status: 200, time: '23ms', mColor: '#2563eb' },
-                      { method: 'POST', url: '/api/checkout/process', status: 500, time: '1.2s', mColor: '#d97706' },
-                      { method: 'GET', url: '/api/user/me', status: 200, time: '32ms', mColor: '#2563eb' },
-                    ].map((req, i) => (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 14px', borderTop: '1px solid #f3f4f6', fontFamily: 'monospace', fontSize: 11, background: req.status >= 400 ? '#fef2f2' : 'transparent' }}>
-                        <span style={{ fontWeight: 700, color: req.mColor, width: 36, flexShrink: 0 }}>{req.method}</span>
-                        <span style={{ flex: 1, color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{req.url}</span>
-                        <span style={{ fontWeight: 600, color: req.status >= 400 ? '#dc2626' : '#059669', flexShrink: 0 }}>{req.status}</span>
-                        <span style={{ color: '#9ca3af', width: 36, textAlign: 'right', flexShrink: 0 }}>{req.time}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ),
-          },
-          {
-            title: 'Gerencie no painel',
-            description: 'Reports organizados com status, replay integrado, filtros e contexto completo para resolver rápido.',
-            visual: (
-              <div style={{ ...S.browser, background: '#fff' }}>
-                <div style={S.browserBar}>
-                  <div style={S.dot('#ff5f57')} /><div style={S.dot('#febc2e')} /><div style={S.dot('#28c840')} />
-                  <div style={S.urlBar}>buug.io/projects/meu-site</div>
-                </div>
-                <div style={{ background: '#fff', display: 'flex', minHeight: 310 }}>
-                  {/* Sidebar */}
-                  <div style={{ width: 48, background: '#fafafa', borderRight: '1px solid #f3f4f6', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 0', gap: 4 }}>
-                    <div style={{ width: 28, height: 28, borderRadius: 8, background: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}>
-                      <span style={{ color: '#fff', fontSize: 9, fontWeight: 800 }}>RB</span>
-                    </div>
-                    {/* Nav items */}
-                    {[
-                      { active: true, icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> },
-                      { active: false, icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg> },
-                      { active: false, icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg> },
-                    ].map((item, i) => (
-                      <div key={i} style={{ width: 32, height: 32, borderRadius: 6, background: item.active ? '#ede9fe' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                        {item.icon}
-                      </div>
-                    ))}
-                    <div style={{ flex: 1 }} />
-                    <div style={{ width: 32, height: 32, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-                    </div>
-                  </div>
-
-                  {/* Main content */}
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                    {/* Top header bar */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 14px', borderBottom: '1px solid #f3f4f6' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"><path d="M15 18l-6-6 6-6"/></svg>
-                        <span style={{ fontSize: 11, color: '#9ca3af' }}>Projetos</span>
-                        <span style={{ fontSize: 11, color: '#d1d5db' }}>/</span>
-                        <span style={{ fontSize: 11, fontWeight: 600, color: '#111' }}>Meu E-commerce</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <div style={{ padding: '3px 8px', borderRadius: 4, background: '#ede9fe', fontSize: 9, fontWeight: 600, color: '#4f46e5' }}>PRO</div>
-                        <div style={{ width: 24, height: 24, borderRadius: 12, background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <span style={{ color: '#fff', fontSize: 9, fontWeight: 700 }}>LC</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Project header with stats */}
-                    <div style={{ padding: '12px 14px 0' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-                        <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-                            <span style={{ fontSize: 15, fontWeight: 700, color: '#111' }}>Meu E-commerce</span>
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 999, background: '#ecfdf5', fontSize: 9, fontWeight: 600, color: '#059669' }}>
-                              <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#10b981' }} />Conectado
-                            </span>
-                          </div>
-                          <span style={{ fontSize: 10, color: '#9ca3af', fontFamily: 'monospace' }}>meusite.com.br</span>
-                        </div>
-                        <div style={{ display: 'flex', gap: 14 }}>
-                          {[
-                            { n: '15', l: 'Total', c: '#111' },
-                            { n: '3', l: 'Abertos', c: '#d97706' },
-                            { n: '2', l: 'Críticos', c: '#dc2626' },
-                            { n: '12', l: 'Resolvidos', c: '#059669' },
-                          ].map(s => (
-                            <div key={s.l} style={{ textAlign: 'center' }}>
-                              <div style={{ fontSize: 15, fontWeight: 700, color: s.c }}>{s.n}</div>
-                              <div style={{ fontSize: 8, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.03em' }}>{s.l}</div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Tabs */}
-                      <div style={{ display: 'flex', gap: 0, borderBottom: '2px solid #f3f4f6' }}>
-                        {[
-                          { label: 'Reports', count: '15', active: true },
-                          { label: 'Histórico', active: false },
-                          { label: 'Configurações', active: false },
-                        ].map(tab => (
-                          <div key={tab.label} style={{ padding: '6px 12px 8px', borderBottom: `2px solid ${tab.active ? '#4f46e5' : 'transparent'}`, marginBottom: -2, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <span style={{ fontSize: 11, fontWeight: tab.active ? 600 : 400, color: tab.active ? '#4f46e5' : '#9ca3af' }}>{tab.label}</span>
-                            {tab.count && <span style={{ padding: '1px 6px', borderRadius: 999, fontSize: 9, fontWeight: 600, background: tab.active ? '#ede9fe' : '#f3f4f6', color: tab.active ? '#4f46e5' : '#9ca3af' }}>{tab.count}</span>}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Search + filters toolbar */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px' }}>
-                      <div style={{ flex: 1, position: 'relative' }}>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" style={{ position: 'absolute', left: 8, top: 8 }}><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-                        <div style={{ width: '100%', padding: '5px 8px 5px 24px', borderRadius: 6, border: '1px solid #e5e7eb', fontSize: 10, color: '#9ca3af', background: '#fff' }}>Buscar reports...</div>
-                      </div>
-                      <div style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
-                      </div>
-                    </div>
-
-                    {/* List view table */}
-                    <div style={{ margin: '0 14px 14px', border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', flex: 1 }}>
-                      {/* List header */}
-                      <div style={{ display: 'grid', gridTemplateColumns: '50px 1fr 46px 50px 64px', gap: 4, padding: '5px 8px', background: '#fafafa', borderBottom: '1px solid #e5e7eb', fontSize: 8, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                        <span>Tipo</span><span>Descrição</span><span>Sever.</span><span>Status</span><span>Data</span>
-                      </div>
-                      {/* List rows */}
-                      {[
-                        { type: 'Bug', typeBg: '#fef2f2', typeC: '#dc2626', desc: 'Botão de pagamento não funciona', sev: 'Alta', sevBg: '#fef2f2', sevC: '#dc2626', status: 'Aberto', stBg: '#fefce8', stC: '#a16207', date: '15 mar 09:42' },
-                        { type: 'Bug', typeBg: '#fef2f2', typeC: '#dc2626', desc: 'Imagem quebrada na página de produto', sev: 'Média', sevBg: '#fefce8', sevC: '#a16207', status: 'Aberto', stBg: '#fefce8', stC: '#a16207', date: '14 mar 18:15' },
-                        { type: 'Bug', typeBg: '#fef2f2', typeC: '#dc2626', desc: 'Carrinho não atualiza quantidade', sev: 'Alta', sevBg: '#fef2f2', sevC: '#dc2626', status: 'Em progresso', stBg: '#dbeafe', stC: '#1d4ed8', date: '14 mar 11:30' },
-                        { type: 'Sugestão', typeBg: '#dbeafe', typeC: '#1d4ed8', desc: 'Adicionar modo escuro', sev: 'Baixa', sevBg: '#f3f4f6', sevC: '#6b7280', status: 'Resolvido', stBg: '#ecfdf5', stC: '#059669', date: '13 mar 16:20' },
-                        { type: 'Bug', typeBg: '#fef2f2', typeC: '#dc2626', desc: 'Erro 500 ao aplicar cupom', sev: 'Crítica', sevBg: '#fef2f2', sevC: '#dc2626', status: 'Resolvido', stBg: '#ecfdf5', stC: '#059669', date: '12 mar 14:05' },
-                      ].map((r, i, arr) => (
-                        <div key={i} style={{ display: 'grid', gridTemplateColumns: '50px 1fr 46px 50px 64px', gap: 4, padding: '6px 8px', borderBottom: i < arr.length - 1 ? '1px solid #f3f4f6' : 'none', alignItems: 'center', fontSize: 10, cursor: 'pointer' }}>
-                          <span style={{ padding: '2px 4px', borderRadius: 4, fontSize: 8, fontWeight: 600, background: r.typeBg, color: r.typeC, textAlign: 'center' }}>{r.type}</span>
-                          <span style={{ color: '#374151', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.desc}</span>
-                          <span style={{ padding: '2px 4px', borderRadius: 4, fontSize: 8, fontWeight: 600, background: r.sevBg, color: r.sevC, textAlign: 'center' }}>{r.sev}</span>
-                          <span style={{ padding: '2px 4px', borderRadius: 4, fontSize: 8, fontWeight: 600, background: r.stBg, color: r.stC, textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.status}</span>
-                          <span style={{ color: '#9ca3af', fontSize: 9 }}>{r.date}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ),
-          },
-        ]
-
-        const step = demoSteps[demoStep]
-
-        return (
-          <div
-            onClick={() => setDemoOpen(false)}
-            style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
-          >
-            <div
-              onClick={(e) => e.stopPropagation()}
-              style={{ background: 'var(--surface-background)', borderRadius: 24, width: '100%', maxWidth: 640, maxHeight: 'calc(100vh - 2rem)', overflow: 'hidden', boxShadow: '0 32px 64px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column' }}
-            >
-              {/* Header */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderBottom: '1px solid var(--neutral-border-medium)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '1.1rem', color: 'var(--neutral-on-background-strong)' }}>Buug</span>
-                  <span style={{ padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: 'var(--brand-alpha-weak)', color: 'var(--brand-on-background-strong)' }}>Demo interativa</span>
-                </div>
-                <button onClick={() => setDemoOpen(false)} style={{ background: 'var(--neutral-alpha-weak)', border: 'none', cursor: 'pointer', color: 'var(--neutral-on-background-weak)', width: 32, height: 32, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
-                  <IoMdClose />
-                </button>
-              </div>
-
-              {/* Step indicators */}
-              <div style={{ display: 'flex', gap: 4, padding: '16px 24px 0' }}>
-                {demoSteps.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setDemoStep(i)}
-                    style={{ flex: 1, height: 3, borderRadius: 2, border: 'none', cursor: 'pointer', background: i <= demoStep ? 'var(--brand-solid-strong)' : 'var(--neutral-alpha-medium)', transition: 'background 0.3s' }}
-                  />
-                ))}
-              </div>
-
-              {/* Content */}
-              <div style={{ padding: '20px 24px', flex: 1, overflowY: 'auto', minHeight: 0 }}>
-                <div style={{ marginBottom: 16 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--brand-on-background-strong)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                    Etapa {demoStep + 1} de {demoSteps.length}
-                  </div>
-                  <h3 style={{ fontSize: 22, fontWeight: 700, color: 'var(--neutral-on-background-strong)', margin: '0 0 4px' }}>{step.title}</h3>
-                  <p style={{ fontSize: 14, color: 'var(--neutral-on-background-weak)', margin: 0, lineHeight: 1.5 }}>{step.description}</p>
-                </div>
-                {step.visual}
-              </div>
-
-              {/* Footer */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 24px', borderTop: '1px solid var(--neutral-border-medium)', background: 'var(--neutral-alpha-weak)', flexShrink: 0 }}>
-                <button
-                  onClick={() => setDemoStep(Math.max(0, demoStep - 1))}
-                  disabled={demoStep === 0}
-                  style={{ padding: '10px 22px', borderRadius: 12, border: '1px solid var(--neutral-border-medium)', background: 'var(--surface-background)', color: demoStep === 0 ? 'var(--neutral-on-background-weak)' : 'var(--neutral-on-background-strong)', fontWeight: 600, fontSize: 14, cursor: demoStep === 0 ? 'default' : 'pointer', opacity: demoStep === 0 ? 0.4 : 1 }}
-                >
-                  Anterior
-                </button>
-                {demoStep < demoSteps.length - 1 ? (
-                  <button
-                    onClick={() => setDemoStep(demoStep + 1)}
-                    style={{ padding: '10px 28px', borderRadius: 12, border: 'none', background: 'var(--brand-solid-strong)', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer', boxShadow: '0 2px 8px rgba(79,70,229,0.3)' }}
-                  >
-                    Próxima etapa
-                  </button>
-                ) : (
-                  <Link href="/auth/register" style={{ textDecoration: 'none' }}>
-                    <button style={{ padding: '10px 28px', borderRadius: 12, border: 'none', background: 'var(--brand-solid-strong)', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer', boxShadow: '0 2px 8px rgba(79,70,229,0.3)' }}>
-                      Começar grátis
-                    </button>
-                  </Link>
-                )}
-              </div>
-            </div>
-          </div>
-        )
-      })()}
 
       {/* How it works */}
       <Flex fillWidth horizontal="center" background="page" id="como-funciona">
@@ -1450,38 +938,51 @@ export default function LandingPage() {
         </Column>
       </Flex>
 
-      {/* Testimonials */}
+      {/* Why Buug — Competitor Comparison */}
       <Flex fillWidth horizontal="center" background="surface">
         <Column maxWidth={64} fillWidth paddingX="l" paddingY="xl" gap="xl" horizontal="center">
           <Column horizontal="center" gap="s" style={{ textAlign: 'center' }}>
-            <Tag variant="neutral" size="m" label="Depoimentos" />
+            <Tag variant="neutral" size="m" label="Comparativo" />
             <Heading variant="display-strong-s" as="h2">
-              Quem usa, recomenda
+              O que só o Buug entrega
             </Heading>
-            <Text variant="body-default-m" onBackground="neutral-weak">
-              Veja o que equipes de produto e QA estão dizendo sobre o Buug.
+            <Text variant="body-default-m" onBackground="neutral-weak" style={{ maxWidth: '32rem' }}>
+              Ferramentas tradicionais capturam screenshot e replay. O Buug vai além.
             </Text>
           </Column>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, width: '100%' }}>
-            {[
-              { quote: 'O Buug reduziu nosso tempo de triagem de bugs em 70%. Antes era print + Slack, agora é tudo automático.', name: 'Lucas M.', role: 'Tech Lead', company: 'SaaS B2B', initials: 'LM', color: '#111' },
-              { quote: 'Session replay mudou nosso QA. Não precisamos mais pedir "me manda o print" — já vem tudo no report.', name: 'Ana R.', role: 'QA Engineer', company: 'E-commerce', initials: 'AR', color: '#6366f1' },
-              { quote: 'Integrei em 2 minutos com script embed. Minha equipe começou a usar no mesmo dia.', name: 'Pedro S.', role: 'CTO', company: 'Startup', initials: 'PS', color: '#059669' },
-            ].map((t, i) => (
-              <div key={i} style={{ background: '#fff', border: '1px solid var(--neutral-border-medium)', borderRadius: 16, padding: '28px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M10 8c0-2.2-1.8-4-4-4S2 5.8 2 8c0 1.85 1.28 3.42 3 3.87V14c0 2.76 2.24 5 5 5h1v-2H10c-1.66 0-3-1.34-3-3v-2.13c2.28-.46 4-2.48 4-4.87zm12 0c0-2.2-1.8-4-4-4s-4 1.8-4 4c0 1.85 1.28 3.42 3 3.87V14c0 2.76 2.24 5 5 5h1v-2h-1c-1.66 0-3-1.34-3-3v-2.13c2.28-.46 4-2.48 4-4.87z" fill="#e5e7eb"/></svg>
-                <Text variant="body-default-m" onBackground="neutral-strong" style={{ lineHeight: 1.6, flex: 1 }}>
-                  {t.quote}
-                </Text>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingTop: 8, borderTop: '1px solid var(--neutral-border-medium)' }}>
-                  <div style={{ width: 36, height: 36, borderRadius: '50%', background: t.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 13, fontWeight: 700, flexShrink: 0 }}>{t.initials}</div>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: '#111' }}>{t.name}</div>
-                    <div style={{ fontSize: 11, color: 'var(--neutral-on-background-weak)' }}>{t.role} · {t.company}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div style={{ width: '100%', overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14, minWidth: 500 }}>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: 'left', padding: '12px 16px', borderBottom: '2px solid #e5e7eb', color: '#6b7280', fontWeight: 500, fontSize: 13 }}>Funcionalidade</th>
+                  <th style={{ textAlign: 'center', padding: '12px 16px', borderBottom: '2px solid #111', fontWeight: 700, color: '#111', fontSize: 13, background: '#f9fafb', borderRadius: '8px 8px 0 0' }}>Buug</th>
+                  <th style={{ textAlign: 'center', padding: '12px 16px', borderBottom: '2px solid #e5e7eb', color: '#6b7280', fontWeight: 500, fontSize: 13 }}>Concorrentes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { feature: 'Screenshot automático', buug: true, others: true },
+                  { feature: 'Session Replay', buug: true, others: true },
+                  { feature: 'Console & Network Logs', buug: true, others: true },
+                  { feature: 'Core Web Vitals (LCP, CLS, INP)', buug: true, others: false },
+                  { feature: 'Rage & Dead Clicks', buug: true, others: false },
+                  { feature: 'Click Breadcrumbs', buug: true, others: false },
+                  { feature: 'Device + Rede + Geo', buug: true, others: false },
+                  { feature: 'Link compartilhado (sem instalar)', buug: true, others: false },
+                  { feature: 'Português nativo', buug: true, others: false },
+                ].map((row, i) => (
+                  <tr key={i}>
+                    <td style={{ padding: '10px 16px', borderBottom: '1px solid #f3f4f6', color: '#374151', fontWeight: 500 }}>{row.feature}</td>
+                    <td style={{ padding: '10px 16px', borderBottom: '1px solid #f3f4f6', textAlign: 'center', background: '#f9fafb' }}>
+                      {row.buug ? <span style={{ color: '#059669', fontSize: 18 }}>&#10003;</span> : <span style={{ color: '#d1d5db' }}>—</span>}
+                    </td>
+                    <td style={{ padding: '10px 16px', borderBottom: '1px solid #f3f4f6', textAlign: 'center' }}>
+                      {row.others ? <span style={{ color: '#059669', fontSize: 18 }}>&#10003;</span> : <span style={{ color: '#d1d5db' }}>—</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </Column>
       </Flex>

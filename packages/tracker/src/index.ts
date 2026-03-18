@@ -106,6 +106,129 @@ class TrackedXHR extends OriginalXHR {
 }
 ;(window as any).XMLHttpRequest = TrackedXHR
 
+// ─── Click breadcrumbs + rage clicks + dead clicks ───────────────────────────
+interface ClickBreadcrumb { ts: number; tag: string; text: string; sel: string; x: number; y: number }
+
+const clickBreadcrumbs: ClickBreadcrumb[] = []
+const MAX_BREADCRUMBS = 30
+
+function getSelector(el: Element | null): string {
+  if (!el || el === document.body || el === document.documentElement) return 'body'
+  const parts: string[] = []
+  let curr: Element | null = el
+  for (let i = 0; i < 3 && curr && curr !== document.body; i++) {
+    if (curr.id) { parts.unshift(`#${curr.id}`); break }
+    let part = curr.tagName.toLowerCase()
+    if (curr.className && typeof curr.className === 'string') {
+      const cls = curr.className.trim().split(/\s+/).slice(0, 2).join('.')
+      if (cls) part += `.${cls}`
+    }
+    parts.unshift(part)
+    curr = curr.parentElement
+  }
+  return parts.join(' > ').slice(0, 200)
+}
+
+function getElText(el: Element): string {
+  return ((el as HTMLElement).innerText || el.textContent || '').trim().slice(0, 50)
+}
+
+let pendingDeadClick = false
+
+document.addEventListener('click', (e: MouseEvent) => {
+  const target = e.target as Element
+  if (!target) return
+
+  const bc: ClickBreadcrumb = {
+    ts: Date.now(),
+    tag: target.tagName,
+    text: getElText(target),
+    sel: getSelector(target),
+    x: Math.round(e.clientX),
+    y: Math.round(e.clientY),
+  }
+  clickBreadcrumbs.push(bc)
+  if (clickBreadcrumbs.length > MAX_BREADCRUMBS) clickBreadcrumbs.shift()
+  send('CLICK_BREADCRUMB', { breadcrumb: bc })
+
+  // Rage click: 3+ clicks within 800ms in ~30px radius
+  const now = bc.ts
+  const recent = clickBreadcrumbs.filter(
+    (c) => now - c.ts < 800 && Math.abs(c.x - bc.x) < 30 && Math.abs(c.y - bc.y) < 30
+  )
+  if (recent.length >= 3) {
+    send('RAGE_CLICK', { rageClick: { ts: now, count: recent.length, sel: bc.sel, tag: bc.tag, text: bc.text } })
+  }
+
+  // Dead click detection
+  const interactiveTags = ['A', 'BUTTON', 'INPUT', 'SELECT', 'TEXTAREA', 'LABEL']
+  let el: Element | null = target
+  let isInteractive = false
+  for (let i = 0; i < 4 && el; i++) {
+    if (interactiveTags.includes(el.tagName) || el.getAttribute('role') === 'button' || el.hasAttribute('onclick')) {
+      isInteractive = true; break
+    }
+    try { if (getComputedStyle(el).cursor === 'pointer') { isInteractive = true; break } } catch {}
+    el = el.parentElement
+  }
+  if (!isInteractive && !pendingDeadClick) {
+    pendingDeadClick = true
+    let mutated = false
+    const obs = new MutationObserver(() => { mutated = true })
+    obs.observe(document.body, { childList: true, subtree: true, attributes: true })
+    setTimeout(() => {
+      obs.disconnect()
+      pendingDeadClick = false
+      if (!mutated) send('DEAD_CLICK', { deadClick: { ts: bc.ts, sel: bc.sel, tag: bc.tag, text: bc.text } })
+    }, 1000)
+  }
+}, true)
+
+// ─── Performance metrics ─────────────────────────────────────────────────────
+let perfLCP: number | undefined
+let perfCLS = 0
+const inpCandidates: number[] = []
+
+try {
+  new PerformanceObserver((list) => {
+    const entries = list.getEntries()
+    if (entries.length > 0) perfLCP = entries[entries.length - 1].startTime
+  }).observe({ type: 'largest-contentful-paint', buffered: true })
+
+  new PerformanceObserver((list) => {
+    for (const entry of list.getEntries()) {
+      if (!(entry as any).hadRecentInput) perfCLS += (entry as any).value || 0
+    }
+  }).observe({ type: 'layout-shift', buffered: true })
+
+  new PerformanceObserver((list) => {
+    for (const entry of list.getEntries()) inpCandidates.push((entry as any).duration || 0)
+  }).observe({ type: 'event', buffered: true, durationThreshold: 16 } as any)
+} catch {}
+
+// Send performance metrics periodically (every 10s) so parent has latest data
+setInterval(() => {
+  let inp: number | undefined
+  if (inpCandidates.length > 0) {
+    const sorted = [...inpCandidates].sort((a, b) => a - b)
+    inp = sorted[Math.min(Math.floor(sorted.length * 0.98), sorted.length - 1)]
+  }
+  let pageLoadMs: number | undefined
+  try {
+    const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming
+    if (nav?.loadEventEnd > 0) pageLoadMs = Math.round(nav.loadEventEnd)
+  } catch {}
+
+  send('PERFORMANCE_METRICS', {
+    metrics: {
+      lcp: perfLCP ? Math.round(perfLCP) : undefined,
+      cls: perfCLS > 0 ? Math.round(perfCLS * 1000) / 1000 : undefined,
+      inp,
+      pageLoadMs,
+    },
+  })
+}, 10000)
+
 // ─── Password masking ─────────────────────────────────────────────────────────
 function maskPasswordFields() {
   document.querySelectorAll<HTMLInputElement>('input[type=password]').forEach((el) => {

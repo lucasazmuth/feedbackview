@@ -82,6 +82,11 @@ model Feedback {
   attachmentUrls Json?
   createdAt      DateTime       @default(now())
   archivedAt     DateTime?
+
+  @@index([projectId])
+  @@index([projectId, status])
+  @@index([projectId, createdAt])
+  @@index([createdAt])
 }
 
 enum Plan {
