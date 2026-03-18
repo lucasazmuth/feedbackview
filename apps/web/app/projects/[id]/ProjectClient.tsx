@@ -239,6 +239,7 @@ export default function ProjectClient({
 }: ProjectClientProps) {
   const router = useRouter()
   const canEdit = userRole === 'OWNER' || userRole === 'ADMIN'
+  const [localFeedbacks, setLocalFeedbacks] = useState(feedbacks)
   const [activeTab, setActiveTab] = useState<'feedbacks' | 'settings' | 'history'>('feedbacks')
   const [copied, setCopied] = useState(false)
   const [copiedEmbed, setCopiedEmbed] = useState(false)
@@ -327,6 +328,7 @@ export default function ProjectClient({
     try {
       await api.feedbacks.updateStatus(selectedFeedback.id, newStatus)
       setSelectedFeedback(prev => prev ? { ...prev, status: newStatus } : null)
+      setLocalFeedbacks(prev => prev.map(f => f.id === selectedFeedback.id ? { ...f, status: newStatus } : f))
     } catch { /* ignore */ }
     setFeedbackStatusSaving(false)
   }, [selectedFeedback])
@@ -478,7 +480,7 @@ export default function ProjectClient({
     setTimeout(() => setCopiedEmbed(false), 2000)
   }
 
-  const filteredFeedbacks = feedbacks.filter((f) => {
+  const filteredFeedbacks = localFeedbacks.filter((f) => {
     if (typeFilter && f.type !== typeFilter) return false
     if (severityFilter && f.severity !== severityFilter) return false
     if (statusFilter && f.status !== statusFilter) return false
@@ -491,10 +493,10 @@ export default function ProjectClient({
 
   const hasActiveReportFilter = typeFilter !== '' || severityFilter !== '' || statusFilter !== ''
 
-  const totalCount = feedbacks.length
-  const openCount = feedbacks.filter((f) => f.status === 'OPEN').length
-  const criticalCount = feedbacks.filter((f) => f.severity === 'CRITICAL').length
-  const resolvedCount = feedbacks.filter((f) => f.status === 'RESOLVED').length
+  const totalCount = localFeedbacks.length
+  const openCount = localFeedbacks.filter((f) => f.status === 'OPEN').length
+  const criticalCount = localFeedbacks.filter((f) => f.severity === 'CRITICAL').length
+  const resolvedCount = localFeedbacks.filter((f) => f.status === 'RESOLVED').length
 
   async function handleEditSave() {
     if (!project) return
@@ -1204,7 +1206,7 @@ export default function ProjectClient({
                     <Icon name="message" size="m" />
                   </Flex>
                   <Text variant="body-default-s" onBackground="neutral-weak">
-                    {feedbacks.length === 0
+                    {localFeedbacks.length === 0
                       ? 'Nenhum report ainda. Compartilhe a URL do visualizador!'
                       : 'Nenhum report com os filtros selecionados.'}
                   </Text>
