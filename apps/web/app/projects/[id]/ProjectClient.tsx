@@ -431,7 +431,7 @@ export default function ProjectClient({
   }
 
   // Widget appearance state
-  const [widgetPosition, setWidgetPosition] = useState(project?.widgetPosition || 'bottom-right')
+  const [widgetPosition, setWidgetPosition] = useState(project?.widgetPosition || 'middle-right')
   const [widgetColor, setWidgetColor] = useState(project?.widgetColor || '#4f46e5')
   const [widgetStyle, setWidgetStyle] = useState(project?.widgetStyle || 'text')
   const [widgetText, setWidgetText] = useState(project?.widgetText || 'Reportar Bug')

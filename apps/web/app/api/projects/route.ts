@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
       mode: data.mode || 'proxy',
       widgetStyle: data.widgetStyle || 'text',
       widgetText: data.widgetText || 'Reportar Bug',
-      widgetPosition: data.widgetPosition || 'bottom-right',
+      widgetPosition: data.widgetPosition || 'middle-right',
       widgetColor: data.widgetColor || '#4f46e5',
       ownerId: user.id,
       organizationId: membership?.organizationId || null,

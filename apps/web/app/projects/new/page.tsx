@@ -69,7 +69,7 @@ export default function NewProjectPage() {
   // Widget customization state
   const [widgetStyle, setWidgetStyle] = useState<'text' | 'icon'>('text')
   const [widgetText, setWidgetText] = useState('Reportar Bug')
-  const [widgetPosition, setWidgetPosition] = useState('bottom-right')
+  const [widgetPosition, setWidgetPosition] = useState('middle-right')
   const [widgetColor, setWidgetColor] = useState('#4f46e5')
   const [savedFormData, setSavedFormData] = useState<ProjectForm | null>(null)
 
@@ -987,8 +987,8 @@ export default function NewProjectPage() {
                       >
                         <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'center' }}>
                           {s === 'text' ? (
-                            <div style={{ height: 32, paddingLeft: 12, paddingRight: 14, borderRadius: 16, background: widgetColor, color: '#fff', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                              <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: 11, letterSpacing: '-0.02em' }}>Buug report</span>
+                            <div style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', padding: '10px 6px', borderRadius: '8px 0 0 8px', background: widgetColor, color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: 10, letterSpacing: '-0.02em' }}>Buug report</span>
                             </div>
                           ) : (
                             <div style={{ width: 44, height: 44, borderRadius: '50%', background: widgetColor, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -1000,7 +1000,7 @@ export default function NewProjectPage() {
                           {s === 'text' ? 'Texto' : 'Ícone'}
                         </span>
                         <p style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', margin: '0.25rem 0 0' }}>
-                          {s === 'text' ? 'Botão com logo Buug' : 'Botão circular com logo'}
+                          {s === 'text' ? 'Tag lateral com texto' : 'Botão circular com logo'}
                         </p>
                       </div>
                     ))}
@@ -1010,52 +1010,65 @@ export default function NewProjectPage() {
                 {/* Widget position */}
                 <div>
                   <Text variant="label-default-s" onBackground="neutral-strong" style={{ marginBottom: '0.5rem', display: 'block' }}>Posição</Text>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                    {[
-                      { value: 'top-left', label: 'Superior esquerda' },
-                      { value: 'top-right', label: 'Superior direita' },
-                      { value: 'bottom-left', label: 'Inferior esquerda' },
-                      { value: 'bottom-right', label: 'Inferior direita' },
-                    ].map((pos) => (
-                      <button
-                        key={pos.value}
-                        onClick={() => setWidgetPosition(pos.value)}
-                        style={{
-                          padding: '0.625rem',
-                          borderRadius: '0.5rem',
-                          border: `2px solid ${widgetPosition === pos.value ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)'}`,
-                          background: widgetPosition === pos.value ? 'var(--brand-alpha-weak)' : 'transparent',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                          transition: 'all 0.15s',
-                        }}
-                      >
-                        <div style={{
-                          width: 24,
-                          height: 18,
-                          borderRadius: 3,
-                          border: '1px solid var(--neutral-border-medium)',
-                          position: 'relative',
-                          flexShrink: 0,
-                        }}>
-                          <div style={{
-                            width: 5,
-                            height: 5,
-                            borderRadius: '50%',
-                            background: widgetPosition === pos.value ? 'var(--brand-solid-strong)' : 'var(--neutral-on-background-weak)',
+                  <div style={{
+                    width: '100%',
+                    aspectRatio: '16 / 10',
+                    maxWidth: 260,
+                    borderRadius: '0.75rem',
+                    border: '1px solid var(--neutral-border-medium)',
+                    background: 'var(--surface-background)',
+                    position: 'relative',
+                  }}>
+                    {/* Empty space for clean look */}
+                    {/* 8 clickable dots */}
+                    {([
+                      { value: 'top-left', style: { top: 8, left: 8 } },
+                      { value: 'top-center', style: { top: 8, left: '50%', transform: 'translateX(-50%)' } },
+                      { value: 'top-right', style: { top: 8, right: 8 } },
+                      { value: 'middle-left', style: { top: '50%', left: 8, transform: 'translateY(-50%)' } },
+                      { value: 'middle-right', style: { top: '50%', right: 8, transform: 'translateY(-50%)' } },
+                      { value: 'bottom-left', style: { bottom: 8, left: 8 } },
+                      { value: 'bottom-center', style: { bottom: 8, left: '50%', transform: 'translateX(-50%)' } },
+                      { value: 'bottom-right', style: { bottom: 8, right: 8 } },
+                    ] as { value: string; style: React.CSSProperties }[]).map((pos) => {
+                      const isActive = widgetPosition === pos.value
+                      return (
+                        <button
+                          key={pos.value}
+                          onClick={() => setWidgetPosition(pos.value)}
+                          title={pos.value.replace('top-', 'Superior ').replace('bottom-', 'Inferior ').replace('middle-', 'Meio ').replace('left', 'esquerda').replace('right', 'direita').replace('center', 'centro')}
+                          style={{
                             position: 'absolute',
-                            ...(pos.value.includes('top') ? { top: 2 } : { bottom: 2 }),
-                            ...(pos.value.includes('left') ? { left: 2 } : { right: 2 }),
+                            ...pos.style,
+                            width: 28,
+                            height: 28,
+                            borderRadius: '50%',
+                            background: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <div style={{
+                            width: isActive ? 16 : 10,
+                            height: isActive ? 16 : 10,
+                            borderRadius: '50%',
+                            background: isActive ? widgetColor : 'var(--neutral-alpha-medium)',
+                            border: isActive ? '2px solid #fff' : '2px solid transparent',
+                            boxShadow: isActive ? `0 0 0 2px ${widgetColor}, 0 2px 8px ${widgetColor}66` : 'none',
+                            transition: 'all 0.2s ease',
+                            pointerEvents: 'none',
                           }} />
-                        </div>
-                        <span style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-strong)', fontWeight: widgetPosition === pos.value ? 600 : 400 }}>
-                          {pos.label}
-                        </span>
-                      </button>
-                    ))}
+                        </button>
+                      )
+                    })}
                   </div>
+                  <span style={{ fontSize: '0.6875rem', color: 'var(--neutral-on-background-weak)', marginTop: 6, display: 'block' }}>
+                    {widgetPosition.replace('top-', 'Superior ').replace('bottom-', 'Inferior ').replace('middle-', 'Meio ').replace('left', 'esquerda').replace('right', 'direita').replace('center', 'centro')}
+                  </span>
                 </div>
 
                 {/* Widget color */}

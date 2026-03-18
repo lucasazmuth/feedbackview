@@ -25,7 +25,7 @@ interface WidgetConfig {
 }
 
 const DEFAULT_CONFIG: WidgetConfig = {
-  widgetPosition: 'bottom-right',
+  widgetPosition: 'middle-right',
   widgetColor: '#4f46e5',
   widgetStyle: 'text',
 }
