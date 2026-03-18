@@ -2139,7 +2139,7 @@ export default function ProjectClient({
                               left: '50%', transform: 'translateX(-50%)',
                             } : {
                               // Laterais: vertical, grudado left/right
-                              ...(widgetPosition.includes('top') ? { top: '25%' } : { bottom: '25%' }),
+                              ...(widgetPosition.includes('top') ? { top: 10 } : { bottom: 10 }),
                               ...(widgetPosition.includes('left') ? { left: 0 } : { right: 0 }),
                             }),
                           }),

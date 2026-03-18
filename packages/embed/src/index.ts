@@ -586,7 +586,7 @@ function getPositionCSS(position: string, style: string) {
       return `${vert} left: 50%; transform: translateX(-50%); ${radius}`
     }
     // Lateral: vertical, grudado left/right
-    const vert = position.includes('top') ? 'top: 30%;' : 'bottom: 30%;'
+    const vert = position.includes('top') ? 'top: 24px;' : 'bottom: 24px;'
     if (position.includes('left')) {
       return `${vert} left: 0; border-radius: 0 8px 8px 0;`
     }
