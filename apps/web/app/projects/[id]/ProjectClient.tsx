@@ -1992,17 +1992,29 @@ export default function ProjectClient({
                               style={{
                                 position: 'absolute',
                                 ...pos.style,
+                                width: 28,
+                                height: 28,
+                                borderRadius: '50%',
+                                background: 'transparent',
+                                border: 'none',
+                                cursor: 'pointer',
+                                padding: 0,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
+                            >
+                              <div style={{
                                 width: isActive ? 16 : 10,
                                 height: isActive ? 16 : 10,
                                 borderRadius: '50%',
                                 background: isActive ? widgetColor : 'var(--neutral-alpha-medium)',
                                 border: isActive ? '2px solid #fff' : '2px solid transparent',
                                 boxShadow: isActive ? `0 0 0 2px ${widgetColor}, 0 2px 8px ${widgetColor}66` : 'none',
-                                cursor: 'pointer',
                                 transition: 'all 0.2s ease',
-                                padding: 0,
-                              }}
-                            />
+                                pointerEvents: 'none',
+                              }} />
+                            </button>
                           )
                         })}
                       </div>
