@@ -113,6 +113,9 @@ export default function NewProjectPage() {
         setUrlError('URL inválida. Insira um domínio válido (ex: meusite.com.br)')
         return
       }
+      // Extrair apenas o domínio (sem path, query, hash)
+      url = parsed.origin
+      setTargetUrl(url)
     } catch {
       setUrlError('URL inválida. Insira um domínio válido (ex: meusite.com.br)')
       return
