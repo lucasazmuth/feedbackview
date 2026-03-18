@@ -1403,7 +1403,7 @@ export default function ProjectClient({
                 <div
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: '6rem 1fr 6rem 5rem 10rem 2rem',
+                    gridTemplateColumns: '6rem 1fr 6rem 5rem 4rem 10rem 2rem',
                     padding: '0.625rem 1rem',
                     borderBottom: '1px solid var(--neutral-border-medium)',
                     background: 'var(--neutral-alpha-weak)',
@@ -1415,6 +1415,7 @@ export default function ProjectClient({
                   <Text variant="label-default-xs" onBackground="neutral-weak">Comentário</Text>
                   <Text variant="label-default-xs" onBackground="neutral-weak">Severidade</Text>
                   <Text variant="label-default-xs" onBackground="neutral-weak">Status</Text>
+                  <Text variant="label-default-xs" onBackground="neutral-weak">Responsável</Text>
                   <Text variant="label-default-xs" onBackground="neutral-weak">Data</Text>
                   <span />
                 </div>
@@ -1424,7 +1425,7 @@ export default function ProjectClient({
                     onClick={() => openFeedbackModal(feedback.id)}
                     style={{
                       display: 'grid',
-                      gridTemplateColumns: '6rem 1fr 6rem 5rem 10rem 2rem',
+                      gridTemplateColumns: '6rem 1fr 6rem 5rem 4rem 10rem 2rem',
                       padding: '0.75rem 1rem',
                       borderBottom: i < filteredFeedbacks.length - 1 ? '1px solid var(--neutral-border-medium)' : undefined,
                       cursor: 'pointer',
@@ -1448,6 +1449,22 @@ export default function ProjectClient({
                       <span />
                     )}
                     <Tag variant={getTagVariant(feedback.status)} size="s" label={getStatusLabel(feedback.status)} />
+                    <div style={{ display: 'flex' }}>
+                      {(localAssigneesMap[feedback.id] || []).slice(0, 3).map((a, idx) => (
+                        <div key={a.userId} title={a.name || a.email} style={{
+                          width: 20, height: 20, borderRadius: '50%', background: '#111', color: '#fff',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: 9, fontWeight: 700, marginLeft: idx > 0 ? -6 : 0, border: '2px solid #fff', zIndex: 3 - idx,
+                        }}>
+                          {(a.name || a.email).charAt(0).toUpperCase()}
+                        </div>
+                      ))}
+                      {(localAssigneesMap[feedback.id] || []).length > 3 && (
+                        <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--neutral-alpha-weak)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 600, marginLeft: -6, border: '2px solid #fff' }}>
+                          +{(localAssigneesMap[feedback.id] || []).length - 3}
+                        </div>
+                      )}
+                    </div>
                     <Text variant="body-default-xs" onBackground="neutral-weak" style={{ whiteSpace: 'nowrap' }}>
                       {formatDate(feedback.createdAt)}
                     </Text>
