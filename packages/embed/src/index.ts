@@ -581,12 +581,12 @@ function getPositionCSS(position: string, style: string) {
     // Text style: tag grudada na borda
     if (position.includes('center')) {
       // Centro: horizontal, grudado top/bottom
-      const vert = position.includes('top') ? 'top: 0;' : 'bottom: 0;'
+      const vert = position.includes('top') ? 'top: 70px;' : 'bottom: 0;'
       const radius = position.includes('top') ? 'border-radius: 0 0 8px 8px;' : 'border-radius: 8px 8px 0 0;'
       return `${vert} left: 50%; transform: translateX(-50%); ${radius}`
     }
     // Lateral: vertical, grudado left/right
-    const vert = position.includes('top') ? 'top: 24px;' : 'bottom: 24px;'
+    const vert = position.includes('top') ? 'top: 70px;' : 'bottom: 24px;'
     if (position.includes('left')) {
       return `${vert} left: 0; border-radius: 0 8px 8px 0;`
     }
@@ -594,9 +594,9 @@ function getPositionCSS(position: string, style: string) {
   }
   // Icon style: floating with offset
   switch (position) {
-    case 'top-left': return 'top: 24px; left: 24px;'
-    case 'top-center': return 'top: 24px; left: 50%; transform: translateX(-50%);'
-    case 'top-right': return 'top: 24px; right: 24px;'
+    case 'top-left': return 'top: 70px; left: 24px;'
+    case 'top-center': return 'top: 70px; left: 50%; transform: translateX(-50%);'
+    case 'top-right': return 'top: 70px; right: 24px;'
     case 'bottom-left': return 'bottom: 24px; left: 24px;'
     case 'bottom-center': return 'bottom: 24px; left: 50%; transform: translateX(-50%);'
     default: return 'bottom: 24px; right: 24px;'
