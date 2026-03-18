@@ -741,10 +741,12 @@ function createWidget(config: WidgetConfig) {
     .fv-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.4);
+      background: ${hexToRgba(color, 0.92)};
       z-index: 2147483646;
       opacity: 0;
-      transition: opacity 0.2s;
+      transition: opacity 0.35s ease;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
     }
     .fv-backdrop.open { opacity: 1; }
 
@@ -760,9 +762,10 @@ function createWidget(config: WidgetConfig) {
       z-index: 2147483647;
       display: flex;
       flex-direction: column;
-      box-shadow: ${panelShadowDir} 0 24px rgba(0,0,0,0.15);
+      box-shadow: none;
       transform: ${panelTransformHidden};
-      transition: transform 0.3s ease;
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      border-radius: ${panelSide === 'right' ? '16px 0 0 16px' : '0 16px 16px 0'};
     }
     .fv-panel.open { transform: translateX(0); }
 
