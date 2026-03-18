@@ -712,7 +712,7 @@ function createWidget(config: WidgetConfig) {
       white-space: pre;
     }
     .fv-trigger.fv-trigger-hidden {
-      transform: scale(0);
+      ${(config.widgetPosition.includes('center') || config.widgetPosition.includes('middle')) ? 'visibility: hidden;' : 'transform: scale(0);'}
       opacity: 0;
       pointer-events: none;
     }

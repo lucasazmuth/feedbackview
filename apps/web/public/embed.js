@@ -111,7 +111,7 @@ or you can use record.mirror to access the mirror instance during recording.`,Bf
       white-space: pre;
     }
     .fv-trigger.fv-trigger-hidden {
-      transform: scale(0);
+      ${r.widgetPosition.includes("center")||r.widgetPosition.includes("middle")?"visibility: hidden;":"transform: scale(0);"}
       opacity: 0;
       pointer-events: none;
     }
