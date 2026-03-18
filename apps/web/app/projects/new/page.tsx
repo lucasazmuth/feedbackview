@@ -67,6 +67,7 @@ export default function NewProjectPage() {
   const [urlValid, setUrlValid] = useState(false)
   const [showPathWarning, setShowPathWarning] = useState(false)
   const [cleanUrl, setCleanUrl] = useState('')
+  const [detectedPlatform, setDetectedPlatform] = useState<string | null>(null)
 
   // Widget customization state
   const [widgetStyle, setWidgetStyle] = useState<'text' | 'icon'>('text')
@@ -92,7 +93,34 @@ export default function NewProjectPage() {
     setUrlWarnings([])
     setUrlError(null)
     setShowPathWarning(false)
+    setDetectedPlatform(null)
     setTargetUrl(value)
+  }
+
+  // Detect known platforms from hostname
+  function detectPlatform(hostname: string): string | null {
+    const platforms: Record<string, string> = {
+      'bubbleapps.io': 'Bubble',
+      'bubble.io': 'Bubble',
+      'webflow.io': 'Webflow',
+      'shopify.com': 'Shopify',
+      'myshopify.com': 'Shopify',
+      'wixsite.com': 'Wix',
+      'wix.com': 'Wix',
+      'squarespace.com': 'Squarespace',
+      'wordpress.com': 'WordPress',
+      'vercel.app': 'Vercel',
+      'netlify.app': 'Netlify',
+      'herokuapp.com': 'Heroku',
+      'carrd.co': 'Carrd',
+      'framer.app': 'Framer',
+      'softr.app': 'Softr',
+      'glide.page': 'Glide',
+    }
+    for (const [domain, name] of Object.entries(platforms)) {
+      if (hostname.endsWith(domain)) return name
+    }
+    return null
   }
 
   async function handleUrlBlur() {
@@ -116,6 +144,8 @@ export default function NewProjectPage() {
         setUrlError('URL inválida. Insira um domínio válido (ex: meusite.com.br)')
         return
       }
+      // Detect platform
+      setDetectedPlatform(detectPlatform(parsed.hostname))
       // Checar se tem path significativo
       const hasPath = parsed.pathname !== '/' && parsed.pathname !== ''
       if (hasPath) {
@@ -318,7 +348,7 @@ export default function NewProjectPage() {
         <div style={{ flex: 1 }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           {[
-            { num: 1, label: 'URL' },
+            { num: 1, label: 'Site' },
             { num: 2, label: 'Integração' },
             { num: 3, label: 'Dados' },
             { num: 4, label: 'Widget' },
@@ -427,7 +457,7 @@ export default function NewProjectPage() {
                 Qual site você quer monitorar?
               </Heading>
               <Text variant="body-default-m" onBackground="neutral-weak" align="center" style={{ maxWidth: '28rem' }}>
-                Insira a URL do seu site para começar a coletar feedbacks dos seus usuários.
+                Cole o endereço do seu site — aquele que aparece na barra do navegador.
               </Text>
             </Column>
 
@@ -549,9 +579,11 @@ export default function NewProjectPage() {
 
                 {/* Valid URL hint */}
                 {!urlError && !targetUrl && !showPathWarning && (
-                  <Text variant="body-default-xs" onBackground="neutral-weak" align="center">
-                    Insira o endereço completo do site que deseja monitorar
-                  </Text>
+                  <div style={{ textAlign: 'center' }}>
+                    <Text variant="body-default-xs" onBackground="neutral-weak">
+                      Ex: meusite.com.br, minhaloja.shopify.com, app.meuservico.com
+                    </Text>
+                  </div>
                 )}
 
                 {/* Path warning */}
@@ -591,6 +623,21 @@ export default function NewProjectPage() {
                         Usar só domínio
                       </button>
                     </div>
+                  </div>
+                )}
+
+                {/* Platform detection hint */}
+                {detectedPlatform && !urlError && !showPathWarning && (
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '8px 12px',
+                    borderRadius: '0.75rem', background: 'var(--brand-alpha-weak)', border: '1px solid var(--brand-border-medium)',
+                  }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--brand-on-background-strong)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                      <circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" />
+                    </svg>
+                    <span style={{ fontSize: '0.8125rem', color: 'var(--brand-on-background-strong)' }}>
+                      Detectamos que você usa <strong>{detectedPlatform}</strong> — funciona perfeitamente com o Buug!
+                    </span>
                   </div>
                 )}
 
