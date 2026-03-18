@@ -167,11 +167,10 @@ export default function NewProjectPage() {
         // Plataforma conhecida com path — manter automaticamente (path é necessário)
         setShowPathWarning(false)
       } else if (!hasPath && platform && requiresPath(parsed.hostname)) {
-        // Plataforma que exige path mas usuário não incluiu — avisar
-        url = parsed.origin
-        setTargetUrl(url)
-        setShowPathWarning(false)
-        setPlatformPathHint(`O ${platform} geralmente precisa de um caminho na URL (ex: /version-test). Verifique se o endereço está completo.`)
+        // Plataforma que exige path — bloquear
+        setUrlError(`O ${platform} precisa do caminho completo na URL. Adicione o path do seu app (ex: /version-test ou /version-live).`)
+        setPlatformPathHint(null)
+        return
       } else {
         url = parsed.origin
         setTargetUrl(url)
