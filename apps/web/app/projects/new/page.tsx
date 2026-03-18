@@ -1189,10 +1189,20 @@ export default function NewProjectPage() {
                     {/* Widget overlay */}
                     <div style={{
                       position: 'absolute',
-                      ...(widgetPosition.includes('top') ? { top: 10 } : { bottom: 10 }),
-                      ...(widgetPosition.includes('left') ? { left: 10 } : { right: 10 }),
                       transition: 'all 0.3s ease',
                       zIndex: 2,
+                      ...(widgetStyle === 'icon' ? {
+                        ...(widgetPosition.includes('top') ? { top: 10 } : widgetPosition.includes('middle') ? { top: '50%', transform: 'translateY(-50%)' } : { bottom: 10 }),
+                        ...(widgetPosition.includes('left') ? { left: 10 } : widgetPosition.includes('center') ? { left: '50%', transform: 'translateX(-50%)' } : { right: 10 }),
+                      } : {
+                        ...(widgetPosition.includes('center') ? {
+                          ...(widgetPosition.includes('top') ? { top: 0 } : { bottom: 0 }),
+                          left: '50%', transform: 'translateX(-50%)',
+                        } : {
+                          ...(widgetPosition.includes('top') ? { top: 10 } : widgetPosition.includes('middle') ? { top: '50%', transform: 'translateY(-50%)' } : { bottom: 10 }),
+                          ...(widgetPosition.includes('left') ? { left: 0 } : { right: 0 }),
+                        }),
+                      }),
                     }}>
                       {widgetStyle === 'icon' ? (
                         <div style={{
@@ -1208,20 +1218,33 @@ export default function NewProjectPage() {
                         }}>
                           <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 900, fontSize: 10, letterSpacing: '-0.04em', lineHeight: 0.95, textAlign: 'left', textTransform: 'uppercase', whiteSpace: 'pre' }}>{'BU\nUG'}</span>
                         </div>
-                      ) : (
+                      ) : widgetPosition.includes('center') ? (
                         <div style={{
-                          height: 28,
-                          paddingLeft: 10,
-                          paddingRight: 12,
-                          borderRadius: 14,
+                          padding: '4px 12px',
                           background: widgetColor,
                           color: '#fff',
                           display: 'inline-flex',
                           alignItems: 'center',
                           boxShadow: `0 4px 12px ${widgetColor}66`,
                           whiteSpace: 'nowrap',
+                          borderRadius: widgetPosition.includes('top') ? '0 0 6px 6px' : '6px 6px 0 0',
                         }}>
-                          <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: 10, letterSpacing: '-0.02em' }}>Buug report</span>
+                          <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: 9, letterSpacing: '-0.02em' }}>Buug report</span>
+                        </div>
+                      ) : (
+                        <div style={{
+                          writingMode: widgetPosition.includes('left') ? 'vertical-lr' : 'vertical-rl',
+                          textOrientation: 'mixed',
+                          padding: '10px 5px',
+                          background: widgetColor,
+                          color: '#fff',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          boxShadow: `0 4px 12px ${widgetColor}66`,
+                          borderRadius: widgetPosition.includes('left') ? '0 6px 6px 0' : '6px 0 0 6px',
+                        }}>
+                          <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: 9, letterSpacing: '-0.02em' }}>Buug report</span>
                         </div>
                       )}
                     </div>
