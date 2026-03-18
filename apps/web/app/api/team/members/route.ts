@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
   // Fetch all active members
   const { data: members } = await supabaseAdmin
     .from('TeamMember')
-    .select('userId, role')
+    .select('userId, role, inviteEmail')
     .eq('organizationId', orgId)
     .eq('status', 'ACTIVE')
 
@@ -43,6 +43,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ members: [] })
   }
 
+  // Enrich with User table + inviteEmail + auth.users as fallbacks
   const userIds = members.map(m => m.userId)
   const { data: users } = await supabaseAdmin
     .from('User')
@@ -51,12 +52,32 @@ export async function GET(req: NextRequest) {
 
   const userMap = new Map((users || []).map(u => [u.id, u]))
 
-  const enriched = members.map(m => ({
-    id: m.userId,
-    name: userMap.get(m.userId)?.name || null,
-    email: userMap.get(m.userId)?.email || '',
-    role: m.role,
-  }))
+  // For members without email, try auth.admin.listUsers
+  const missingEmailIds = members.filter(m => !userMap.get(m.userId)?.email && !m.inviteEmail).map(m => m.userId)
+  const authUserMap = new Map<string, { email: string; name: string | null }>()
+  if (missingEmailIds.length > 0) {
+    try {
+      const { data: authData } = await supabaseAdmin.auth.admin.listUsers({ perPage: 100 })
+      if (authData?.users) {
+        for (const au of authData.users) {
+          if (missingEmailIds.includes(au.id)) {
+            authUserMap.set(au.id, {
+              email: au.email || '',
+              name: au.user_metadata?.name || au.email?.split('@')[0] || null,
+            })
+          }
+        }
+      }
+    } catch { /* auth admin may not be available */ }
+  }
+
+  const enriched = members.map(m => {
+    const dbUser = userMap.get(m.userId)
+    const authUser = authUserMap.get(m.userId)
+    const email = dbUser?.email || m.inviteEmail || authUser?.email || ''
+    const name = dbUser?.name || authUser?.name || (email ? email.split('@')[0] : null)
+    return { id: m.userId, name, email, role: m.role }
+  })
 
   return NextResponse.json({ members: enriched })
 }

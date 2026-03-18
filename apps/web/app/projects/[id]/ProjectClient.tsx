@@ -43,6 +43,7 @@ interface Project {
   url: string
   description?: string
   mode?: string
+  organizationId?: string
   widgetPosition?: string
   widgetColor?: string
   widgetStyle?: string
