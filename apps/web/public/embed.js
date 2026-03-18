@@ -89,7 +89,7 @@ or you can use record.mirror to access the mirror instance during recording.`,Bf
       align-items: center;
       justify-content: center;
       gap: 6px;
-      transition: transform 0.2s, box-shadow 0.2s;
+      transition: ${r.widgetPosition.includes("center")||r.widgetPosition.includes("middle")?"box-shadow 0.2s":"transform 0.2s, box-shadow 0.2s"};
       z-index: 2147483646;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       white-space: nowrap;
