@@ -299,6 +299,10 @@ export default function ProjectClient({
   const [feedbackCommentSaving, setFeedbackCommentSaving] = useState(false)
   const [feedbackNetworkOpen, setFeedbackNetworkOpen] = useState(false)
   const [feedbackConsoleOpen, setFeedbackConsoleOpen] = useState(false)
+  const [feedbackAssignees, setFeedbackAssignees] = useState<{ userId: string; name: string | null; email: string }[]>([])
+  const [feedbackAssignSaving, setFeedbackAssignSaving] = useState(false)
+  const [showFeedbackAssignDropdown, setShowFeedbackAssignDropdown] = useState(false)
+  const [modalOrgMembers, setModalOrgMembers] = useState<{ id: string; name: string | null; email: string; role: string }[]>([])
 
   const openFeedbackModal = useCallback(async (feedbackId: string) => {
     setFeedbackModalOpen(true)
@@ -307,20 +311,60 @@ export default function ProjectClient({
     setFeedbackEditingComment(false)
     setFeedbackNetworkOpen(false)
     setFeedbackConsoleOpen(false)
+    setFeedbackAssignees([])
+    setShowFeedbackAssignDropdown(false)
     try {
       const res = await fetch(`/api/feedbacks/${feedbackId}`)
       if (res.ok) {
         const data = await res.json()
         setSelectedFeedback(data)
       }
+      // Fetch assignees
+      const assignRes = await fetch(`/api/feedbacks/${feedbackId}/assign`)
+      if (assignRes.ok) {
+        const { assignees } = await assignRes.json()
+        setFeedbackAssignees(assignees || [])
+      }
+      // Fetch org members (if not loaded yet)
+      if (project?.organizationId && modalOrgMembers.length === 0) {
+        const membersRes = await fetch(`/api/team/members?orgId=${project.organizationId}`)
+        if (membersRes.ok) {
+          const { members } = await membersRes.json()
+          setModalOrgMembers(members || [])
+        }
+      }
     } catch { /* ignore */ }
     setFeedbackLoading(false)
-  }, [])
+  }, [project?.organizationId, modalOrgMembers.length])
 
   const closeFeedbackModal = useCallback(() => {
     setFeedbackModalOpen(false)
     setSelectedFeedback(null)
   }, [])
+
+  const handleFeedbackAssign = useCallback(async (userId: string) => {
+    if (!selectedFeedback) return
+    setFeedbackAssignSaving(true)
+    try {
+      await api.feedbacks.assign(selectedFeedback.id, [userId])
+      const member = modalOrgMembers.find(m => m.id === userId)
+      if (member) {
+        setFeedbackAssignees(prev => [...prev, { userId: member.id, name: member.name, email: member.email }])
+      }
+      setShowFeedbackAssignDropdown(false)
+    } catch { /* ignore */ }
+    setFeedbackAssignSaving(false)
+  }, [selectedFeedback, modalOrgMembers])
+
+  const handleFeedbackUnassign = useCallback(async (userId: string) => {
+    if (!selectedFeedback) return
+    setFeedbackAssignSaving(true)
+    try {
+      await api.feedbacks.unassign(selectedFeedback.id, userId)
+      setFeedbackAssignees(prev => prev.filter(a => a.userId !== userId))
+    } catch { /* ignore */ }
+    setFeedbackAssignSaving(false)
+  }, [selectedFeedback])
 
   const handleFeedbackStatusChange = useCallback(async (newStatus: string) => {
     if (!selectedFeedback) return
@@ -2735,6 +2779,55 @@ export default function ProjectClient({
                             <Spinner size="s" />
                             <Text variant="body-default-xs" onBackground="neutral-weak">Salvando...</Text>
                           </Row>
+                        )}
+                      </Column>
+                    </Card>
+
+                    {/* Assignees */}
+                    <Card fillWidth padding="l" radius="l">
+                      <Column gap="m">
+                        <Row horizontal="between" vertical="center">
+                          <Heading variant="heading-strong-s">Responsáveis</Heading>
+                          {feedbackAssignSaving && <Spinner size="s" />}
+                        </Row>
+                        {feedbackAssignees.length === 0 && (
+                          <Text variant="body-default-xs" onBackground="neutral-weak">Nenhum responsável.</Text>
+                        )}
+                        {feedbackAssignees.length > 0 && (
+                          <Column gap="xs">
+                            {feedbackAssignees.map((a) => (
+                              <Row key={a.userId} horizontal="between" vertical="center" style={{ padding: '4px 0' }}>
+                                <Row gap="xs" vertical="center">
+                                  <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--neutral-alpha-weak)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 600 }}>
+                                    {(a.name || a.email).charAt(0).toUpperCase()}
+                                  </div>
+                                  <Text variant="label-default-s">{a.name || a.email.split('@')[0]}</Text>
+                                </Row>
+                                {(userRole === 'OWNER' || userRole === 'ADMIN') && (
+                                  <button onClick={() => handleFeedbackUnassign(a.userId)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--neutral-on-background-weak)', fontSize: 13, padding: '2px 4px' }} title="Remover">✕</button>
+                                )}
+                              </Row>
+                            ))}
+                          </Column>
+                        )}
+                        {(userRole === 'OWNER' || userRole === 'ADMIN') && (
+                          <div style={{ position: 'relative' }}>
+                            <Button variant="tertiary" size="s" label="+ Atribuir" onClick={() => setShowFeedbackAssignDropdown(!showFeedbackAssignDropdown)} />
+                            {showFeedbackAssignDropdown && (
+                              <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4, background: 'var(--surface-background)', border: '1px solid var(--neutral-border-medium)', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 10, maxHeight: 180, overflowY: 'auto' }}>
+                                {modalOrgMembers.filter(m => !feedbackAssignees.some(a => a.userId === m.id)).map(m => (
+                                  <button key={m.id} onClick={() => handleFeedbackAssign(m.id)} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 12px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, color: 'var(--neutral-on-background-strong)', textAlign: 'left' }}
+                                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--neutral-alpha-weak)')} onMouseLeave={e => (e.currentTarget.style.background = 'none')}>
+                                    <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--neutral-alpha-weak)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 600 }}>{(m.name || m.email).charAt(0).toUpperCase()}</div>
+                                    <span>{m.name || m.email.split('@')[0]}</span>
+                                  </button>
+                                ))}
+                                {modalOrgMembers.filter(m => !feedbackAssignees.some(a => a.userId === m.id)).length === 0 && (
+                                  <div style={{ padding: '8px 12px', fontSize: 12, color: 'var(--neutral-on-background-weak)' }}>Todos atribuídos.</div>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         )}
                       </Column>
                     </Card>
