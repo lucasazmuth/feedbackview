@@ -36,7 +36,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  if (user && isAuthPage) {
+  // Redirect logged-in users away from auth pages, EXCEPT reset-password
+  const isResetPassword = request.nextUrl.pathname === '/auth/reset-password'
+  if (user && isAuthPage && !isResetPassword) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
     return NextResponse.redirect(url)
