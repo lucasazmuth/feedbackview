@@ -2,9 +2,15 @@ import { requireUser } from '@/lib/auth'
 import { serverApi } from '@/lib/api.server'
 import { getProjectRole } from '@/lib/project-access'
 import { notFound } from 'next/navigation'
+import { createClient } from '@supabase/supabase-js'
 import ProjectClient from './ProjectClient'
 
 export const dynamic = 'force-dynamic'
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -44,6 +50,56 @@ export default async function ProjectPage({ params }: PageProps) {
     notFound()
   }
 
+  // Fetch assignees for all feedbacks in this project
+  let feedbackAssigneesMap: Record<string, { userId: string; name: string | null; email: string }[]> = {}
+  if (feedbacks.length > 0) {
+    try {
+      const feedbackIds = feedbacks.map((f: any) => f.id)
+      const { data: allAssignees } = await supabaseAdmin
+        .from('FeedbackAssignee')
+        .select('feedbackId, userId')
+        .in('feedbackId', feedbackIds)
+
+      if (allAssignees && allAssignees.length > 0) {
+        // Get unique user IDs and fetch their info
+        const assigneeUserIds = [...new Set(allAssignees.map(a => a.userId))]
+
+        // Try TeamMember for inviteEmail
+        const { data: teamMembers } = await supabaseAdmin
+          .from('TeamMember')
+          .select('userId, inviteEmail')
+          .in('userId', assigneeUserIds)
+          .eq('status', 'ACTIVE')
+
+        const tmMap = new Map((teamMembers || []).map(tm => [tm.userId, tm.inviteEmail]))
+
+        // Try auth.admin for remaining
+        let authMap = new Map<string, string>()
+        const missingIds = assigneeUserIds.filter(uid => !tmMap.get(uid))
+        if (missingIds.length > 0) {
+          try {
+            const { data: authData } = await supabaseAdmin.auth.admin.listUsers({ perPage: 100 })
+            if (authData?.users) {
+              for (const au of authData.users) {
+                if (missingIds.includes(au.id)) {
+                  authMap.set(au.id, au.email || '')
+                }
+              }
+            }
+          } catch {}
+        }
+
+        // Build map
+        for (const a of allAssignees) {
+          const email = tmMap.get(a.userId) || authMap.get(a.userId) || ''
+          const name = email ? email.split('@')[0] : null
+          if (!feedbackAssigneesMap[a.feedbackId]) feedbackAssigneesMap[a.feedbackId] = []
+          feedbackAssigneesMap[a.feedbackId].push({ userId: a.userId, name, email })
+        }
+      }
+    } catch {}
+  }
+
   return (
     <ProjectClient
       project={project}
@@ -52,6 +108,7 @@ export default async function ProjectPage({ params }: PageProps) {
       error={error}
       userEmail={user.email ?? ''}
       userRole={userRole}
+      feedbackAssigneesMap={feedbackAssigneesMap}
     />
   )
 }

@@ -72,6 +72,7 @@ interface ProjectClientProps {
   error: string | null
   userEmail: string
   userRole: string
+  feedbackAssigneesMap?: Record<string, { userId: string; name: string | null; email: string }[]>
 }
 
 const PROXY_URL = process.env.NEXT_PUBLIC_PROXY_URL || 'http://localhost:3002'
@@ -237,10 +238,12 @@ export default function ProjectClient({
   error,
   userEmail,
   userRole,
+  feedbackAssigneesMap = {},
 }: ProjectClientProps) {
   const router = useRouter()
   const canEdit = userRole === 'OWNER' || userRole === 'ADMIN'
   const [localFeedbacks, setLocalFeedbacks] = useState(feedbacks)
+  const [localAssigneesMap, setLocalAssigneesMap] = useState(feedbackAssigneesMap)
   const [activeTab, setActiveTab] = useState<'feedbacks' | 'settings' | 'history'>('feedbacks')
   const [copied, setCopied] = useState(false)
   const [copiedEmbed, setCopiedEmbed] = useState(false)
@@ -248,6 +251,7 @@ export default function ProjectClient({
   const [typeFilter, setTypeFilter] = useState('')
   const [severityFilter, setSeverityFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
+  const [assigneeFilter, setAssigneeFilter] = useState('')
   const [reportSearch, setReportSearch] = useState('')
   const [showReportFilter, setShowReportFilter] = useState(false)
   const [reportViewMode, setReportViewMode] = useState<'card' | 'list'>('card')
@@ -350,7 +354,13 @@ export default function ProjectClient({
       await api.feedbacks.assign(selectedFeedback.id, [userId])
       const member = modalOrgMembers.find(m => m.id === userId)
       if (member) {
-        setFeedbackAssignees(prev => [...prev, { userId: member.id, name: member.name, email: member.email }])
+        const newAssignee = { userId: member.id, name: member.name, email: member.email }
+        setFeedbackAssignees(prev => [...prev, newAssignee])
+        // Update the list's assignee map too
+        setLocalAssigneesMap(prev => ({
+          ...prev,
+          [selectedFeedback.id]: [...(prev[selectedFeedback.id] || []), newAssignee],
+        }))
       }
       setShowFeedbackAssignDropdown(false)
     } catch { /* ignore */ }
@@ -363,6 +373,11 @@ export default function ProjectClient({
     try {
       await api.feedbacks.unassign(selectedFeedback.id, userId)
       setFeedbackAssignees(prev => prev.filter(a => a.userId !== userId))
+      // Update the list's assignee map too
+      setLocalAssigneesMap(prev => ({
+        ...prev,
+        [selectedFeedback.id]: (prev[selectedFeedback.id] || []).filter(a => a.userId !== userId),
+      }))
     } catch { /* ignore */ }
     setFeedbackAssignSaving(false)
   }, [selectedFeedback])
@@ -529,6 +544,10 @@ export default function ProjectClient({
     if (typeFilter && f.type !== typeFilter) return false
     if (severityFilter && f.severity !== severityFilter) return false
     if (statusFilter && f.status !== statusFilter) return false
+    if (assigneeFilter) {
+      const assignees = localAssigneesMap[f.id] || []
+      if (!assignees.some(a => a.userId === assigneeFilter)) return false
+    }
     if (reportSearch.trim()) {
       const q = reportSearch.trim().toLowerCase()
       if (!f.comment.toLowerCase().includes(q) && !(f.pageUrl || '').toLowerCase().includes(q)) return false
@@ -536,7 +555,11 @@ export default function ProjectClient({
     return true
   })
 
-  const hasActiveReportFilter = typeFilter !== '' || severityFilter !== '' || statusFilter !== ''
+  // Collect all unique assignees for the filter dropdown
+  const allAssignees = Object.values(localAssigneesMap).flat()
+  const uniqueAssignees = Array.from(new Map(allAssignees.map(a => [a.userId, a])).values())
+
+  const hasActiveReportFilter = typeFilter !== '' || severityFilter !== '' || statusFilter !== '' || assigneeFilter !== ''
 
   const totalCount = localFeedbacks.length
   const openCount = localFeedbacks.filter((f) => f.status === 'OPEN').length
@@ -1160,9 +1183,37 @@ export default function ProjectClient({
                         ))}
                       </div>
 
+                      {uniqueAssignees.length > 0 && (
+                        <>
+                          <Text variant="label-default-s" onBackground="neutral-strong">Responsável</Text>
+                          <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
+                            {[{ userId: '', label: 'Todos' }, ...uniqueAssignees.map(a => ({ userId: a.userId, label: a.name || a.email.split('@')[0] || 'Membro' }))].map((opt) => (
+                              <button
+                                key={opt.userId}
+                                onClick={() => setAssigneeFilter(opt.userId)}
+                                style={{
+                                  padding: '0.375rem 0.625rem',
+                                  borderRadius: '0.375rem',
+                                  border: '1px solid',
+                                  borderColor: assigneeFilter === opt.userId ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)',
+                                  background: assigneeFilter === opt.userId ? 'var(--brand-solid-strong)' : 'transparent',
+                                  color: assigneeFilter === opt.userId ? '#fff' : 'var(--neutral-on-background-weak)',
+                                  fontSize: '0.75rem',
+                                  fontWeight: assigneeFilter === opt.userId ? 600 : 400,
+                                  cursor: 'pointer',
+                                  transition: 'all 0.15s',
+                                }}
+                              >
+                                {opt.label}
+                              </button>
+                            ))}
+                          </div>
+                        </>
+                      )}
+
                       {hasActiveReportFilter && (
                         <button
-                          onClick={() => { setTypeFilter(''); setSeverityFilter(''); setStatusFilter('') }}
+                          onClick={() => { setTypeFilter(''); setSeverityFilter(''); setStatusFilter(''); setAssigneeFilter('') }}
                           style={{
                             padding: '0.375rem',
                             border: 'none',
@@ -1291,6 +1342,25 @@ export default function ProjectClient({
                             <Tag variant={getTagVariant(feedback.severity)} size="s" label={getSeverityLabel(feedback.severity)} />
                           )}
                           <Tag variant={getTagVariant(feedback.status)} size="s" label={getStatusLabel(feedback.status)} />
+                          {/* Assignee avatars */}
+                          {(localAssigneesMap[feedback.id] || []).length > 0 && (
+                            <div style={{ display: 'flex', marginLeft: 4 }}>
+                              {(localAssigneesMap[feedback.id] || []).slice(0, 3).map((a, i) => (
+                                <div key={a.userId} title={a.name || a.email} style={{
+                                  width: 20, height: 20, borderRadius: '50%', background: '#111', color: '#fff',
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                  fontSize: 9, fontWeight: 700, marginLeft: i > 0 ? -6 : 0, border: '2px solid #fff', zIndex: 3 - i,
+                                }}>
+                                  {(a.name || a.email).charAt(0).toUpperCase()}
+                                </div>
+                              ))}
+                              {(localAssigneesMap[feedback.id] || []).length > 3 && (
+                                <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--neutral-alpha-weak)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 600, marginLeft: -6, border: '2px solid #fff' }}>
+                                  +{(localAssigneesMap[feedback.id] || []).length - 3}
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </Row>
                         <Text
                           variant="body-default-s"
