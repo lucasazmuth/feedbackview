@@ -63,6 +63,8 @@ enum Severity {
 enum FeedbackStatus {
   OPEN
   IN_PROGRESS
+  UNDER_REVIEW
   RESOLVED
+  CANCELLED
   ARCHIVED
 }
