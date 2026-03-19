@@ -75,7 +75,7 @@ interface ProjectClientProps {
   feedbackAssigneesMap?: Record<string, { userId: string; name: string | null; email: string }[]>
 }
 
-const PROXY_URL = process.env.NEXT_PUBLIC_PROXY_URL || 'http://localhost:3002'
+const PROXY_URL = process.env.NEXT_PUBLIC_PROXY_URL || 'https://feedbackview-proxy.onrender.com'
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('pt-BR', {

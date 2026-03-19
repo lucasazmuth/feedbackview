@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
         .eq('id', org.id)
     }
 
-    const origin = req.headers.get('origin') || process.env.NEXTAUTH_URL || 'http://localhost:3000'
+    const origin = req.headers.get('origin') || process.env.NEXT_PUBLIC_APP_URL || 'https://buug.io'
 
     // ─── UPGRADE/DOWNGRADE: If org already has an active subscription, update it ───
     if (org.stripeSubscriptionId && org.plan !== 'FREE') {

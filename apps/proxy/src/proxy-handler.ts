@@ -2,8 +2,8 @@ import { FastifyRequest, FastifyReply } from 'fastify'
 import { Transform, PassThrough } from 'stream'
 import { pipeline } from 'stream/promises'
 
-const PROXY_BASE = process.env.PROXY_BASE_URL || 'http://localhost:3002'
-const TRACKER_URL = process.env.TRACKER_URL || 'http://localhost:3002/tracker.js'
+const PROXY_BASE = process.env.PROXY_BASE_URL || 'https://feedbackview-proxy.onrender.com'
+const TRACKER_URL = process.env.TRACKER_URL || 'https://feedbackview-proxy.onrender.com/tracker.js'
 
 const BLOCKED_REQUEST_HEADERS = ['host', 'connection', 'transfer-encoding']
 const BLOCKED_RESPONSE_HEADERS = [

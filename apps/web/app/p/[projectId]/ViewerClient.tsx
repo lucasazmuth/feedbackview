@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react'
 import Script from 'next/script'
 
-const PROXY_URL = process.env.NEXT_PUBLIC_PROXY_URL || 'http://localhost:3002'
+const PROXY_URL = process.env.NEXT_PUBLIC_PROXY_URL || 'https://feedbackview-proxy.onrender.com'
 
 interface ViewerClientProps {
   projectId: string
