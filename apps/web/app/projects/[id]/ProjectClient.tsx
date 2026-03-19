@@ -509,7 +509,8 @@ export default function ProjectClient({
 
   const viewerUrl = origin ? `${origin}/p/${project?.id}` : ''
   const displayUrl = project?.mode === 'embed' && project?.targetUrl ? project.targetUrl : viewerUrl
-  const appBase = origin
+  const prodUrl = process.env.NEXT_PUBLIC_APP_URL || ''
+  const appBase = (prodUrl || origin).replace('http://', 'https://')
 
   const embedSnippet = `<script src="${appBase}/embed.js" data-project="${project?.id}"></script>`
 
