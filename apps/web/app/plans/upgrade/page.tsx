@@ -14,11 +14,11 @@ import {
 } from '@once-ui-system/core'
 import AppLayout from '@/components/ui/AppLayout'
 import { type Plan } from '@/lib/limits'
+import { usePrices } from '@/hooks/usePrices'
 
 const PLANS: {
   key: Plan
   name: string
-  price: string
   period: string
   description: string
   features: string[]
@@ -27,7 +27,6 @@ const PLANS: {
   {
     key: 'FREE',
     name: 'Gratuito',
-    price: 'R$ 0',
     period: '/mês',
     description: 'Para testar a plataforma e projetos pessoais.',
     features: [
@@ -43,7 +42,6 @@ const PLANS: {
   {
     key: 'PRO',
     name: 'Pro',
-    price: 'R$ 49',
     period: '/mês',
     description: 'Para equipes que precisam de QA profissional.',
     highlight: true,
@@ -60,7 +58,6 @@ const PLANS: {
   {
     key: 'BUSINESS',
     name: 'Business',
-    price: 'R$ 149',
     period: '/mês',
     description: 'Para softhouses e equipes grandes.',
     features: [
@@ -79,6 +76,7 @@ function UpgradeContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { currentOrg } = useOrg()
+  const { prices } = usePrices()
   const [loading, setLoading] = useState(true)
   const [upgradeLoading, setUpgradeLoading] = useState<string | null>(null)
   const [portalLoading, setPortalLoading] = useState(false)
@@ -229,7 +227,7 @@ function UpgradeContent() {
                       {isCurrentPlan && <Tag variant="success" size="s" label="Atual" />}
                     </Row>
                     <Row gap="xs" vertical="end">
-                      <Heading variant="display-strong-s" as="span">{plan.price}</Heading>
+                      <Heading variant="display-strong-s" as="span">{prices[plan.key].monthlyFormatted}</Heading>
                       <Text variant="body-default-m" onBackground="neutral-medium" style={{ paddingBottom: '4px' }}>{plan.period}</Text>
                     </Row>
                     <Text variant="body-default-s" onBackground="neutral-medium">

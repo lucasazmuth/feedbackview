@@ -6,6 +6,7 @@ import Link from 'next/link'
 
 const Lottie = dynamic(() => import('lottie-react'), { ssr: false })
 import { createClient } from '@/lib/supabase/client'
+import { usePrices } from '@/hooks/usePrices'
 import {
   Flex,
   Column,
@@ -112,6 +113,7 @@ const viewerUrl = 'https://buug.io/p/seu-projeto-id'
 const embedSnippet = '<script src="https://buug.io/embed.js"\n  data-project="SEU_PROJECT_ID">\n</script>'
 
 export default function LandingPage() {
+  const { prices } = usePrices()
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [typingAnim, setTypingAnim] = useState<object | null>(null)
@@ -1050,7 +1052,7 @@ export default function LandingPage() {
                     <Tag variant="brand" size="s" label="Popular" />
                   </Row>
                   <Row gap="xs" vertical="end">
-                    <Heading variant="display-strong-s" as="span">R$ 49</Heading>
+                    <Heading variant="display-strong-s" as="span">{prices.PRO.monthlyFormatted}</Heading>
                     <Text variant="body-default-m" onBackground="neutral-medium" style={{ paddingBottom: '4px' }}>/mês</Text>
                   </Row>
                   <Text variant="body-default-s" onBackground="neutral-medium">
@@ -1089,7 +1091,7 @@ export default function LandingPage() {
                 <Column gap="xs">
                   <Text variant="label-default-s" onBackground="neutral-medium">Business</Text>
                   <Row gap="xs" vertical="end">
-                    <Heading variant="display-strong-s" as="span">R$ 149</Heading>
+                    <Heading variant="display-strong-s" as="span">{prices.BUSINESS.monthlyFormatted}</Heading>
                     <Text variant="body-default-m" onBackground="neutral-medium" style={{ paddingBottom: '4px' }}>/mês</Text>
                   </Row>
                   <Text variant="body-default-s" onBackground="neutral-medium">

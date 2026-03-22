@@ -15,6 +15,7 @@ import {
 import AppLayout from '@/components/ui/AppLayout'
 import { getPlanLimits, type Plan } from '@/lib/limits'
 import { SkeletonBar, SkeletonCard } from '@/components/ui/LoadingSkeleton'
+import { usePrices } from '@/hooks/usePrices'
 
 function UsageBar({ label, current, max }: { label: string; current: number; max: number }) {
   const isUnlimited = max <= 0
@@ -57,11 +58,6 @@ const PLAN_NAMES: Record<Plan, string> = {
   BUSINESS: 'Business',
 }
 
-const PLAN_PRICES: Record<Plan, string> = {
-  FREE: 'R$ 0',
-  PRO: 'R$ 49',
-  BUSINESS: 'R$ 149',
-}
 
 interface OrgData {
   plan: Plan
@@ -78,6 +74,7 @@ function PlansContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { currentOrg } = useOrg()
+  const { prices } = usePrices()
   const [loading, setLoading] = useState(true)
   const [portalLoading, setPortalLoading] = useState(false)
 
@@ -227,7 +224,7 @@ function PlansContent() {
               </Row>
               {isOwner && (
                 <Text variant="body-default-s" onBackground="neutral-weak">
-                  {PLAN_PRICES[currentPlan]}/mês
+                  {prices[currentPlan].monthlyFormatted}/mês
                 </Text>
               )}
             </Column>

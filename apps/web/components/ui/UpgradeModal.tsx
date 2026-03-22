@@ -1,12 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { usePrices } from '@/hooks/usePrices'
 type PlanKey = 'FREE' | 'PRO' | 'BUSINESS'
 
 const PLANS: {
   key: PlanKey
   name: string
-  price: string
   period: string
   description: string
   recommended?: boolean
@@ -15,7 +15,6 @@ const PLANS: {
   {
     key: 'FREE',
     name: 'Gratuito',
-    price: 'R$ 0',
     period: '/mês',
     description: 'Para testar a plataforma e projetos pessoais.',
     features: [
@@ -31,7 +30,6 @@ const PLANS: {
   {
     key: 'PRO',
     name: 'Pro',
-    price: 'R$ 49',
     period: '/mês',
     description: 'Para equipes que precisam de QA profissional.',
     recommended: true,
@@ -48,7 +46,6 @@ const PLANS: {
   {
     key: 'BUSINESS',
     name: 'Business',
-    price: 'R$ 149',
     period: '/mês',
     description: 'Para softhouses e equipes grandes.',
     features: [
@@ -70,6 +67,7 @@ export default function UpgradeModal({
   currentPlan: PlanKey
   onClose: () => void
 }) {
+  const { prices } = usePrices()
   const [selected, setSelected] = useState<PlanKey>(
     currentPlan === 'FREE' ? 'PRO' : currentPlan
   )
@@ -226,7 +224,7 @@ export default function UpgradeModal({
                     fontSize: '0.75rem',
                     color: 'var(--neutral-on-background-weak)',
                   }}>
-                    {plan.price}{plan.period}
+                    {prices[plan.key].monthlyFormatted}{plan.period}
                   </span>
                 </div>
               </button>
@@ -296,7 +294,7 @@ export default function UpgradeModal({
               color: 'var(--neutral-on-background-strong)',
               letterSpacing: '-0.02em',
             }}>
-              {selectedPlan.price}
+              {prices[selected].monthlyFormatted}
             </span>
             <span style={{
               fontSize: '0.875rem',
