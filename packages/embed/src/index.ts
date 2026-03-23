@@ -1815,11 +1815,11 @@ function createWidget(config: WidgetConfig) {
     // Description (first field — most important)
     const commentField = document.createElement('div')
     commentField.className = 'fv-field'
-    commentField.innerHTML = `<label class="fv-label">Descrição <span class="fv-required">*</span></label>`
+    commentField.innerHTML = `<label class="fv-label">O que aconteceu? <span class="fv-required">*</span></label>`
     const textarea = document.createElement('textarea')
     textarea.className = 'fv-textarea'
     textarea.rows = 4
-    textarea.placeholder = 'Descreva o problema ou sugestão em detalhes... (mínimo 10 caracteres)'
+    textarea.placeholder = 'Conte o que aconteceu, o que você esperava e o que deu errado...'
     textarea.id = 'fv-comment'
     commentField.appendChild(textarea)
     const commentError = document.createElement('div')
@@ -2224,7 +2224,7 @@ function createWidget(config: WidgetConfig) {
         const descWrap = document.createElement('div')
         const descLabel = document.createElement('div')
         descLabel.className = 'fv-preview-section-title'
-        descLabel.textContent = 'Descrição'
+        descLabel.textContent = 'Relato'
         descWrap.appendChild(descLabel)
         const descText = document.createElement('p')
         descText.className = 'fv-preview-text'
