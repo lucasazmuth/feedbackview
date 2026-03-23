@@ -2614,7 +2614,7 @@ function createWidget(config: WidgetConfig) {
     // Start 3-2-1-GO countdown animation
     let countdownDone = false
     const countdownPromise = new Promise<void>(resolve => {
-      const steps = ['3', '2', '1', 'GO']
+      const steps = ['3', '2', '1']
       let i = 0
       const tick = () => {
         if (countdownEl) countdownEl.innerHTML = `<span class="fv-countdown-num">${steps[i]}</span>`
@@ -2622,8 +2622,7 @@ function createWidget(config: WidgetConfig) {
         if (i < steps.length) {
           setTimeout(tick, 350)
         } else {
-          // Brief flash of GO then resolve
-          setTimeout(() => { countdownDone = true; resolve() }, 250)
+          countdownDone = true; resolve()
         }
       }
       tick()
