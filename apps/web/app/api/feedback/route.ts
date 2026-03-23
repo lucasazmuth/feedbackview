@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { logActivity } from '@/lib/activity-log'
+import { dispatchWebhookEvent } from '@/lib/webhook-dispatcher'
 import { normalizeDomain } from '@/lib/url-utils'
 
 // Increase body size limit (default 4.5MB is too small for screenshot + rrweb events)
@@ -296,6 +297,26 @@ export async function POST(req: NextRequest) {
         severity: data.severity || null,
       },
     })
+
+    // Dispatch webhook event
+    if (project.organizationId) {
+      void dispatchWebhookEvent({
+        organizationId: project.organizationId,
+        event: 'feedback.created',
+        payload: {
+          feedbackId,
+          projectId: data.projectId,
+          projectName: project.name,
+          type: data.type,
+          severity: data.severity || null,
+          title: data.title?.trim() || null,
+          comment: (data.comment || '').slice(0, 200),
+          pageUrl: data.pageUrl || null,
+          status: 'OPEN',
+          createdAt: new Date().toISOString(),
+        },
+      })
+    }
 
     return corsJson({ success: true })
   } catch (err: any) {

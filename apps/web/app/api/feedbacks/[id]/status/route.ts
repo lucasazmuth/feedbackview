@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createNotification } from '@/lib/notifications'
 import { logActivity } from '@/lib/activity-log'
+import { dispatchWebhookEvent } from '@/lib/webhook-dispatcher'
 
 export async function PATCH(
   req: NextRequest,
@@ -71,7 +72,7 @@ export async function PATCH(
   // Notify project owner if changed by someone else
   const { data: project } = await supabase
     .from('Project')
-    .select('ownerId, name')
+    .select('ownerId, name, organizationId')
     .eq('id', feedback.projectId)
     .single()
 
@@ -89,6 +90,15 @@ export async function PATCH(
         oldStatus,
         newStatus: status,
       },
+    })
+  }
+
+  // Dispatch webhook
+  if (project?.organizationId) {
+    void dispatchWebhookEvent({
+      organizationId: project.organizationId,
+      event: 'feedback.status_changed',
+      payload: { feedbackId: id, projectId: feedback.projectId, oldStatus, newStatus: status },
     })
   }
 

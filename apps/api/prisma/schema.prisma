@@ -33,6 +33,53 @@ model Organization {
   createdAt            DateTime     @default(now())
   members              TeamMember[]
   projects             Project[]
+  apiKeys              ApiKey[]
+  webhooks             Webhook[]
+}
+
+model ApiKey {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  keyHash        String       @unique
+  prefix         String
+  permissions    String[]     @default(["read:feedbacks", "read:projects"])
+  lastUsedAt     DateTime?
+  createdAt      DateTime     @default(now())
+  expiresAt      DateTime?
+
+  @@index([organizationId])
+}
+
+model Webhook {
+  id             String            @id @default(cuid())
+  organizationId String
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  url            String
+  events         String[]          @default(["feedback.created"])
+  secret         String
+  active         Boolean           @default(true)
+  createdAt      DateTime          @default(now())
+  deliveries     WebhookDelivery[]
+
+  @@index([organizationId])
+}
+
+model WebhookDelivery {
+  id         String   @id @default(cuid())
+  webhookId  String
+  webhook    Webhook  @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  event      String
+  payload    Json
+  statusCode Int?
+  response   String?
+  success    Boolean  @default(false)
+  attempts   Int      @default(1)
+  createdAt  DateTime @default(now())
+
+  @@index([webhookId])
+  @@index([createdAt])
 }
 
 model TeamMember {
