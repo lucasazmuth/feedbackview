@@ -1559,10 +1559,7 @@ function createWidget(config: WidgetConfig) {
     const replaySection = document.createElement('div')
     replaySection.className = 'fv-replay-section'
 
-    const replayLabel = document.createElement('div')
-    replayLabel.className = 'fv-replay-label'
-    replayLabel.innerHTML = '<span class="fv-replay-dot"></span> Session Replay <span class="fv-hint">(gravação automática)</span> <span class="fv-replay-info">!<span class="fv-replay-tooltip">A sessão é gravada automaticamente enquanto você navega. Ao abrir o report, os últimos segundos de interação são capturados. Campos sensíveis como senhas ficam borrados automaticamente.</span></span>'
-    replaySection.appendChild(replayLabel)
+    // Label removed — tabs handle the label now
 
     if (isProxyModeNow) {
       // Show warning instead of replay player in proxy/shared URL mode
@@ -1801,6 +1798,50 @@ function createWidget(config: WidgetConfig) {
     replaySection.appendChild(replayCard)
     previewReplayContainer.appendChild(replaySection)
     } // end else (non-proxy mode)
+
+    // ── Media tabs (Replay | Screenshot) in form column ──
+    let mediaActiveTab: 'replay' | 'screenshot' = 'replay'
+    const mediaTabs = document.createElement('div')
+    mediaTabs.style.cssText = 'display:flex;gap:0;margin-bottom:12px;border-bottom:2px solid #e2e8f0;'
+    const mediaReplayTab = document.createElement('button')
+    mediaReplayTab.style.cssText = 'flex:1;padding:8px 0;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:all 0.15s;border-bottom:2px solid #111827;margin-bottom:-2px;color:#111827;background:transparent;'
+    mediaReplayTab.innerHTML = '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444;margin-right:5px;vertical-align:middle;"></span>Replay'
+    const mediaScreenshotTab = document.createElement('button')
+    mediaScreenshotTab.style.cssText = 'flex:1;padding:8px 0;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:all 0.15s;border-bottom:2px solid transparent;margin-bottom:-2px;color:#9ca3af;background:transparent;'
+    mediaScreenshotTab.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>Screenshot'
+    mediaTabs.appendChild(mediaReplayTab)
+    mediaTabs.appendChild(mediaScreenshotTab)
+    bodyForm.appendChild(mediaTabs)
+
+    // Replay goes in form column
+    bodyForm.appendChild(previewReplayContainer)
+
+    // Screenshot container in form column (hidden by default)
+    const formScreenshotContainer = document.createElement('div')
+    formScreenshotContainer.id = 'fv-form-screenshot'
+    formScreenshotContainer.style.display = 'none'
+    bodyForm.appendChild(formScreenshotContainer)
+
+    function switchMediaTab(tab: 'replay' | 'screenshot') {
+      mediaActiveTab = tab
+      if (tab === 'replay') {
+        mediaReplayTab.style.borderBottomColor = '#111827'
+        mediaReplayTab.style.color = '#111827'
+        mediaScreenshotTab.style.borderBottomColor = 'transparent'
+        mediaScreenshotTab.style.color = '#9ca3af'
+        previewReplayContainer.style.display = 'block'
+        formScreenshotContainer.style.display = 'none'
+      } else {
+        mediaReplayTab.style.borderBottomColor = 'transparent'
+        mediaReplayTab.style.color = '#9ca3af'
+        mediaScreenshotTab.style.borderBottomColor = '#111827'
+        mediaScreenshotTab.style.color = '#111827'
+        previewReplayContainer.style.display = 'none'
+        formScreenshotContainer.style.display = 'block'
+      }
+    }
+    mediaReplayTab.addEventListener('click', () => switchMediaTab('replay'))
+    mediaScreenshotTab.addEventListener('click', () => switchMediaTab('screenshot'))
 
     // ── Form fields section ──
     const formSection = document.createElement('div')
@@ -2141,53 +2182,15 @@ function createWidget(config: WidgetConfig) {
 
     const previewLabel = document.createElement('div')
     previewLabel.className = 'fv-preview-label'
-    previewLabel.textContent = 'Visualização ao vivo'
+    previewLabel.textContent = 'Preview'
     previewPanel.appendChild(previewLabel)
 
-    // Preview tabs: Replay | Screenshot
-    let previewActiveTab: 'replay' | 'screenshot' = 'replay'
-    const previewTabs = document.createElement('div')
-    previewTabs.style.cssText = 'display:flex;gap:0;margin-bottom:12px;border-bottom:2px solid #e2e8f0;'
-    const replayTab = document.createElement('button')
-    replayTab.style.cssText = 'flex:1;padding:8px 0;font-size:12px;font-weight:600;border:none;cursor:pointer;transition:all 0.15s;border-bottom:2px solid #111827;margin-bottom:-2px;color:#111827;background:transparent;'
-    replayTab.textContent = 'Replay'
-    const screenshotTab = document.createElement('button')
-    screenshotTab.style.cssText = 'flex:1;padding:8px 0;font-size:12px;font-weight:600;border:none;cursor:pointer;transition:all 0.15s;border-bottom:2px solid transparent;margin-bottom:-2px;color:#9ca3af;background:transparent;'
-    screenshotTab.textContent = 'Screenshot'
-    previewTabs.appendChild(replayTab)
-    previewTabs.appendChild(screenshotTab)
-    previewPanel.appendChild(previewTabs)
-
-    // Replay container (in preview panel) — created earlier, append here
-    previewPanel.appendChild(previewReplayContainer)
-
-    // Preview card (screenshot + info — hidden by default)
+    // Preview card (type, title, desc, metadata — stays in right column)
     const previewCard = document.createElement('div')
     previewCard.className = 'fv-preview-card'
     previewCard.id = 'fv-preview-card'
-    previewCard.style.display = 'none'
+    previewCard.style.display = 'flex'
     previewPanel.appendChild(previewCard)
-
-    function switchPreviewTab(tab: 'replay' | 'screenshot') {
-      previewActiveTab = tab
-      if (tab === 'replay') {
-        replayTab.style.borderBottomColor = '#111827'
-        replayTab.style.color = '#111827'
-        screenshotTab.style.borderBottomColor = 'transparent'
-        screenshotTab.style.color = '#9ca3af'
-        previewReplayContainer.style.display = 'block'
-        previewCard.style.display = 'none'
-      } else {
-        replayTab.style.borderBottomColor = 'transparent'
-        replayTab.style.color = '#9ca3af'
-        screenshotTab.style.borderBottomColor = '#111827'
-        screenshotTab.style.color = '#111827'
-        previewReplayContainer.style.display = 'none'
-        previewCard.style.display = 'flex'
-      }
-    }
-    replayTab.addEventListener('click', () => switchPreviewTab('replay'))
-    screenshotTab.addEventListener('click', () => switchPreviewTab('screenshot'))
 
     body.appendChild(previewPanel)
 
@@ -2330,13 +2333,10 @@ function createWidget(config: WidgetConfig) {
         card.appendChild(actWrap)
       }
 
-      // Screenshot thumbnail
+      // Screenshot — render in form column's formScreenshotContainer (not in preview card)
       {
+        formScreenshotContainer.innerHTML = ''
         const ssWrap = document.createElement('div')
-        const ssLbl = document.createElement('div')
-        ssLbl.className = 'fv-preview-section-title'
-        ssLbl.textContent = 'Screenshot'
-        ssWrap.appendChild(ssLbl)
 
         const capturingEl = document.createElement('div')
         capturingEl.className = 'fv-preview-capturing'
@@ -2345,13 +2345,16 @@ function createWidget(config: WidgetConfig) {
         ssWrap.appendChild(capturingEl)
 
         // Screenshot container with annotation canvas
+        const ssCard = document.createElement('div')
+        ssCard.style.cssText = 'border-radius:12px;overflow:hidden;background:#0f172a;display:' + (screenshotUrl ? 'block' : 'none') + ';'
+
         const ssContainer = document.createElement('div')
-        ssContainer.style.cssText = 'position:relative;cursor:crosshair;display:' + (screenshotUrl ? 'block' : 'none') + ';'
+        ssContainer.style.cssText = 'position:relative;cursor:crosshair;'
 
         const ssImg = document.createElement('img')
         ssImg.className = 'fv-preview-screenshot'
         ssImg.alt = 'Screenshot'
-        ssImg.style.cssText = 'width:100%;border-radius:8px;border:1px solid #e5e7eb;display:block;'
+        ssImg.style.cssText = 'width:100%;display:block;'
         if (screenshotUrl) ssImg.src = screenshotUrl
         ssContainer.appendChild(ssImg)
 
@@ -2360,10 +2363,7 @@ function createWidget(config: WidgetConfig) {
         overlay.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;border-radius:8px;cursor:crosshair;'
         ssContainer.appendChild(overlay)
 
-        // Help text
-        const drawHint = document.createElement('div')
-        drawHint.style.cssText = 'text-align:center;font-size:10px;color:#9ca3af;margin-top:4px;'
-        drawHint.textContent = 'Clique e arraste para marcar areas no screenshot'
+        // Help text now integrated into controls bar (ssHintSmall)
 
         // Initialize canvas when image loads
         ssImg.onload = () => {
@@ -2454,14 +2454,26 @@ function createWidget(config: WidgetConfig) {
           drawStartPos = null
         })
 
+        // Controls bar (matching video player style)
+        const ssControls = document.createElement('div')
+        ssControls.style.cssText = 'display:flex;align-items:center;justify-content:space-between;background:#fff;padding:8px 12px;border-top:1px solid #e5e7eb;'
+
+        const ssControlsLeft = document.createElement('div')
+        ssControlsLeft.style.cssText = 'display:flex;align-items:center;gap:6px;'
+        const ssHintSmall = document.createElement('span')
+        ssHintSmall.style.cssText = 'font-size:11px;color:#9ca3af;'
+        ssHintSmall.textContent = 'Clique e arraste para marcar'
+        ssControlsLeft.appendChild(ssHintSmall)
+        ssControls.appendChild(ssControlsLeft)
+
         // Annotation action buttons (hidden until user draws)
         const drawActions = document.createElement('div')
-        drawActions.style.cssText = 'display:none;gap:6px;justify-content:center;margin-top:4px;'
-        function updateDrawActions() { drawActions.style.display = drawingRects.length > 0 ? 'flex' : 'none' }
+        drawActions.style.cssText = 'display:none;align-items:center;gap:6px;'
+        function updateDrawActions() { drawActions.style.display = drawingRects.length > 0 ? 'flex' : 'none'; ssHintSmall.style.display = drawingRects.length > 0 ? 'none' : 'inline'; }
 
         const undoBtn = document.createElement('button')
-        undoBtn.style.cssText = 'padding:3px 10px;border-radius:4px;border:1px solid #e5e7eb;background:#fff;color:#6b7280;font-size:10px;cursor:pointer;display:flex;align-items:center;gap:3px;'
-        undoBtn.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg> Desfazer`
+        undoBtn.style.cssText = 'padding:4px 10px;border-radius:6px;border:1px solid #e5e7eb;background:#fff;color:#374151;font-size:11px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:4px;transition:background 0.15s;'
+        undoBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg> Desfazer`
         undoBtn.onclick = (e) => {
           e.preventDefault()
           e.stopPropagation()
@@ -2473,8 +2485,8 @@ function createWidget(config: WidgetConfig) {
         }
 
         const clearBtn = document.createElement('button')
-        clearBtn.style.cssText = 'padding:3px 10px;border-radius:4px;border:1px solid #fca5a5;background:#fff;color:#ef4444;font-size:10px;cursor:pointer;'
-        clearBtn.textContent = 'Limpar tudo'
+        clearBtn.style.cssText = 'padding:4px 10px;border-radius:6px;border:1px solid #fca5a5;background:#fff;color:#ef4444;font-size:11px;font-weight:500;cursor:pointer;transition:background 0.15s;'
+        clearBtn.textContent = 'Limpar'
         clearBtn.onclick = (e) => {
           e.preventDefault()
           e.stopPropagation()
@@ -2483,13 +2495,13 @@ function createWidget(config: WidgetConfig) {
           updateDrawActions()
         }
 
+        ssCard.appendChild(ssContainer)
         drawActions.appendChild(undoBtn)
         drawActions.appendChild(clearBtn)
-
-        ssWrap.appendChild(ssContainer)
-        ssWrap.appendChild(drawActions)
-        ssWrap.appendChild(drawHint)
-        card.appendChild(ssWrap)
+        ssControls.appendChild(drawActions)
+        ssCard.appendChild(ssControls)
+        ssWrap.appendChild(ssCard)
+        formScreenshotContainer.appendChild(ssWrap)
       }
 
       // Priority
