@@ -2611,18 +2611,19 @@ function createWidget(config: WidgetConfig) {
     trigger.classList.add('fv-trigger-loading')
     const countdownEl = trigger.querySelector('.fv-countdown') as HTMLElement
 
-    // Start countdown animation while async work happens
+    // Start 3-2-1-GO countdown animation
     let countdownDone = false
     const countdownPromise = new Promise<void>(resolve => {
-      let step = 1
+      const steps = ['3', '2', '1', 'GO']
+      let i = 0
       const tick = () => {
-        if (countdownEl) countdownEl.innerHTML = `<span class="fv-countdown-num">${step}</span>`
-        step++
-        if (step <= 3) {
-          setTimeout(tick, 400)
+        if (countdownEl) countdownEl.innerHTML = `<span class="fv-countdown-num">${steps[i]}</span>`
+        i++
+        if (i < steps.length) {
+          setTimeout(tick, 350)
         } else {
-          countdownDone = true
-          resolve()
+          // Brief flash of GO then resolve
+          setTimeout(() => { countdownDone = true; resolve() }, 250)
         }
       }
       tick()
