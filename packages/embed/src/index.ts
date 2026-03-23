@@ -2281,7 +2281,10 @@ function createWidget(config: WidgetConfig) {
           const bCtx = baseCanvas.getContext('2d')
           if (bCtx) bCtx.drawImage(ssImg, 0, 0)
           overlayCanvas = overlay
-          drawingRects = []
+          // Preserve existing annotations across re-renders
+          if (drawingRects.length > 0) {
+            redrawOverlay()
+          }
         }
 
         // Drawing event listeners
