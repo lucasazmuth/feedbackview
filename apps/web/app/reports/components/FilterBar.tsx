@@ -210,7 +210,7 @@ export default function FilterBar({
             onClick={() => setPanelOpen(!panelOpen)}
             title="Filtros"
             style={{
-              width: 40, height: 38,
+              width: 40, height: 40,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               position: 'relative',
               borderRadius: '0.5rem',
@@ -219,10 +219,13 @@ export default function FilterBar({
               cursor: 'pointer',
               color: activeFilterCount > 0 ? 'var(--brand-on-background-strong)' : 'var(--neutral-on-background-weak)',
               transition: 'all 0.15s',
+              flexShrink: 0,
             }}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+              <line x1="4" y1="6" x2="20" y2="6" />
+              <line x1="7" y1="12" x2="17" y2="12" />
+              <line x1="10" y1="18" x2="14" y2="18" />
             </svg>
             {activeFilterCount > 0 && (
               <span style={{
