@@ -1,0 +1,89 @@
+'use client'
+
+import { useDroppable } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { Text, Tag } from '@once-ui-system/core'
+import { getTagVariant, getStatusLabel } from '../utils/labels'
+import KanbanCard from './KanbanCard'
+
+interface Feedback {
+  id: string
+  type: string
+  severity?: string
+  status: string
+  comment: string
+  title?: string
+  createdAt: string
+  projectId: string
+  Project?: { id: string; name: string; ownerId?: string }
+}
+
+interface Assignee {
+  userId: string
+  name: string | null
+  email: string
+}
+
+interface KanbanColumnProps {
+  status: string
+  feedbacks: Feedback[]
+  feedbackAssigneesMap: Record<string, Assignee[]>
+  onOpenDetail: (feedbackId: string) => void
+}
+
+export default function KanbanColumn({ status, feedbacks, feedbackAssigneesMap, onOpenDetail }: KanbanColumnProps) {
+  const { setNodeRef, isOver } = useDroppable({ id: status })
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        minWidth: 280,
+        maxWidth: 320,
+        flex: '1 0 280px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.5rem',
+        background: isOver ? 'var(--brand-alpha-weak)' : 'var(--neutral-alpha-weak)',
+        borderRadius: '0.75rem',
+        padding: '0.75rem',
+        transition: 'background 0.2s',
+        maxHeight: 'calc(100vh - 16rem)',
+        overflowY: 'auto',
+      }}
+    >
+      {/* Column header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.25rem 0.25rem 0.5rem' }}>
+        <Tag variant={getTagVariant(status)} size="s" label={getStatusLabel(status)} />
+        <Text variant="label-default-xs" onBackground="neutral-weak">
+          {feedbacks.length}
+        </Text>
+      </div>
+
+      {/* Cards */}
+      <SortableContext items={feedbacks.map(f => f.id)} strategy={verticalListSortingStrategy}>
+        {feedbacks.map(feedback => (
+          <KanbanCard
+            key={feedback.id}
+            feedback={feedback}
+            assignees={feedbackAssigneesMap[feedback.id] || []}
+            onClick={onOpenDetail}
+          />
+        ))}
+      </SortableContext>
+
+      {feedbacks.length === 0 && (
+        <div style={{
+          padding: '2rem 1rem',
+          textAlign: 'center',
+          border: '2px dashed var(--neutral-border-medium)',
+          borderRadius: '0.5rem',
+        }}>
+          <Text variant="body-default-xs" onBackground="neutral-weak">
+            Nenhum report
+          </Text>
+        </div>
+      )}
+    </div>
+  )
+}

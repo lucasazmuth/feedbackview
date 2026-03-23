@@ -80,6 +80,9 @@ model Feedback {
   pageUrl        String?
   userAgent      String?
   attachmentUrls Json?
+  startDate      DateTime?
+  dueDate        DateTime?
+  sortOrder      Int            @default(0)
   createdAt      DateTime       @default(now())
   archivedAt     DateTime?
 

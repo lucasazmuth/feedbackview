@@ -186,12 +186,29 @@ export const serverApi = {
       const projectIds = projects?.map((p: any) => p.id) || []
       if (projectIds.length === 0) return []
 
-      const { data, error } = await supabaseAdmin
+      // Try with sortOrder first, fallback to createdAt only if column doesn't exist
+      let query = supabaseAdmin
         .from('Feedback')
         .select('*, Project!inner(id, name, ownerId)')
         .in('projectId', projectIds)
         .is('archivedAt', null)
+        .order('sortOrder', { ascending: true })
         .order('createdAt', { ascending: false })
+
+      const { data, error } = await query
+
+      // Fallback if sortOrder column doesn't exist yet
+      if (error && error.message?.includes('sortOrder')) {
+        const { data: fallbackData, error: fallbackError } = await supabaseAdmin
+          .from('Feedback')
+          .select('*, Project!inner(id, name, ownerId)')
+          .in('projectId', projectIds)
+          .is('archivedAt', null)
+          .order('createdAt', { ascending: false })
+        if (fallbackError) throw new Error(fallbackError.message)
+        return fallbackData || []
+      }
+
       if (error) throw new Error(error.message)
       return data || []
     },

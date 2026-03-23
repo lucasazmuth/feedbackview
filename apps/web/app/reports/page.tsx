@@ -69,12 +69,43 @@ export default async function ReportsPage() {
     } catch {}
   }
 
+  // Fetch all team members for the user's orgs (for inline assignee editing)
+  let teamMembersList: { id: string; name: string | null; email: string }[] = []
+  try {
+    // Get org IDs from projects
+    const orgIds = [...new Set(projects.map((p: any) => p.organizationId).filter(Boolean))]
+    if (orgIds.length > 0) {
+      const { data: members } = await supabaseAdmin
+        .from('TeamMember')
+        .select('userId, inviteEmail, organizationId')
+        .in('organizationId', orgIds)
+        .eq('status', 'ACTIVE')
+
+      if (members && members.length > 0) {
+        const uniqueMembers = new Map<string, { id: string; name: string | null; email: string }>()
+        for (const m of members) {
+          if (!uniqueMembers.has(m.userId)) {
+            const email = m.inviteEmail || ''
+            uniqueMembers.set(m.userId, {
+              id: m.userId,
+              name: email ? email.split('@')[0] : null,
+              email,
+            })
+          }
+        }
+        teamMembersList = Array.from(uniqueMembers.values())
+      }
+    }
+  } catch {}
+
   return (
     <ReportsClient
       feedbacks={feedbacks}
       projects={projects}
       error={error}
       feedbackAssigneesMap={feedbackAssigneesMap}
+      teamMembers={teamMembersList}
+      currentUserId={user.id}
     />
   )
 }

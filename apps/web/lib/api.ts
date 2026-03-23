@@ -73,6 +73,71 @@ export const api = {
       }
     },
 
+    async bulkUpdateStatus(feedbackIds: string[], status: string) {
+      const res = await fetch('/api/feedbacks/bulk-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feedbackIds, status }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Erro ao atualizar status em lote')
+      }
+      return res.json()
+    },
+
+    async updateStartDate(feedbackId: string, startDate: string | null) {
+      const res = await fetch('/api/feedbacks/start-date', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feedbackId, startDate }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Erro ao atualizar data de início')
+      }
+      return res.json()
+    },
+
+    async updateDueDate(feedbackId: string, dueDate: string | null) {
+      const res = await fetch('/api/feedbacks/due-date', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feedbackId, dueDate }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Erro ao atualizar data de entrega')
+      }
+      return res.json()
+    },
+
+    async reorder(orderedIds: string[]) {
+      const res = await fetch('/api/feedbacks/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderedIds }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Erro ao reordenar')
+      }
+      return res.json()
+    },
+
+    async bulkAssign(feedbackIds: string[], userIds: string[]) {
+      const res = await fetch('/api/feedbacks/bulk-assign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feedbackIds, userIds }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Erro ao atribuir em lote')
+      }
+      return res.json()
+    },
+
     async getAssignees(id: string) {
       const res = await fetch(`/api/feedbacks/${id}/assign`)
       if (!res.ok) throw new Error('Erro ao buscar responsáveis')

@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  turbopack: {
+    root: '../../',
+  },
   sassOptions: {
     compiler: "modern" as any,
     silenceDeprecations: ["legacy-js-api"],

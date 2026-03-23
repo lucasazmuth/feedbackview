@@ -23,7 +23,32 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+  // If refresh token is invalid, clear the stale cookies to stop infinite retry loops
+  if (authError && authError.message?.includes('Refresh Token')) {
+    const cookieNames = request.cookies.getAll()
+      .filter(c => c.name.includes('auth-token'))
+      .map(c => c.name)
+    if (cookieNames.length > 0) {
+      const isAuthPage = request.nextUrl.pathname.startsWith('/auth')
+      if (!isAuthPage) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/auth/login'
+        const response = NextResponse.redirect(url)
+        // Delete stale auth cookies
+        for (const name of cookieNames) {
+          response.cookies.delete(name)
+        }
+        return response
+      }
+      // On auth pages, just delete the cookies and continue
+      for (const name of cookieNames) {
+        supabaseResponse.cookies.delete(name)
+      }
+      return supabaseResponse
+    }
+  }
 
   const isAuthPage = request.nextUrl.pathname.startsWith('/auth')
   const isPublicPage = request.nextUrl.pathname.startsWith('/p/')
