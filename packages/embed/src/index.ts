@@ -866,17 +866,12 @@ function createWidget(config: WidgetConfig) {
       background: #fff;
       border-radius: 16px;
       border: 1px solid #e2e8f0;
-      padding: 0;
+      padding: 20px;
       display: flex;
       flex-direction: column;
+      gap: 14px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
       overflow: hidden;
-    }
-    .fv-preview-card > div {
-      padding: 16px 20px;
-    }
-    .fv-preview-card > div + div {
-      border-top: 1px solid #f1f5f9;
     }
     .fv-preview-badge {
       display: inline-flex;
@@ -1094,7 +1089,9 @@ function createWidget(config: WidgetConfig) {
     }
     .fv-form-section > * + * { margin-top: 16px; }
 
-    .fv-field {}
+    .fv-field {
+      margin-bottom: 4px;
+    }
     .fv-label {
       display: block;
       font-size: 13px;
@@ -1254,10 +1251,12 @@ function createWidget(config: WidgetConfig) {
     }
     .fv-details-content {
       display: none;
-      padding-bottom: 4px;
+      padding-top: 8px;
     }
     .fv-details-content.open {
-      display: block;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
 
     .fv-footer {
@@ -2460,7 +2459,7 @@ function createWidget(config: WidgetConfig) {
 
       // Metadata section — compact grid
       const meta = document.createElement('div')
-      meta.style.cssText = 'display:flex;flex-direction:column;gap:8px;padding:14px 20px;background:#f8fafc;border-top:1px solid #f1f5f9;border-radius:0 0 16px 16px;'
+      meta.style.cssText = 'display:flex;flex-direction:column;gap:7px;padding:12px;background:#f8fafc;border-radius:10px;border:1px solid #f1f5f9;'
 
       // Source URL
       const urlRow = document.createElement('div')
