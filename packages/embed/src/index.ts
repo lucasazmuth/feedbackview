@@ -832,7 +832,7 @@ function createWidget(config: WidgetConfig) {
       width: 380px;
       flex-shrink: 0;
       border-left: 1px solid #e5e7eb;
-      background: #f9fafb;
+      background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
       overflow-y: auto;
       padding: 20px;
     }
@@ -840,43 +840,83 @@ function createWidget(config: WidgetConfig) {
       .fv-preview-panel { display: none !important; }
     }
     .fv-preview-label {
-      font-size: 11px;
-      font-weight: 600;
-      color: #9ca3af;
+      font-size: 10px;
+      font-weight: 700;
+      color: #94a3b8;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 16px;
+      letter-spacing: 0.1em;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .fv-preview-label::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #10b981;
+      animation: fv-dot-pulse 2s ease-in-out infinite;
+    }
+    @keyframes fv-dot-pulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
     }
     .fv-preview-card {
       background: #fff;
-      border-radius: 12px;
-      border: 1px solid #e5e7eb;
-      padding: 20px;
+      border-radius: 16px;
+      border: 1px solid #e2e8f0;
+      padding: 0;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+      overflow: hidden;
+    }
+    .fv-preview-card > div {
+      padding: 16px 20px;
+    }
+    .fv-preview-card > div + div {
+      border-top: 1px solid #f1f5f9;
     }
     .fv-preview-badge {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      padding: 3px 10px;
-      border-radius: 6;
-      font-size: 12px;
+      gap: 5px;
+      padding: 4px 12px;
+      border-radius: 8px;
+      font-size: 11px;
       font-weight: 600;
+      letter-spacing: 0.01em;
     }
     .fv-preview-section-title {
-      font-size: 12px;
-      font-weight: 600;
-      color: #6b7280;
-      margin-bottom: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
     }
     .fv-preview-text {
       font-size: 13px;
-      color: #374151;
-      line-height: 1.6;
+      color: #1e293b;
+      line-height: 1.65;
       margin: 0;
       white-space: pre-wrap;
+    }
+    .fv-preview-placeholder {
+      color: #cbd5e1 !important;
+      font-style: italic;
+    }
+    .fv-preview-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: #64748b;
+    }
+    .fv-preview-meta svg {
+      opacity: 0.5;
+      flex-shrink: 0;
     }
     .fv-preview-placeholder {
       font-size: 13px;
@@ -894,12 +934,15 @@ function createWidget(config: WidgetConfig) {
     .fv-preview-meta-row {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 12px;
+      gap: 7px;
+      font-size: 11px;
+      color: #64748b;
+      line-height: 1;
     }
     .fv-preview-meta-icon {
-      color: #9ca3af;
+      color: #94a3b8;
       flex-shrink: 0;
+      opacity: 0.7;
     }
 
     .fv-replay-section {
@@ -2094,7 +2137,7 @@ function createWidget(config: WidgetConfig) {
 
     const previewLabel = document.createElement('div')
     previewLabel.className = 'fv-preview-label'
-    previewLabel.textContent = 'Preview'
+    previewLabel.textContent = 'Visualização ao vivo'
     previewPanel.appendChild(previewLabel)
 
     const previewCard = document.createElement('div')
@@ -2415,9 +2458,9 @@ function createWidget(config: WidgetConfig) {
         card.appendChild(priWrap)
       }
 
-      // Metadata section
+      // Metadata section — compact grid
       const meta = document.createElement('div')
-      meta.className = 'fv-preview-meta'
+      meta.style.cssText = 'display:flex;flex-direction:column;gap:8px;padding:14px 20px;background:#f8fafc;border-top:1px solid #f1f5f9;border-radius:0 0 16px 16px;'
 
       // Source URL
       const urlRow = document.createElement('div')
