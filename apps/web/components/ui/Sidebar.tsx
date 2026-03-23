@@ -70,6 +70,10 @@ export default function Sidebar() {
     if (prefix === '/reports') {
       return pathname === '/reports' || pathname.startsWith('/reports/')
     }
+    // Exact match for /settings (don't match /settings/integrations)
+    if (prefix === '/settings') {
+      return pathname === '/settings' || pathname.startsWith('/settings/billing') || pathname.startsWith('/settings/team')
+    }
     return pathname.startsWith(prefix)
   }
 
