@@ -1565,7 +1565,7 @@ function createWidget(config: WidgetConfig) {
       proxyWarning.className = 'fv-replay-proxy-warning'
       proxyWarning.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#92400e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div><strong>Indisponível neste modo</strong>O Session Replay não funciona no modo URL compartilhada. O screenshot será capturado como referência visual.</div>`
       replaySection.appendChild(proxyWarning)
-      bodyForm.appendChild(replaySection)
+      previewReplayContainer.appendChild(replaySection)
     } else {
 
     const replayCard = document.createElement('div')
@@ -1794,7 +1794,7 @@ function createWidget(config: WidgetConfig) {
     }
 
     replaySection.appendChild(replayCard)
-    bodyForm.appendChild(replaySection)
+    previewReplayContainer.appendChild(replaySection)
     } // end else (non-proxy mode)
 
     // ── Form fields section ──
@@ -2139,10 +2139,53 @@ function createWidget(config: WidgetConfig) {
     previewLabel.textContent = 'Visualização ao vivo'
     previewPanel.appendChild(previewLabel)
 
+    // Preview tabs: Replay | Screenshot
+    let previewActiveTab: 'replay' | 'screenshot' = 'replay'
+    const previewTabs = document.createElement('div')
+    previewTabs.style.cssText = 'display:flex;gap:0;margin-bottom:12px;border-bottom:2px solid #e2e8f0;'
+    const replayTab = document.createElement('button')
+    replayTab.style.cssText = 'flex:1;padding:8px 0;font-size:12px;font-weight:600;border:none;cursor:pointer;transition:all 0.15s;border-bottom:2px solid #111827;margin-bottom:-2px;color:#111827;background:transparent;'
+    replayTab.textContent = 'Replay'
+    const screenshotTab = document.createElement('button')
+    screenshotTab.style.cssText = 'flex:1;padding:8px 0;font-size:12px;font-weight:600;border:none;cursor:pointer;transition:all 0.15s;border-bottom:2px solid transparent;margin-bottom:-2px;color:#9ca3af;background:transparent;'
+    screenshotTab.textContent = 'Screenshot'
+    previewTabs.appendChild(replayTab)
+    previewTabs.appendChild(screenshotTab)
+    previewPanel.appendChild(previewTabs)
+
+    // Replay container (in preview panel)
+    const previewReplayContainer = document.createElement('div')
+    previewReplayContainer.id = 'fv-preview-replay'
+    previewReplayContainer.style.cssText = 'display:block;'
+    previewPanel.appendChild(previewReplayContainer)
+
+    // Preview card (screenshot + info — hidden by default)
     const previewCard = document.createElement('div')
     previewCard.className = 'fv-preview-card'
     previewCard.id = 'fv-preview-card'
+    previewCard.style.display = 'none'
     previewPanel.appendChild(previewCard)
+
+    function switchPreviewTab(tab: 'replay' | 'screenshot') {
+      previewActiveTab = tab
+      if (tab === 'replay') {
+        replayTab.style.borderBottomColor = '#111827'
+        replayTab.style.color = '#111827'
+        screenshotTab.style.borderBottomColor = 'transparent'
+        screenshotTab.style.color = '#9ca3af'
+        previewReplayContainer.style.display = 'block'
+        previewCard.style.display = 'none'
+      } else {
+        replayTab.style.borderBottomColor = 'transparent'
+        replayTab.style.color = '#9ca3af'
+        screenshotTab.style.borderBottomColor = '#111827'
+        screenshotTab.style.color = '#111827'
+        previewReplayContainer.style.display = 'none'
+        previewCard.style.display = 'flex'
+      }
+    }
+    replayTab.addEventListener('click', () => switchPreviewTab('replay'))
+    screenshotTab.addEventListener('click', () => switchPreviewTab('screenshot'))
 
     body.appendChild(previewPanel)
 
