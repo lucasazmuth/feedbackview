@@ -262,27 +262,6 @@ export default function ProjectFeedbacksTab({
         </div>
       </div>
 
-      {/* Active filter chips */}
-      {activeFilterCount > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', flexWrap: 'wrap' }}>
-          {filters.types.map(t => (
-            <Tag key={`t-${t}`} variant={getTagVariant(t)} size="s" label={getTypeLabel(t)} onClick={() => removeFilter('types', t)} style={{ cursor: 'pointer' }} />
-          ))}
-          {filters.severities.map(s => (
-            <Tag key={`s-${s}`} variant={getTagVariant(s)} size="s" label={getSeverityLabel(s)} onClick={() => removeFilter('severities', s)} style={{ cursor: 'pointer' }} />
-          ))}
-          {filters.statuses.map(s => (
-            <Tag key={`st-${s}`} variant={getTagVariant(s)} size="s" label={getStatusLabel(s)} onClick={() => removeFilter('statuses', s)} style={{ cursor: 'pointer' }} />
-          ))}
-          {filters.assignee && (
-            <Tag variant="neutral" size="s" label={filters.assignee === 'unassigned' ? 'Sem responsável' : 'Meus reports'} onClick={() => removeFilter('assignee')} style={{ cursor: 'pointer' }} />
-          )}
-          <button onClick={clearAll} style={{ padding: '0.25rem 0.5rem', borderRadius: '0.375rem', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500, color: 'var(--danger-on-background-strong)' }}>
-            Limpar
-          </button>
-        </div>
-      )}
-
       {/* Content */}
       {displayFeedbacks.length === 0 ? (
         <Card fillWidth padding="xl" radius="l" style={{ textAlign: 'center' }}>
