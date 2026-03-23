@@ -2333,6 +2333,7 @@ function createWidget(config: WidgetConfig) {
           // Preserve existing annotations across re-renders
           if (drawingRects.length > 0) {
             redrawOverlay()
+            if (typeof updateDrawActions === 'function') updateDrawActions()
           }
         }
 
@@ -2355,6 +2356,7 @@ function createWidget(config: WidgetConfig) {
           if (Math.abs(w) > 5 && Math.abs(h) > 5) {
             drawingRects.push({ x: drawStartPos.x, y: drawStartPos.y, w, h })
             redrawOverlay()
+            if (typeof updateDrawActions === 'function') updateDrawActions()
           }
           isDrawing = false
           drawStartPos = null
@@ -2400,15 +2402,17 @@ function createWidget(config: WidgetConfig) {
             if (Math.abs(w) > 5 && Math.abs(h) > 5) {
               drawingRects.push({ x: drawStartPos.x, y: drawStartPos.y, w, h })
               redrawOverlay()
+              if (typeof updateDrawActions === 'function') updateDrawActions()
             }
           }
           isDrawing = false
           drawStartPos = null
         })
 
-        // Annotation action buttons
+        // Annotation action buttons (hidden until user draws)
         const drawActions = document.createElement('div')
-        drawActions.style.cssText = 'display:flex;gap:6px;justify-content:center;margin-top:4px;'
+        drawActions.style.cssText = 'display:none;gap:6px;justify-content:center;margin-top:4px;'
+        function updateDrawActions() { drawActions.style.display = drawingRects.length > 0 ? 'flex' : 'none' }
 
         const undoBtn = document.createElement('button')
         undoBtn.style.cssText = 'padding:3px 10px;border-radius:4px;border:1px solid #e5e7eb;background:#fff;color:#6b7280;font-size:10px;cursor:pointer;display:flex;align-items:center;gap:3px;'
@@ -2419,6 +2423,7 @@ function createWidget(config: WidgetConfig) {
           if (drawingRects.length > 0) {
             drawingRects.pop()
             redrawOverlay()
+            updateDrawActions()
           }
         }
 
@@ -2430,6 +2435,7 @@ function createWidget(config: WidgetConfig) {
           e.stopPropagation()
           drawingRects = []
           redrawOverlay()
+          updateDrawActions()
         }
 
         drawActions.appendChild(undoBtn)
