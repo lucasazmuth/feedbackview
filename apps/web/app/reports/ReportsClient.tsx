@@ -8,6 +8,7 @@ import {
   Row,
   Heading,
   Text,
+  Tag,
   Icon,
   Card,
   Flex,
@@ -16,6 +17,9 @@ import {
 import AppLayout from '@/components/ui/AppLayout'
 import { useOrg } from '@/contexts/OrgContext'
 import { api } from '@/lib/api'
+
+// Utils
+import { getTagVariant, getTypeLabel, getSeverityLabel, getStatusLabel } from './utils/labels'
 
 // Modular components
 import FilterBar from './components/FilterBar'
@@ -322,6 +326,21 @@ export default function ReportsClient({
             />
           </div>
 
+          {/* Filter icon */}
+          <FilterBar
+            filters={filters}
+            projects={orgProjects}
+            currentUserId={currentUserId}
+            activeFilterCount={activeFilterCount}
+            compact
+            onToggleArrayFilter={toggleArrayFilter}
+            onSetProjectId={setProjectId}
+            onSetAssignee={setAssignee}
+            onRemoveFilter={removeFilter}
+            onClearAll={clearAll}
+            onApplyPreset={applyPreset}
+          />
+
           {/* View mode toggle */}
           <div style={{ display: 'flex', borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)', overflow: 'hidden', flexShrink: 0 }}>
             {/* Card view */}
@@ -375,19 +394,29 @@ export default function ReportsClient({
           </div>
         </div>
 
-        {/* Filter bar */}
-        <FilterBar
-          filters={filters}
-          projects={orgProjects}
-          currentUserId={currentUserId}
-          activeFilterCount={activeFilterCount}
-          onToggleArrayFilter={toggleArrayFilter}
-          onSetProjectId={setProjectId}
-          onSetAssignee={setAssignee}
-          onRemoveFilter={removeFilter}
-          onClearAll={clearAll}
-          onApplyPreset={applyPreset}
-        />
+        {/* Active filter chips */}
+        {activeFilterCount > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', flexWrap: 'wrap' }}>
+            {filters.types.map(t => (
+              <Tag key={`t-${t}`} variant={getTagVariant(t)} size="s" label={getTypeLabel(t)} onClick={() => removeFilter('types', t)} style={{ cursor: 'pointer' }} />
+            ))}
+            {filters.severities.map(s => (
+              <Tag key={`s-${s}`} variant={getTagVariant(s)} size="s" label={getSeverityLabel(s)} onClick={() => removeFilter('severities', s)} style={{ cursor: 'pointer' }} />
+            ))}
+            {filters.statuses.map(s => (
+              <Tag key={`st-${s}`} variant={getTagVariant(s)} size="s" label={getStatusLabel(s)} onClick={() => removeFilter('statuses', s)} style={{ cursor: 'pointer' }} />
+            ))}
+            {filters.projectId && (
+              <Tag variant="neutral" size="s" label={`Projeto: ${orgProjects.find(p => p.id === filters.projectId)?.name || '...'}`} onClick={() => removeFilter('projectId')} style={{ cursor: 'pointer' }} />
+            )}
+            {filters.assignee && (
+              <Tag variant="neutral" size="s" label={filters.assignee === 'unassigned' ? 'Sem responsável' : 'Meus reports'} onClick={() => removeFilter('assignee')} style={{ cursor: 'pointer' }} />
+            )}
+            <button onClick={clearAll} style={{ padding: '0.25rem 0.5rem', borderRadius: '0.375rem', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500, color: 'var(--danger-on-background-strong)' }}>
+              Limpar
+            </button>
+          </div>
+        )}
 
         {/* Content */}
         {displayFeedbacks.length === 0 ? (
