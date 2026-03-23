@@ -183,12 +183,23 @@ export default function FilterBar({
     return () => document.removeEventListener('mousedown', handleClick)
   }, [panelOpen])
 
-  // Compact mode: icon-only filter button that opens a popover (inline)
+  // Compact mode: icon-only filter button with fixed popover
+  const filterBtnRef = useRef<HTMLButtonElement>(null)
+  const [filterPos, setFilterPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 })
+
+  useEffect(() => {
+    if (panelOpen && filterBtnRef.current) {
+      const rect = filterBtnRef.current.getBoundingClientRect()
+      setFilterPos({ top: rect.bottom + 4, left: Math.max(8, rect.left) })
+    }
+  }, [panelOpen])
+
   if (compact) {
     return (
       <>
         <div style={{ position: 'relative', flexShrink: 0 }} ref={panelRef}>
           <button
+            ref={filterBtnRef}
             onClick={() => setPanelOpen(!panelOpen)}
             title="Filtros"
             style={{
@@ -221,10 +232,10 @@ export default function FilterBar({
 
             {panelOpen && (
               <div style={{
-                position: 'absolute', top: '100%', left: 0, marginTop: 4,
+                position: 'fixed', top: filterPos.top, left: filterPos.left,
                 background: 'var(--surface-background)', border: '1px solid var(--neutral-border-medium)',
                 borderRadius: '0.75rem', boxShadow: '0 12px 32px rgba(0,0,0,0.15)',
-                zIndex: 200, padding: '0.75rem', width: 280,
+                zIndex: 9999, padding: '0.75rem', width: 280, maxHeight: '70vh', overflowY: 'auto',
                 display: 'flex', flexDirection: 'column', gap: '0.75rem',
               }}>
                 <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--neutral-on-background-weak)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
