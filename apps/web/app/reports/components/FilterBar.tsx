@@ -15,6 +15,7 @@ interface FilterBarProps {
   projects: Project[]
   currentUserId?: string
   activeFilterCount: number
+  compact?: boolean
   onToggleArrayFilter: (field: 'types' | 'severities' | 'statuses', value: string) => void
   onSetProjectId: (projectId: string | null) => void
   onSetAssignee: (assignee: string | null) => void
@@ -161,6 +162,7 @@ export default function FilterBar({
   projects,
   currentUserId,
   activeFilterCount,
+  compact,
   onToggleArrayFilter,
   onSetProjectId,
   onSetAssignee,
@@ -169,7 +171,132 @@ export default function FilterBar({
   onApplyPreset,
 }: FilterBarProps) {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
+  const [panelOpen, setPanelOpen] = useState(false)
+  const panelRef = useRef<HTMLDivElement>(null)
 
+  useEffect(() => {
+    if (!panelOpen) return
+    function handleClick(e: MouseEvent) {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) setPanelOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [panelOpen])
+
+  // Compact mode: icon-only filter button that opens a popover (inline)
+  if (compact) {
+    return (
+      <>
+        <div style={{ position: 'relative', flexShrink: 0 }} ref={panelRef}>
+          <button
+            onClick={() => setPanelOpen(!panelOpen)}
+            title="Filtros"
+            style={{
+              width: 40, height: 38,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              position: 'relative',
+              borderRadius: '0.5rem',
+              border: activeFilterCount > 0 ? '1px solid var(--brand-border-strong)' : '1px solid var(--neutral-border-medium)',
+              background: activeFilterCount > 0 ? 'var(--brand-alpha-weak)' : 'var(--surface-background)',
+              cursor: 'pointer',
+              color: activeFilterCount > 0 ? 'var(--brand-on-background-strong)' : 'var(--neutral-on-background-weak)',
+              transition: 'all 0.15s',
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+            </svg>
+            {activeFilterCount > 0 && (
+              <span style={{
+                position: 'absolute', top: -4, right: -4,
+                background: 'var(--brand-solid-strong)', color: '#fff',
+                borderRadius: '50%', width: 16, height: 16,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '0.5625rem', fontWeight: 700,
+              }}>
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+
+            {panelOpen && (
+              <div style={{
+                position: 'absolute', top: '100%', left: 0, marginTop: 4,
+                background: 'var(--surface-background)', border: '1px solid var(--neutral-border-medium)',
+                borderRadius: '0.75rem', boxShadow: '0 12px 32px rgba(0,0,0,0.15)',
+                zIndex: 200, padding: '0.75rem', width: 280,
+                display: 'flex', flexDirection: 'column', gap: '0.75rem',
+              }}>
+                <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--neutral-on-background-weak)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                  Filtrar por
+                </span>
+
+                {/* Filter sections */}
+                {[
+                  { key: 'types' as const, label: 'Tipo', options: ALL_TYPES, selected: filters.types },
+                  { key: 'severities' as const, label: 'Severidade', options: ALL_SEVERITIES, selected: filters.severities },
+                  { key: 'statuses' as const, label: 'Status', options: ALL_STATUSES, selected: filters.statuses },
+                ].map(filter => (
+                  <div key={filter.key}>
+                    <Text variant="label-default-xs" onBackground="neutral-weak" style={{ marginBottom: '0.375rem', display: 'block' }}>{filter.label}</Text>
+                    <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                      {filter.options.map(opt => {
+                        const isActive = filter.selected.includes(opt.value)
+                        return (
+                          <button
+                            key={opt.value}
+                            onClick={() => onToggleArrayFilter(filter.key, opt.value)}
+                            style={{
+                              padding: '0.25rem 0.5rem', borderRadius: '0.375rem',
+                              border: isActive ? '1px solid var(--brand-border-strong)' : '1px solid var(--neutral-border-medium)',
+                              background: isActive ? 'var(--brand-alpha-weak)' : 'transparent',
+                              cursor: 'pointer', fontSize: '0.6875rem', fontWeight: 500,
+                              color: 'var(--neutral-on-background-strong)',
+                            }}
+                          >
+                            {opt.label}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
+
+                {/* Quick presets */}
+                <div>
+                  <Text variant="label-default-xs" onBackground="neutral-weak" style={{ marginBottom: '0.375rem', display: 'block' }}>Atalhos</Text>
+                  <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                    {currentUserId && (
+                      <button onClick={() => { onApplyPreset('my-reports', currentUserId); setPanelOpen(false) }}
+                        style={{ padding: '0.25rem 0.5rem', borderRadius: '0.375rem', border: '1px solid var(--neutral-border-medium)', background: 'transparent', cursor: 'pointer', fontSize: '0.6875rem', color: 'var(--neutral-on-background-strong)' }}>
+                        Meus reports
+                      </button>
+                    )}
+                    <button onClick={() => { onApplyPreset('critical-bugs'); setPanelOpen(false) }}
+                      style={{ padding: '0.25rem 0.5rem', borderRadius: '0.375rem', border: '1px solid var(--neutral-border-medium)', background: 'transparent', cursor: 'pointer', fontSize: '0.6875rem', color: 'var(--neutral-on-background-strong)' }}>
+                      Bugs críticos
+                    </button>
+                    <button onClick={() => { onApplyPreset('unassigned'); setPanelOpen(false) }}
+                      style={{ padding: '0.25rem 0.5rem', borderRadius: '0.375rem', border: '1px solid var(--neutral-border-medium)', background: 'transparent', cursor: 'pointer', fontSize: '0.6875rem', color: 'var(--neutral-on-background-strong)' }}>
+                      Sem responsável
+                    </button>
+                  </div>
+                </div>
+
+                {activeFilterCount > 0 && (
+                  <button onClick={() => { onClearAll(); setPanelOpen(false) }}
+                    style={{ padding: '0.375rem', borderRadius: '0.375rem', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '0.6875rem', color: 'var(--danger-on-background-strong)', textAlign: 'center' }}>
+                    Limpar filtros
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+      </>
+    )
+  }
+
+  // Full mode (default — for /reports page)
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
       {/* Filter triggers + presets */}

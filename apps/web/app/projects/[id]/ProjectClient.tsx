@@ -23,6 +23,7 @@ import {
   Spinner,
 } from '@once-ui-system/core'
 import AppLayout from '@/components/ui/AppLayout'
+import ProjectFeedbacksTab from './ProjectFeedbacksTab'
 
 const SessionReplay = dynamic(() => import('@/components/viewer/SessionReplay'), { ssr: false })
 
@@ -73,6 +74,8 @@ interface ProjectClientProps {
   userEmail: string
   userRole: string
   feedbackAssigneesMap?: Record<string, { userId: string; name: string | null; email: string }[]>
+  teamMembers?: { id: string; name: string | null; email: string }[]
+  currentUserId?: string
 }
 
 const PROXY_URL = process.env.NEXT_PUBLIC_PROXY_URL || 'https://feedbackview-proxy.onrender.com'
@@ -239,6 +242,8 @@ export default function ProjectClient({
   userEmail,
   userRole,
   feedbackAssigneesMap = {},
+  teamMembers = [],
+  currentUserId,
 }: ProjectClientProps) {
   const router = useRouter()
   const canEdit = userRole === 'OWNER' || userRole === 'ADMIN'
@@ -1014,10 +1019,20 @@ export default function ProjectClient({
           ))}
         </Row>
 
-        {/* Feedbacks tab */}
-        {activeTab === 'feedbacks' && (
+        {/* Feedbacks tab — uses shared ClickUp-style components */}
+        {activeTab === 'feedbacks' && project && (
+          <ProjectFeedbacksTab
+            feedbacks={localFeedbacks.map(f => ({ ...f, projectId: project.id, Project: { id: project.id, name: project.name } }))}
+            feedbackAssigneesMap={localAssigneesMap}
+            teamMembers={teamMembers}
+            currentUserId={currentUserId}
+            projectName={project.name}
+          />
+        )}
+
+        {/* OLD feedbacks tab removed — replaced by ProjectFeedbacksTab above */}
+        {false && (
           <Column gap="l" fillWidth>
-            {/* Toolbar: search + filter + view toggle */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', width: '100%' }}>
               {/* Search */}
               <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
@@ -1477,7 +1492,7 @@ export default function ProjectClient({
           </Column>
         )}
 
-        {/* Settings tab */}
+        {/* Settings tab (keep this) */}
         {activeTab === 'settings' && (
           <Column gap="l" fillWidth>
             {!canEdit && (

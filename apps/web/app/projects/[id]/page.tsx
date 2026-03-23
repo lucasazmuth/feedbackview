@@ -100,6 +100,29 @@ export default async function ProjectPage({ params }: PageProps) {
     } catch {}
   }
 
+  // Fetch team members for inline assignee editing
+  let teamMembersList: { id: string; name: string | null; email: string }[] = []
+  try {
+    if (project?.organizationId) {
+      const { data: members } = await supabaseAdmin
+        .from('TeamMember')
+        .select('userId, inviteEmail')
+        .eq('organizationId', project.organizationId)
+        .eq('status', 'ACTIVE')
+
+      if (members) {
+        const uniqueMembers = new Map<string, { id: string; name: string | null; email: string }>()
+        for (const m of members) {
+          if (!uniqueMembers.has(m.userId)) {
+            const email = m.inviteEmail || ''
+            uniqueMembers.set(m.userId, { id: m.userId, name: email ? email.split('@')[0] : null, email })
+          }
+        }
+        teamMembersList = Array.from(uniqueMembers.values())
+      }
+    }
+  } catch {}
+
   return (
     <ProjectClient
       project={project}
@@ -109,6 +132,8 @@ export default async function ProjectPage({ params }: PageProps) {
       userEmail={user.email ?? ''}
       userRole={userRole}
       feedbackAssigneesMap={feedbackAssigneesMap}
+      teamMembers={teamMembersList}
+      currentUserId={user.id}
     />
   )
 }
