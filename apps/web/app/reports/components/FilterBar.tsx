@@ -190,7 +190,14 @@ export default function FilterBar({
   useEffect(() => {
     if (panelOpen && filterBtnRef.current) {
       const rect = filterBtnRef.current.getBoundingClientRect()
-      setFilterPos({ top: rect.bottom + 4, left: Math.max(8, rect.left) })
+      const popoverWidth = 280
+      // Align right edge of popover to right edge of button if it would overflow
+      let left = rect.left
+      if (left + popoverWidth > window.innerWidth - 16) {
+        left = rect.right - popoverWidth
+      }
+      if (left < 8) left = 8
+      setFilterPos({ top: rect.bottom + 4, left })
     }
   }, [panelOpen])
 
