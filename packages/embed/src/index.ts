@@ -1549,6 +1549,11 @@ function createWidget(config: WidgetConfig) {
     bodyForm.className = 'fv-body-form'
     body.appendChild(bodyForm)
 
+    // Pre-create replay container (referenced before preview panel is built)
+    const previewReplayContainer = document.createElement('div')
+    previewReplayContainer.id = 'fv-preview-replay'
+    previewReplayContainer.style.cssText = 'display:block;'
+
     // ── Session Replay section ──
     const isProxyModeNow = !!getProxyIframe()
     const replaySection = document.createElement('div')
@@ -2153,10 +2158,7 @@ function createWidget(config: WidgetConfig) {
     previewTabs.appendChild(screenshotTab)
     previewPanel.appendChild(previewTabs)
 
-    // Replay container (in preview panel)
-    const previewReplayContainer = document.createElement('div')
-    previewReplayContainer.id = 'fv-preview-replay'
-    previewReplayContainer.style.cssText = 'display:block;'
+    // Replay container (in preview panel) — created earlier, append here
     previewPanel.appendChild(previewReplayContainer)
 
     // Preview card (screenshot + info — hidden by default)
