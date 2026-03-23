@@ -1552,7 +1552,7 @@ function createWidget(config: WidgetConfig) {
           showWarning: false,
           showDebug: false,
           blockClass: 'fv-no-replay',
-          speed: 1,
+          speed: 4,
         })
 
         // Render first frame (makes iframe visible) and scale to fit
@@ -1678,7 +1678,7 @@ function createWidget(config: WidgetConfig) {
         const rightControls = document.createElement('div')
         rightControls.style.cssText = 'display:flex;align-items:center;gap:2px;'
         const speeds = [1, 2, 4, 8]
-        let currentSpeed = 1
+        let currentSpeed = 4
         const speedBtns: HTMLButtonElement[] = []
 
         function updateSpeedBtns() {
@@ -1711,6 +1711,13 @@ function createWidget(config: WidgetConfig) {
         })
         updateSpeedBtns()
         bottomRow.appendChild(rightControls)
+
+        // Auto-play at 4x speed when modal opens
+        setTimeout(() => {
+          replayer.play(0)
+          isPlaying = true
+          playBtn.innerHTML = pauseSvg
+        }, 400)
 
         controls.appendChild(bottomRow)
         replayCard.appendChild(controls)
