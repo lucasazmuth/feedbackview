@@ -2250,12 +2250,112 @@ function createWidget(config: WidgetConfig) {
         capturingEl.textContent = 'Capturando screenshot...'
         ssWrap.appendChild(capturingEl)
 
+        // Screenshot container with annotation canvas
+        const ssContainer = document.createElement('div')
+        ssContainer.style.cssText = 'position:relative;cursor:crosshair;display:' + (screenshotUrl ? 'block' : 'none') + ';'
+
         const ssImg = document.createElement('img')
         ssImg.className = 'fv-preview-screenshot'
         ssImg.alt = 'Screenshot'
-        ssImg.style.cssText = 'width:100%;border-radius:8px;border:1px solid #e5e7eb;display:' + (screenshotUrl ? 'block' : 'none') + ';'
+        ssImg.style.cssText = 'width:100%;border-radius:8px;border:1px solid #e5e7eb;display:block;'
         if (screenshotUrl) ssImg.src = screenshotUrl
-        ssWrap.appendChild(ssImg)
+        ssContainer.appendChild(ssImg)
+
+        // Annotation overlay canvas
+        const overlay = document.createElement('canvas')
+        overlay.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;border-radius:8px;cursor:crosshair;'
+        ssContainer.appendChild(overlay)
+
+        // Help text
+        const drawHint = document.createElement('div')
+        drawHint.style.cssText = 'text-align:center;font-size:10px;color:#9ca3af;margin-top:4px;'
+        drawHint.textContent = 'Clique e arraste para marcar areas no screenshot'
+
+        // Initialize canvas when image loads
+        ssImg.onload = () => {
+          overlay.width = ssImg.naturalWidth
+          overlay.height = ssImg.naturalHeight
+          baseCanvas = document.createElement('canvas')
+          baseCanvas.width = ssImg.naturalWidth
+          baseCanvas.height = ssImg.naturalHeight
+          const bCtx = baseCanvas.getContext('2d')
+          if (bCtx) bCtx.drawImage(ssImg, 0, 0)
+          overlayCanvas = overlay
+          drawingRects = []
+        }
+
+        // Drawing event listeners
+        overlay.addEventListener('mousedown', (e) => {
+          e.preventDefault()
+          isDrawing = true
+          drawStartPos = getCanvasPos(e)
+        })
+        overlay.addEventListener('mousemove', (e) => {
+          if (!isDrawing || !drawStartPos) return
+          const pos = getCanvasPos(e)
+          redrawOverlay({ x: drawStartPos.x, y: drawStartPos.y, w: pos.x - drawStartPos.x, h: pos.y - drawStartPos.y })
+        })
+        overlay.addEventListener('mouseup', (e) => {
+          if (!isDrawing || !drawStartPos) return
+          const pos = getCanvasPos(e)
+          const w = pos.x - drawStartPos.x
+          const h = pos.y - drawStartPos.y
+          if (Math.abs(w) > 5 && Math.abs(h) > 5) {
+            drawingRects.push({ x: drawStartPos.x, y: drawStartPos.y, w, h })
+            redrawOverlay()
+          }
+          isDrawing = false
+          drawStartPos = null
+        })
+        overlay.addEventListener('mouseleave', () => {
+          if (isDrawing) {
+            isDrawing = false
+            drawStartPos = null
+            redrawOverlay()
+          }
+        })
+
+        // Touch support for mobile
+        overlay.addEventListener('touchstart', (e) => {
+          e.preventDefault()
+          const touch = e.touches[0]
+          isDrawing = true
+          const rect = overlay.getBoundingClientRect()
+          const scaleX = overlay.width / rect.width
+          const scaleY = overlay.height / rect.height
+          drawStartPos = { x: (touch.clientX - rect.left) * scaleX, y: (touch.clientY - rect.top) * scaleY }
+        }, { passive: false })
+        overlay.addEventListener('touchmove', (e) => {
+          e.preventDefault()
+          if (!isDrawing || !drawStartPos) return
+          const touch = e.touches[0]
+          const rect = overlay.getBoundingClientRect()
+          const scaleX = overlay.width / rect.width
+          const scaleY = overlay.height / rect.height
+          const pos = { x: (touch.clientX - rect.left) * scaleX, y: (touch.clientY - rect.top) * scaleY }
+          redrawOverlay({ x: drawStartPos.x, y: drawStartPos.y, w: pos.x - drawStartPos.x, h: pos.y - drawStartPos.y })
+        }, { passive: false })
+        overlay.addEventListener('touchend', (e) => {
+          if (!isDrawing || !drawStartPos) return
+          if (e.changedTouches.length > 0) {
+            const touch = e.changedTouches[0]
+            const rect = overlay.getBoundingClientRect()
+            const scaleX = overlay.width / rect.width
+            const scaleY = overlay.height / rect.height
+            const pos = { x: (touch.clientX - rect.left) * scaleX, y: (touch.clientY - rect.top) * scaleY }
+            const w = pos.x - drawStartPos.x
+            const h = pos.y - drawStartPos.y
+            if (Math.abs(w) > 5 && Math.abs(h) > 5) {
+              drawingRects.push({ x: drawStartPos.x, y: drawStartPos.y, w, h })
+              redrawOverlay()
+            }
+          }
+          isDrawing = false
+          drawStartPos = null
+        })
+
+        ssWrap.appendChild(ssContainer)
+        ssWrap.appendChild(drawHint)
         card.appendChild(ssWrap)
       }
 
@@ -2477,9 +2577,11 @@ function createWidget(config: WidgetConfig) {
     // Update screenshot in preview panel without re-rendering the whole modal
     const previewImg = shadow.querySelector('.fv-preview-screenshot') as HTMLImageElement
     const previewCapturing = shadow.querySelector('.fv-preview-capturing') as HTMLElement
+    const ssContainer = previewImg?.parentElement
     if (previewImg && ss) {
       previewImg.src = ss
       previewImg.style.display = 'block'
+      if (ssContainer) ssContainer.style.display = 'block'
     }
     if (previewCapturing) {
       previewCapturing.style.display = 'none'
