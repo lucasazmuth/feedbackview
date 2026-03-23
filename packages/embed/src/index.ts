@@ -737,6 +737,31 @@ function createWidget(config: WidgetConfig) {
       animation: fv-pulse-ring 1.2s ease-out infinite;
       transform: scale(0.95);
     }
+    .fv-trigger .fv-countdown {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.6);
+      border-radius: inherit;
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .fv-trigger.fv-trigger-loading .fv-countdown {
+      opacity: 1;
+    }
+    @keyframes fv-countdown-pop {
+      0% { transform: scale(0.5); opacity: 0; }
+      50% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .fv-countdown-num {
+      animation: fv-countdown-pop 0.3s ease-out;
+    }
 
     .fv-backdrop {
       position: fixed;
@@ -1383,8 +1408,8 @@ function createWidget(config: WidgetConfig) {
   const trigger = document.createElement('button')
   trigger.className = hiddenTrigger ? 'fv-trigger fv-trigger-hidden' : 'fv-trigger'
   trigger.innerHTML = config.widgetStyle === 'icon'
-    ? `<span class="fv-trigger-icon-text">BU\nUG</span>`
-    : `<span class="fv-trigger-brand">Buug report</span>`
+    ? `<span class="fv-trigger-icon-text">BU\nUG</span><span class="fv-countdown"></span>`
+    : `<span class="fv-trigger-brand">Buug report</span><span class="fv-countdown"></span>`
   trigger.title = 'Enviar feedback'
   shadow.appendChild(trigger)
 
@@ -2399,16 +2424,35 @@ function createWidget(config: WidgetConfig) {
   }
 
   async function open() {
-    // Show loading animation on trigger while preparing
+    // Show loading animation with countdown on trigger
     trigger.classList.add('fv-trigger-loading')
+    const countdownEl = trigger.querySelector('.fv-countdown') as HTMLElement
+
+    // Start countdown animation while async work happens
+    let countdownDone = false
+    const countdownPromise = new Promise<void>(resolve => {
+      let step = 1
+      const tick = () => {
+        if (countdownEl) countdownEl.innerHTML = `<span class="fv-countdown-num">${step}</span>`
+        step++
+        if (step <= 3) {
+          setTimeout(tick, 400)
+        } else {
+          countdownDone = true
+          resolve()
+        }
+      }
+      tick()
+    })
 
     // Pause recording — we only want events from before the modal opened
     pauseRecording()
 
-    // Do all async work (config fetch + screenshot) while trigger stays visible with loading
+    // Do all async work (config fetch + screenshot) in parallel with countdown
     const [freshConfig, ss] = await Promise.all([
       fetchConfig(),
       captureScreenshot(),
+      countdownPromise, // Wait for countdown to finish too
     ])
 
     if (!freshConfig.blocked) {
@@ -2423,6 +2467,7 @@ function createWidget(config: WidgetConfig) {
 
     // Now hide trigger and show modal
     trigger.classList.remove('fv-trigger-loading')
+    if (countdownEl) countdownEl.innerHTML = ''
     trigger.style.display = 'none'
     renderPanel()
 
