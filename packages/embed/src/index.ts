@@ -2357,7 +2357,37 @@ function createWidget(config: WidgetConfig) {
           drawStartPos = null
         })
 
+        // Annotation action buttons
+        const drawActions = document.createElement('div')
+        drawActions.style.cssText = 'display:flex;gap:6px;justify-content:center;margin-top:4px;'
+
+        const undoBtn = document.createElement('button')
+        undoBtn.style.cssText = 'padding:3px 10px;border-radius:4px;border:1px solid #e5e7eb;background:#fff;color:#6b7280;font-size:10px;cursor:pointer;display:flex;align-items:center;gap:3px;'
+        undoBtn.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg> Desfazer`
+        undoBtn.onclick = (e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          if (drawingRects.length > 0) {
+            drawingRects.pop()
+            redrawOverlay()
+          }
+        }
+
+        const clearBtn = document.createElement('button')
+        clearBtn.style.cssText = 'padding:3px 10px;border-radius:4px;border:1px solid #fca5a5;background:#fff;color:#ef4444;font-size:10px;cursor:pointer;'
+        clearBtn.textContent = 'Limpar tudo'
+        clearBtn.onclick = (e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          drawingRects = []
+          redrawOverlay()
+        }
+
+        drawActions.appendChild(undoBtn)
+        drawActions.appendChild(clearBtn)
+
         ssWrap.appendChild(ssContainer)
+        ssWrap.appendChild(drawActions)
         ssWrap.appendChild(drawHint)
         card.appendChild(ssWrap)
       }
