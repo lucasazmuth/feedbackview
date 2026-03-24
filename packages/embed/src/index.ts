@@ -1575,6 +1575,8 @@ function createWidget(config: WidgetConfig) {
     replayCard.style.background = '#0f172a'
     replayCard.style.padding = '0'
     replayCard.style.overflow = 'hidden'
+    replayCard.style.borderRadius = '12px'
+    replayCard.style.margin = '0 12px'
 
     // Player container
     const playerContainer = document.createElement('div')
@@ -2346,15 +2348,15 @@ function createWidget(config: WidgetConfig) {
 
         // Screenshot container with annotation canvas
         const ssCard = document.createElement('div')
-        ssCard.style.cssText = 'border-radius:12px;overflow:hidden;background:#0f172a;display:' + (screenshotUrl ? 'block' : 'none') + ';'
+        ssCard.style.cssText = 'border-radius:12px;overflow:hidden;background:#0f172a;display:' + (screenshotUrl ? 'block' : 'none') + ';margin:0 12px;'
 
         const ssContainer = document.createElement('div')
-        ssContainer.style.cssText = 'position:relative;cursor:crosshair;'
+        ssContainer.style.cssText = 'position:relative;cursor:crosshair;max-height:320px;overflow:hidden;'
 
         const ssImg = document.createElement('img')
         ssImg.className = 'fv-preview-screenshot'
         ssImg.alt = 'Screenshot'
-        ssImg.style.cssText = 'width:100%;display:block;'
+        ssImg.style.cssText = 'width:100%;display:block;object-fit:cover;object-position:top;max-height:320px;'
         if (screenshotUrl) ssImg.src = screenshotUrl
         ssContainer.appendChild(ssImg)
 

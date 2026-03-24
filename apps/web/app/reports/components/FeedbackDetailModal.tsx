@@ -9,7 +9,6 @@ import {
   Text,
   Tag,
   Icon,
-  Card,
   Flex,
   Button,
   IconButton,
@@ -17,7 +16,7 @@ import {
   Spinner,
   Feedback as FeedbackAlert,
 } from '@once-ui-system/core'
-import { getTagVariant, getTypeLabel, getStatusLabel, getSeverityLabel, parseUserAgent } from '../utils/labels'
+import { getTagVariant, getTypeLabel, getStatusLabel, getSeverityLabel, parseUserAgent, ALL_STATUSES } from '../utils/labels'
 import { api } from '@/lib/api'
 
 const SessionReplay = dynamic(() => import('@/components/viewer/SessionReplay'), { ssr: false })
@@ -53,224 +52,437 @@ interface FeedbackDetailModalProps {
   feedbackId: string | null
 }
 
+type TabKey = 'report' | 'console' | 'network'
+
 export default function FeedbackDetailModal({ isOpen, onClose, feedbackId }: FeedbackDetailModalProps) {
-  const [selectedFeedback, setSelectedFeedback] = useState<FeedbackDetail | null>(null)
-  const [feedbackLoading, setFeedbackLoading] = useState(false)
-  const [feedbackStatusSaving, setFeedbackStatusSaving] = useState(false)
-  const [feedbackEditingComment, setFeedbackEditingComment] = useState(false)
-  const [feedbackCommentDraft, setFeedbackCommentDraft] = useState('')
-  const [feedbackCommentSaving, setFeedbackCommentSaving] = useState(false)
-  const [feedbackNetworkOpen, setFeedbackNetworkOpen] = useState(false)
-  const [feedbackConsoleOpen, setFeedbackConsoleOpen] = useState(false)
+  const [feedback, setFeedback] = useState<FeedbackDetail | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [statusSaving, setStatusSaving] = useState(false)
+  const [editingComment, setEditingComment] = useState(false)
+  const [commentDraft, setCommentDraft] = useState('')
+  const [commentSaving, setCommentSaving] = useState(false)
+  const [activeTab, setActiveTab] = useState<TabKey>('report')
 
   useEffect(() => {
     if (!isOpen || !feedbackId) {
-      setSelectedFeedback(null)
+      setFeedback(null)
+      setActiveTab('report')
       return
     }
     let cancelled = false
-    setFeedbackLoading(true)
-    setSelectedFeedback(null)
-    setFeedbackEditingComment(false)
-    setFeedbackNetworkOpen(false)
-    setFeedbackConsoleOpen(false)
+    setLoading(true)
+    setFeedback(null)
+    setEditingComment(false)
     ;(async () => {
       try {
         const res = await fetch(`/api/feedbacks/${feedbackId}`)
-        if (res.ok && !cancelled) setSelectedFeedback(await res.json())
+        if (res.ok && !cancelled) setFeedback(await res.json())
       } catch {}
-      if (!cancelled) setFeedbackLoading(false)
+      if (!cancelled) setLoading(false)
     })()
     return () => { cancelled = true }
   }, [isOpen, feedbackId])
 
-  const handleFeedbackStatusChange = useCallback(async (newStatus: string) => {
-    if (!selectedFeedback) return
-    setFeedbackStatusSaving(true)
+  const handleStatusChange = useCallback(async (newStatus: string) => {
+    if (!feedback) return
+    setStatusSaving(true)
     try {
-      await api.feedbacks.updateStatus(selectedFeedback.id, newStatus)
-      setSelectedFeedback(prev => prev ? { ...prev, status: newStatus } : null)
+      await api.feedbacks.updateStatus(feedback.id, newStatus)
+      setFeedback(prev => prev ? { ...prev, status: newStatus } : null)
     } catch {}
-    setFeedbackStatusSaving(false)
-  }, [selectedFeedback])
+    setStatusSaving(false)
+  }, [feedback])
 
-  const handleFeedbackCommentSave = useCallback(async () => {
-    if (!selectedFeedback) return
-    setFeedbackCommentSaving(true)
+  const handleCommentSave = useCallback(async () => {
+    if (!feedback) return
+    setCommentSaving(true)
     try {
-      await api.feedbacks.updateComment(selectedFeedback.id, feedbackCommentDraft)
-      setSelectedFeedback(prev => prev ? { ...prev, comment: feedbackCommentDraft } : null)
-      setFeedbackEditingComment(false)
+      await api.feedbacks.updateComment(feedback.id, commentDraft)
+      setFeedback(prev => prev ? { ...prev, comment: commentDraft } : null)
+      setEditingComment(false)
     } catch {}
-    setFeedbackCommentSaving(false)
-  }, [selectedFeedback, feedbackCommentDraft])
+    setCommentSaving(false)
+  }, [feedback, commentDraft])
 
   if (!isOpen) return null
 
+  const consoleLogs = feedback?.consoleLogs || []
+  const networkLogs = feedback?.networkLogs || []
+  const errorCount = consoleLogs.filter(l => l.level === 'error').length
+  const failedRequests = networkLogs.filter(l => l.status && l.status >= 400).length
+  const hasReplay = feedback?.metadata?.rrwebEvents && feedback.metadata.rrwebEvents.length > 0 && feedback.metadata?.source === 'embed'
+  const ua = feedback?.userAgent ? parseUserAgent(feedback.userAgent) : null
+
+  const formatDate = (d: string) => new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', paddingTop: '3vh', overflowY: 'auto' }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', maxWidth: '64rem', maxHeight: '94vh', overflowY: 'auto', background: 'var(--page-background)', borderRadius: '1rem', border: '1px solid var(--neutral-border-medium)', boxShadow: '0 24px 48px rgba(0,0,0,0.2)', margin: '0 1rem 2rem' }}>
-        {feedbackLoading ? (
-          <Flex fillWidth style={{ minHeight: '20rem' }} horizontal="center" vertical="center">
+    <div onClick={onClose} style={{
+      position: 'fixed', inset: 0, zIndex: 9999,
+      background: 'rgba(0,0,0,0.6)',
+      display: 'flex', justifyContent: 'center', alignItems: 'flex-start',
+      paddingTop: '2vh', overflowY: 'auto',
+    }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        width: '100%', maxWidth: '72rem', maxHeight: '96vh',
+        background: 'var(--page-background)',
+        borderRadius: '0.75rem',
+        border: '1px solid var(--neutral-border-medium)',
+        boxShadow: '0 24px 48px rgba(0,0,0,0.25)',
+        margin: '0 1rem 2rem',
+        display: 'flex', flexDirection: 'column',
+        overflow: 'hidden',
+      }}>
+        {loading ? (
+          <Flex fillWidth style={{ minHeight: '24rem' }} horizontal="center" vertical="center">
             <Column horizontal="center" gap="m"><Spinner size="m" /><Text variant="body-default-s" onBackground="neutral-weak">Carregando report...</Text></Column>
           </Flex>
-        ) : selectedFeedback ? (
+        ) : feedback ? (
           <>
-            {/* Modal header */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem 1.5rem', borderBottom: '1px solid var(--neutral-border-medium)', position: 'sticky', top: 0, background: 'var(--surface-background)', zIndex: 1, borderRadius: '1rem 1rem 0 0' }}>
-              <Tag variant={getTagVariant(selectedFeedback.type)} size="s" label={getTypeLabel(selectedFeedback.type)} />
-              {selectedFeedback.Project?.name && <Text variant="body-default-xs" onBackground="neutral-weak">{selectedFeedback.Project.name}</Text>}
-              <Text variant="body-default-s" onBackground="neutral-strong" style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
-                {selectedFeedback.title || selectedFeedback.comment?.slice(0, 80) || 'Report'}
-              </Text>
-              <IconButton icon="close" variant="tertiary" size="s" tooltip="Fechar" onClick={onClose} />
+            {/* ── Header ── */}
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '0.75rem',
+              padding: '0.875rem 1.25rem',
+              borderBottom: '1px solid var(--neutral-border-medium)',
+              background: 'var(--surface-background)',
+              flexShrink: 0,
+            }}>
+              {/* Status dot */}
+              <div style={{
+                width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
+                background: feedback.status === 'RESOLVED' ? 'var(--success-solid-strong)'
+                  : feedback.status === 'CANCELLED' ? 'var(--danger-solid-strong)'
+                  : 'var(--warning-solid-strong)',
+              }} />
+              {/* Title */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <Text variant="body-default-m" onBackground="neutral-strong" style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
+                  {feedback.title || feedback.comment?.slice(0, 80) || 'Report'}
+                </Text>
+                <Text variant="body-default-xs" onBackground="neutral-weak">
+                  {formatDate(feedback.createdAt)}
+                </Text>
+              </div>
+              {/* Actions */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+                {feedback.pageUrl && (
+                  <a href={feedback.pageUrl} target="_blank" rel="noopener noreferrer" title="Abrir página original" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)', background: 'var(--surface-background)', color: 'var(--neutral-on-background-weak)', cursor: 'pointer' }}>
+                    <Icon name="openLink" size="s" />
+                  </a>
+                )}
+                <IconButton icon="close" variant="tertiary" size="s" tooltip="Fechar" onClick={onClose} />
+              </div>
             </div>
 
-            {/* Modal content */}
-            <div style={{ padding: '1.5rem', display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
-              {/* Left column */}
-              <div style={{ flex: 2, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {selectedFeedback.metadata?.rrwebEvents && selectedFeedback.metadata.rrwebEvents.length > 0 && selectedFeedback.metadata?.source !== 'embed' && (
-                  <Card fillWidth padding="m" radius="l" style={{ background: 'var(--warning-alpha-weak)', border: '1px solid var(--warning-border-medium)' }}>
-                    <Row gap="s" vertical="center">
-                      <Icon name="warning" size="s" onBackground="warning-strong" />
-                      <Column gap="4">
-                        <Text variant="label-default-s" onBackground="warning-strong">Report via URL compartilhada</Text>
-                        <Text variant="body-default-xs" onBackground="warning-medium">O Session Replay não está disponível para reports enviados via URL compartilhada. Utilize o screenshot como referência visual.</Text>
-                      </Column>
-                    </Row>
-                  </Card>
-                )}
-                {selectedFeedback.metadata?.rrwebEvents && selectedFeedback.metadata.rrwebEvents.length > 0 && selectedFeedback.metadata?.source === 'embed' && (
-                  <Card fillWidth radius="l" style={{ overflow: 'hidden', padding: 0 }}><SessionReplay events={selectedFeedback.metadata.rrwebEvents} /></Card>
-                )}
-                {selectedFeedback.screenshotUrl && (
-                  <Card fillWidth padding="l" radius="l"><Column gap="s"><Heading variant="heading-strong-s">Screenshot</Heading><img src={selectedFeedback.screenshotUrl} alt="Screenshot" style={{ width: '100%', borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)' }} /></Column></Card>
-                )}
-                <Card fillWidth padding="l" radius="l">
-                  <Column gap="s">
-                    <Row fillWidth horizontal="between" vertical="center">
-                      <Heading variant="heading-strong-s">Descrição</Heading>
-                      {!feedbackEditingComment && <IconButton icon="edit" variant="tertiary" size="s" tooltip="Editar" onClick={() => { setFeedbackCommentDraft(selectedFeedback.comment); setFeedbackEditingComment(true) }} />}
-                    </Row>
-                    {feedbackEditingComment ? (
-                      <Column gap="s">
-                        <Textarea id="modal-comment-edit" label="Descrição" value={feedbackCommentDraft} lines={4} resize="vertical" onChange={(e) => setFeedbackCommentDraft(e.target.value)} disabled={feedbackCommentSaving} />
-                        <Row gap="s" horizontal="end">
-                          <Button variant="secondary" size="s" label="Cancelar" onClick={() => setFeedbackEditingComment(false)} disabled={feedbackCommentSaving} />
-                          <Button variant="primary" size="s" label="Salvar" onClick={handleFeedbackCommentSave} loading={feedbackCommentSaving} />
-                        </Row>
-                      </Column>
-                    ) : <Text variant="body-default-s" style={{ whiteSpace: 'pre-wrap' }}>{selectedFeedback.comment}</Text>}
+            {/* ── Body: 2 columns ── */}
+            <div style={{ display: 'flex', flex: 1, overflow: 'hidden', minHeight: 0 }}>
+
+              {/* Left: Screenshot/Replay */}
+              <div style={{
+                flex: '1 1 55%', minWidth: 0,
+                background: 'var(--neutral-alpha-weak)',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                padding: '1.5rem',
+                overflow: 'auto',
+              }}>
+                {hasReplay ? (
+                  <div style={{ width: '100%', borderRadius: '0.75rem', overflow: 'hidden', background: '#0f172a' }}>
+                    <SessionReplay events={feedback.metadata!.rrwebEvents!} />
+                  </div>
+                ) : feedback.screenshotUrl ? (
+                  <img
+                    src={feedback.screenshotUrl}
+                    alt="Screenshot"
+                    style={{
+                      maxWidth: '100%', maxHeight: '100%',
+                      borderRadius: '0.75rem',
+                      border: '1px solid var(--neutral-border-medium)',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+                      objectFit: 'contain',
+                    }}
+                  />
+                ) : (
+                  <Column horizontal="center" gap="s" style={{ padding: '3rem' }}>
+                    <Icon name="message" size="l" />
+                    <Text variant="body-default-s" onBackground="neutral-weak">Sem captura visual</Text>
                   </Column>
-                </Card>
-                {(selectedFeedback.metadata?.stepsToReproduce || selectedFeedback.metadata?.expectedResult || selectedFeedback.metadata?.actualResult) && (
-                  <Card fillWidth padding="l" radius="l"><Column gap="m">
-                    {selectedFeedback.metadata?.stepsToReproduce && <Column gap="xs"><Heading variant="heading-strong-s">Passos para reproduzir</Heading><Text variant="body-default-s" style={{ whiteSpace: 'pre-wrap' }}>{selectedFeedback.metadata.stepsToReproduce}</Text></Column>}
-                    {selectedFeedback.metadata?.expectedResult && <Column gap="xs"><Heading variant="heading-strong-s">Resultado esperado</Heading><Text variant="body-default-s" style={{ whiteSpace: 'pre-wrap' }}>{selectedFeedback.metadata.expectedResult}</Text></Column>}
-                    {selectedFeedback.metadata?.actualResult && <Column gap="xs"><Heading variant="heading-strong-s">Resultado real</Heading><Text variant="body-default-s" style={{ whiteSpace: 'pre-wrap' }}>{selectedFeedback.metadata.actualResult}</Text></Column>}
-                  </Column></Card>
-                )}
-                {(selectedFeedback.networkLogs?.length ?? 0) > 0 && (
-                  <Card fillWidth padding="0" radius="l" style={{ overflow: 'hidden' }}><Column fillWidth>
-                    <div onClick={() => setFeedbackNetworkOpen(!feedbackNetworkOpen)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', cursor: 'pointer' }}>
-                      <Heading variant="heading-strong-s">Network Logs ({selectedFeedback.networkLogs!.length})</Heading>
-                      <Icon name="chevronDown" size="xs" style={{ transform: feedbackNetworkOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }} />
-                    </div>
-                    {feedbackNetworkOpen && <div style={{ maxHeight: '20rem', overflowY: 'auto' }}>{selectedFeedback.networkLogs!.map((log, i) => (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderTop: '1px solid var(--neutral-border-medium)' }}>
-                        <Tag variant={log.status && log.status >= 400 ? 'danger' : 'success'} size="s" label={String(log.status ?? '-')} />
-                        <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '0.75rem', flexShrink: 0 }}>{log.method}</span>
-                        <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }} title={log.url}>{log.url}</span>
-                        {log.duration != null && <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', flexShrink: 0 }}>{log.duration}ms</span>}
-                      </div>
-                    ))}</div>}
-                  </Column></Card>
-                )}
-                {(selectedFeedback.consoleLogs?.length ?? 0) > 0 && (
-                  <Card fillWidth padding="0" radius="l" style={{ overflow: 'hidden' }}><Column fillWidth>
-                    <div onClick={() => setFeedbackConsoleOpen(!feedbackConsoleOpen)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', cursor: 'pointer' }}>
-                      <Heading variant="heading-strong-s">Console Logs ({selectedFeedback.consoleLogs!.length})</Heading>
-                      <Icon name="chevronDown" size="xs" style={{ transform: feedbackConsoleOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }} />
-                    </div>
-                    {feedbackConsoleOpen && <div style={{ maxHeight: '20rem', overflowY: 'auto' }}>{selectedFeedback.consoleLogs!.map((log, i) => {
-                      const level = log.level?.toUpperCase() ?? 'LOG'
-                      const variant = level === 'ERROR' ? 'danger' : level === 'WARN' ? 'warning' : 'info'
-                      return (
-                        <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', padding: '0.5rem 1rem', borderTop: '1px solid var(--neutral-border-medium)' }}>
-                          <Tag variant={variant as any} size="s" label={level} style={{ flexShrink: 0 }} />
-                          <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', wordBreak: 'break-word', flex: 1 }}>{log.message}</span>
-                        </div>
-                      )
-                    })}</div>}
-                  </Column></Card>
                 )}
               </div>
 
-              {/* Right sidebar */}
-              <div style={{ flex: 1, minWidth: '14rem', maxWidth: '18rem', display: 'flex', flexDirection: 'column', gap: '1rem', position: 'sticky', top: '4.5rem' }}>
-                <Card fillWidth padding="l" radius="l"><Column gap="m">
-                  <Heading variant="heading-strong-s">Status</Heading>
-                  <Row gap="xs" wrap>
-                    {[
-                      { value: 'OPEN', label: 'Aberto' },
-                      { value: 'IN_PROGRESS', label: 'Em andamento' },
-                      { value: 'UNDER_REVIEW', label: 'Sob revisão' },
-                      { value: 'RESOLVED', label: 'Concluída' },
-                      { value: 'CANCELLED', label: 'Cancelado' },
-                    ].map((opt) => (
-                      <Tag key={opt.value} variant={selectedFeedback.status === opt.value ? getTagVariant(opt.value) : 'neutral'} size="s" label={opt.label}
-                        onClick={() => handleFeedbackStatusChange(opt.value)}
-                        style={{ cursor: feedbackStatusSaving ? 'wait' : 'pointer', opacity: selectedFeedback.status === opt.value ? 1 : 0.6, transition: 'opacity 0.15s' }} />
-                    ))}
-                  </Row>
-                  {feedbackStatusSaving && <Row gap="xs" vertical="center"><Spinner size="s" /><Text variant="body-default-xs" onBackground="neutral-weak">Salvando...</Text></Row>}
-                </Column></Card>
-                <Card fillWidth padding="l" radius="l"><Column gap="m">
-                  <Heading variant="heading-strong-s">Detalhes</Heading>
-                  <Column gap="xs">
-                    <Text variant="label-default-s" onBackground="neutral-weak">Tipo e Severidade</Text>
-                    <Row gap="xs" wrap>
-                      <Tag variant={getTagVariant(selectedFeedback.type)} size="m" label={getTypeLabel(selectedFeedback.type)} />
-                      {selectedFeedback.severity && <Tag variant={getTagVariant(selectedFeedback.severity)} size="m" label={getSeverityLabel(selectedFeedback.severity)} />}
-                    </Row>
-                  </Column>
-                  {selectedFeedback.metadata?.source && (
-                    <Column gap="xs"><Text variant="label-default-s" onBackground="neutral-weak">Origem</Text>
-                      <Tag variant={selectedFeedback.metadata.source === 'shared-url' ? 'info' : 'brand'} size="s" label={selectedFeedback.metadata.source === 'shared-url' ? 'URL compartilhada' : 'Script embed'} />
-                    </Column>
+              {/* Right: Tabs panel */}
+              <div style={{
+                flex: '0 0 45%', maxWidth: '28rem',
+                display: 'flex', flexDirection: 'column',
+                borderLeft: '1px solid var(--neutral-border-medium)',
+                overflow: 'hidden',
+              }}>
+                {/* Tab bar */}
+                <div style={{
+                  display: 'flex', borderBottom: '1px solid var(--neutral-border-medium)',
+                  background: 'var(--surface-background)', flexShrink: 0,
+                }}>
+                  {([
+                    { key: 'report' as TabKey, label: 'Report' },
+                    { key: 'console' as TabKey, label: `Console${consoleLogs.length > 0 ? ` (${consoleLogs.length})` : ''}` },
+                    { key: 'network' as TabKey, label: `Network${networkLogs.length > 0 ? ` (${networkLogs.length})` : ''}` },
+                  ]).map(tab => (
+                    <button
+                      key={tab.key}
+                      onClick={() => setActiveTab(tab.key)}
+                      style={{
+                        flex: 1, padding: '0.75rem 0.5rem',
+                        fontSize: '0.8125rem', fontWeight: 600,
+                        border: 'none', cursor: 'pointer',
+                        borderBottom: activeTab === tab.key ? '2px solid var(--neutral-on-background-strong)' : '2px solid transparent',
+                        color: activeTab === tab.key ? 'var(--neutral-on-background-strong)' : 'var(--neutral-on-background-weak)',
+                        background: 'transparent',
+                        transition: 'all 0.15s',
+                        marginBottom: -1,
+                      }}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Tab content */}
+                <div style={{ flex: 1, overflowY: 'auto', padding: '1rem 1.25rem' }}>
+
+                  {/* ── Report Tab ── */}
+                  {activeTab === 'report' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+
+                      {/* Meta row: Type + Severity + Status */}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
+                        <Tag variant={getTagVariant(feedback.type)} size="s" label={getTypeLabel(feedback.type)} />
+                        {feedback.severity && <Tag variant={getTagVariant(feedback.severity)} size="s" label={getSeverityLabel(feedback.severity)} />}
+                        {feedback.Project?.name && <Tag variant="neutral" size="s" label={feedback.Project.name} />}
+                      </div>
+
+                      {/* Status */}
+                      <div>
+                        <Text variant="label-default-xs" onBackground="neutral-weak" style={{ marginBottom: '0.375rem', display: 'block' }}>Status</Text>
+                        <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                          {ALL_STATUSES.map(opt => (
+                            <button
+                              key={opt.value}
+                              onClick={() => handleStatusChange(opt.value)}
+                              disabled={statusSaving}
+                              style={{
+                                padding: '0.25rem 0.625rem', borderRadius: '0.375rem',
+                                fontSize: '0.75rem', fontWeight: 500, cursor: statusSaving ? 'wait' : 'pointer',
+                                border: feedback.status === opt.value ? '1.5px solid var(--neutral-on-background-strong)' : '1px solid var(--neutral-border-medium)',
+                                background: feedback.status === opt.value ? 'var(--neutral-alpha-weak)' : 'transparent',
+                                color: feedback.status === opt.value ? 'var(--neutral-on-background-strong)' : 'var(--neutral-on-background-weak)',
+                                transition: 'all 0.15s',
+                              }}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Description */}
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.375rem' }}>
+                          <Text variant="label-default-xs" onBackground="neutral-weak">Descrição</Text>
+                          {!editingComment && (
+                            <button onClick={() => { setCommentDraft(feedback.comment); setEditingComment(true) }}
+                              style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--brand-on-background-strong)', fontSize: '0.6875rem', fontWeight: 500 }}>
+                              Editar
+                            </button>
+                          )}
+                        </div>
+                        {editingComment ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            <Textarea id="modal-comment-edit" label="" value={commentDraft} lines={4} resize="vertical" onChange={e => setCommentDraft(e.target.value)} disabled={commentSaving} />
+                            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                              <Button variant="secondary" size="s" label="Cancelar" onClick={() => setEditingComment(false)} disabled={commentSaving} />
+                              <Button variant="primary" size="s" label="Salvar" onClick={handleCommentSave} loading={commentSaving} />
+                            </div>
+                          </div>
+                        ) : (
+                          <Text variant="body-default-s" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{feedback.comment}</Text>
+                        )}
+                      </div>
+
+                      {/* Steps / Expected / Actual */}
+                      {(feedback.metadata?.stepsToReproduce || feedback.metadata?.expectedResult || feedback.metadata?.actualResult) && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                          {feedback.metadata?.stepsToReproduce && (
+                            <div>
+                              <Text variant="label-default-xs" onBackground="neutral-weak" style={{ marginBottom: '0.25rem', display: 'block' }}>Passos para reproduzir</Text>
+                              <Text variant="body-default-s" style={{ whiteSpace: 'pre-wrap' }}>{feedback.metadata.stepsToReproduce}</Text>
+                            </div>
+                          )}
+                          {feedback.metadata?.expectedResult && (
+                            <div>
+                              <Text variant="label-default-xs" onBackground="neutral-weak" style={{ marginBottom: '0.25rem', display: 'block' }}>Resultado esperado</Text>
+                              <Text variant="body-default-s" style={{ whiteSpace: 'pre-wrap' }}>{feedback.metadata.expectedResult}</Text>
+                            </div>
+                          )}
+                          {feedback.metadata?.actualResult && (
+                            <div>
+                              <Text variant="label-default-xs" onBackground="neutral-weak" style={{ marginBottom: '0.25rem', display: 'block' }}>Resultado real</Text>
+                              <Text variant="body-default-s" style={{ whiteSpace: 'pre-wrap' }}>{feedback.metadata.actualResult}</Text>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Errors detected */}
+                      {(errorCount > 0 || failedRequests > 0) && (
+                        <div>
+                          <Text variant="label-default-xs" onBackground="neutral-weak" style={{ marginBottom: '0.375rem', display: 'block' }}>Erros detectados</Text>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                            {errorCount > 0 && (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', borderRadius: '0.5rem', background: 'var(--danger-alpha-weak)', border: '1px solid var(--danger-border-medium)' }}>
+                                <Text variant="body-default-xs" onBackground="danger-strong">
+                                  {errorCount} {errorCount === 1 ? 'erro' : 'erros'} no console
+                                </Text>
+                              </div>
+                            )}
+                            {failedRequests > 0 && (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', borderRadius: '0.5rem', background: 'var(--danger-alpha-weak)', border: '1px solid var(--danger-border-medium)' }}>
+                                <Text variant="body-default-xs" onBackground="danger-strong">
+                                  {failedRequests} {failedRequests === 1 ? 'requisição com falha' : 'requisições com falha'}
+                                </Text>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Environment */}
+                      <div>
+                        <Text variant="label-default-xs" onBackground="neutral-weak" style={{ marginBottom: '0.375rem', display: 'block' }}>Ambiente</Text>
+                        <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
+                          {ua && (
+                            <>
+                              <span style={{ padding: '0.25rem 0.5rem', borderRadius: '0.375rem', border: '1px solid var(--neutral-border-medium)', fontSize: '0.6875rem', color: 'var(--neutral-on-background-strong)', background: 'var(--surface-background)' }}>
+                                {ua.browser}
+                              </span>
+                              <span style={{ padding: '0.25rem 0.5rem', borderRadius: '0.375rem', border: '1px solid var(--neutral-border-medium)', fontSize: '0.6875rem', color: 'var(--neutral-on-background-strong)', background: 'var(--surface-background)' }}>
+                                {ua.os}
+                              </span>
+                            </>
+                          )}
+                          {feedback.metadata?.viewport && (
+                            <span style={{ padding: '0.25rem 0.5rem', borderRadius: '0.375rem', border: '1px solid var(--neutral-border-medium)', fontSize: '0.6875rem', color: 'var(--neutral-on-background-strong)', background: 'var(--surface-background)' }}>
+                              {feedback.metadata.viewport}
+                            </span>
+                          )}
+                          {feedback.metadata?.source && (
+                            <span style={{ padding: '0.25rem 0.5rem', borderRadius: '0.375rem', border: '1px solid var(--neutral-border-medium)', fontSize: '0.6875rem', color: 'var(--neutral-on-background-strong)', background: 'var(--surface-background)' }}>
+                              {feedback.metadata.source === 'shared-url' ? 'URL compartilhada' : 'Widget embed'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Links */}
+                      {feedback.pageUrl && (
+                        <div>
+                          <Text variant="label-default-xs" onBackground="neutral-weak" style={{ marginBottom: '0.375rem', display: 'block' }}>Links</Text>
+                          <a href={feedback.pageUrl} target="_blank" rel="noopener noreferrer" style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
+                            padding: '0.375rem 0.75rem', borderRadius: '0.5rem',
+                            border: '1px solid var(--neutral-border-medium)',
+                            fontSize: '0.75rem', color: 'var(--neutral-on-background-strong)',
+                            textDecoration: 'none', background: 'var(--surface-background)',
+                          }}>
+                            Abrir página original <Icon name="openLink" size="xs" />
+                          </a>
+                        </div>
+                      )}
+                    </div>
                   )}
-                  {selectedFeedback.pageUrl && (
-                    <Column gap="xs"><Text variant="label-default-s" onBackground="neutral-weak">Página</Text>
-                      <a href={selectedFeedback.pageUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', wordBreak: 'break-all', color: 'var(--brand-on-background-strong)', textDecoration: 'underline', textUnderlineOffset: '2px', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                        {selectedFeedback.pageUrl}<Icon name="openLink" size="xs" style={{ flexShrink: 0 }} />
-                      </a>
-                    </Column>
+
+                  {/* ── Console Tab ── */}
+                  {activeTab === 'console' && (
+                    <div>
+                      {consoleLogs.length === 0 ? (
+                        <Text variant="body-default-s" onBackground="neutral-weak" style={{ textAlign: 'center', padding: '2rem 0' }}>Nenhum log capturado</Text>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          {consoleLogs.map((log, i) => {
+                            const level = log.level?.toUpperCase() ?? 'LOG'
+                            const isError = level === 'ERROR'
+                            const isWarn = level === 'WARN' || level === 'WARNING'
+                            return (
+                              <div key={i} style={{
+                                display: 'flex', alignItems: 'flex-start', gap: '0.5rem',
+                                padding: '0.5rem 0',
+                                borderBottom: i < consoleLogs.length - 1 ? '1px solid var(--neutral-border-medium)' : undefined,
+                              }}>
+                                <span style={{
+                                  flexShrink: 0, padding: '0.125rem 0.375rem', borderRadius: '0.25rem',
+                                  fontSize: '0.625rem', fontWeight: 700, fontFamily: 'monospace',
+                                  background: isError ? 'var(--danger-alpha-weak)' : isWarn ? 'var(--warning-alpha-weak)' : 'var(--info-alpha-weak)',
+                                  color: isError ? 'var(--danger-on-background-strong)' : isWarn ? 'var(--warning-on-background-strong)' : 'var(--info-on-background-strong)',
+                                }}>
+                                  {level}
+                                </span>
+                                <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', wordBreak: 'break-word', flex: 1, lineHeight: 1.5 }}>
+                                  {log.message}
+                                </span>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
                   )}
-                  <Column gap="xs"><Text variant="label-default-s" onBackground="neutral-weak">Data</Text>
-                    <Row gap="xs" vertical="center"><Icon name="clock" size="xs" /><Text variant="body-default-xs">{new Date(selectedFeedback.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</Text></Row>
-                  </Column>
-                  {selectedFeedback.userAgent && (() => { const { os, browser } = parseUserAgent(selectedFeedback.userAgent); return (<Column gap="xs"><Text variant="label-default-s" onBackground="neutral-weak">Navegador</Text><Row gap="xs" vertical="center"><Icon name="monitor" size="xs" /><Text variant="body-default-xs">{os} • {browser}</Text></Row>{selectedFeedback.metadata?.viewport && (<Row gap="xs" vertical="center"><Icon name="viewport" size="xs" /><Text variant="body-default-xs">Viewport: {selectedFeedback.metadata.viewport}</Text></Row>)}</Column>) })()}
-                  {(() => {
-                    const consoleLogs = selectedFeedback.consoleLogs || []
-                    const errorCount = consoleLogs.filter((l: any) => l.level === 'error').length
-                    const warnCount = consoleLogs.filter((l: any) => l.level === 'warn' || l.level === 'warning').length
-                    const networkLogs = selectedFeedback.networkLogs || []
-                    const failedRequests = networkLogs.filter((l: any) => l.status && l.status >= 400).length
-                    return (
-                      <Column gap="xs"><Text variant="label-default-s" onBackground="neutral-weak">Eventos Capturados</Text><Column gap="xs">
-                        <Row gap="xs" vertical="center"><Icon name="monitor" size="xs" /><Text variant="body-default-xs">{selectedFeedback.metadata?.rrwebEvents?.length ?? 0} eventos de sessão</Text></Row>
-                        <Row gap="xs" vertical="center"><Icon name="message" size="xs" /><Text variant="body-default-xs">{consoleLogs.length} console logs{errorCount > 0 && <span style={{ color: 'var(--danger-solid-strong)' }}> ({errorCount} {errorCount === 1 ? 'erro' : 'erros'})</span>}{warnCount > 0 && <span style={{ color: 'var(--warning-solid-strong)' }}> ({warnCount} {warnCount === 1 ? 'aviso' : 'avisos'})</span>}</Text></Row>
-                        <Row gap="xs" vertical="center"><Icon name="openLink" size="xs" /><Text variant="body-default-xs">{networkLogs.length} requisições de rede{failedRequests > 0 && <span style={{ color: 'var(--danger-solid-strong)' }}> ({failedRequests} {failedRequests === 1 ? 'falha' : 'falhas'})</span>}</Text></Row>
-                      </Column></Column>
-                    )
-                  })()}
-                </Column></Card>
+
+                  {/* ── Network Tab ── */}
+                  {activeTab === 'network' && (
+                    <div>
+                      {networkLogs.length === 0 ? (
+                        <Text variant="body-default-s" onBackground="neutral-weak" style={{ textAlign: 'center', padding: '2rem 0' }}>Nenhuma requisição capturada</Text>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          {networkLogs.map((log, i) => {
+                            const isFailed = log.status && log.status >= 400
+                            return (
+                              <div key={i} style={{
+                                display: 'flex', alignItems: 'center', gap: '0.5rem',
+                                padding: '0.5rem 0',
+                                borderBottom: i < networkLogs.length - 1 ? '1px solid var(--neutral-border-medium)' : undefined,
+                              }}>
+                                <span style={{
+                                  flexShrink: 0, padding: '0.125rem 0.375rem', borderRadius: '0.25rem',
+                                  fontSize: '0.625rem', fontWeight: 700, fontFamily: 'monospace',
+                                  background: isFailed ? 'var(--danger-alpha-weak)' : 'var(--success-alpha-weak)',
+                                  color: isFailed ? 'var(--danger-on-background-strong)' : 'var(--success-on-background-strong)',
+                                }}>
+                                  {log.status ?? '—'}
+                                </span>
+                                <span style={{ fontFamily: 'monospace', fontWeight: 600, fontSize: '0.6875rem', flexShrink: 0, color: 'var(--neutral-on-background-strong)' }}>
+                                  {log.method}
+                                </span>
+                                <span style={{ fontFamily: 'monospace', fontSize: '0.6875rem', color: 'var(--neutral-on-background-weak)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }} title={log.url}>
+                                  {log.url}
+                                </span>
+                                {log.duration != null && (
+                                  <span style={{ fontFamily: 'monospace', fontSize: '0.6875rem', color: 'var(--neutral-on-background-weak)', flexShrink: 0 }}>
+                                    {log.duration}ms
+                                  </span>
+                                )}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </>
         ) : (
-          <Flex fillWidth style={{ minHeight: '20rem' }} horizontal="center" vertical="center"><FeedbackAlert variant="danger">Não foi possível carregar o report.</FeedbackAlert></Flex>
+          <Flex fillWidth style={{ minHeight: '20rem' }} horizontal="center" vertical="center">
+            <FeedbackAlert variant="danger">Não foi possível carregar o report.</FeedbackAlert>
+          </Flex>
         )}
       </div>
     </div>
