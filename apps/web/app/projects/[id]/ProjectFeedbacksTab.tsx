@@ -325,6 +325,12 @@ export default function ProjectFeedbacksTab({
         isOpen={modalOpen}
         onClose={closeDetail}
         feedbackId={modalFeedbackId}
+        teamMembers={teamMembers}
+        assignees={modalFeedbackId ? (feedbackAssigneesMap[modalFeedbackId] || []) : []}
+        onAssign={handleAssign}
+        onUnassign={handleUnassign}
+        onStartDateChange={handleStartDateChange}
+        onDueDateChange={handleDueDateChange}
       />
     </Column>
   )
