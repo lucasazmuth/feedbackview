@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createNotification } from '@/lib/notifications'
 import { logActivity } from '@/lib/activity-log'
 import { dispatchWebhookEvent } from '@/lib/webhook-dispatcher'
+import { syncClickUpStatus } from '@/lib/clickup/sync'
 
 export async function PATCH(
   req: NextRequest,
@@ -93,13 +94,14 @@ export async function PATCH(
     })
   }
 
-  // Dispatch webhook
+  // Dispatch webhook + ClickUp sync (fire-and-forget)
   if (project?.organizationId) {
     void dispatchWebhookEvent({
       organizationId: project.organizationId,
       event: 'feedback.status_changed',
       payload: { feedbackId: id, projectId: feedback.projectId, oldStatus, newStatus: status },
     })
+    void syncClickUpStatus({ organizationId: project.organizationId, feedbackId: id, newStatus: status })
   }
 
   return NextResponse.json({ success: true })

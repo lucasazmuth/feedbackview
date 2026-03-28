@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { validateApiKey, hasPermission, isApiRateLimited } from '@/lib/api-auth'
 import { dispatchWebhookEvent } from '@/lib/webhook-dispatcher'
+import { syncClickUpStatus } from '@/lib/clickup/sync'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -71,13 +72,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // Dispatch webhook if status changed
+  // Dispatch webhook + ClickUp sync if status changed (fire-and-forget)
   if (allowedFields.status && allowedFields.status !== existing.status) {
     void dispatchWebhookEvent({
       organizationId: apiKey.organizationId,
       event: 'feedback.status_changed',
       payload: { feedbackId: id, oldStatus: existing.status, newStatus: allowedFields.status },
     })
+    void syncClickUpStatus({ organizationId: apiKey.organizationId, feedbackId: id, newStatus: allowedFields.status })
   }
 
   return NextResponse.json({ data: { id, ...allowedFields } })

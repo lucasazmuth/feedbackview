@@ -429,7 +429,7 @@ export default function TableView({
                   <Text variant="label-default-xs" onBackground="neutral-weak">TIPO</Text>
                   <Text variant="label-default-xs" onBackground="neutral-weak">PROJETO</Text>
                   <Text variant="label-default-xs" onBackground="neutral-weak">Comentário</Text>
-                  <SortHeader label="Severidade" field="severity" sort={sort} onToggleSort={onToggleSort} />
+                  <SortHeader label="Prioridade" field="severity" sort={sort} onToggleSort={onToggleSort} />
                   <Text variant="label-default-xs" onBackground="neutral-weak">STATUS</Text>
                   <Text variant="label-default-xs" onBackground="neutral-weak">RESP.</Text>
                   <SortHeader label="Prazo" field="createdAt" sort={sort} onToggleSort={onToggleSort} />

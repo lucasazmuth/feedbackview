@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { logActivity } from '@/lib/activity-log'
+import { syncClickUpStatus } from '@/lib/clickup/sync'
 
 const VALID_STATUSES = ['OPEN', 'IN_PROGRESS', 'UNDER_REVIEW', 'RESOLVED', 'CANCELLED']
 
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest) {
   for (const feedbackId of feedbackIds) {
     const { data: feedback } = await supabase
       .from('Feedback')
-      .select('status, title, comment, projectId')
+      .select('status, title, comment, projectId, clickupTaskId, Project:projectId(organizationId)')
       .eq('id', feedbackId)
       .single()
 
@@ -69,6 +70,11 @@ export async function POST(req: NextRequest) {
         newStatusLabel: statusLabels[status] || status,
       },
     })
+
+    const orgId = (feedback as any).Project?.organizationId
+    if (orgId && oldStatus !== status) {
+      void syncClickUpStatus({ organizationId: orgId, feedbackId, newStatus: status })
+    }
 
     successCount++
   }

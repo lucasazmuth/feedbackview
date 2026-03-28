@@ -14,6 +14,8 @@ import {
 } from '@once-ui-system/core'
 import AppLayout from '@/components/ui/AppLayout'
 import { useOrg } from '@/contexts/OrgContext'
+import { IntegrationsDocsReference, type DocPageId } from './IntegrationsDocsReference'
+import ClickUpSetup from './ClickUpSetup'
 
 interface ApiKeyItem {
   id: string
@@ -58,11 +60,56 @@ function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })
 }
 
-export default function IntegrationsClient({ userId }: { userId: string }) {
+const tabButtonStyle = (active: boolean): React.CSSProperties => ({
+  padding: '0.65rem 1rem',
+  fontSize: '0.875rem',
+  fontWeight: 600,
+  color: active ? 'var(--brand-on-background-strong)' : 'var(--neutral-on-background-weak)',
+  background: active ? 'var(--brand-alpha-weak)' : 'transparent',
+  border: `1px solid ${active ? 'var(--brand-border-medium)' : 'transparent'}`,
+  borderRadius: '0.5rem',
+  cursor: 'pointer',
+  whiteSpace: 'nowrap',
+})
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  padding: '0.5rem 0.75rem',
+  borderRadius: '0.5rem',
+  border: '1px solid var(--neutral-border-medium)',
+  background: 'var(--surface-background)',
+  color: 'var(--neutral-on-background-strong)',
+  fontSize: '0.875rem',
+  outline: 'none',
+}
+
+const codeBlockStyle: React.CSSProperties = {
+  fontSize: '0.75rem',
+  fontFamily: 'ui-monospace, monospace',
+  display: 'block',
+  padding: '0.75rem',
+  borderRadius: '0.5rem',
+  background: 'var(--surface-background)',
+  border: '1px solid var(--neutral-border-medium)',
+  whiteSpace: 'pre-wrap',
+  lineHeight: 1.55,
+  overflowX: 'auto',
+}
+
+type MainTab = 'overview' | 'keys' | 'webhooks' | 'clickup' | 'docs'
+
+export default function IntegrationsClient({ userId: _userId }: { userId: string }) {
   const { currentOrg } = useOrg()
   const orgId = currentOrg?.id
 
-  // API Keys state
+  const [apiBaseDisplay, setApiBaseDisplay] = useState('https://buug.io/api/v1')
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setApiBaseDisplay(`${window.location.origin}/api/v1`)
+    }
+  }, [])
+
   const [apiKeys, setApiKeys] = useState<ApiKeyItem[]>([])
   const [keysLoading, setKeysLoading] = useState(true)
   const [newKeyName, setNewKeyName] = useState('')
@@ -70,7 +117,6 @@ export default function IntegrationsClient({ userId }: { userId: string }) {
   const [newKeyValue, setNewKeyValue] = useState<string | null>(null)
   const [keyCopied, setKeyCopied] = useState(false)
 
-  // Webhooks state
   const [webhooks, setWebhooks] = useState<WebhookItem[]>([])
   const [webhooksLoading, setWebhooksLoading] = useState(true)
   const [newWebhookUrl, setNewWebhookUrl] = useState('')
@@ -78,9 +124,9 @@ export default function IntegrationsClient({ userId }: { userId: string }) {
   const [creatingWebhook, setCreatingWebhook] = useState(false)
   const [newWebhookSecret, setNewWebhookSecret] = useState<string | null>(null)
 
-  const [activeTab, setActiveTab] = useState<'keys' | 'webhooks'>('keys')
+  const [activeTab, setActiveTab] = useState<MainTab>('overview')
+  const [docPage, setDocPage] = useState<DocPageId>('intro')
 
-  // Fetch data
   const fetchKeys = useCallback(async () => {
     if (!orgId) return
     setKeysLoading(true)
@@ -112,7 +158,6 @@ export default function IntegrationsClient({ userId }: { userId: string }) {
     fetchWebhooks()
   }, [fetchKeys, fetchWebhooks])
 
-  // Create API key
   const handleCreateKey = async () => {
     if (!orgId || !newKeyName.trim()) return
     setCreatingKey(true)
@@ -136,7 +181,6 @@ export default function IntegrationsClient({ userId }: { userId: string }) {
     setCreatingKey(false)
   }
 
-  // Delete API key
   const handleDeleteKey = async (keyId: string) => {
     if (!orgId) return
     await fetch('/api/keys', {
@@ -147,7 +191,6 @@ export default function IntegrationsClient({ userId }: { userId: string }) {
     fetchKeys()
   }
 
-  // Create webhook
   const handleCreateWebhook = async () => {
     if (!orgId || !newWebhookUrl.trim()) return
     setCreatingWebhook(true)
@@ -168,7 +211,6 @@ export default function IntegrationsClient({ userId }: { userId: string }) {
     setCreatingWebhook(false)
   }
 
-  // Delete webhook
   const handleDeleteWebhook = async (webhookId: string) => {
     if (!orgId) return
     await fetch('/api/webhooks/manage', {
@@ -183,7 +225,6 @@ export default function IntegrationsClient({ userId }: { userId: string }) {
     try {
       navigator.clipboard.writeText(text)
     } catch {
-      // Fallback for browsers that block clipboard API
       const textarea = document.createElement('textarea')
       textarea.value = text
       textarea.style.position = 'fixed'
@@ -197,59 +238,183 @@ export default function IntegrationsClient({ userId }: { userId: string }) {
     setTimeout(() => setKeyCopied(false), 2000)
   }
 
+  const tabs: { key: MainTab; label: string }[] = [
+    { key: 'overview', label: 'Visão geral' },
+    { key: 'clickup', label: 'ClickUp' },
+    { key: 'keys', label: 'Chaves de acesso' },
+    { key: 'webhooks', label: 'Avisos automáticos' },
+    { key: 'docs', label: 'Documentação' },
+  ]
+
+  const curlExample = `curl -H "Authorization: Bearer SUA_CHAVE_AQUI" \\
+  "${apiBaseDisplay}/feedbacks?status=OPEN"`
+
   return (
     <AppLayout>
-      <Column as="main" fillWidth paddingX="l" paddingY="m" gap="l" style={{ maxWidth: '48rem' }}>
-        <Column gap="xs">
-          <Heading variant="heading-strong-l" as="h1">Integrações</Heading>
-          <Text variant="body-default-s" onBackground="neutral-weak">
-            Conecte o Buug às suas ferramentas via API e Webhooks
-          </Text>
+      <Column
+        as="main"
+        fillWidth
+        paddingX="l"
+        paddingY="m"
+        gap="l"
+        style={{ maxWidth: activeTab === 'docs' ? 'min(100%, 72rem)' : '56rem' }}
+      >
+        <Column gap="m">
+          <Column gap="xs">
+            <Heading variant="heading-strong-l" as="h1">
+              Integrações
+            </Heading>
+            <Text variant="body-default-m" onBackground="neutral-weak" style={{ maxWidth: '40rem' }}>
+              Conecte o Buug a outras ferramentas (planilhas, CRM, automações ou sistemas próprios). Abaixo
+              explicamos tudo em linguagem simples — você não precisa ser programador para entender o que cada
+              opção faz.
+            </Text>
+          </Column>
+
+          <Row gap="xs" wrap style={{ paddingTop: '0.25rem' }}>
+            {tabs.map(tab => (
+              <button key={tab.key} type="button" onClick={() => setActiveTab(tab.key)} style={tabButtonStyle(activeTab === tab.key)}>
+                {tab.label}
+              </button>
+            ))}
+          </Row>
         </Column>
 
-        {/* Tabs */}
-        <Row gap="l" style={{ borderBottom: '2px solid var(--neutral-border-medium)', paddingBottom: 0 }}>
-          {[
-            { key: 'keys' as const, label: 'API Keys' },
-            { key: 'webhooks' as const, label: 'Webhooks' },
-          ].map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              style={{
-                paddingBottom: '0.75rem',
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                color: activeTab === tab.key ? 'var(--brand-on-background-strong)' : 'var(--neutral-on-background-weak)',
-                background: 'none',
-                border: 'none',
-                borderBottom: `2px solid ${activeTab === tab.key ? 'var(--brand-solid-strong)' : 'transparent'}`,
-                cursor: 'pointer',
-                marginBottom: '-2px',
-              }}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </Row>
+        {!orgId && (
+          <FeedbackAlert variant="warning" title="Selecione uma organização">
+            Escolha a organização no menu lateral para gerenciar chaves e webhooks.
+          </FeedbackAlert>
+        )}
 
-        {/* API Keys Tab */}
-        {activeTab === 'keys' && (
+        {activeTab === 'overview' && (
           <Column gap="l" fillWidth>
-            {/* New key created alert */}
+            <Card fillWidth padding="l" radius="l" style={{ background: 'var(--neutral-alpha-weak)' }}>
+              <Column gap="s">
+                <Text variant="heading-strong-s" as="h2">
+                  Em duas frases: o que você pode fazer aqui?
+                </Text>
+                <Text variant="body-default-s" onBackground="neutral-weak">
+                  <strong>Chave de acesso</strong> é como uma senha que um sistema usa para <em>consultar ou
+                  alterar</em> dados no Buug pela internet. <strong>Aviso automático (webhook)</strong> é o
+                  contrário: o Buug <em>avisar o seu sistema</em> quando algo importante acontece (por exemplo,
+                  um novo report).
+                </Text>
+              </Column>
+            </Card>
+
+            <Row gap="m" fillWidth vertical="stretch" style={{ flexWrap: 'wrap' }}>
+              <Card fillWidth padding="l" radius="l" style={{ flex: '1 1 280px', minWidth: 0 }}>
+                <Column gap="m">
+                  <Row gap="s" vertical="center">
+                    <Icon name="code" size="m" />
+                    <Text variant="heading-strong-s" as="h3">
+                      Chaves de acesso (API)
+                    </Text>
+                  </Row>
+                  <Text variant="body-default-s" onBackground="neutral-weak">
+                    Use quando <strong>outro programa precisa buscar projetos, listar reports ou atualizar
+                    status</strong> — por exemplo integração com ferramenta interna, script ou plataforma no-code
+                    que aceita cabeçalho HTTP.
+                  </Text>
+                  <ul style={{ margin: 0, paddingLeft: '1.25rem', color: 'var(--neutral-on-background-weak)', fontSize: '0.875rem', lineHeight: 1.6 }}>
+                    <li>Você cria um nome para lembrar para que serve (ex.: “Automação Zapier”).</li>
+                    <li>O Buug mostra a chave <strong>uma única vez</strong> — guarde em local seguro.</li>
+                    <li>Quem tiver a chave pode agir no nome da sua organização: trate como senha.</li>
+                  </ul>
+                  <Button size="m" variant="primary" label="Ir para chaves de acesso" onClick={() => setActiveTab('keys')} />
+                </Column>
+              </Card>
+
+              <Card fillWidth padding="l" radius="l" style={{ flex: '1 1 280px', minWidth: 0 }}>
+                <Column gap="m">
+                  <Row gap="s" vertical="center">
+                    <Icon name="openLink" size="m" />
+                    <Text variant="heading-strong-s" as="h3">
+                      Avisos automáticos (webhooks)
+                    </Text>
+                  </Row>
+                  <Text variant="body-default-s" onBackground="neutral-weak">
+                    Use quando <strong>você quer que um endereço na internet receba um aviso</strong> sempre que
+                    ocorrer um evento (novo report, mudança de status, etc.). Quem recebe processa o JSON e pode
+                    disparar e-mail, Slack, banco de dados, etc.
+                  </Text>
+                  <ul style={{ margin: 0, paddingLeft: '1.25rem', color: 'var(--neutral-on-background-weak)', fontSize: '0.875rem', lineHeight: 1.6 }}>
+                    <li>Você informa a <strong>URL</strong> que deve receber o POST (gerada pelo seu sistema ou por um serviço de automação).</li>
+                    <li>Escolhe <strong>quais eventos</strong> interessam.</li>
+                    <li>Na criação, copie o <strong>segredo</strong> para conferir se o aviso veio mesmo do Buug.</li>
+                  </ul>
+                  <Button size="m" variant="secondary" label="Ir para avisos automáticos" onClick={() => setActiveTab('webhooks')} />
+                </Column>
+              </Card>
+            </Row>
+
+            <Card fillWidth padding="l" radius="l">
+              <Row gap="m" vertical="center" horizontal="between" fillWidth wrap>
+                <Column gap="xs" style={{ flex: '1 1 200px' }}>
+                  <Text variant="heading-strong-s">Precisa do passo a passo técnico?</Text>
+                  <Text variant="body-default-s" onBackground="neutral-weak">
+                    Na aba Documentação há exemplos de requisição, parâmetros, limites e como validar assinaturas.
+                  </Text>
+                </Column>
+                <Button size="m" variant="tertiary" label="Abrir documentação" onClick={() => setActiveTab('docs')} />
+              </Row>
+            </Card>
+          </Column>
+        )}
+
+        {activeTab === 'clickup' && orgId && (
+          <ClickUpSetup orgId={orgId} />
+        )}
+
+        {activeTab === 'clickup' && !orgId && (
+          <Card fillWidth padding="xl" radius="l" style={{ textAlign: 'center' }}>
+            <Text variant="body-default-s" onBackground="neutral-weak">
+              Selecione uma organização para configurar o ClickUp.
+            </Text>
+          </Card>
+        )}
+
+        {activeTab === 'keys' && orgId && (
+          <Column gap="l" fillWidth>
+            <Card fillWidth padding="l" radius="l" style={{ border: '1px solid var(--neutral-border-medium)' }}>
+              <Column gap="m">
+                <Text variant="heading-strong-s" as="h2">
+                  Como usar — em 4 passos
+                </Text>
+                <ol style={{ margin: 0, paddingLeft: '1.25rem', color: 'var(--neutral-on-background-weak)', fontSize: '0.875rem', lineHeight: 1.7 }}>
+                  <li>Escolha um nome que descreva onde a chave será usada.</li>
+                  <li>Clique em <strong>Criar chave</strong> e copie o valor na hora — ele não volta a aparecer.</li>
+                  <li>No outro sistema, configure o cabeçalho <code style={{ fontSize: '0.8em' }}>Authorization: Bearer …</code> com essa chave.</li>
+                  <li>Chame os endereços da API (veja a aba Documentação). Limite: até 100 requisições por minuto por chave.</li>
+                </ol>
+                <FeedbackAlert variant="danger" title="Segurança">
+                  Não envie a chave por e-mail, chat público ou prints. Se vazar, revogue e crie outra.
+                </FeedbackAlert>
+              </Column>
+            </Card>
+
             {newKeyValue && (
               <Card fillWidth padding="l" radius="l" style={{ background: 'var(--success-alpha-weak)', border: '1px solid var(--success-border-medium)' }}>
                 <Column gap="s">
-                  <Text variant="label-default-s" onBackground="success-strong">API Key criada com sucesso</Text>
+                  <Text variant="label-default-s" onBackground="success-strong">
+                    Chave criada com sucesso
+                  </Text>
                   <Text variant="body-default-xs" onBackground="neutral-weak">
-                    Copie agora — essa chave não será exibida novamente.
+                    Copie agora e guarde em um cofre de senhas ou variável segura do seu sistema. Esta chave não será exibida de novo.
                   </Text>
                   <Row gap="s" vertical="center">
-                    <code style={{
-                      flex: 1, padding: '0.5rem 0.75rem', borderRadius: '0.5rem',
-                      background: 'var(--surface-background)', border: '1px solid var(--neutral-border-medium)',
-                      fontSize: '0.75rem', fontFamily: 'monospace', wordBreak: 'break-all',
-                    }}>
+                    <code
+                      style={{
+                        flex: 1,
+                        padding: '0.5rem 0.75rem',
+                        borderRadius: '0.5rem',
+                        background: 'var(--surface-background)',
+                        border: '1px solid var(--neutral-border-medium)',
+                        fontSize: '0.75rem',
+                        fontFamily: 'ui-monospace, monospace',
+                        wordBreak: 'break-all',
+                      }}
+                    >
                       {newKeyValue}
                     </code>
                     <Button
@@ -259,34 +424,39 @@ export default function IntegrationsClient({ userId }: { userId: string }) {
                       onClick={() => copyToClipboard(newKeyValue)}
                     />
                   </Row>
-                  <Button size="s" variant="tertiary" label="Fechar" onClick={() => setNewKeyValue(null)} />
+                  <Button size="s" variant="tertiary" label="Entendi, fechar" onClick={() => setNewKeyValue(null)} />
                 </Column>
               </Card>
             )}
 
-            {/* Create key form */}
             <Card fillWidth padding="l" radius="l">
               <Column gap="m">
-                <Text variant="heading-strong-s">Criar nova API Key</Text>
-                <Text variant="body-default-xs" onBackground="neutral-weak">
-                  Use a API Key para autenticar requests à API pública do Buug.
+                <Text variant="heading-strong-s">Criar nova chave</Text>
+                <Text variant="body-default-s" onBackground="neutral-weak">
+                  As chaves criadas aqui podem ler projetos e reports e atualizar status/prazos dos reports, de acordo com as permissões padrão desta tela.
                 </Text>
-                <Row gap="s" vertical="end" fillWidth>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--neutral-on-background-weak)', display: 'block', marginBottom: '0.25rem' }}>
-                      Nome da chave
+                <Row gap="s" vertical="end" fillWidth wrap>
+                  <div style={{ flex: '1 1 12rem' }}>
+                    <label
+                      htmlFor="integration-key-name"
+                      style={{
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        color: 'var(--neutral-on-background-weak)',
+                        display: 'block',
+                        marginBottom: '0.25rem',
+                      }}
+                    >
+                      Nome para você lembrar
                     </label>
                     <input
+                      id="integration-key-name"
                       type="text"
-                      placeholder="Ex: Integração ClickUp"
+                      placeholder="Ex.: Planilha Google / N8N / Sistema interno"
                       value={newKeyName}
-                      onChange={(e) => setNewKeyName(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleCreateKey()}
-                      style={{
-                        width: '100%', padding: '0.5rem 0.75rem', borderRadius: '0.5rem',
-                        border: '1px solid var(--neutral-border-medium)', background: 'var(--surface-background)',
-                        color: 'var(--neutral-on-background-strong)', fontSize: '0.875rem', outline: 'none',
-                      }}
+                      onChange={e => setNewKeyName(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && handleCreateKey()}
+                      style={inputStyle}
                     />
                   </div>
                   <Button
@@ -301,26 +471,32 @@ export default function IntegrationsClient({ userId }: { userId: string }) {
               </Column>
             </Card>
 
-            {/* Existing keys */}
             <Column gap="s" fillWidth>
               <Text variant="label-default-s" onBackground="neutral-weak">
-                {apiKeys.length} {apiKeys.length === 1 ? 'chave ativa' : 'chaves ativas'}
+                {keysLoading ? 'Carregando…' : `${apiKeys.length} ${apiKeys.length === 1 ? 'chave' : 'chaves'} cadastrada(s)`}
               </Text>
               {apiKeys.map(key => (
                 <Card key={key.id} fillWidth padding="m" radius="l">
-                  <Row fillWidth horizontal="between" vertical="center">
-                    <Column gap="xs">
-                      <Row gap="s" vertical="center">
-                        <Text variant="body-default-s" style={{ fontWeight: 600 }}>{key.name}</Text>
-                        <code style={{
-                          fontSize: '0.6875rem', fontFamily: 'monospace', padding: '0.125rem 0.375rem',
-                          borderRadius: '0.25rem', background: 'var(--neutral-alpha-weak)',
-                          color: 'var(--neutral-on-background-weak)',
-                        }}>
-                          {key.prefix}...
+                  <Row fillWidth horizontal="between" vertical="center" gap="m" wrap>
+                    <Column gap="xs" style={{ minWidth: 0 }}>
+                      <Row gap="s" vertical="center" wrap>
+                        <Text variant="body-default-s" style={{ fontWeight: 600 }}>
+                          {key.name}
+                        </Text>
+                        <code
+                          style={{
+                            fontSize: '0.6875rem',
+                            fontFamily: 'ui-monospace, monospace',
+                            padding: '0.125rem 0.375rem',
+                            borderRadius: '0.25rem',
+                            background: 'var(--neutral-alpha-weak)',
+                            color: 'var(--neutral-on-background-weak)',
+                          }}
+                        >
+                          {key.prefix}…
                         </code>
                       </Row>
-                      <Row gap="m">
+                      <Row gap="m" wrap>
                         <Text variant="body-default-xs" onBackground="neutral-weak">
                           Criada {timeAgo(key.createdAt)}
                         </Text>
@@ -337,106 +513,142 @@ export default function IntegrationsClient({ userId }: { userId: string }) {
                       </Row>
                     </Column>
                     <button
+                      type="button"
                       onClick={() => handleDeleteKey(key.id)}
                       style={{
-                        padding: '0.375rem 0.75rem', borderRadius: '0.5rem',
-                        border: '1px solid var(--danger-border-medium)', background: 'transparent',
-                        color: 'var(--danger-on-background-strong)', cursor: 'pointer',
-                        fontSize: '0.75rem', fontWeight: 500,
+                        padding: '0.375rem 0.75rem',
+                        borderRadius: '0.5rem',
+                        border: '1px solid var(--danger-border-medium)',
+                        background: 'transparent',
+                        color: 'var(--danger-on-background-strong)',
+                        cursor: 'pointer',
+                        fontSize: '0.75rem',
+                        fontWeight: 500,
                       }}
                     >
-                      Revogar
+                      Revogar chave
                     </button>
                   </Row>
                 </Card>
               ))}
               {apiKeys.length === 0 && !keysLoading && (
-                <Text variant="body-default-xs" onBackground="neutral-weak" style={{ textAlign: 'center', padding: '2rem 0' }}>
-                  Nenhuma API Key criada ainda.
-                </Text>
+                <Card fillWidth padding="xl" radius="l" style={{ textAlign: 'center' }}>
+                  <Column gap="s" horizontal="center">
+                    <Text variant="body-default-s" onBackground="neutral-weak">
+                      Nenhuma chave ainda. Crie uma acima para começar a integrar.
+                    </Text>
+                    <Button size="s" variant="tertiary" label="Ver documentação da API" onClick={() => setActiveTab('docs')} />
+                  </Column>
+                </Card>
               )}
             </Column>
 
-            {/* API docs hint */}
             <Card fillWidth padding="l" radius="l" style={{ background: 'var(--neutral-alpha-weak)' }}>
               <Column gap="s">
-                <Text variant="label-default-s">Como usar a API</Text>
-                <code style={{ fontSize: '0.75rem', fontFamily: 'monospace', display: 'block', padding: '0.75rem', borderRadius: '0.5rem', background: 'var(--surface-background)', border: '1px solid var(--neutral-border-medium)', whiteSpace: 'pre-wrap' }}>
-{`curl -H "Authorization: Bearer buug_sk_..." \\
-  https://buug.io/api/v1/feedbacks?status=OPEN`}
-                </code>
+                <Text variant="label-default-s">Exemplo rápido (teste no terminal)</Text>
                 <Text variant="body-default-xs" onBackground="neutral-weak">
-                  Endpoints: /api/v1/projects, /api/v1/feedbacks, /api/v1/feedbacks/:id
+                  Troque <code style={{ fontSize: '0.8em' }}>SUA_CHAVE_AQUI</code> pela chave que você copiou. O endereço abaixo usa o mesmo site que você está acessando agora.
                 </Text>
+                <code style={codeBlockStyle}>{curlExample}</code>
               </Column>
             </Card>
           </Column>
         )}
 
-        {/* Webhooks Tab */}
-        {activeTab === 'webhooks' && (
+        {activeTab === 'webhooks' && orgId && (
           <Column gap="l" fillWidth>
-            {/* New webhook secret alert */}
+            <Card fillWidth padding="l" radius="l" style={{ border: '1px solid var(--neutral-border-medium)' }}>
+              <Column gap="m">
+                <Text variant="heading-strong-s" as="h2">
+                  Como funcionam os avisos automáticos
+                </Text>
+                <Text variant="body-default-s" onBackground="neutral-weak">
+                  Imagine um <strong>sininho</strong>: quando algo muda no Buug, enviamos uma mensagem JSON para a URL
+                  que você cadastrou. Seu servidor (ou ferramenta de automação) lê o JSON e decide o que fazer.
+                </Text>
+                <ol style={{ margin: 0, paddingLeft: '1.25rem', color: 'var(--neutral-on-background-weak)', fontSize: '0.875rem', lineHeight: 1.7 }}>
+                  <li>Obtenha uma URL que aceite requisições <code style={{ fontSize: '0.8em' }}>POST</code> com corpo JSON (muitas plataformas chamam isso de “webhook URL”).</li>
+                  <li>Cole a URL aqui e marque os eventos desejados.</li>
+                  <li>Após criar, guarde o <strong>segredo</strong> — ele serve para verificar o cabeçalho <code style={{ fontSize: '0.8em' }}>X-Buug-Signature</code>.</li>
+                  <li>Responda com código HTTP 2xx para indicar que recebeu bem; outros códigos são tratados como falha na entrega.</li>
+                </ol>
+              </Column>
+            </Card>
+
             {newWebhookSecret && (
               <Card fillWidth padding="l" radius="l" style={{ background: 'var(--success-alpha-weak)', border: '1px solid var(--success-border-medium)' }}>
                 <Column gap="s">
-                  <Text variant="label-default-s" onBackground="success-strong">Webhook criado com sucesso</Text>
+                  <Text variant="label-default-s" onBackground="success-strong">
+                    Webhook criado
+                  </Text>
                   <Text variant="body-default-xs" onBackground="neutral-weak">
-                    Copie o secret para validar as assinaturas (X-Buug-Signature).
+                    Copie o segredo abaixo. Ele não será mostrado de novo. Use-o no seu servidor para confirmar que o aviso veio do Buug (veja a documentação).
                   </Text>
                   <Row gap="s" vertical="center">
-                    <code style={{
-                      flex: 1, padding: '0.5rem 0.75rem', borderRadius: '0.5rem',
-                      background: 'var(--surface-background)', border: '1px solid var(--neutral-border-medium)',
-                      fontSize: '0.75rem', fontFamily: 'monospace', wordBreak: 'break-all',
-                    }}>
+                    <code
+                      style={{
+                        flex: 1,
+                        padding: '0.5rem 0.75rem',
+                        borderRadius: '0.5rem',
+                        background: 'var(--surface-background)',
+                        border: '1px solid var(--neutral-border-medium)',
+                        fontSize: '0.75rem',
+                        fontFamily: 'ui-monospace, monospace',
+                        wordBreak: 'break-all',
+                      }}
+                    >
                       {newWebhookSecret}
                     </code>
-                    <Button
-                      size="s"
-                      variant="primary"
-                      label="Copiar"
-                      onClick={() => copyToClipboard(newWebhookSecret)}
-                    />
+                    <Button size="s" variant="primary" label="Copiar" onClick={() => copyToClipboard(newWebhookSecret)} />
                   </Row>
                   <Button size="s" variant="tertiary" label="Fechar" onClick={() => setNewWebhookSecret(null)} />
                 </Column>
               </Card>
             )}
 
-            {/* Create webhook form */}
             <Card fillWidth padding="l" radius="l">
               <Column gap="m">
-                <Text variant="heading-strong-s">Criar novo Webhook</Text>
-                <Text variant="body-default-xs" onBackground="neutral-weak">
-                  Receba notificações em tempo real quando eventos acontecem no Buug.
-                </Text>
+                <Text variant="heading-strong-s">Cadastrar novo webhook</Text>
                 <div>
-                  <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--neutral-on-background-weak)', display: 'block', marginBottom: '0.25rem' }}>
-                    URL do endpoint
+                  <label
+                    htmlFor="webhook-url"
+                    style={{
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      color: 'var(--neutral-on-background-weak)',
+                      display: 'block',
+                      marginBottom: '0.25rem',
+                    }}
+                  >
+                    URL que receberá os avisos
                   </label>
                   <input
+                    id="webhook-url"
                     type="url"
-                    placeholder="https://seu-servidor.com/webhook"
+                    placeholder="https://exemplo.com/caminho/do-webhook"
                     value={newWebhookUrl}
-                    onChange={(e) => setNewWebhookUrl(e.target.value)}
-                    style={{
-                      width: '100%', padding: '0.5rem 0.75rem', borderRadius: '0.5rem',
-                      border: '1px solid var(--neutral-border-medium)', background: 'var(--surface-background)',
-                      color: 'var(--neutral-on-background-strong)', fontSize: '0.875rem', outline: 'none',
-                    }}
+                    onChange={e => setNewWebhookUrl(e.target.value)}
+                    style={inputStyle}
                   />
+                  <Text variant="body-default-xs" onBackground="neutral-weak" style={{ marginTop: '0.35rem' }}>
+                    Deve ser um endereço público em HTTPS (recomendado) acessível a partir da internet.
+                  </Text>
                 </div>
                 <div>
-                  <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--neutral-on-background-weak)', display: 'block', marginBottom: '0.375rem' }}>
-                    Eventos
-                  </label>
+                  <Text
+                    variant="label-default-s"
+                    onBackground="neutral-weak"
+                    style={{ display: 'block', marginBottom: '0.375rem' }}
+                  >
+                    Quando avisar?
+                  </Text>
                   <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
                     {Object.entries(EVENT_LABELS).map(([value, label]) => {
                       const isActive = newWebhookEvents.includes(value)
                       return (
                         <button
                           key={value}
+                          type="button"
                           onClick={() => {
                             if (value === '*') {
                               setNewWebhookEvents(['*'])
@@ -448,10 +660,13 @@ export default function IntegrationsClient({ userId }: { userId: string }) {
                             }
                           }}
                           style={{
-                            padding: '0.25rem 0.625rem', borderRadius: '0.375rem',
+                            padding: '0.35rem 0.65rem',
+                            borderRadius: '0.375rem',
                             border: isActive ? '1px solid var(--brand-border-strong)' : '1px solid var(--neutral-border-medium)',
                             background: isActive ? 'var(--brand-alpha-weak)' : 'transparent',
-                            cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500,
+                            cursor: 'pointer',
+                            fontSize: '0.75rem',
+                            fontWeight: 500,
                             color: 'var(--neutral-on-background-strong)',
                           }}
                         >
@@ -472,20 +687,27 @@ export default function IntegrationsClient({ userId }: { userId: string }) {
               </Column>
             </Card>
 
-            {/* Existing webhooks */}
             <Column gap="s" fillWidth>
               <Text variant="label-default-s" onBackground="neutral-weak">
-                {webhooks.length} {webhooks.length === 1 ? 'webhook ativo' : 'webhooks ativos'}
+                {webhooksLoading ? 'Carregando…' : `${webhooks.length} ${webhooks.length === 1 ? 'webhook' : 'webhooks'} cadastrado(s)`}
               </Text>
               {webhooks.map(wh => (
                 <Card key={wh.id} fillWidth padding="m" radius="l">
-                  <Row fillWidth horizontal="between" vertical="center">
+                  <Row fillWidth horizontal="between" vertical="center" gap="m" wrap>
                     <Column gap="xs" style={{ minWidth: 0 }}>
-                      <code style={{
-                        fontSize: '0.75rem', fontFamily: 'monospace',
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                        color: 'var(--neutral-on-background-strong)',
-                      }}>
+                      <code
+                        style={{
+                          fontSize: '0.75rem',
+                          fontFamily: 'ui-monospace, monospace',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          color: 'var(--neutral-on-background-strong)',
+                          display: 'block',
+                          maxWidth: '100%',
+                        }}
+                        title={wh.url}
+                      >
                         {wh.url}
                       </code>
                       <Row gap="xs" wrap>
@@ -498,12 +720,18 @@ export default function IntegrationsClient({ userId }: { userId: string }) {
                       </Text>
                     </Column>
                     <button
+                      type="button"
                       onClick={() => handleDeleteWebhook(wh.id)}
                       style={{
-                        padding: '0.375rem 0.75rem', borderRadius: '0.5rem',
-                        border: '1px solid var(--danger-border-medium)', background: 'transparent',
-                        color: 'var(--danger-on-background-strong)', cursor: 'pointer',
-                        fontSize: '0.75rem', fontWeight: 500, flexShrink: 0,
+                        padding: '0.375rem 0.75rem',
+                        borderRadius: '0.5rem',
+                        border: '1px solid var(--danger-border-medium)',
+                        background: 'transparent',
+                        color: 'var(--danger-on-background-strong)',
+                        cursor: 'pointer',
+                        fontSize: '0.75rem',
+                        fontWeight: 500,
+                        flexShrink: 0,
                       }}
                     >
                       Remover
@@ -512,36 +740,24 @@ export default function IntegrationsClient({ userId }: { userId: string }) {
                 </Card>
               ))}
               {webhooks.length === 0 && !webhooksLoading && (
-                <Text variant="body-default-xs" onBackground="neutral-weak" style={{ textAlign: 'center', padding: '2rem 0' }}>
-                  Nenhum webhook criado ainda.
+                <Text variant="body-default-s" onBackground="neutral-weak" style={{ textAlign: 'center', padding: '2rem 0' }}>
+                  Nenhum webhook ainda. Quando criar, um exemplo de corpo aparece na documentação.
                 </Text>
               )}
             </Column>
-
-            {/* Webhook docs hint */}
-            <Card fillWidth padding="l" radius="l" style={{ background: 'var(--neutral-alpha-weak)' }}>
-              <Column gap="s">
-                <Text variant="label-default-s">Payload de exemplo</Text>
-                <code style={{ fontSize: '0.6875rem', fontFamily: 'monospace', display: 'block', padding: '0.75rem', borderRadius: '0.5rem', background: 'var(--surface-background)', border: '1px solid var(--neutral-border-medium)', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
-{`POST https://seu-servidor.com/webhook
-X-Buug-Event: feedback.created
-X-Buug-Signature: sha256=abc123...
-
-{
-  "event": "feedback.created",
-  "data": {
-    "feedbackId": "abc123",
-    "type": "BUG",
-    "severity": "CRITICAL",
-    "comment": "Botão não funciona...",
-    "projectName": "Meu Site"
-  },
-  "timestamp": "2026-03-23T..."
-}`}
-                </code>
-              </Column>
-            </Card>
           </Column>
+        )}
+
+        {activeTab === 'docs' && (
+          <IntegrationsDocsReference apiBase={apiBaseDisplay} docPage={docPage} setDocPage={setDocPage} />
+        )}
+
+        {(activeTab === 'keys' || activeTab === 'webhooks') && !orgId && (
+          <Card fillWidth padding="xl" radius="l" style={{ textAlign: 'center' }}>
+            <Text variant="body-default-s" onBackground="neutral-weak">
+              Selecione uma organização para usar esta seção, ou abra a <button type="button" onClick={() => setActiveTab('docs')} style={{ background: 'none', border: 'none', padding: 0, color: 'var(--brand-on-background-strong)', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}>Documentação</button> para ler o guia.
+            </Text>
+          </Card>
         )}
       </Column>
     </AppLayout>

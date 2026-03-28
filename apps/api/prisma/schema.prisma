@@ -30,6 +30,7 @@ model Organization {
   maxProjects          Int          @default(1)
   maxMembers           Int          @default(1)
   maxReportsPerMonth   Int          @default(50)
+  clickupIntegration   Json?
   createdAt            DateTime     @default(now())
   members              TeamMember[]
   projects             Project[]
@@ -129,6 +130,7 @@ model Feedback {
   attachmentUrls Json?
   startDate      DateTime?
   dueDate        DateTime?
+  clickupTaskId  String?
   sortOrder      Int            @default(0)
   createdAt      DateTime       @default(now())
   archivedAt     DateTime?
@@ -137,6 +139,7 @@ model Feedback {
   @@index([projectId, status])
   @@index([projectId, createdAt])
   @@index([createdAt])
+  @@index([clickupTaskId])
 }
 
 enum Plan {

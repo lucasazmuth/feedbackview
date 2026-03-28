@@ -645,9 +645,6 @@ function createWidget(config: WidgetConfig) {
   const colorHover = darkenHex(color, 20)
   const colorDisabled = lightenHex(color, 80)
   const panelSide = getPanelSide(config.widgetPosition)
-  const panelSideOpposite = panelSide === 'left' ? 'right' : 'left'
-  const panelTransformHidden = panelSide === 'left' ? 'translateX(-100%)' : 'translateX(100%)'
-  const panelShadowDir = panelSide === 'left' ? '4px' : '-4px'
 
   const style = document.createElement('style')
   // Load Inter font for brand consistency
@@ -766,10 +763,10 @@ function createWidget(config: WidgetConfig) {
     .fv-backdrop {
       position: fixed;
       inset: 0;
-      background: ${hexToRgba(color, 0.92)};
+      background: rgba(0,0,0,0.45);
       z-index: 2147483646;
       opacity: 0;
-      transition: opacity 0.35s ease;
+      transition: opacity 0.3s ease;
       backdrop-filter: blur(4px);
       -webkit-backdrop-filter: blur(4px);
     }
@@ -777,22 +774,28 @@ function createWidget(config: WidgetConfig) {
 
     .fv-panel {
       position: fixed;
-      ${panelSide}: 0;
-      ${panelSideOpposite}: auto;
-      top: 0;
-      height: 100%;
-      width: 920px;
-      max-width: 100vw;
+      left: 50%;
+      top: 3vh;
+      right: auto;
+      width: min(64rem, calc(100vw - 2rem));
+      max-width: 100%;
+      max-height: 92vh;
+      height: auto;
       background: #fff;
       z-index: 2147483647;
       display: flex;
       flex-direction: column;
-      box-shadow: none;
-      transform: ${panelTransformHidden};
-      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-      border-radius: ${panelSide === 'right' ? '16px 0 0 16px' : '0 16px 16px 0'};
+      box-shadow: 0 24px 48px rgba(0,0,0,0.15);
+      border-radius: 16px;
+      transform: translate(-50%, 16px);
+      opacity: 0;
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease;
+      overflow: hidden;
     }
-    .fv-panel.open { transform: translateX(0); }
+    .fv-panel.open {
+      transform: translate(-50%, 0);
+      opacity: 1;
+    }
 
     .fv-header {
       display: flex;
@@ -822,11 +825,28 @@ function createWidget(config: WidgetConfig) {
       flex: 1;
       display: flex;
       overflow: hidden;
+      min-height: 0;
     }
     .fv-body-form {
       flex: 1;
       min-width: 0;
       overflow-y: auto;
+    }
+    @media (max-width: 900px) {
+      .fv-panel {
+        width: calc(100vw - 1rem) !important;
+        max-height: 94vh;
+        top: 2vh;
+      }
+      .fv-body {
+        flex-direction: column;
+      }
+      .fv-sidebar {
+        width: 100% !important;
+        border-left: none !important;
+        border-top: 1px solid #e5e7eb;
+        max-height: 42vh;
+      }
     }
     .fv-preview-panel {
       width: 380px;
@@ -1483,16 +1503,57 @@ function createWidget(config: WidgetConfig) {
       return
     }
 
-    // Header
+    // Header (detail-modal style: status dot + type tag + title + close)
     const header = document.createElement('div')
     header.className = 'fv-header'
-    header.innerHTML = `<h2>Reportar</h2>`
+    header.style.cssText = 'display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid #e5e7eb;'
+
+    const headerDot = document.createElement('span')
+    headerDot.className = 'fv-header-dot'
+    headerDot.id = 'fv-header-dot'
+    headerDot.style.cssText = 'width:10px;height:10px;border-radius:50%;background:#dc2626;flex-shrink:0;'
+    header.appendChild(headerDot)
+
+    const headerTag = document.createElement('span')
+    headerTag.className = 'fv-header-tag'
+    headerTag.id = 'fv-header-tag'
+    headerTag.style.cssText = 'display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:600;background:#fef2f2;color:#dc2626;'
+    headerTag.textContent = 'Bug'
+    header.appendChild(headerTag)
+
+    const headerTitle = document.createElement('span')
+    headerTitle.style.cssText = 'font-size:14px;font-weight:600;color:#111827;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;'
+    headerTitle.textContent = 'Novo report'
+    header.appendChild(headerTitle)
+
+    const headerTime = document.createElement('span')
+    headerTime.style.cssText = 'font-size:11px;color:#9ca3af;flex-shrink:0;margin-right:8px;'
+    headerTime.textContent = new Date().toLocaleString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+    header.appendChild(headerTime)
+
     const closeBtn = document.createElement('button')
     closeBtn.className = 'fv-close'
-    closeBtn.innerHTML = closeIcon
+    closeBtn.style.width = '28px'
+    closeBtn.style.height = '28px'
+    closeBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`
     closeBtn.addEventListener('click', close)
     header.appendChild(closeBtn)
     panel.appendChild(header)
+
+    // Helper to update header dot/tag when type changes
+    function updateHeaderType(typeValue: string) {
+      const colorMap: Record<string, { bg: string; color: string; label: string }> = {
+        BUG: { bg: '#fef2f2', color: '#dc2626', label: 'Bug' },
+        SUGGESTION: { bg: '#fffbeb', color: '#d97706', label: 'Sugestão' },
+        QUESTION: { bg: '#eff6ff', color: '#2563eb', label: 'Dúvida' },
+        PRAISE: { bg: '#f0fdf4', color: '#16a34a', label: 'Elogio' },
+      }
+      const c = colorMap[typeValue] || colorMap.BUG
+      headerDot.style.background = c.color
+      headerTag.style.background = c.bg
+      headerTag.style.color = c.color
+      headerTag.textContent = c.label
+    }
 
     // Limit reached — show message instead of form
     // Paused — show message instead of form
@@ -1540,14 +1601,23 @@ function createWidget(config: WidgetConfig) {
       return
     }
 
-    // Body (two-column layout)
+    // Body (two-column layout: left=media, right=sidebar form)
     const body = document.createElement('div')
     body.className = 'fv-body'
+    body.style.cssText = 'display:flex;flex:1;overflow:hidden;'
     panel.appendChild(body)
 
+    // Left column — media + descrição + detalhes (estilo FeedbackDetailModal)
     const bodyForm = document.createElement('div')
     bodyForm.className = 'fv-body-form'
+    bodyForm.style.cssText = 'display:flex;flex-direction:column;overflow-y:auto;min-width:0;'
     body.appendChild(bodyForm)
+
+    // Right column — tipo, prioridade, system info
+    const sidebar = document.createElement('div')
+    sidebar.className = 'fv-sidebar'
+    sidebar.style.cssText = 'width:320px;flex-shrink:0;display:flex;flex-direction:column;overflow-y:auto;padding:12px 20px;gap:4px;border-left:1px solid #e5e7eb;background:#fff;'
+    body.appendChild(sidebar)
 
     // Pre-create replay container (referenced before preview panel is built)
     const previewReplayContainer = document.createElement('div')
@@ -1576,7 +1646,8 @@ function createWidget(config: WidgetConfig) {
     replayCard.style.padding = '0'
     replayCard.style.overflow = 'hidden'
     replayCard.style.borderRadius = '12px'
-    replayCard.style.margin = '0 12px'
+    replayCard.style.margin = '0'
+    replayCard.style.maxWidth = '100%'
 
     // Player container
     const playerContainer = document.createElement('div')
@@ -1639,9 +1710,9 @@ function createWidget(config: WidgetConfig) {
         const timelineRow = document.createElement('div')
         timelineRow.style.cssText = 'cursor:pointer;height:6px;display:flex;align-items:center;border-radius:3px;background:#e5e7eb;position:relative;'
         const timelineFill = document.createElement('div')
-        timelineFill.style.cssText = 'height:100%;width:0%;background:#111827;border-radius:3px;transition:width 0.1s linear;'
+        timelineFill.style.cssText = `height:100%;width:0%;background:${color};border-radius:3px;transition:width 0.1s linear;`
         const timelineThumb = document.createElement('div')
-        timelineThumb.style.cssText = 'position:absolute;top:50%;width:14px;height:14px;background:#111827;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 1px 3px rgba(0,0,0,0.15);border:2px solid #fff;left:0%;'
+        timelineThumb.style.cssText = `position:absolute;top:50%;width:14px;height:14px;background:${color};border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 1px 3px rgba(0,0,0,0.15);border:2px solid #fff;left:0%;`
         timelineRow.appendChild(timelineFill)
         timelineRow.appendChild(timelineThumb)
 
@@ -1685,7 +1756,7 @@ function createWidget(config: WidgetConfig) {
         leftControls.style.cssText = 'display:flex;align-items:center;gap:10px;'
 
         const playBtn = document.createElement('button')
-        playBtn.style.cssText = 'display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;border:none;background:#111827;color:#fff;cursor:pointer;transition:opacity 0.15s;'
+        playBtn.style.cssText = `display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;border:none;background:${color};color:#fff;cursor:pointer;transition:opacity 0.15s;`
         playBtn.innerHTML = playSvg
         playBtn.addEventListener('click', () => {
           if (isPlaying) {
@@ -1731,7 +1802,7 @@ function createWidget(config: WidgetConfig) {
           speedBtns.forEach(b => {
             const s = parseInt(b.dataset.speed!)
             if (s === currentSpeed) {
-              b.style.background = '#111827'
+              b.style.background = color
               b.style.color = '#fff'
               b.style.fontWeight = '600'
             } else {
@@ -1801,43 +1872,55 @@ function createWidget(config: WidgetConfig) {
     previewReplayContainer.appendChild(replaySection)
     } // end else (non-proxy mode)
 
-    // ── Media tabs (Replay | Screenshot) in form column ──
+    // ── Área de mídia (fundo cinza + abas como FeedbackDetailModal) ──
     let mediaActiveTab: 'replay' | 'screenshot' = 'replay'
-    const mediaTabs = document.createElement('div')
-    mediaTabs.style.cssText = 'display:flex;gap:0;margin-bottom:12px;border-bottom:2px solid #e2e8f0;'
+    const mediaShell = document.createElement('div')
+    mediaShell.style.cssText = 'background:#f4f5f7;border-bottom:1px solid #e5e7eb;'
+
+    const tabsRow = document.createElement('div')
+    tabsRow.style.cssText = 'display:flex;gap:0;padding:0 16px;border-bottom:1px solid #e5e7eb;background:#fff;'
+
+    const tabBtnBase = 'padding:8px 12px;font-size:12px;font-weight:500;border:none;cursor:pointer;background:transparent;margin-bottom:-1px;display:flex;align-items:center;gap:6px;transition:color 0.15s,border-color 0.15s;'
     const mediaReplayTab = document.createElement('button')
-    mediaReplayTab.style.cssText = 'flex:1;padding:8px 0;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:all 0.15s;border-bottom:2px solid #111827;margin-bottom:-2px;color:#111827;background:transparent;'
-    mediaReplayTab.innerHTML = '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444;margin-right:5px;vertical-align:middle;"></span>Replay'
+    mediaReplayTab.style.cssText = tabBtnBase + 'border-bottom:2px solid #111827;color:#111827;'
+    mediaReplayTab.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> Replay'
     const mediaScreenshotTab = document.createElement('button')
-    mediaScreenshotTab.style.cssText = 'flex:1;padding:8px 0;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:all 0.15s;border-bottom:2px solid transparent;margin-bottom:-2px;color:#9ca3af;background:transparent;'
-    mediaScreenshotTab.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px;"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>Screenshot'
-    mediaTabs.appendChild(mediaReplayTab)
-    mediaTabs.appendChild(mediaScreenshotTab)
-    bodyForm.appendChild(mediaTabs)
+    mediaScreenshotTab.style.cssText = tabBtnBase + 'border-bottom:2px solid transparent;color:#9ca3af;'
+    mediaScreenshotTab.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Screenshot'
+    tabsRow.appendChild(mediaReplayTab)
+    tabsRow.appendChild(mediaScreenshotTab)
+    mediaShell.appendChild(tabsRow)
 
-    // Replay goes in form column
-    bodyForm.appendChild(previewReplayContainer)
+    const mediaPad = document.createElement('div')
+    mediaPad.style.cssText = 'padding:16px;display:flex;justify-content:center;flex-direction:column;'
+    mediaPad.appendChild(previewReplayContainer)
 
-    // Screenshot container in form column (hidden by default)
     const formScreenshotContainer = document.createElement('div')
     formScreenshotContainer.id = 'fv-form-screenshot'
     formScreenshotContainer.style.display = 'none'
-    bodyForm.appendChild(formScreenshotContainer)
+    mediaPad.appendChild(formScreenshotContainer)
+
+    mediaShell.appendChild(mediaPad)
+    bodyForm.appendChild(mediaShell)
 
     function switchMediaTab(tab: 'replay' | 'screenshot') {
       mediaActiveTab = tab
       if (tab === 'replay') {
         mediaReplayTab.style.borderBottomColor = '#111827'
         mediaReplayTab.style.color = '#111827'
+        mediaReplayTab.style.fontWeight = '600'
         mediaScreenshotTab.style.borderBottomColor = 'transparent'
         mediaScreenshotTab.style.color = '#9ca3af'
+        mediaScreenshotTab.style.fontWeight = '500'
         previewReplayContainer.style.display = 'block'
         formScreenshotContainer.style.display = 'none'
       } else {
         mediaReplayTab.style.borderBottomColor = 'transparent'
         mediaReplayTab.style.color = '#9ca3af'
+        mediaReplayTab.style.fontWeight = '500'
         mediaScreenshotTab.style.borderBottomColor = '#111827'
         mediaScreenshotTab.style.color = '#111827'
+        mediaScreenshotTab.style.fontWeight = '600'
         previewReplayContainer.style.display = 'none'
         formScreenshotContainer.style.display = 'block'
       }
@@ -1845,11 +1928,12 @@ function createWidget(config: WidgetConfig) {
     mediaReplayTab.addEventListener('click', () => switchMediaTab('replay'))
     mediaScreenshotTab.addEventListener('click', () => switchMediaTab('screenshot'))
 
-    // ── Form fields section ──
+    // ── Campos: coluna esquerda (descrição, detalhes, logs) + sidebar (tipo, meta) ──
     const formSection = document.createElement('div')
     formSection.className = 'fv-form-section'
+    formSection.style.cssText = 'padding:0;'
 
-    // Title
+    // Title (fica em "Mais detalhes")
     const titleField = document.createElement('div')
     titleField.className = 'fv-field'
     titleField.innerHTML = `<label class="fv-label">Título</label>`
@@ -1859,27 +1943,42 @@ function createWidget(config: WidgetConfig) {
     titleInput.placeholder = 'Resumo breve do feedback'
     titleInput.id = 'fv-title'
     titleField.appendChild(titleInput)
+    titleInput.addEventListener('input', () => {
+      const t = titleInput.value.trim()
+      headerTitle.textContent = t || 'Novo report'
+    })
 
-    // Description (first field — most important)
+    // Descrição (bloco principal sob a mídia, como no modal de detalhe)
     const commentField = document.createElement('div')
     commentField.className = 'fv-field'
-    commentField.innerHTML = `<label class="fv-label">O que aconteceu? <span class="fv-required">*</span></label>`
+    commentField.style.marginBottom = '0'
     const textarea = document.createElement('textarea')
     textarea.className = 'fv-textarea'
-    textarea.rows = 4
-    textarea.placeholder = 'Conte o que aconteceu, o que você esperava e o que deu errado...'
+    textarea.rows = 5
+    textarea.placeholder = 'Descreva o problema ou sugestão em detalhes… (mínimo 10 caracteres)'
     textarea.id = 'fv-comment'
     commentField.appendChild(textarea)
     const commentError = document.createElement('div')
     commentError.className = 'fv-error-msg'
     commentError.style.display = 'none'
     commentField.appendChild(commentError)
-    formSection.appendChild(commentField)
 
-    // Type (segmented buttons)
+    const descSection = document.createElement('div')
+    descSection.style.cssText = 'padding:20px 24px;border-bottom:1px solid #e5e7eb;'
+    const descHeadRow = document.createElement('div')
+    descHeadRow.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;'
+    const descHead = document.createElement('span')
+    descHead.style.cssText = 'font-size:13px;font-weight:600;color:#111827;'
+    descHead.innerHTML = 'Descrição <span class="fv-required">*</span>'
+    descHeadRow.appendChild(descHead)
+    descSection.appendChild(descHeadRow)
+    descSection.appendChild(commentField)
+    bodyForm.appendChild(descSection)
+
+    // Type (segmented buttons) — sidebar
     const typeField = document.createElement('div')
     typeField.className = 'fv-field'
-    typeField.innerHTML = `<label class="fv-label">Tipo</label>`
+    typeField.innerHTML = `<label class="fv-label" style="font-size:11px;font-weight:500;color:#6b7280;text-transform:none;letter-spacing:0;">Tipo</label>`
     // Hidden select to keep value accessible
     const typeHidden = document.createElement('input')
     typeHidden.type = 'hidden'
@@ -1888,7 +1987,7 @@ function createWidget(config: WidgetConfig) {
     typeField.appendChild(typeHidden)
 
     const typeBtnGroup = document.createElement('div')
-    typeBtnGroup.style.cssText = 'display:flex;gap:6px;'
+    typeBtnGroup.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;'
     // SVG icons for type buttons (14px, black, stroke-based)
     const typeIcons: Record<string, string> = {
       BUG: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2l1.88 1.88"/><path d="M14.12 3.88L16 2"/><path d="M9 7.13v-1a3.003 3.003 0 116 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 014-4h4a4 4 0 014 4v3c0 3.3-2.7 6-6 6"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/></svg>`,
@@ -1925,6 +2024,7 @@ function createWidget(config: WidgetConfig) {
       btn.addEventListener('click', () => {
         typeHidden.value = opt.value
         updateTypeBtns(opt.value)
+        updateHeaderType(opt.value)
         severityField.style.display = opt.value === 'BUG' ? 'block' : 'none'
         const bugFields = panel.querySelector('#fv-bug-fields') as HTMLElement
         if (bugFields) bugFields.style.display = opt.value === 'BUG' ? 'block' : 'none'
@@ -1942,7 +2042,7 @@ function createWidget(config: WidgetConfig) {
     const severityField = document.createElement('div')
     severityField.className = 'fv-field'
     severityField.id = 'fv-severity-field'
-    severityField.innerHTML = `<label class="fv-label">Prioridade</label>`
+    severityField.innerHTML = `<label class="fv-label" style="font-size:11px;font-weight:500;color:#6b7280;text-transform:none;letter-spacing:0;">Prioridade</label>`
     const sevHidden = document.createElement('input')
     sevHidden.type = 'hidden'
     sevHidden.id = 'fv-severity'
@@ -1950,7 +2050,7 @@ function createWidget(config: WidgetConfig) {
     severityField.appendChild(sevHidden)
 
     const sevBtnGroup = document.createElement('div')
-    sevBtnGroup.style.cssText = 'display:flex;gap:6px;'
+    sevBtnGroup.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;'
     const sevOptions = [
       { value: 'LOW', label: 'Baixa', color: '#22c55e' },
       { value: 'MEDIUM', label: 'Média', color: '#f59e0b' },
@@ -1986,6 +2086,45 @@ function createWidget(config: WidgetConfig) {
     })
     severityField.appendChild(sevBtnGroup)
     updateSevBtns('MEDIUM')
+    formSection.appendChild(severityField)
+
+    const metaDivider = document.createElement('div')
+    metaDivider.style.cssText = 'height:1px;background:#e5e7eb;margin:8px 0;'
+    formSection.appendChild(metaDivider)
+
+    function escMeta(s: string) {
+      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+    }
+    function addSidebarMetaRow(label: string, valueHtml: string) {
+      const row = document.createElement('div')
+      row.style.cssText = 'display:flex;align-items:flex-start;gap:12px;padding:10px 0;font-size:11px;'
+      row.innerHTML = `<span style="color:#6b7280;font-weight:500;width:72px;flex-shrink:0;padding-top:2px;">${escMeta(label)}</span><div style="flex:1;min-width:0;color:#111827;font-size:11px;line-height:1.4;">${valueHtml}</div>`
+      formSection.appendChild(row)
+    }
+    const uaMeta = navigator.userAgent
+    let browserMeta = '—'
+    if (uaMeta.includes('Edg/')) { const v = uaMeta.match(/Edg\/([\d.]+)/); browserMeta = 'Edge' + (v ? ' ' + v[1] : '') }
+    else if (uaMeta.includes('Chrome/')) { const v = uaMeta.match(/Chrome\/([\d.]+)/); browserMeta = 'Chrome' + (v ? ' ' + v[1] : '') }
+    else if (uaMeta.includes('Firefox/')) { const v = uaMeta.match(/Firefox\/([\d.]+)/); browserMeta = 'Firefox' + (v ? ' ' + v[1] : '') }
+    else if (uaMeta.includes('Safari/') && !uaMeta.includes('Chrome')) { const v = uaMeta.match(/Version\/([\d.]+)/); browserMeta = 'Safari' + (v ? ' ' + v[1] : '') }
+    let osMeta = '—'
+    if (uaMeta.includes('Mac OS X')) { const v = uaMeta.match(/Mac OS X ([\d_]+)/); osMeta = 'macOS' + (v ? ' ' + v[1].replace(/_/g, '.') : '') }
+    else if (uaMeta.includes('Windows NT')) { const v = uaMeta.match(/Windows NT ([\d.]+)/); osMeta = 'Windows' + (v ? ' ' + v[1] : '') }
+    else if (uaMeta.includes('Linux')) osMeta = 'Linux'
+    else if (uaMeta.includes('Android')) osMeta = 'Android'
+    const viewportMeta = `${window.innerWidth} × ${window.innerHeight}`
+    const pageUrlMeta = isProxyModeNow && proxyPageUrl ? proxyPageUrl : (typeof window !== 'undefined' ? window.location.href : '')
+    const originMeta = isProxyModeNow ? 'URL compartilhada' : 'Widget embed'
+    const consoleErrs = consoleLogs.filter(l => (l.level || '').toUpperCase() === 'ERROR').length
+    const netFails = networkLogs.filter(l => l.status != null && l.status >= 400).length
+    addSidebarMetaRow('Navegador', escMeta(browserMeta))
+    addSidebarMetaRow('OS', escMeta(osMeta))
+    addSidebarMetaRow('Viewport', escMeta(viewportMeta))
+    addSidebarMetaRow('Origem', escMeta(originMeta))
+    const hrefSafe = pageUrlMeta.replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+    addSidebarMetaRow('Página', `<a href="${hrefSafe}" target="_blank" rel="noopener noreferrer" style="color:${color};font-weight:500;text-decoration:none;">Abrir ↗</a>`)
+    addSidebarMetaRow('Console', `<span style="color:${consoleErrs ? '#dc2626' : '#6b7280'}">${consoleLogs.length} logs${consoleErrs ? ` (${consoleErrs} erros)` : ''}</span>`)
+    addSidebarMetaRow('Network', `<span style="color:${netFails ? '#dc2626' : '#6b7280'}">${networkLogs.length} req.${netFails ? ` (${netFails} falhas)` : ''}</span>`)
 
     // ── Bug-specific fields (steps, expected, actual) ──
     const bugFieldsContainer = document.createElement('div')
@@ -2046,13 +2185,14 @@ function createWidget(config: WidgetConfig) {
       detailsToggle.classList.toggle('open', isOpen)
     })
 
-    // Move title, severity, and bug fields into details section
     detailsContent.appendChild(titleField)
-    detailsContent.appendChild(severityField)
     detailsContent.appendChild(bugFieldsContainer)
 
-    formSection.appendChild(detailsToggle)
-    formSection.appendChild(detailsContent)
+    const leftExtras = document.createElement('div')
+    leftExtras.style.cssText = 'padding:0 24px 20px;'
+    leftExtras.appendChild(detailsToggle)
+    leftExtras.appendChild(detailsContent)
+    bodyForm.appendChild(leftExtras)
 
     // Attachments
     const attachField = document.createElement('div')
@@ -2110,39 +2250,16 @@ function createWidget(config: WidgetConfig) {
 
     attachField.appendChild(attachDrop)
     attachField.appendChild(attachList)
-    formSection.appendChild(attachField)
 
-    // Network Logs section
-    if (networkLogs.length > 0) {
-      const netSection = document.createElement('div')
-      netSection.className = 'fv-logs-section'
-      const netHeader = document.createElement('div')
-      netHeader.className = 'fv-logs-header'
-      netHeader.innerHTML = `<span>Network Logs (${networkLogs.length})</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`
-      const netList = document.createElement('div')
-      netList.className = 'fv-logs-list'
-      netList.style.display = 'none'
-      networkLogs.forEach((log) => {
-        const row = document.createElement('div')
-        row.className = 'fv-log-row'
-        const tagClass = log.status >= 400 ? 'fv-tag-danger' : 'fv-tag-success'
-        row.innerHTML = `<span class="fv-log-tag ${tagClass}">${log.status || '-'}</span><span class="fv-log-method">${log.method}</span><span class="fv-log-url" title="${log.url.replace(/"/g, '&quot;')}">${log.url}</span>${log.duration ? `<span class="fv-log-duration">${log.duration}ms</span>` : ''}`
-        netList.appendChild(row)
-      })
-      netHeader.addEventListener('click', () => {
-        const open = netList.style.display !== 'none'
-        netList.style.display = open ? 'none' : 'block'
-        netHeader.classList.toggle('open', !open)
-      })
-      netSection.appendChild(netHeader)
-      netSection.appendChild(netList)
-      formSection.appendChild(netSection)
-    }
+    const bottomStack = document.createElement('div')
+    bottomStack.style.cssText = 'padding:0 24px 24px;display:flex;flex-direction:column;gap:10px;'
+    bottomStack.appendChild(attachField)
 
-    // Console Logs section
+    // Console Logs (primeiro, como no modal de detalhe)
     if (consoleLogs.length > 0) {
       const conSection = document.createElement('div')
       conSection.className = 'fv-logs-section'
+      conSection.style.marginBottom = '0'
       const conHeader = document.createElement('div')
       conHeader.className = 'fv-logs-header'
       conHeader.innerHTML = `<span>Console Logs (${consoleLogs.length})</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`
@@ -2152,7 +2269,7 @@ function createWidget(config: WidgetConfig) {
       consoleLogs.forEach((log) => {
         const row = document.createElement('div')
         row.className = 'fv-log-row fv-log-row-console'
-        const level = log.level.toUpperCase()
+        const level = (log.level || 'log').toUpperCase()
         const tagClass = level === 'ERROR' ? 'fv-tag-danger' : level === 'WARN' ? 'fv-tag-warning' : 'fv-tag-info'
         const msg = Array.isArray(log.args) ? log.args.map((a: unknown) => typeof a === 'string' ? a : JSON.stringify(a)).join(' ') : ''
         row.innerHTML = `<span class="fv-log-tag ${tagClass}">${level}</span><span class="fv-log-message">${msg.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>`
@@ -2165,178 +2282,50 @@ function createWidget(config: WidgetConfig) {
       })
       conSection.appendChild(conHeader)
       conSection.appendChild(conList)
-      formSection.appendChild(conSection)
+      bottomStack.appendChild(conSection)
     }
+
+    if (networkLogs.length > 0) {
+      const netSection = document.createElement('div')
+      netSection.className = 'fv-logs-section'
+      netSection.style.marginBottom = '0'
+      const netHeader = document.createElement('div')
+      netHeader.className = 'fv-logs-header'
+      netHeader.innerHTML = `<span>Network (${networkLogs.length})</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`
+      const netList = document.createElement('div')
+      netList.className = 'fv-logs-list'
+      netList.style.display = 'none'
+      networkLogs.forEach((log) => {
+        const row = document.createElement('div')
+        row.className = 'fv-log-row'
+        const tagClass = log.status != null && log.status >= 400 ? 'fv-tag-danger' : 'fv-tag-success'
+        row.innerHTML = `<span class="fv-log-tag ${tagClass}">${log.status ?? '-'}</span><span class="fv-log-method">${log.method}</span><span class="fv-log-url" title="${log.url.replace(/"/g, '&quot;')}">${log.url}</span>${log.duration ? `<span class="fv-log-duration">${log.duration}ms</span>` : ''}`
+        netList.appendChild(row)
+      })
+      netHeader.addEventListener('click', () => {
+        const open = netList.style.display !== 'none'
+        netList.style.display = open ? 'none' : 'block'
+        netHeader.classList.toggle('open', !open)
+      })
+      netSection.appendChild(netHeader)
+      netSection.appendChild(netList)
+      bottomStack.appendChild(netSection)
+    }
+
+    bodyForm.appendChild(bottomStack)
 
     // Server error placeholder
     const serverError = document.createElement('div')
     serverError.className = 'fv-server-error'
     serverError.style.display = 'none'
     serverError.id = 'fv-server-error'
-    formSection.appendChild(serverError)
+    serverError.style.margin = '0 24px 16px'
+    bodyForm.appendChild(serverError)
 
-    bodyForm.appendChild(formSection)
+    sidebar.appendChild(formSection)
 
-    // ── Live Preview Panel ──
-    const previewPanel = document.createElement('div')
-    previewPanel.className = 'fv-preview-panel'
-    previewPanel.id = 'fv-preview-panel'
-
-    const previewLabel = document.createElement('div')
-    previewLabel.className = 'fv-preview-label'
-    previewLabel.textContent = 'Preview'
-    previewPanel.appendChild(previewLabel)
-
-    // Preview card (type, title, desc, metadata — stays in right column)
-    const previewCard = document.createElement('div')
-    previewCard.className = 'fv-preview-card'
-    previewCard.id = 'fv-preview-card'
-    previewCard.style.display = 'flex'
-    previewPanel.appendChild(previewCard)
-
-    body.appendChild(previewPanel)
-
-    // Helper to parse environment from userAgent
-    function parseEnvironment() {
-      const ua = navigator.userAgent
-      let os = 'Unknown OS'
-      if (ua.includes('Mac OS X')) {
-        const v = ua.match(/Mac OS X ([\d_]+)/)
-        os = 'macOS' + (v ? ' ' + v[1].replace(/_/g, '.') : '')
-      } else if (ua.includes('Windows NT')) {
-        const v = ua.match(/Windows NT ([\d.]+)/)
-        const map: Record<string, string> = { '10.0': '10/11', '6.3': '8.1', '6.2': '8', '6.1': '7' }
-        os = 'Windows' + (v ? ' ' + (map[v[1]] || v[1]) : '')
-      } else if (ua.includes('Linux')) os = 'Linux'
-      else if (ua.includes('Android')) os = 'Android'
-      else if (ua.includes('iOS') || ua.includes('iPhone')) os = 'iOS'
-
-      let browser = 'Unknown Browser'
-      if (ua.includes('Edg/')) { const v = ua.match(/Edg\/([\d.]+)/); browser = 'Edge' + (v ? ' ' + v[1] : '') }
-      else if (ua.includes('Chrome/')) { const v = ua.match(/Chrome\/([\d.]+)/); browser = 'Chrome' + (v ? ' ' + v[1] : '') }
-      else if (ua.includes('Firefox/')) { const v = ua.match(/Firefox\/([\d.]+)/); browser = 'Firefox' + (v ? ' ' + v[1] : '') }
-      else if (ua.includes('Safari/') && !ua.includes('Chrome')) { const v = ua.match(/Version\/([\d.]+)/); browser = 'Safari' + (v ? ' ' + v[1] : '') }
-
-      const viewport = `${window.innerWidth} × ${window.innerHeight}`
-      return { os, browser, viewport }
-    }
-
-    const env = parseEnvironment()
-    const typeColorMap: Record<string, { bg: string; color: string }> = {
-      BUG: { bg: '#fef2f2', color: '#dc2626' },
-      SUGGESTION: { bg: '#fffbeb', color: '#d97706' },
-      QUESTION: { bg: '#eff6ff', color: '#2563eb' },
-      PRAISE: { bg: '#f0fdf4', color: '#16a34a' },
-    }
-    const sevColorMap: Record<string, string> = { LOW: '#22c55e', MEDIUM: '#f59e0b', HIGH: '#f97316', CRITICAL: '#ef4444' }
-    const sevLabelMap: Record<string, string> = { LOW: 'Baixa', MEDIUM: 'Média', HIGH: 'Alta', CRITICAL: 'Crítica' }
-    const typeIconSmall: Record<string, string> = {
-      BUG: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2l1.88 1.88"/><path d="M14.12 3.88L16 2"/><path d="M9 7.13v-1a3.003 3.003 0 116 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 014-4h4a4 4 0 014 4v3c0 3.3-2.7 6-6 6"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/></svg>`,
-      SUGGESTION: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 006 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>`,
-      QUESTION: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>`,
-      PRAISE: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"/><path d="M15 5.88L14 10h5.83a2 2 0 011.92 2.56l-2.33 8A2 2 0 0117.5 22H4a2 2 0 01-2-2v-8a2 2 0 012-2h2.76a2 2 0 001.79-1.11L12 2a3.13 3.13 0 013 3.88z"/></svg>`,
-    }
-
-    function updatePreview() {
-      const card = previewCard
-      if (!card) return
-      card.innerHTML = ''
-
-      const currentType = typeHidden.value
-      const currentSev = sevHidden.value
-      const titleVal = titleInput.value.trim()
-      const commentVal = textarea.value.trim()
-      const stepsVal = stepsTextarea.value.trim()
-      const expectedVal = expectedTextarea.value.trim()
-      const actualVal = actualTextarea.value.trim()
-      const tc = typeColorMap[currentType] || typeColorMap.BUG
-
-      // Type badge
-      const badgeWrap = document.createElement('div')
-      const badge = document.createElement('span')
-      badge.style.cssText = `display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:600;background:${tc.bg};color:${tc.color};`
-      badge.innerHTML = `${typeIconSmall[currentType] || typeIconSmall.BUG} ${typeLabels[currentType] || 'Bug'}`
-      badgeWrap.appendChild(badge)
-      card.appendChild(badgeWrap)
-
-      // Title
-      const titleEl = document.createElement('h3')
-      titleEl.style.cssText = 'font-size:18px;font-weight:700;color:#111827;margin:0;line-height:1.3;'
-      if (titleVal) {
-        titleEl.textContent = titleVal
-      } else {
-        titleEl.innerHTML = '<span style="color:#d1d5db;font-style:italic;font-weight:400;font-size:14px;">Sem título</span>'
-      }
-      card.appendChild(titleEl)
-
-      // Description
-      if (commentVal) {
-        const descWrap = document.createElement('div')
-        const descLabel = document.createElement('div')
-        descLabel.className = 'fv-preview-section-title'
-        descLabel.textContent = 'Relato'
-        descWrap.appendChild(descLabel)
-        const descText = document.createElement('p')
-        descText.className = 'fv-preview-text'
-        descText.textContent = commentVal
-        descWrap.appendChild(descText)
-        card.appendChild(descWrap)
-      } else {
-        const placeholder = document.createElement('p')
-        placeholder.className = 'fv-preview-placeholder'
-        placeholder.textContent = 'Aguardando descrição...'
-        card.appendChild(placeholder)
-      }
-
-      // Steps to reproduce
-      if (currentType === 'BUG' && stepsVal) {
-        const stepsWrap = document.createElement('div')
-        const stepsLabel = document.createElement('div')
-        stepsLabel.className = 'fv-preview-section-title'
-        stepsLabel.textContent = 'Passos para reproduzir'
-        stepsWrap.appendChild(stepsLabel)
-        const stepsList = document.createElement('div')
-        stepsList.style.cssText = 'font-size:13px;color:#374151;line-height:1.6;'
-        stepsVal.split('\n').filter((l: string) => l.trim()).forEach((line: string, i: number) => {
-          const row = document.createElement('div')
-          row.style.cssText = 'display:flex;gap:6px;margin-bottom:2px;'
-          row.innerHTML = `<span style="color:#9ca3af;font-weight:500;flex-shrink:0;">${i + 1}.</span><span>${line.replace(/^\d+[\.\)]\s*/, '').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>`
-          stepsList.appendChild(row)
-        })
-        stepsWrap.appendChild(stepsList)
-        card.appendChild(stepsWrap)
-      }
-
-      // Expected result
-      if (currentType === 'BUG' && expectedVal) {
-        const expWrap = document.createElement('div')
-        const expLabel = document.createElement('div')
-        expLabel.style.cssText = 'font-size:12px;font-weight:600;color:#16a34a;margin-bottom:4px;'
-        expLabel.textContent = 'Resultado esperado'
-        expWrap.appendChild(expLabel)
-        const expText = document.createElement('p')
-        expText.className = 'fv-preview-text'
-        expText.textContent = expectedVal
-        expWrap.appendChild(expText)
-        card.appendChild(expWrap)
-      }
-
-      // Actual result
-      if (currentType === 'BUG' && actualVal) {
-        const actWrap = document.createElement('div')
-        const actLabel = document.createElement('div')
-        actLabel.style.cssText = 'font-size:12px;font-weight:600;color:#dc2626;margin-bottom:4px;'
-        actLabel.textContent = 'Resultado real'
-        actWrap.appendChild(actLabel)
-        const actText = document.createElement('p')
-        actText.className = 'fv-preview-text'
-        actText.textContent = actualVal
-        actWrap.appendChild(actText)
-        card.appendChild(actWrap)
-      }
-
-      // Screenshot — render in form column's formScreenshotContainer (not in preview card)
-      {
+    // Screenshot rendering (in left column's formScreenshotContainer)
+    {
         formScreenshotContainer.innerHTML = ''
         const ssWrap = document.createElement('div')
 
@@ -2348,7 +2337,7 @@ function createWidget(config: WidgetConfig) {
 
         // Screenshot container with annotation canvas
         const ssCard = document.createElement('div')
-        ssCard.style.cssText = 'border-radius:12px;overflow:hidden;background:#0f172a;display:' + (screenshotUrl ? 'block' : 'none') + ';margin:0 12px;'
+        ssCard.style.cssText = 'border-radius:12px;overflow:hidden;background:#0f172a;display:' + (screenshotUrl ? 'block' : 'none') + ';margin:0;max-width:100%;'
 
         const ssContainer = document.createElement('div')
         ssContainer.style.cssText = 'position:relative;cursor:crosshair;max-height:320px;overflow:hidden;'
@@ -2504,93 +2493,7 @@ function createWidget(config: WidgetConfig) {
         ssCard.appendChild(ssControls)
         ssWrap.appendChild(ssCard)
         formScreenshotContainer.appendChild(ssWrap)
-      }
-
-      // Priority
-      if (currentType === 'BUG') {
-        const priWrap = document.createElement('div')
-        priWrap.style.cssText = 'display:flex;align-items:center;gap:8px;'
-        const priLabel = document.createElement('span')
-        priLabel.style.cssText = 'font-size:12px;font-weight:600;color:#6b7280;'
-        priLabel.textContent = 'Prioridade'
-        priWrap.appendChild(priLabel)
-        const priVal = document.createElement('span')
-        const sc = sevColorMap[currentSev] || '#f59e0b'
-        priVal.style.cssText = `display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background:${sc}15;color:${sc};`
-        priVal.textContent = sevLabelMap[currentSev] || 'Média'
-        priWrap.appendChild(priVal)
-        card.appendChild(priWrap)
-      }
-
-      // Metadata section — compact grid
-      const meta = document.createElement('div')
-      meta.style.cssText = 'display:flex;flex-direction:column;gap:7px;padding:12px;background:#f8fafc;border-radius:10px;border:1px solid #f1f5f9;'
-
-      // Source URL
-      const urlRow = document.createElement('div')
-      urlRow.className = 'fv-preview-meta-row'
-      urlRow.innerHTML = `<span class="fv-preview-meta-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg></span><span style="color:#2563eb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${window.location.href.replace(/</g, '&lt;')}</span>`
-      meta.appendChild(urlRow)
-
-      // OS + Browser
-      if (env.os) {
-        const osRow = document.createElement('div')
-        osRow.className = 'fv-preview-meta-row'
-        osRow.innerHTML = `<span class="fv-preview-meta-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span><span style="color:#374151;">${env.os} • ${env.browser}</span>`
-        meta.appendChild(osRow)
-      }
-
-      // Viewport
-      if (env.viewport) {
-        const vpRow = document.createElement('div')
-        vpRow.className = 'fv-preview-meta-row'
-        vpRow.innerHTML = `<span class="fv-preview-meta-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3H3v18h18V3z"/><path d="M21 9H3"/><path d="M9 21V9"/></svg></span><span style="color:#374151;">${env.viewport}</span>`
-        meta.appendChild(vpRow)
-      }
-
-      // Console logs summary
-      if (consoleLogs.length > 0) {
-        const errors = consoleLogs.filter(l => l.level === 'error').length
-        const warnings = consoleLogs.filter(l => l.level === 'warn').length
-        const logRow = document.createElement('div')
-        logRow.className = 'fv-preview-meta-row'
-        let logText = ''
-        if (errors > 0) logText += `<span style="color:#dc2626;font-weight:500;">${errors} error${errors !== 1 ? 's' : ''}</span>`
-        if (warnings > 0) logText += `${logText ? ' ' : ''}<span style="color:#d97706;font-weight:500;">${warnings} warning${warnings !== 1 ? 's' : ''}</span>`
-        if (!errors && !warnings) logText = `<span style="color:#374151;">${consoleLogs.length} log${consoleLogs.length !== 1 ? 's' : ''}</span>`
-        logRow.innerHTML = `<span class="fv-preview-meta-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span><span style="display:flex;gap:8px;">${logText}</span>`
-        meta.appendChild(logRow)
-      }
-
-      // Network logs summary
-      if (networkLogs.length > 0) {
-        const failed = networkLogs.filter(l => l.status >= 400).length
-        const netRow = document.createElement('div')
-        netRow.className = 'fv-preview-meta-row'
-        netRow.innerHTML = `<span class="fv-preview-meta-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></span><span style="color:#374151;">${networkLogs.length} request${networkLogs.length !== 1 ? 's' : ''}${failed > 0 ? ` <span style="color:#dc2626;">(${failed} failed)</span>` : ''}</span>`
-        meta.appendChild(netRow)
-      }
-
-      card.appendChild(meta)
     }
-
-    // Initial preview render
-    updatePreview()
-
-    // Attach input listeners for live preview updates
-    titleInput.addEventListener('input', updatePreview)
-    textarea.addEventListener('input', updatePreview)
-    stepsTextarea.addEventListener('input', updatePreview)
-    expectedTextarea.addEventListener('input', updatePreview)
-    actualTextarea.addEventListener('input', updatePreview)
-
-    // Also update preview on type/severity changes — patch into existing click handlers
-    const origTypeClickHandlers = typeBtns.map((btn) => {
-      const origHandler = () => { updatePreview() }
-      btn.addEventListener('click', origHandler)
-      return origHandler
-    })
-    sevBtns.forEach((btn) => btn.addEventListener('click', updatePreview))
 
     // Footer
     const isDemo = PROJECT_ID === 'demo'
@@ -2613,10 +2516,32 @@ function createWidget(config: WidgetConfig) {
   function renderSuccess(panel: HTMLElement, isDemoSuccess = false) {
     const header = document.createElement('div')
     header.className = 'fv-header'
-    header.innerHTML = `<h2>Reportar</h2>`
+    header.style.cssText = 'display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid #e5e7eb;'
+
+    const dot = document.createElement('span')
+    dot.style.cssText = 'width:10px;height:10px;border-radius:50%;background:#16a34a;flex-shrink:0;'
+    header.appendChild(dot)
+
+    const tag = document.createElement('span')
+    tag.style.cssText = 'display:inline-flex;align-items:center;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:600;background:#dcfce7;color:#15803d;'
+    tag.textContent = isDemoSuccess ? 'Demonstração' : 'Enviado'
+    header.appendChild(tag)
+
+    const titleEl = document.createElement('span')
+    titleEl.style.cssText = 'font-size:14px;font-weight:600;color:#111827;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;'
+    titleEl.textContent = isDemoSuccess ? 'Prévia do widget' : 'Feedback enviado'
+    header.appendChild(titleEl)
+
+    const timeEl = document.createElement('span')
+    timeEl.style.cssText = 'font-size:11px;color:#9ca3af;flex-shrink:0;margin-right:8px;'
+    timeEl.textContent = new Date().toLocaleString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+    header.appendChild(timeEl)
+
     const closeBtn = document.createElement('button')
     closeBtn.className = 'fv-close'
-    closeBtn.innerHTML = closeIcon
+    closeBtn.style.width = '28px'
+    closeBtn.style.height = '28px'
+    closeBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`
     closeBtn.addEventListener('click', close)
     header.appendChild(closeBtn)
     panel.appendChild(header)
