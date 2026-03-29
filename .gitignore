@@ -5,3 +5,6 @@ dist
 .env.local
 .turbo
 *.log
+
+# Notas internas de benchmark (URLs e marcas); template versionado em docs/marketing/landing-benchmark-template.md
+docs/marketing/benchmark-private.md

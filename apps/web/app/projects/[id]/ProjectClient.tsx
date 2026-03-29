@@ -1029,6 +1029,10 @@ export default function ProjectClient({
             teamMembers={teamMembers}
             currentUserId={currentUserId}
             projectName={project.name}
+            organizationId={project.organizationId ?? null}
+            currentPlanForUpgrade={
+              currentOrg?.id === project.organizationId ? currentOrg.plan : 'FREE'
+            }
           />
         )}
 

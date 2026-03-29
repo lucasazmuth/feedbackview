@@ -53,7 +53,7 @@ export async function GET(
       }
     }
 
-    // Paused check — widget appears but form is disabled
+    // Pausado — embed oculta o gatilho e não aceita envios (feedback route também bloqueia)
     if (project.embedPaused) {
       return corsJson({
         paused: true,

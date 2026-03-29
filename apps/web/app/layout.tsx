@@ -5,6 +5,7 @@ import '@once-ui-system/core/css/tokens.css'
 import '@once-ui-system/core/css/styles.css'
 import './globals.css'
 import { Providers } from './providers'
+import { landingMeta } from '@/content/landing.pt-BR'
 
 const inter = Inter({ subsets: ['latin'] })
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], weight: ['700'] })
@@ -12,18 +13,29 @@ const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], weight: ['700'] })
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#111111',
+  themeColor: '#4f46e5',
 }
 
 const SITE_URL = 'https://buug.io'
 
 export const metadata: Metadata = {
   title: {
-    default: 'Buug — Bug Reporting com Web Vitals, Replay e Rage Clicks',
+    default: landingMeta.title,
     template: '%s | Buug',
   },
-  description: 'Plataforma de QA com captura automática: screenshot, session replay, Core Web Vitals, rage clicks e logs de console. Resolva bugs sem reproduzir.',
-  keywords: ['bug reporting', 'QA', 'session replay', 'web vitals', 'rage clicks', 'screenshot automático', 'feedback widget', 'teste de software'],
+  description: landingMeta.description,
+  keywords: [
+    'relatório de bug',
+    'QA',
+    'replay de sessão',
+    'web vitals',
+    'homologação',
+    'feedback em site',
+    'widget de bug',
+    'teste de software',
+    'e-commerce',
+    'agência',
+  ],
   authors: [{ name: 'Buug' }],
   creator: 'Buug',
   metadataBase: new URL(SITE_URL),
@@ -32,14 +44,14 @@ export const metadata: Metadata = {
     locale: 'pt_BR',
     url: SITE_URL,
     siteName: 'Buug',
-    title: 'Buug — Bug Reporting com Web Vitals, Replay e Rage Clicks',
-    description: 'O único QA tool que captura Core Web Vitals, rage clicks e session replay em cada report. Setup em 1 minuto.',
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Buug — QA com captura em tempo real' }],
+    title: landingMeta.openGraphTitle,
+    description: landingMeta.openGraphDescription,
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Buug — QA com replay e Web Vitals' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Buug — Bug Reporting com Web Vitals e Replay',
-    description: 'O único QA tool que captura Core Web Vitals, rage clicks e session replay em cada report.',
+    title: landingMeta.twitterTitle,
+    description: landingMeta.twitterDescription,
     images: ['/og-image.png'],
   },
   robots: {

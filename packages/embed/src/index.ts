@@ -729,6 +729,11 @@ function createWidget(config: WidgetConfig) {
       opacity: 0;
       pointer-events: none;
     }
+    .fv-trigger.fv-trigger-paused {
+      ${(config.widgetPosition.includes('center') || config.widgetPosition.includes('middle')) ? 'visibility: hidden !important;' : 'transform: scale(0) !important;'}
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
     .fv-trigger.fv-trigger-entering {
       ${(config.widgetPosition.includes('center') || config.widgetPosition.includes('middle')) ? '' : 'animation: fv-trigger-bounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;'}
     }
@@ -2662,14 +2667,21 @@ function createWidget(config: WidgetConfig) {
       config.paused = freshConfig.paused
     }
 
+    trigger.classList.remove('fv-trigger-loading')
+    if (countdownEl) countdownEl.innerHTML = ''
+
+    if (config.paused) {
+      syncPausedTrigger()
+      startRecording()
+      return
+    }
+
     isOpen = true
     submitted = false
     isCapturing = false
     screenshotUrl = ss
 
     // Now hide trigger and show modal
-    trigger.classList.remove('fv-trigger-loading')
-    if (countdownEl) countdownEl.innerHTML = ''
     trigger.style.display = 'none'
     renderPanel()
 
@@ -2693,7 +2705,13 @@ function createWidget(config: WidgetConfig) {
   function close() {
     isOpen = false
     successPanelMinHeight = 0
-    trigger.style.display = 'flex'
+    trigger.classList.remove('fv-trigger-loading')
+    const ce = trigger.querySelector('.fv-countdown') as HTMLElement
+    if (ce) ce.innerHTML = ''
+    if (!config.paused) {
+      trigger.style.display = 'flex'
+    }
+    syncPausedTrigger()
     renderPanel()
     // Clear events and restart recording for the next report
     clearAndRestartRecording()
@@ -2841,6 +2859,15 @@ function createWidget(config: WidgetConfig) {
     }
   }
 
+  function syncPausedTrigger() {
+    if (config.paused) {
+      trigger.classList.add('fv-trigger-paused')
+    } else {
+      trigger.classList.remove('fv-trigger-paused')
+    }
+  }
+  syncPausedTrigger()
+
   trigger.addEventListener('click', open)
 
   // Expose global API for programmatic control
@@ -2852,6 +2879,7 @@ function createWidget(config: WidgetConfig) {
 
   // Listen for show-trigger requests (for demo pages where trigger starts hidden)
   document.addEventListener('feedbackview:show-trigger', () => {
+    if (config.paused) return
     trigger.classList.remove('fv-trigger-hidden')
     trigger.classList.add('fv-trigger-entering')
     trigger.addEventListener('animationend', () => {
