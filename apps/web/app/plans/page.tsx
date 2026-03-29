@@ -193,7 +193,9 @@ function PlansContent() {
         <Column gap="xs">
           <Heading variant="heading-strong-l">Planos</Heading>
           <Text variant="body-default-s" onBackground="neutral-weak">
-            {isOwner ? 'Gerencie seu plano e acompanhe o consumo' : 'Visualize o plano e consumo da organização'}
+            {isOwner
+              ? 'Gerencie seu plano e o consumo. Pro e Business incluem integrações (API, webhooks, ClickUp) e exportação filtrada (CSV/Excel) com assinatura ativa.'
+              : 'Visualize o plano e o consumo da organização.'}
           </Text>
         </Column>
 
@@ -267,6 +269,14 @@ function PlansContent() {
               { label: 'Screenshot automático', available: true },
               { label: 'Console & network logs', available: true },
               { label: 'Replay de sessão', available: limits.hasReplay },
+              {
+                label: 'API REST, webhooks e ClickUp (assinatura ativa)',
+                available: currentPlan === 'PRO' || currentPlan === 'BUSINESS',
+              },
+              {
+                label: 'Exportar reports filtrados — CSV ou Excel (assinatura ativa)',
+                available: currentPlan === 'PRO' || currentPlan === 'BUSINESS',
+              },
               { label: `Retenção de ${limits.retentionDays} dias`, available: true },
             ].map((feature) => (
               <Row key={feature.label} gap="s" vertical="center">

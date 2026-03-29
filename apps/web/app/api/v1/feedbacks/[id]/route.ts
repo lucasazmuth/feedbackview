@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { validateApiKey, hasPermission, isApiRateLimited } from '@/lib/api-auth'
+import {
+  fetchOrgIntegrationGate,
+  hasActiveIntegrationEntitlement,
+  integrationEntitlementErrorBody,
+} from '@/lib/integration-entitlement'
 import { dispatchWebhookEvent } from '@/lib/webhook-dispatcher'
 import { syncClickUpStatus } from '@/lib/clickup/sync'
 
@@ -16,6 +21,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   if (!apiKey) return NextResponse.json({ error: 'Invalid or missing API key' }, { status: 401 })
   if (!hasPermission(apiKey.permissions, 'read:feedbacks')) return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
   if (isApiRateLimited(apiKey.id)) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+
+  const orgGateGet = await fetchOrgIntegrationGate(supabase, apiKey.organizationId)
+  if (!orgGateGet || !hasActiveIntegrationEntitlement(orgGateGet)) {
+    return NextResponse.json(integrationEntitlementErrorBody(), { status: 403 })
+  }
 
   const { data, error } = await supabase
     .from('Feedback')
@@ -40,6 +50,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (!apiKey) return NextResponse.json({ error: 'Invalid or missing API key' }, { status: 401 })
   if (!hasPermission(apiKey.permissions, 'write:feedbacks')) return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
   if (isApiRateLimited(apiKey.id)) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+
+  const orgGatePatch = await fetchOrgIntegrationGate(supabase, apiKey.organizationId)
+  if (!orgGatePatch || !hasActiveIntegrationEntitlement(orgGatePatch)) {
+    return NextResponse.json(integrationEntitlementErrorBody(), { status: 403 })
+  }
 
   const body = await req.json()
   const allowedFields: Record<string, any> = {}

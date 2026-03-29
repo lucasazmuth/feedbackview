@@ -29,6 +29,8 @@ const featureIcons: Record<string, React.ReactNode> = {
   vitals: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,
   click: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 9l5 12 1.8-5.2L21 14 9 9z"/><path d="M7.2 2.2L8 5.1"/><path d="M5.1 8l-2.9-.8"/><path d="M14 4.1L12 6"/><path d="M6 12l-1.9 2"/></svg>,
   globe: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
+  plug: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8z"/></svg>,
+  download: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
 }
 
 const features = [
@@ -62,6 +64,18 @@ const features = [
     title: 'Setup em 1 Minuto',
     description: 'Cole um script no HTML ou compartilhe um link. Sem SDK complexo. Dashboard completo para a equipe.',
   },
+  {
+    iconKey: 'plug',
+    title: 'API, webhooks e ClickUp',
+    description:
+      'Nos planos Pro e Business com assinatura ativa: REST API com chaves, webhooks de saída para o seu backend e integração ClickUp com automações por projeto.',
+  },
+  {
+    iconKey: 'download',
+    title: 'Exportar reports filtrados',
+    description:
+      'Na área Reports, baixe em CSV ou Excel (.xlsx) exatamente o que está filtrado — ideal para análises e planilhas. Incluído nos planos Pro e Business com assinatura ativa.',
+  },
 ]
 
 const steps = [
@@ -78,14 +92,16 @@ const steps = [
   {
     number: '3',
     title: 'Receba reports completos',
-    description: 'Screenshot, replay, logs, Web Vitals, rage clicks, breadcrumbs e contexto técnico completo.',
+    description:
+      'Screenshot, replay, logs, Web Vitals, rage clicks, breadcrumbs e contexto técnico completo. Com Pro ou Business, conecte API, webhooks, ClickUp e exporte reports filtrados.',
   },
 ]
 
 const faqs = [
   {
     question: 'O Buug é gratuito?',
-    answer: 'Sim! Oferecemos um plano gratuito com 10 reports incluídos, sem necessidade de cartão de crédito. Você pode criar projetos, convidar membros e usar todas as funcionalidades principais.',
+    answer:
+      'Sim! O plano gratuito inclui 10 reports no total, sem cartão. Você usa widget, link compartilhado, dashboard e captura completa de QA. Integrações avançadas (API REST com chave, webhooks de saída e ClickUp) e a exportação filtrada para CSV ou Excel ficam nos planos Pro e Business com assinatura ativa.',
   },
   {
     question: 'Como funciona a captura de session replay?',
@@ -106,6 +122,26 @@ const faqs = [
   {
     question: 'Quantos membros da equipe posso convidar?',
     answer: 'Todos os planos incluem membros ilimitados. Convide toda a sua equipe sem custo adicional. O plano gratuito inclui 10 reports no total, e os planos pagos têm limite mensal renovável.',
+  },
+  {
+    question: 'O que é a API REST do Buug?',
+    answer:
+      'É uma API HTTPS autenticada por chave (Bearer) para listar projetos e reports e atualizar status e prazos a partir do seu sistema, CI ou ferramentas como n8n. A criação de chaves e o uso dos endpoints exigem plano Pro ou Business com assinatura ativa.',
+  },
+  {
+    question: 'Como funcionam os webhooks?',
+    answer:
+      'Você cadastra uma URL e o Buug envia avisos JSON quando ocorrem eventos (por exemplo, novo report ou mudança de status), com assinatura HMAC para validação. Disponível nos planos Pro e Business com assinatura ativa.',
+  },
+  {
+    question: 'A integração com ClickUp inclui o quê?',
+    answer:
+      'Conecte o workspace com token de API, crie automações por projeto Buug (lista/workspace no ClickUp) e sincronize criação de tarefas e status nos dois sentidos. Exige plano Pro ou Business com assinatura ativa.',
+  },
+  {
+    question: 'Posso exportar os reports para planilha?',
+    answer:
+      'Sim. Na página Reports você pode exportar o conjunto filtrado (busca, projeto, tipo, status, responsável etc.) em CSV ou Excel (.xlsx). A exportação exige plano Pro ou Business com assinatura ativa, como as integrações avançadas.',
   },
 ]
 
@@ -157,6 +193,7 @@ export default function LandingPage() {
           {[
             { label: 'Demo', href: '#como-funciona' },
             { label: 'Planos', href: '#planos' },
+            { label: 'Stack', href: '#integracoes-pro' },
             { label: 'FAQ', href: '#faq' },
           ].map((item) => (
             <li key={item.href}>
@@ -262,7 +299,7 @@ export default function LandingPage() {
             onBackground="neutral-weak"
             style={{ maxWidth: '36rem' }}
           >
-            O único QA tool que captura Core Web Vitals, rage clicks e session replay em cada report. Setup em 1 minuto, sem SDK complexo.
+            Core Web Vitals, rage clicks e session replay em cada report — e, nos planos Pro e Business, API REST, webhooks, ClickUp e exportação filtrada (CSV/Excel) para encaixar no seu fluxo. Setup em 1 minuto, sem SDK complexo.
           </Text>
 
           <Row gap="m" style={{ marginTop: '0.5rem' }}>
@@ -722,8 +759,8 @@ export default function LandingPage() {
             <Heading variant="display-strong-s" as="h2">
               Tudo que sua equipe precisa para QA
             </Heading>
-            <Text variant="body-default-m" onBackground="neutral-weak" style={{ maxWidth: '32rem' }}>
-              De screenshot a Core Web Vitals — cada report inclui tudo que o dev precisa para resolver sem reproduzir.
+            <Text variant="body-default-m" onBackground="neutral-weak" style={{ maxWidth: '34rem' }}>
+              De screenshot a Core Web Vitals — cada report inclui o contexto técnico completo. Com Pro ou Business você ainda leva API, webhooks, ClickUp e exportação dos reports filtrados.
             </Text>
           </Column>
 
@@ -902,6 +939,141 @@ export default function LandingPage() {
         </Column>
       </Flex>
 
+      {/* Pro/Business integrations */}
+      <Flex fillWidth horizontal="center" background="page" id="integracoes-pro">
+        <Column maxWidth={64} fillWidth paddingX="l" paddingY="xl" gap="xl">
+          <Column horizontal="center" gap="s" style={{ textAlign: 'center' }}>
+            <Tag variant="brand" size="m" label="Pro e Business" />
+            <Heading variant="display-strong-s" as="h2">
+              Integrações para o seu stack
+            </Heading>
+            <Text variant="body-default-m" onBackground="neutral-weak" style={{ maxWidth: '36rem' }}>
+              Ligue o Buug ao resto da empresa: automação, ERP, quadros, pipelines e exportação dos reports filtrados. Incluído nos planos pagos com assinatura ativa (não disponível no gratuito).
+            </Text>
+          </Column>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: '1.25rem',
+            width: '100%',
+          }}>
+            <Card padding="l" radius="l" fillWidth>
+              <Column gap="m">
+                <Row gap="s" vertical="center">
+                  <div style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 12,
+                    background: 'var(--brand-alpha-weak)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                    <Icon name="code" size="s" onBackground="brand-strong" />
+                  </div>
+                  <Heading variant="heading-strong-s" style={{ margin: 0 }}>API REST</Heading>
+                </Row>
+                <Text variant="body-default-s" onBackground="neutral-weak">
+                  Chaves de acesso, documentação em app e endpoints para ler reports e projetos e atualizar status e datas. Ideal para scripts internos e orquestradores.
+                </Text>
+                <Row gap="xs" wrap>
+                  <Tag variant="neutral" size="s" label="Bearer token" />
+                  <Tag variant="neutral" size="s" label="Rate limit" />
+                </Row>
+              </Column>
+            </Card>
+
+            <Card padding="l" radius="l" fillWidth>
+              <Column gap="m">
+                <Row gap="s" vertical="center">
+                  <div style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 12,
+                    background: 'var(--brand-alpha-weak)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--brand-on-background-strong)',
+                  }}>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                    </svg>
+                  </div>
+                  <Heading variant="heading-strong-s" style={{ margin: 0 }}>Webhooks de saída</Heading>
+                </Row>
+                <Text variant="body-default-s" onBackground="neutral-weak">
+                  Receba POST em JSON quando houver novo report, mudança de status, atribuição e mais. Valide com assinatura <code style={{ fontSize: '0.8em' }}>X-Buug-Signature</code>.
+                </Text>
+                <Row gap="xs" wrap>
+                  <Tag variant="neutral" size="s" label="HTTPS" />
+                  <Tag variant="neutral" size="s" label="HMAC" />
+                </Row>
+              </Column>
+            </Card>
+
+            <Card padding="l" radius="l" fillWidth>
+              <Column gap="m">
+                <Row gap="s" vertical="center">
+                  <div style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 12,
+                    background: 'var(--brand-alpha-weak)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                    <img src="/integrations/clickup.svg" alt="" width={28} height={28} />
+                  </div>
+                  <Heading variant="heading-strong-s" style={{ margin: 0 }}>ClickUp</Heading>
+                </Row>
+                <Text variant="body-default-s" onBackground="neutral-weak">
+                  Tarefas criadas a partir de reports, mapa de status Buug ↔ ClickUp e automações por projeto (workspace, espaço, lista). Sincronização quando a assinatura está ativa.
+                </Text>
+                <Row gap="xs" wrap>
+                  <Tag variant="neutral" size="s" label="Automações" />
+                  <Tag variant="neutral" size="s" label="Webhook inbound" />
+                </Row>
+              </Column>
+            </Card>
+
+            <Card padding="l" radius="l" fillWidth>
+              <Column gap="m">
+                <Row gap="s" vertical="center">
+                  <div style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 12,
+                    background: 'var(--brand-alpha-weak)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--brand-on-background-strong)',
+                  }}>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                  </div>
+                  <Heading variant="heading-strong-s" style={{ margin: 0 }}>Exportar filtrado</Heading>
+                </Row>
+                <Text variant="body-default-s" onBackground="neutral-weak">
+                  Na página Reports, exporte o que está visível após filtros e busca para CSV ou Excel (.xlsx). Útil para auditorias, retrospectivas e planilhas — com assinatura Pro ou Business ativa.
+                </Text>
+                <Row gap="xs" wrap>
+                  <Tag variant="neutral" size="s" label="CSV" />
+                  <Tag variant="neutral" size="s" label="XLSX" />
+                </Row>
+              </Column>
+            </Card>
+          </div>
+        </Column>
+      </Flex>
+
       {/* Platforms & Technologies */}
       <Flex fillWidth horizontal="center" background="page">
         <Column maxWidth={64} fillWidth paddingX="l" paddingY="xl" gap="xl" horizontal="center">
@@ -971,6 +1143,7 @@ export default function LandingPage() {
                   { feature: 'Click Breadcrumbs', buug: true, others: false },
                   { feature: 'Device + Rede + Geo', buug: true, others: false },
                   { feature: 'Link compartilhado (sem instalar)', buug: true, others: false },
+                  { feature: 'API REST + webhooks + ClickUp (planos pagos)', buug: true, others: false },
                   { feature: 'Português nativo', buug: true, others: false },
                 ].map((row, i) => (
                   <tr key={i}>
@@ -997,8 +1170,8 @@ export default function LandingPage() {
             <Heading variant="display-strong-s" as="h2">
               Simples e transparente
             </Heading>
-            <Text variant="body-default-m" onBackground="neutral-weak" style={{ maxWidth: '32rem' }}>
-              Comece grátis e escale conforme sua equipe cresce.
+            <Text variant="body-default-m" onBackground="neutral-weak" style={{ maxWidth: '34rem' }}>
+              Comece grátis e, quando precisar, ative Pro ou Business para API, webhooks, integração ClickUp e exportação filtrada (CSV/Excel) com assinatura ativa.
             </Text>
           </Column>
 
@@ -1026,6 +1199,7 @@ export default function LandingPage() {
                     'Membros ilimitados',
                     'Screenshot + replay de sessão',
                     'Console & network logs',
+                    'Sem API REST, webhooks, ClickUp e exportação CSV/Excel',
                     'Retenção de 7 dias',
                     'Suporte por email',
                   ].map((item) => (
@@ -1067,6 +1241,8 @@ export default function LandingPage() {
                     '2.000 reports/mês',
                     'Projetos ilimitados',
                     'Membros ilimitados',
+                    'Exportar reports filtrados — CSV ou Excel (assinatura ativa)',
+                    'API REST, webhooks e ClickUp (assinatura ativa)',
                     'Screenshot + replay de sessão',
                     'Console, network & custom logs',
                     'Retenção de 90 dias',
@@ -1106,6 +1282,8 @@ export default function LandingPage() {
                     '10.000 reports/mês',
                     'Projetos ilimitados',
                     'Membros ilimitados',
+                    'Exportar reports filtrados — CSV ou Excel (assinatura ativa)',
+                    'API REST, webhooks e ClickUp (assinatura ativa)',
                     'Screenshot + replay de sessão',
                     'Console, network & custom logs',
                     'Retenção de 1 ano',
@@ -1191,7 +1369,7 @@ export default function LandingPage() {
                 <div
                   style={{
                     overflow: 'hidden',
-                    maxHeight: openFaq === index ? '200px' : '0',
+                    maxHeight: openFaq === index ? '480px' : '0',
                     transition: 'max-height 0.3s ease',
                   }}
                 >
@@ -1222,8 +1400,8 @@ export default function LandingPage() {
           <Heading variant="display-strong-s" as="h2">
             Chega de &ldquo;não consigo reproduzir&rdquo;
           </Heading>
-          <Text variant="body-default-m" onBackground="neutral-weak" style={{ maxWidth: '28rem' }}>
-            Comece grátis agora. Nenhum cartão necessário.
+          <Text variant="body-default-m" onBackground="neutral-weak" style={{ maxWidth: '30rem' }}>
+            Comece grátis agora — nenhum cartão. Quando fizer sentido, suba para Pro ou Business e desbloqueie API, webhooks, ClickUp e exportação filtrada dos reports.
           </Text>
           <Row gap="m" style={{ marginTop: '0.5rem' }}>
             {isLoggedIn ? (
@@ -1283,7 +1461,7 @@ export default function LandingPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 800, fontSize: '1.1rem', letterSpacing: '-0.03em', color: '#111' }}>Buug</span>
               <Text variant="body-default-xs" onBackground="neutral-weak" style={{ lineHeight: 1.6 }}>
-                Plataforma de QA em tempo real. Cada bug com screenshot, replay e logs.
+                Plataforma de QA em tempo real: replay, Web Vitals e recursos Pro/Business (API, webhooks, ClickUp, exportação CSV/Excel).
               </Text>
               <div style={{ display: 'flex', gap: 12, marginTop: 4 }}>
                 {/* LinkedIn */}
@@ -1302,7 +1480,8 @@ export default function LandingPage() {
               <span style={{ fontSize: 13, fontWeight: 700, color: '#111', letterSpacing: '-0.01em' }}>Produto</span>
               {[
                 { label: 'Funcionalidades', href: '#funcionalidades' },
-                { label: 'Integrações', href: '#integracao' },
+                { label: 'Widget e link', href: '#integracao' },
+                { label: 'API, export e ClickUp', href: '#integracoes-pro' },
                 { label: 'Planos', href: '#planos' },
                 { label: 'FAQ', href: '#faq' },
                 { label: 'Demo', href: '#como-funciona' },

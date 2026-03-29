@@ -1,10 +1,21 @@
+export interface ClickUpCustomFieldMap {
+  typeFieldId?: string
+  severityFieldId?: string
+  projectFieldId?: string
+  pageUrlFieldId?: string
+}
+
 export interface ClickUpIntegrationConfig {
   enabled: boolean
   encryptedToken: string
   teamId: string
-  listId: string
+  /** @deprecated Removido do fluxo: cada projeto Buug deve ter clickupListId. Mantido só por dados antigos. */
+  listId?: string
+  /** Lista opcional usada na UI para listar campos personalizados do ClickUp (não é destino de reports). */
+  statusReferenceListId?: string
   statusMapBuugToClickUp: Record<string, string>
   statusMapClickUpToBuug: Record<string, string>
+  customFieldMap?: ClickUpCustomFieldMap
   webhookId?: string
   webhookSecret?: string
 }
@@ -23,6 +34,17 @@ export interface ClickUpList {
   id: string
   name: string
   statuses: { status: string; orderindex: number }[]
+}
+
+export interface ClickUpListDetails extends ClickUpList {
+  customFields: ClickUpCustomFieldDef[]
+}
+
+export interface ClickUpCustomFieldDef {
+  id: string
+  name: string
+  type: string
+  typeConfig?: { options?: { id: string; name: string; orderindex?: number }[] }
 }
 
 export interface ClickUpTask {

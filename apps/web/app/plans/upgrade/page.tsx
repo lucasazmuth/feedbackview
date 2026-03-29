@@ -35,6 +35,7 @@ const PLANS: {
       'Membros ilimitados',
       'Screenshot + replay de sessão',
       'Console & network logs',
+      'Sem API REST, webhooks, ClickUp e exportação CSV/Excel',
       'Retenção de 7 dias',
       'Suporte por email',
     ],
@@ -49,6 +50,8 @@ const PLANS: {
       '2.000 reports/mês',
       'Projetos ilimitados',
       'Membros ilimitados',
+      'Exportar reports filtrados (CSV e Excel) com assinatura ativa',
+      'API REST, webhooks e ClickUp (com assinatura ativa)',
       'Screenshot + replay de sessão',
       'Console, network & custom logs',
       'Retenção de 90 dias',
@@ -64,6 +67,8 @@ const PLANS: {
       '10.000 reports/mês',
       'Projetos ilimitados',
       'Membros ilimitados',
+      'Exportar reports filtrados (CSV e Excel) com assinatura ativa',
+      'API REST, webhooks e ClickUp (com assinatura ativa)',
       'Screenshot + replay de sessão',
       'Console, network & custom logs',
       'Retenção de 1 ano',
@@ -177,7 +182,7 @@ function UpgradeContent() {
           <Column gap="xs" horizontal="center" style={{ textAlign: 'center' }}>
             <Heading variant="heading-strong-l">Escolha seu plano</Heading>
             <Text variant="body-default-m" onBackground="neutral-weak">
-              Faça upgrade ou downgrade a qualquer momento.
+              Faça upgrade ou downgrade a qualquer momento. Pro e Business liberam API, webhooks, integração ClickUp e exportação filtrada (CSV/Excel) enquanto a assinatura estiver ativa.
             </Text>
           </Column>
         </Column>
@@ -352,6 +357,7 @@ function UpgradeContent() {
                   { feature: 'Screenshot', free: '✓', pro: '✓', business: '✓' },
                   { feature: 'Console & network logs', free: '✓', pro: '✓', business: '✓' },
                   { feature: 'Replay de sessão', free: '✓', pro: '✓', business: '✓' },
+                  { feature: 'Exportar filtrado (CSV/Excel)', free: '—', pro: 'Com assinatura ativa', business: 'Com assinatura ativa' },
                   { feature: 'Suporte', free: 'Email', pro: 'Email', business: 'Prioritário' },
                 ].map((row, i) => (
                   <tr key={row.feature} style={{ borderBottom: i < 10 ? '1px solid var(--neutral-border-medium)' : 'none' }}>

@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { validateApiKey, hasPermission, isApiRateLimited } from '@/lib/api-auth'
+import {
+  fetchOrgIntegrationGate,
+  hasActiveIntegrationEntitlement,
+  integrationEntitlementErrorBody,
+} from '@/lib/integration-entitlement'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -12,6 +17,11 @@ export async function GET(req: NextRequest) {
   if (!apiKey) return NextResponse.json({ error: 'Invalid or missing API key' }, { status: 401 })
   if (!hasPermission(apiKey.permissions, 'read:feedbacks')) return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
   if (isApiRateLimited(apiKey.id)) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 })
+
+  const orgGate = await fetchOrgIntegrationGate(supabase, apiKey.organizationId)
+  if (!orgGate || !hasActiveIntegrationEntitlement(orgGate)) {
+    return NextResponse.json(integrationEntitlementErrorBody(), { status: 403 })
+  }
 
   const params = req.nextUrl.searchParams
   const projectId = params.get('project_id')

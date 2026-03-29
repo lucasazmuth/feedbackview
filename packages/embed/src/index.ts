@@ -38,7 +38,8 @@ interface RRWebEvent { type: number; data: any; timestamp: number }
 const consoleLogs: ConsoleLog[] = []
 const networkLogs: NetworkLog[] = []
 const rrwebEvents: RRWebEvent[] = []
-const MAX_RRWEB_EVENTS = 100
+/** Cap on stored rrweb events. Too low (e.g. 100) trims almost everything on long sessions: timeline still spans wall-clock time but few DOM mutations → replay looks “frozen”. */
+const MAX_RRWEB_EVENTS = 8000
 const MAX_LOGS = 100
 let proxyPageUrl: string | null = null // URL of the actual site in proxy/shared-url mode
 
@@ -654,6 +655,21 @@ function createWidget(config: WidgetConfig) {
   shadow.appendChild(fontLink)
 
   style.textContent = `
+    :host {
+      display: block;
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 2147483645;
+    }
+    .fv-trigger,
+    .fv-backdrop,
+    .fv-panel {
+      pointer-events: auto;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
 
     @keyframes fv-trigger-bounce {
@@ -1413,6 +1429,8 @@ function createWidget(config: WidgetConfig) {
   let isSubmitting = false
   let submitted = false
   let demoSubmitted = false
+  /** Altura do painel com o formulário, preservada na tela de sucesso */
+  let successPanelMinHeight = 0
   const embedAttachments: { name: string; type: string; data: string }[] = []
 
   // Drawing annotation state
@@ -1672,6 +1690,15 @@ function createWidget(config: WidgetConfig) {
           speed: 4,
         })
 
+        // Use rrweb’s replay duration (respects skipInactive), not raw wall-clock between first/last event.
+        // Wall-clock span with sparse events after trimming makes the UI show “1h” while getCurrentTime() barely moves vs DOM updates → looks frozen.
+        const metaTotal = replayer.getMetaData()?.totalTime
+        const wallSpan =
+          rrwebEvents.length >= 2
+            ? rrwebEvents[rrwebEvents.length - 1].timestamp - rrwebEvents[0].timestamp
+            : 0
+        const totalMs = typeof metaTotal === 'number' && metaTotal > 0 ? metaTotal : Math.max(0, wallSpan)
+
         // Render first frame (makes iframe visible) and scale to fit
         replayer.pause(0)
         setTimeout(() => {
@@ -1693,8 +1720,7 @@ function createWidget(config: WidgetConfig) {
           }
         }, 200)
 
-        // Player controls with timeline
-        const totalMs = rrwebEvents[rrwebEvents.length - 1].timestamp - rrwebEvents[0].timestamp
+        // Player controls with timeline (totalMs set above from getMetaData)
         const fmtTime = (ms: number) => {
           const s = Math.floor(ms / 1000)
           const m = Math.floor(s / 60)
@@ -1840,11 +1866,9 @@ function createWidget(config: WidgetConfig) {
         replayCard.appendChild(controls)
 
         // Update timeline progress during playback
-        const startTs = rrwebEvents[0].timestamp
         let progressTimer: ReturnType<typeof setInterval> | null = null
         const updateProgress = () => {
           try {
-            const meta = replayer.getMetaData()
             const currentPlayerTime = replayer.getCurrentTime()
             if (currentPlayerTime !== undefined && totalMs > 0) {
               const pct = Math.min(1, Math.max(0, currentPlayerTime / totalMs))
@@ -2544,7 +2568,9 @@ function createWidget(config: WidgetConfig) {
     closeBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`
     closeBtn.addEventListener('click', close)
     header.appendChild(closeBtn)
-    panel.appendChild(header)
+
+    const minH = successPanelMinHeight > 0 ? successPanelMinHeight : Math.round(Math.min(window.innerHeight * 0.72, 620))
+    panel.style.minHeight = `${minH}px`
 
     const success = document.createElement('div')
     success.className = 'fv-success'
@@ -2587,6 +2613,10 @@ function createWidget(config: WidgetConfig) {
 
     // Simulate a brief loading delay for realism
     await new Promise((resolve) => setTimeout(resolve, 1200))
+
+    const panelEl = panelContainer.querySelector('.fv-panel') as HTMLElement | null
+    const h = panelEl?.offsetHeight ?? 0
+    if (h > 0) successPanelMinHeight = h
 
     submitted = true
     demoSubmitted = true
@@ -2662,6 +2692,7 @@ function createWidget(config: WidgetConfig) {
 
   function close() {
     isOpen = false
+    successPanelMinHeight = 0
     trigger.style.display = 'flex'
     renderPanel()
     // Clear events and restart recording for the next report
@@ -2777,6 +2808,10 @@ function createWidget(config: WidgetConfig) {
         const data = await res.json().catch(() => ({ error: 'Erro desconhecido' }))
         throw new Error(data.error || `HTTP ${res.status}`)
       }
+
+      const panelEl = panelContainer.querySelector('.fv-panel') as HTMLElement | null
+      const h = panelEl?.offsetHeight ?? 0
+      if (h > 0) successPanelMinHeight = h
 
       submitted = true
       isSubmitting = false

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import {
@@ -13,8 +14,11 @@ import {
   Card,
   Flex,
   Spinner,
+  Button,
+  Feedback,
 } from '@once-ui-system/core'
 import AppLayout from '@/components/ui/AppLayout'
+import UpgradeModal from '@/components/ui/UpgradeModal'
 import { useOrg } from '@/contexts/OrgContext'
 import { api } from '@/lib/api'
 
@@ -32,6 +36,13 @@ import CardView from './views/CardView'
 import { useFilters } from './hooks/useFilters'
 import { useSelection } from './hooks/useSelection'
 import { useSort } from './hooks/useSort'
+import { useReportsExportEntitlement } from './hooks/useReportsExportEntitlement'
+import {
+  buildExportRows,
+  downloadReportsCsv,
+  downloadReportsXlsx,
+  exportDateStamp,
+} from './lib/exportReports'
 
 // Lazy-load Kanban (heavier dependency)
 const KanbanView = dynamic(() => import('./views/KanbanView'), { ssr: false })
@@ -74,6 +85,12 @@ interface ReportsClientProps {
 
 type ViewMode = 'list' | 'card' | 'kanban'
 
+function normalizePlanKey(plan: string | undefined): 'FREE' | 'PRO' | 'BUSINESS' {
+  const p = (plan || 'FREE').toUpperCase()
+  if (p === 'PRO' || p === 'BUSINESS') return p
+  return 'FREE'
+}
+
 export default function ReportsClient({
   feedbacks: initialFeedbacks,
   projects,
@@ -84,6 +101,26 @@ export default function ReportsClient({
 }: ReportsClientProps) {
   const router = useRouter()
   const { currentOrg } = useOrg()
+  const exportEntitled = useReportsExportEntitlement(currentOrg?.id)
+
+  const [exportFormatOpen, setExportFormatOpen] = useState(false)
+  const [upgradeOpen, setUpgradeOpen] = useState(false)
+  const [exportEmptyMsg, setExportEmptyMsg] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!exportEmptyMsg) return
+    const t = setTimeout(() => setExportEmptyMsg(null), 6000)
+    return () => clearTimeout(t)
+  }, [exportEmptyMsg])
+
+  useEffect(() => {
+    if (!exportFormatOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setExportFormatOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [exportFormatOpen])
 
   // Local state for optimistic updates
   const [feedbacks, setFeedbacks] = useState(initialFeedbacks)
@@ -123,6 +160,26 @@ export default function ReportsClient({
   } = useFilters(orgFeedbacks, feedbackAssigneesMap)
 
   const { sort, toggleSort, setManualSort, sortedFeedbacks } = useSort(filteredFeedbacks)
+
+  const runFilteredExport = useCallback(
+    (format: 'csv' | 'xlsx') => {
+      if (sortedFeedbacks.length === 0) {
+        setExportEmptyMsg('Nada para exportar com os filtros atuais.')
+        setExportFormatOpen(false)
+        return
+      }
+      const rows = buildExportRows(sortedFeedbacks, feedbackAssigneesMap)
+      const stamp = exportDateStamp()
+      if (format === 'csv') {
+        downloadReportsCsv(rows, `reports-filtrados-${stamp}.csv`)
+      } else {
+        downloadReportsXlsx(rows, `reports-filtrados-${stamp}.xlsx`)
+      }
+      setExportFormatOpen(false)
+    },
+    [sortedFeedbacks, feedbackAssigneesMap],
+  )
+
   const selection = useSelection()
 
   // Use ref to avoid selection in callback dependencies (prevents cascading re-renders)
@@ -226,12 +283,11 @@ export default function ReportsClient({
     } catch {}
   }, [setManualSort])
 
-  // Bulk status change
-  const [bulkStatusLoading, setBulkStatusLoading] = useState(false)
+  // Bulk status / delete
+  const [bulkActionLoading, setBulkActionLoading] = useState(false)
   const handleBulkStatusChange = useCallback(async (status: string) => {
-    setBulkStatusLoading(true)
+    setBulkActionLoading(true)
     const ids = selectionRef.current.selectedArray
-    // Optimistic
     setFeedbacks(prev => prev.map(f => ids.includes(f.id) ? { ...f, status } : f))
     try {
       await api.feedbacks.bulkUpdateStatus(ids, status)
@@ -239,12 +295,31 @@ export default function ReportsClient({
     } catch {
       setFeedbacks(initialFeedbacks)
     }
-    setBulkStatusLoading(false)
+    setBulkActionLoading(false)
   }, [initialFeedbacks])
 
-  const handleBulkArchive = useCallback(() => {
-    handleBulkStatusChange('ARCHIVED')
-  }, [handleBulkStatusChange])
+  const handleBulkDelete = useCallback(async () => {
+    const ids = selectionRef.current.selectedArray
+    if (ids.length === 0) return
+    setBulkActionLoading(true)
+    setFeedbacks(prev => prev.filter(f => !ids.includes(f.id)))
+    setFeedbackAssigneesMap(prev => {
+      const next = { ...prev }
+      ids.forEach((id) => {
+        delete next[id]
+      })
+      return next
+    })
+    try {
+      await api.feedbacks.bulkDelete(ids)
+      selectionRef.current.clearSelection()
+    } catch {
+      setFeedbacks(initialFeedbacks)
+      setFeedbackAssigneesMap(initialAssigneesMap)
+    } finally {
+      setBulkActionLoading(false)
+    }
+  }, [initialFeedbacks, initialAssigneesMap])
 
   // Stats
   const totalCount = orgFeedbacks.length
@@ -341,6 +416,50 @@ export default function ReportsClient({
             onApplyPreset={applyPreset}
           />
 
+          {currentOrg && (
+            <button
+              type="button"
+              title={exportEntitled === null ? 'Verificando plano…' : 'Exportar filtrado'}
+              aria-label={exportEntitled === null ? 'Verificando plano' : 'Exportar filtrado'}
+              aria-busy={exportEntitled === null}
+              disabled={exportEntitled === null}
+              onClick={() => {
+                if (exportEntitled === null) return
+                if (!exportEntitled) {
+                  setUpgradeOpen(true)
+                  return
+                }
+                setExportFormatOpen(true)
+              }}
+              style={{
+                width: 40,
+                height: 40,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
+                borderRadius: '0.5rem',
+                border: '1px solid var(--neutral-border-medium)',
+                background: 'var(--surface-background)',
+                cursor: exportEntitled === null ? 'wait' : 'pointer',
+                color: 'var(--neutral-on-background-weak)',
+                transition: 'all 0.15s',
+                flexShrink: 0,
+                padding: 0,
+              }}
+            >
+              {exportEntitled === null ? (
+                <Spinner size="s" />
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+              )}
+            </button>
+          )}
+
           {/* View mode toggle */}
           <div style={{ display: 'flex', borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)', overflow: 'hidden', flexShrink: 0 }}>
             {/* Card view */}
@@ -393,6 +512,12 @@ export default function ReportsClient({
             </button>
           </div>
         </div>
+
+        {exportEmptyMsg && (
+          <Feedback variant="warning" onClose={() => setExportEmptyMsg(null)}>
+            {exportEmptyMsg}
+          </Feedback>
+        )}
 
         {/* Content */}
         {displayFeedbacks.length === 0 ? (
@@ -454,10 +579,88 @@ export default function ReportsClient({
         <BulkToolbar
           selectedCount={selection.selectedCount}
           onChangeStatus={handleBulkStatusChange}
-          onArchive={handleBulkArchive}
+          onDelete={handleBulkDelete}
           onClearSelection={selection.clearSelection}
-          statusLoading={bulkStatusLoading}
+          actionLoading={bulkActionLoading}
         />
+
+        {exportFormatOpen &&
+          typeof document !== 'undefined' &&
+          createPortal(
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="export-format-title"
+              onClick={() => setExportFormatOpen(false)}
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                width: '100vw',
+                minHeight: '100vh',
+                margin: 0,
+                boxSizing: 'border-box',
+                zIndex: 100000,
+                background: 'rgba(0, 0, 0, 0.45)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '1rem',
+                isolation: 'isolate',
+              }}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  width: '100%',
+                  maxWidth: '24rem',
+                  flexShrink: 0,
+                  backgroundColor: 'var(--surface-background)',
+                  color: 'var(--neutral-on-background-strong)',
+                  borderRadius: '0.75rem',
+                  border: '1px solid var(--neutral-border-medium)',
+                  padding: '1.25rem',
+                  boxShadow: '0 16px 48px rgba(0, 0, 0, 0.22)',
+                  opacity: 1,
+                  pointerEvents: 'auto',
+                }}
+              >
+                <Column gap="m" fillWidth>
+                  <Heading id="export-format-title" variant="heading-strong-m" as="h2">
+                    Exportar filtrado
+                  </Heading>
+                  <Text variant="body-default-s" onBackground="neutral-weak">
+                    Escolha o formato do ficheiro: CSV (texto) ou Excel (.xlsx).
+                  </Text>
+                  <Row gap="s" wrap>
+                    <Button size="s" variant="primary" label="CSV" onClick={() => runFilteredExport('csv')} />
+                    <Button
+                      size="s"
+                      variant="secondary"
+                      label="Excel (.xlsx)"
+                      onClick={() => runFilteredExport('xlsx')}
+                    />
+                  </Row>
+                  <Button
+                    size="s"
+                    variant="tertiary"
+                    label="Cancelar"
+                    onClick={() => setExportFormatOpen(false)}
+                  />
+                </Column>
+              </div>
+            </div>,
+            document.body,
+          )}
+
+        {upgradeOpen && currentOrg && (
+          <UpgradeModal
+            currentPlan={normalizePlanKey(currentOrg.plan)}
+            onClose={() => setUpgradeOpen(false)}
+          />
+        )}
 
         {/* Detail modal */}
         <FeedbackDetailModal

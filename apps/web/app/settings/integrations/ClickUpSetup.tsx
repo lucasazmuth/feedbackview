@@ -1,20 +1,27 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { Column, Row, Heading, Text, Button, Card, Tag, Feedback as FeedbackAlert } from '@once-ui-system/core'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useRouter } from 'next/navigation'
+import { Column, Row, Heading, Text, Button, Feedback as FeedbackAlert } from '@once-ui-system/core'
 import { DEFAULT_STATUS_MAP_BUUG_TO_CLICKUP, DEFAULT_STATUS_MAP_CLICKUP_TO_BUUG } from '@/lib/clickup/types'
+import ClickUpAutomationsTab from '@/app/settings/integrations/ClickUpAutomationsTab'
 
-interface Team { id: string; name: string }
-interface Space { id: string; name: string }
-interface ListItem { id: string; name: string; statuses: { status: string; orderindex: number }[] }
+interface OrgProject {
+  id: string
+  name: string
+  organizationId: string | null
+}
 
-const BUUG_STATUSES = ['OPEN', 'IN_PROGRESS', 'UNDER_REVIEW', 'RESOLVED', 'CANCELLED']
-const BUUG_STATUS_LABELS: Record<string, string> = {
-  OPEN: 'Aberto',
-  IN_PROGRESS: 'Em andamento',
-  UNDER_REVIEW: 'Sob revisão',
-  RESOLVED: 'Concluída',
-  CANCELLED: 'Cancelado',
+export type ClickUpSetupProps = {
+  orgId: string
+  /** Pro/Business com assinatura ativa; se false, não permite nova config nem automações (mantém desconectar). */
+  integrationEntitled?: boolean
+  onConnectionChange?: () => void
+  /** Fecha o modal/painel (ex.: integrações). */
+  onClose?: () => void
+  /** Deep link: ao montar, foca aba Automações e deixa o filho abrir “nova automação” com projeto pré-selecionado. */
+  prefillAutomationProjectId?: string | null
+  onPrefillAutomationConsumed?: () => void
 }
 
 const inputStyle: React.CSSProperties = {
@@ -28,58 +35,84 @@ const inputStyle: React.CSSProperties = {
   outline: 'none',
 }
 
-const selectStyle: React.CSSProperties = {
-  ...inputStyle,
-  cursor: 'pointer',
-  appearance: 'auto' as any,
-}
-
-function StepBadge({ n, done }: { n: number; done: boolean }) {
+function ClickUpModalCloseButton({ onClose }: { onClose: () => void }) {
   return (
-    <span
+    <button
+      type="button"
+      onClick={onClose}
+      aria-label="Fechar janela"
+      title="Fechar"
       style={{
+        flexShrink: 0,
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
-        width: '1.75rem',
-        height: '1.75rem',
-        borderRadius: '50%',
-        fontSize: '0.75rem',
-        fontWeight: 700,
-        background: done ? 'var(--success-solid-strong)' : 'var(--brand-solid-strong)',
-        color: '#fff',
-        flexShrink: 0,
+        width: '2.25rem',
+        height: '2.25rem',
+        padding: 0,
+        border: 'none',
+        borderRadius: 'var(--radius-m, 8px)',
+        background: 'transparent',
+        color: 'var(--neutral-on-background-weak)',
+        cursor: 'pointer',
+        marginTop: 2,
       }}
     >
-      {done ? '✓' : n}
-    </span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+        <path d="M18 6L6 18M6 6l12 12" />
+      </svg>
+    </button>
   )
 }
 
-export default function ClickUpSetup({ orgId }: { orgId: string }) {
+export default function ClickUpSetup({
+  orgId,
+  integrationEntitled = true,
+  onConnectionChange,
+  onClose,
+  prefillAutomationProjectId,
+  onPrefillAutomationConsumed,
+}: ClickUpSetupProps) {
+  const router = useRouter()
+  const [automationWizardOpen, setAutomationWizardOpen] = useState(false)
+  const [mainTab, setMainTab] = useState<'connection' | 'automations'>('connection')
+  const [showConnectionEditor, setShowConnectionEditor] = useState(false)
+  const hydratedRef = useRef(false)
   const [loading, setLoading] = useState(true)
   const [configured, setConfigured] = useState(false)
   const [enabled, setEnabled] = useState(false)
+  const [orgProjects, setOrgProjects] = useState<OrgProject[]>([])
 
   const [token, setToken] = useState('')
   const [tokenHint, setTokenHint] = useState('')
   const [testResult, setTestResult] = useState<{ valid: boolean; user?: { username: string }; error?: string } | null>(null)
   const [testing, setTesting] = useState(false)
 
-  const [teams, setTeams] = useState<Team[]>([])
-  const [selectedTeamId, setSelectedTeamId] = useState('')
-  const [spaces, setSpaces] = useState<Space[]>([])
-  const [selectedSpaceId, setSelectedSpaceId] = useState('')
-  const [lists, setLists] = useState<ListItem[]>([])
-  const [selectedListId, setSelectedListId] = useState('')
-  const [selectedListStatuses, setSelectedListStatuses] = useState<string[]>([])
-
-  const [statusMapBuugToClickUp, setStatusMapBuugToClickUp] = useState<Record<string, string>>(DEFAULT_STATUS_MAP_BUUG_TO_CLICKUP)
-  const [statusMapClickUpToBuug, setStatusMapClickUpToBuug] = useState<Record<string, string>>(DEFAULT_STATUS_MAP_CLICKUP_TO_BUUG)
-
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState<{ type: 'success' | 'danger'; text: string } | null>(null)
   const [disconnecting, setDisconnecting] = useState(false)
+  const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false)
+  const [automationStats, setAutomationStats] = useState({ count: 0, coveredProjects: 0 })
+
+  const refreshAutomationStats = useCallback(async () => {
+    const res = await fetch(`/api/integrations/clickup/automations?orgId=${encodeURIComponent(orgId)}`)
+    if (!res.ok) return
+    const data = await res.json()
+    const list = data.automations || []
+    const ids = new Set<string>()
+    for (const a of list) {
+      for (const p of a.projects || []) ids.add(p.id)
+    }
+    setAutomationStats({ count: list.length, coveredProjects: ids.size })
+  }, [orgId])
+
+  const refreshProjects = useCallback(async () => {
+    const res = await fetch(`/api/integrations/clickup?orgId=${orgId}`)
+    if (res.ok) {
+      const data = await res.json()
+      setOrgProjects(data.projects || [])
+    }
+  }, [orgId])
 
   const fetchConfig = useCallback(async () => {
     setLoading(true)
@@ -88,20 +121,38 @@ export default function ClickUpSetup({ orgId }: { orgId: string }) {
       if (res.ok) {
         const data = await res.json()
         setConfigured(data.configured)
+        setOrgProjects(data.projects || [])
         if (data.config) {
           setEnabled(data.config.enabled)
           setTokenHint(data.config.tokenHint || '')
-          setSelectedTeamId(data.config.teamId || '')
-          setSelectedListId(data.config.listId || '')
-          if (data.config.statusMapBuugToClickUp) setStatusMapBuugToClickUp(data.config.statusMapBuugToClickUp)
-          if (data.config.statusMapClickUpToBuug) setStatusMapClickUpToBuug(data.config.statusMapClickUpToBuug)
         }
+        if (data.configured) await refreshAutomationStats()
+        else setAutomationStats({ count: 0, coveredProjects: 0 })
       }
-    } catch {}
+    } catch { /* ignore */ }
     setLoading(false)
-  }, [orgId])
+  }, [orgId, refreshAutomationStats])
 
-  useEffect(() => { fetchConfig() }, [fetchConfig])
+  useEffect(() => {
+    void fetchConfig()
+  }, [fetchConfig])
+
+  useEffect(() => {
+    if (!prefillAutomationProjectId || !configured || !enabled) return
+    setMainTab('automations')
+  }, [prefillAutomationProjectId, configured, enabled])
+
+  useEffect(() => {
+    if (loading || hydratedRef.current) return
+    hydratedRef.current = true
+    if (configured && enabled) {
+      setMainTab('automations')
+      setShowConnectionEditor(false)
+    } else {
+      setShowConnectionEditor(true)
+      setMainTab('connection')
+    }
+  }, [loading, configured, enabled])
 
   const handleTestToken = async () => {
     const t = token.trim()
@@ -112,93 +163,26 @@ export default function ClickUpSetup({ orgId }: { orgId: string }) {
       const res = await fetch('/api/integrations/clickup/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: t }),
+        body: JSON.stringify({ token: t, orgId }),
       })
       const data = await res.json()
       setTestResult(data)
-      if (data.valid) {
-        const teamsRes = await fetch('/api/integrations/clickup/browse', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token: t, action: 'teams' }),
-        })
-        const teamsData = await teamsRes.json()
-        setTeams(teamsData.teams || [])
-      }
     } catch {
       setTestResult({ valid: false, error: 'Erro de rede' })
     }
     setTesting(false)
   }
 
-  const handleTeamChange = async (teamId: string) => {
-    setSelectedTeamId(teamId)
-    setSpaces([])
-    setSelectedSpaceId('')
-    setLists([])
-    setSelectedListId('')
-    setSelectedListStatuses([])
-    if (!teamId) return
-    try {
-      const res = await fetch('/api/integrations/clickup/browse', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: token.trim(), action: 'spaces', teamId }),
-      })
-      const data = await res.json()
-      setSpaces(data.spaces || [])
-    } catch {}
-  }
-
-  const handleSpaceChange = async (spaceId: string) => {
-    setSelectedSpaceId(spaceId)
-    setLists([])
-    setSelectedListId('')
-    setSelectedListStatuses([])
-    if (!spaceId) return
-    try {
-      const res = await fetch('/api/integrations/clickup/browse', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: token.trim(), action: 'lists', spaceId }),
-      })
-      const data = await res.json()
-      setLists(data.lists || [])
-    } catch {}
-  }
-
-  const handleListChange = (listId: string) => {
-    setSelectedListId(listId)
-    const list = lists.find(l => l.id === listId)
-    const statuses = list?.statuses.map(s => s.status) || []
-    setSelectedListStatuses(statuses)
-
-    if (statuses.length > 0) {
-      const newB2C: Record<string, string> = {}
-      for (const bs of BUUG_STATUSES) {
-        const defaultVal = DEFAULT_STATUS_MAP_BUUG_TO_CLICKUP[bs] || ''
-        newB2C[bs] = statuses.includes(defaultVal) ? defaultVal : statuses[0]
-      }
-      setStatusMapBuugToClickUp(newB2C)
-
-      const newC2B: Record<string, string> = {}
-      for (const cs of statuses) {
-        newC2B[cs] = DEFAULT_STATUS_MAP_CLICKUP_TO_BUUG[cs] || 'OPEN'
-      }
-      setStatusMapClickUpToBuug(newC2B)
-    }
-  }
-
   const handleSave = async () => {
     setSaving(true)
     setSaveMsg(null)
     try {
-      const body: any = {
+      const body: Record<string, unknown> = {
         enabled: true,
-        teamId: selectedTeamId,
-        listId: selectedListId,
-        statusMapBuugToClickUp,
-        statusMapClickUpToBuug,
+        teamId: '',
+        listId: null,
+        statusMapBuugToClickUp: DEFAULT_STATUS_MAP_BUUG_TO_CLICKUP,
+        statusMapClickUpToBuug: DEFAULT_STATUS_MAP_CLICKUP_TO_BUUG,
       }
       if (token.trim()) body.token = token.trim()
 
@@ -215,6 +199,12 @@ export default function ClickUpSetup({ orgId }: { orgId: string }) {
           setTokenHint(token.trim().slice(-4))
           setToken('')
         }
+        setTestResult(null)
+        await refreshProjects()
+        await refreshAutomationStats()
+        onConnectionChange?.()
+        setMainTab('automations')
+        setShowConnectionEditor(false)
       } else {
         const data = await res.json()
         setSaveMsg({ type: 'danger', text: data.error || 'Erro ao salvar' })
@@ -225,7 +215,7 @@ export default function ClickUpSetup({ orgId }: { orgId: string }) {
     setSaving(false)
   }
 
-  const handleDisconnect = async () => {
+  const performDisconnect = useCallback(async () => {
     setDisconnecting(true)
     try {
       await fetch(`/api/integrations/clickup?orgId=${orgId}`, { method: 'DELETE' })
@@ -234,236 +224,434 @@ export default function ClickUpSetup({ orgId }: { orgId: string }) {
       setToken('')
       setTokenHint('')
       setTestResult(null)
-      setTeams([])
-      setSpaces([])
-      setLists([])
-      setSelectedTeamId('')
-      setSelectedSpaceId('')
-      setSelectedListId('')
-      setSelectedListStatuses([])
-      setStatusMapBuugToClickUp(DEFAULT_STATUS_MAP_BUUG_TO_CLICKUP)
-      setStatusMapClickUpToBuug(DEFAULT_STATUS_MAP_CLICKUP_TO_BUUG)
       setSaveMsg(null)
-    } catch {}
+      setOrgProjects([])
+      setMainTab('connection')
+      setShowConnectionEditor(true)
+      setAutomationStats({ count: 0, coveredProjects: 0 })
+      setShowDisconnectConfirm(false)
+      onConnectionChange?.()
+    } catch { /* ignore */ }
     setDisconnecting(false)
-  }
+  }, [orgId, onConnectionChange])
+
+  const canSave = useMemo(() => {
+    const newTok = !!token.trim()
+    const hasExisting = configured && !!tokenHint
+    if (hasExisting && !newTok) return true
+    return newTok && !!testResult?.valid
+  }, [configured, tokenHint, token, testResult?.valid])
+
+  const disconnectModal = showDisconnectConfirm ? (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="clickup-disconnect-title"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0,0,0,0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 320,
+        padding: '1rem',
+      }}
+      onClick={() => !disconnecting && setShowDisconnectConfirm(false)}
+    >
+      <Column
+        padding="l"
+        gap="m"
+        radius="l"
+        background="surface"
+        border="neutral-medium"
+        style={{ maxWidth: '28rem', width: '100%', boxShadow: '0 24px 48px rgba(0,0,0,0.2)' }}
+        onClick={(e: React.MouseEvent) => e.stopPropagation()}
+      >
+        <Column gap="s">
+          <Heading variant="heading-strong-m" as="h3" id="clickup-disconnect-title" style={{ margin: 0 }}>
+            Desconectar ClickUp
+          </Heading>
+          <Text variant="body-default-s" onBackground="neutral-weak">
+            Tem certeza? O token da API será removido, a integração desativada e as automações desta organização deixarão de enviar reports ao ClickUp. Você poderá conectar de novo depois.
+          </Text>
+        </Column>
+        <Row gap="s" horizontal="end" wrap>
+          <Button
+            variant="secondary"
+            size="m"
+            label="Cancelar"
+            disabled={disconnecting}
+            onClick={() => setShowDisconnectConfirm(false)}
+          />
+          <Button
+            variant="danger"
+            size="m"
+            label={disconnecting ? 'Desconectando…' : 'Desconectar'}
+            loading={disconnecting}
+            disabled={disconnecting}
+            onClick={() => void performDisconnect()}
+          />
+        </Row>
+      </Column>
+    </div>
+  ) : null
 
   if (loading) {
     return (
-      <Card fillWidth padding="xl" radius="l" style={{ textAlign: 'center' }}>
-        <Text variant="body-default-s" onBackground="neutral-weak">Carregando configuração do ClickUp…</Text>
-      </Card>
+      <>
+        <Column fillWidth gap="m" style={{ position: 'relative' }}>
+          {onClose ? (
+            <Row fillWidth horizontal="end" style={{ flexShrink: 0 }}>
+              <ClickUpModalCloseButton onClose={onClose} />
+            </Row>
+          ) : null}
+          <Column fillWidth padding="xl" horizontal="center" gap="m">
+            <Text variant="body-default-s" onBackground="neutral-weak">Carregando configuração do ClickUp…</Text>
+          </Column>
+        </Column>
+        {disconnectModal}
+      </>
     )
   }
 
-  const tokenReady = testResult?.valid || (configured && tokenHint)
-  const canSave = selectedListId && (token.trim() || configured)
+  if (!integrationEntitled && !configured) {
+    return (
+      <Column fillWidth gap="m" style={{ position: 'relative' }}>
+        {onClose ? (
+          <Row fillWidth horizontal="end" style={{ flexShrink: 0 }}>
+            <ClickUpModalCloseButton onClose={onClose} />
+          </Row>
+        ) : null}
+        <FeedbackAlert variant="warning" title="Plano Pro ou Business">
+          <Text variant="body-default-s" onBackground="neutral-weak">
+            A integração ClickUp e as automações exigem plano pago com assinatura ativa.
+          </Text>
+        </FeedbackAlert>
+        <Button variant="primary" size="m" label="Ver planos" onClick={() => router.push('/plans/upgrade')} />
+      </Column>
+    )
+  }
+
+  const openConnectionEditor = () => {
+    setShowConnectionEditor(true)
+    setMainTab('connection')
+    setToken('')
+    setTestResult(null)
+  }
+
+  const closeConnectionEditor = () => {
+    setShowConnectionEditor(false)
+    setMainTab('automations')
+  }
+
+  const editingActiveConnection = configured && enabled && showConnectionEditor
+  const compactAutomationsOnly = configured && enabled && !showConnectionEditor
+  const orgScopedProjects = orgProjects.filter(p => p.organizationId === orgId)
+
+  if (compactAutomationsOnly) {
+    if (!integrationEntitled) {
+      return (
+        <>
+          <Column
+            fillWidth
+            gap="m"
+            style={{
+              minHeight: 0,
+              flex: automationWizardOpen ? 1 : undefined,
+              alignSelf: 'stretch',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <Column fillWidth gap="m" style={{ marginBottom: '1rem', flexShrink: 0 }}>
+              <Row gap="m" vertical="start" fillWidth horizontal="between" style={{ alignItems: 'flex-start' }}>
+                <Row gap="m" vertical="start" style={{ flex: 1, minWidth: 0, alignItems: 'flex-start' }}>
+                  <img src="/integrations/clickup.svg" alt="" width={44} height={44} style={{ flexShrink: 0, marginTop: 2 }} />
+                  <Column gap="xs" fillWidth style={{ minWidth: 0 }}>
+                    <Heading variant="heading-strong-s" as="h2" id="clickup-modal-title" style={{ margin: 0, lineHeight: 1.25 }}>
+                      ClickUp
+                    </Heading>
+                    <Text variant="body-default-xs" onBackground="neutral-weak" style={{ lineHeight: 1.5, wordBreak: 'break-word' }}>
+                      <span style={{ color: 'var(--warning-on-background-strong, #b45309)' }}>Integrações pausadas</span>
+                      {' · '}Sem plano Pro/Business ativo a sincronização e as automações não funcionam. Pode desconectar para remover credenciais.
+                    </Text>
+                  </Column>
+                </Row>
+                {onClose ? <ClickUpModalCloseButton onClose={onClose} /> : null}
+              </Row>
+              <Row gap="s" vertical="center" wrap fillWidth horizontal="start" style={{ flexShrink: 0 }}>
+                <Button size="s" variant="primary" label="Ver planos" onClick={() => router.push('/plans/upgrade')} />
+                <Button size="s" variant="danger" label="Desconectar" onClick={() => setShowDisconnectConfirm(true)} />
+              </Row>
+            </Column>
+          </Column>
+          {disconnectModal}
+        </>
+      )
+    }
+    return (
+      <>
+      <Column
+        fillWidth
+        gap="0"
+        style={{
+          minHeight: 0,
+          flex: automationWizardOpen ? 1 : undefined,
+          alignSelf: 'stretch',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        {!automationWizardOpen ? (
+          <Column fillWidth gap="m" style={{ marginBottom: '1rem', flexShrink: 0 }}>
+            <Row gap="m" vertical="start" fillWidth horizontal="between" style={{ alignItems: 'flex-start' }}>
+              <Row gap="m" vertical="start" style={{ flex: 1, minWidth: 0, alignItems: 'flex-start' }}>
+                <img src="/integrations/clickup.svg" alt="" width={44} height={44} style={{ flexShrink: 0, marginTop: 2 }} />
+                <Column gap="xs" fillWidth style={{ minWidth: 0 }}>
+                  <Heading variant="heading-strong-s" as="h2" id="clickup-modal-title" style={{ margin: 0, lineHeight: 1.25 }}>
+                    Automações ClickUp
+                  </Heading>
+                  <Text variant="body-default-xs" onBackground="neutral-weak" style={{ lineHeight: 1.5, wordBreak: 'break-word' }}>
+                    <span style={{ color: 'var(--success-on-background-strong)' }}>Conexão ativa</span>
+                    {` · ${automationStats.count} automação(ões) · ${automationStats.coveredProjects} projeto(s) com destino`}
+                  </Text>
+                </Column>
+              </Row>
+              {onClose ? <ClickUpModalCloseButton onClose={onClose} /> : null}
+            </Row>
+            <Row gap="s" vertical="center" wrap fillWidth horizontal="start" style={{ flexShrink: 0 }}>
+              {integrationEntitled ? (
+                <Button size="s" variant="secondary" label="Editar chave API" onClick={openConnectionEditor} />
+              ) : null}
+              <Button size="s" variant="danger" label="Desconectar" onClick={() => setShowDisconnectConfirm(true)} />
+            </Row>
+          </Column>
+        ) : null}
+        <div
+          style={{
+            flex: automationWizardOpen ? 1 : undefined,
+            minHeight: automationWizardOpen ? 0 : undefined,
+            maxHeight: automationWizardOpen ? 'none' : 'min(58vh, 520px)',
+            overflowY: automationWizardOpen ? 'hidden' : 'auto',
+            overflowX: 'hidden',
+            paddingRight: '0.25rem',
+            display: automationWizardOpen ? 'flex' : undefined,
+            flexDirection: automationWizardOpen ? 'column' : undefined,
+          }}
+        >
+          <ClickUpAutomationsTab
+            orgId={orgId}
+            defaultTeamId=""
+            orgScopedProjects={orgScopedProjects}
+            fillWizardHeight={automationWizardOpen}
+            openCreateWithProjectId={prefillAutomationProjectId}
+            onOpenCreatePrefillConsumed={onPrefillAutomationConsumed}
+            onCloseEntireModal={onClose}
+            onWizardOpenChange={setAutomationWizardOpen}
+            onChange={() => {
+              void refreshAutomationStats()
+              onConnectionChange?.()
+            }}
+          />
+        </div>
+      </Column>
+      {disconnectModal}
+      </>
+    )
+  }
 
   return (
-    <Column gap="l" fillWidth>
-      {configured && enabled && (
-        <Card fillWidth padding="l" radius="l" style={{ background: 'var(--success-alpha-weak)', border: '1px solid var(--success-border-medium)' }}>
-          <Row fillWidth horizontal="between" vertical="center" wrap gap="m">
-            <Column gap="xs">
-              <Text variant="label-default-s" onBackground="success-strong">ClickUp conectado</Text>
-              <Text variant="body-default-xs" onBackground="neutral-weak">
-                Token: ****{tokenHint} · Lista: {selectedListId || '(não definida)'}
+    <>
+    <Column fillWidth gap="0" style={{ minHeight: 0 }}>
+      <Column fillWidth gap="m" style={{ marginBottom: editingActiveConnection ? '0.75rem' : '1rem' }}>
+        <Row gap="m" vertical="start" fillWidth horizontal="between" style={{ alignItems: 'flex-start' }}>
+          <Row gap="m" vertical="start" style={{ flex: 1, minWidth: 0, alignItems: 'flex-start' }}>
+            <img src="/integrations/clickup.svg" alt="" width={44} height={44} style={{ flexShrink: 0, marginTop: 2 }} />
+            <Column gap="xs" fillWidth style={{ minWidth: 0 }}>
+              <Heading variant="heading-strong-s" as="h2" id="clickup-modal-title" style={{ margin: 0, lineHeight: 1.25 }}>
+                {editingActiveConnection
+                  ? 'Editar conexão ClickUp'
+                  : mainTab === 'connection'
+                    ? 'Conectar ao ClickUp'
+                    : 'Automações'}
+              </Heading>
+              <Text variant="body-default-xs" onBackground="neutral-weak" style={{ lineHeight: 1.5, wordBreak: 'break-word' }}>
+                {editingActiveConnection ? (
+                  <>
+                    <span style={{ color: 'var(--success-on-background-strong)' }}>Integração ativa</span>
+                    {' · '}Somente token da API. Workspace e lista em cada automação.
+                  </>
+                ) : mainTab === 'connection' ? (
+                  <>
+                    Token da API do ClickUp. Depois use a aba <strong>Automações</strong> para definir destino (workspace, lista) por regra.
+                    {configured && enabled && (
+                      <>
+                        {' · '}
+                        <span style={{ color: 'var(--success-on-background-strong)' }}>Ativo</span>
+                        {` · ${automationStats.count} automação(ões)`}
+                      </>
+                    )}
+                  </>
+                ) : (
+                  'Gerencie para onde cada projeto Buug envia reports no ClickUp'
+                )}
               </Text>
             </Column>
-            <Button size="s" variant="danger" label="Desconectar" onClick={handleDisconnect} loading={disconnecting} />
           </Row>
-        </Card>
+          {onClose ? <ClickUpModalCloseButton onClose={onClose} /> : null}
+        </Row>
+        {!editingActiveConnection ? (
+          <Row gap="s" vertical="center" wrap fillWidth horizontal="start" style={{ flexShrink: 0 }}>
+            {configured ? (
+              <Button size="s" variant="danger" label="Desconectar" onClick={() => setShowDisconnectConfirm(true)} />
+            ) : null}
+          </Row>
+        ) : null}
+      </Column>
+
+      {!integrationEntitled && configured ? (
+        <FeedbackAlert variant="warning" title="Integrações pausadas">
+          <Text variant="body-default-s" onBackground="neutral-weak">
+            Renove o plano Pro ou Business para editar a conexão ou gerir automações. Pode desconectar para remover o token.
+          </Text>
+        </FeedbackAlert>
+      ) : null}
+
+      {!editingActiveConnection ? (
+        <Row gap="xs" wrap style={{ marginBottom: '0.75rem' }}>
+          <Button
+            size="s"
+            variant={mainTab === 'connection' ? 'primary' : 'secondary'}
+            label="Conexão"
+            onClick={() => setMainTab('connection')}
+          />
+          <Button
+            size="s"
+            variant={mainTab === 'automations' ? 'primary' : 'secondary'}
+            label="Automações"
+            onClick={() => setMainTab('automations')}
+            disabled={!configured || !enabled}
+          />
+        </Row>
+      ) : null}
+
+      {mainTab === 'automations' && configured && enabled && integrationEntitled && !editingActiveConnection && (
+        <ClickUpAutomationsTab
+          orgId={orgId}
+          defaultTeamId=""
+          orgScopedProjects={orgScopedProjects}
+          openCreateWithProjectId={prefillAutomationProjectId}
+          onOpenCreatePrefillConsumed={onPrefillAutomationConsumed}
+          onCloseEntireModal={onClose}
+          onWizardOpenChange={setAutomationWizardOpen}
+          onChange={() => {
+            void refreshAutomationStats()
+            onConnectionChange?.()
+          }}
+        />
       )}
 
-      <Card fillWidth padding="l" radius="l">
-        <Column gap="l">
-          <Column gap="xs">
-            <Heading variant="heading-strong-s" as="h2">Conectar ao ClickUp</Heading>
-            <Text variant="body-default-s" onBackground="neutral-weak">
-              Siga os passos abaixo para que os reports do Buug virem tarefas no ClickUp automaticamente, e
-              mudanças de status reflitam nos dois lados.
-            </Text>
-          </Column>
+      {mainTab === 'automations' && (!configured || !enabled) && (
+        <FeedbackAlert variant="warning" title="Conecte o ClickUp">
+          Use a aba Conexão para salvar o token e ativar a integração antes das automações.
+        </FeedbackAlert>
+      )}
 
-          <Column gap="m">
-            <Row gap="s" vertical="start">
-              <StepBadge n={1} done={!!tokenReady} />
-              <Column gap="s" style={{ flex: 1 }}>
-                <Text variant="label-default-s">Colar o token de API do ClickUp</Text>
-                <Text variant="body-default-xs" onBackground="neutral-weak">
-                  No ClickUp, vá em <strong>Configurações → Apps → API Token</strong> e copie o token pessoal.
-                  Ele começa com <code style={{ fontSize: '0.8em' }}>pk_</code>.
+      {mainTab === 'automations' && configured && enabled && !integrationEntitled && !editingActiveConnection && (
+        <FeedbackAlert variant="warning" title="Plano necessário">
+          <Text variant="body-default-s" onBackground="neutral-weak">
+            As automações exigem plano Pro ou Business com assinatura ativa.
+          </Text>
+          <Row gap="s" style={{ marginTop: '0.75rem' }}>
+            <Button size="s" variant="primary" label="Ver planos" onClick={() => router.push('/plans/upgrade')} />
+          </Row>
+        </FeedbackAlert>
+      )}
+
+      {mainTab === 'connection' && (
+        <>
+          <div
+            style={{
+              maxHeight: 'min(58vh, 520px)',
+              overflowY: 'auto',
+              paddingRight: '0.25rem',
+            }}
+          >
+            <Column gap="m" fillWidth>
+              <Text variant="body-default-s" onBackground="neutral-weak" style={{ lineHeight: 1.55 }}>
+                {editingActiveConnection
+                  ? 'O token salvo continua ativo. Para trocar, cole o novo valor, teste e salve. Para sair sem mudanças: use Voltar ou clique fora do modal.'
+                  : 'Cole o token da API, teste a conexão e salve. Workspace e lista você define ao criar cada automação.'}
+              </Text>
+              <Text variant="body-default-xs" onBackground="neutral-weak">
+                ClickUp: <strong>Configurações → Apps → API Token</strong> (geralmente <code style={{ fontSize: '0.8em' }}>pk_</code>…).
+              </Text>
+
+              <Column gap="xs" fillWidth>
+                <Text variant="label-default-s" style={{ color: 'var(--neutral-on-background-weak)' }}>
+                  Token da API
                 </Text>
-                <Row gap="s" vertical="end" wrap>
-                  <div style={{ flex: '1 1 14rem' }}>
-                    <input
-                      type="password"
-                      placeholder={configured ? `****${tokenHint} (já salvo)` : 'pk_...'}
-                      value={token}
-                      onChange={e => setToken(e.target.value)}
-                      style={inputStyle}
-                    />
-                  </div>
-                  <Button
-                    size="m"
-                    variant="secondary"
-                    label={testing ? 'Testando…' : 'Testar conexão'}
-                    onClick={handleTestToken}
-                    loading={testing}
-                    disabled={!token.trim()}
-                  />
-                </Row>
-                {testResult && (
-                  <Text variant="body-default-xs" onBackground={testResult.valid ? 'success-strong' : 'danger-strong'}>
-                    {testResult.valid
-                      ? `Conectado como ${testResult.user?.username}`
-                      : testResult.error || 'Token inválido'}
-                  </Text>
-                )}
-              </Column>
-            </Row>
-
-            <Row gap="s" vertical="start">
-              <StepBadge n={2} done={!!selectedListId} />
-              <Column gap="s" style={{ flex: 1 }}>
-                <Text variant="label-default-s">Escolher onde criar as tarefas</Text>
-                <Text variant="body-default-xs" onBackground="neutral-weak">
-                  Selecione o workspace, espaço e lista do ClickUp onde os reports devem aparecer.
-                </Text>
-
-                {teams.length > 0 && (
-                  <div>
-                    <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--neutral-on-background-weak)', display: 'block', marginBottom: '0.2rem' }}>
-                      Workspace
-                    </label>
-                    <select value={selectedTeamId} onChange={e => handleTeamChange(e.target.value)} style={selectStyle}>
-                      <option value="">Selecione…</option>
-                      {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                    </select>
-                  </div>
-                )}
-
-                {spaces.length > 0 && (
-                  <div>
-                    <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--neutral-on-background-weak)', display: 'block', marginBottom: '0.2rem' }}>
-                      Espaço
-                    </label>
-                    <select value={selectedSpaceId} onChange={e => handleSpaceChange(e.target.value)} style={selectStyle}>
-                      <option value="">Selecione…</option>
-                      {spaces.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                    </select>
-                  </div>
-                )}
-
-                {lists.length > 0 && (
-                  <div>
-                    <label style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--neutral-on-background-weak)', display: 'block', marginBottom: '0.2rem' }}>
-                      Lista
-                    </label>
-                    <select value={selectedListId} onChange={e => handleListChange(e.target.value)} style={selectStyle}>
-                      <option value="">Selecione…</option>
-                      {lists.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-                    </select>
-                  </div>
-                )}
-
-                {!tokenReady && teams.length === 0 && (
-                  <Text variant="body-default-xs" onBackground="neutral-weak" style={{ fontStyle: 'italic' }}>
-                    Teste o token acima para listar seus workspaces.
-                  </Text>
-                )}
-              </Column>
-            </Row>
-
-            <Row gap="s" vertical="start">
-              <StepBadge n={3} done={selectedListStatuses.length > 0 || configured} />
-              <Column gap="s" style={{ flex: 1 }}>
-                <Text variant="label-default-s">Mapeamento de status</Text>
-                <Text variant="body-default-xs" onBackground="neutral-weak">
-                  Defina como cada status do Buug corresponde a um status no ClickUp (e vice-versa).
-                  Valores sugeridos são preenchidos automaticamente.
-                </Text>
-
-                <Text variant="label-default-s" style={{ marginTop: '0.5rem' }}>Buug → ClickUp</Text>
-                {BUUG_STATUSES.map(bs => (
-                  <Row key={bs} gap="s" vertical="center" wrap>
-                    <Tag variant="neutral" size="s" label={BUUG_STATUS_LABELS[bs] || bs} />
-                    <span style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)' }}>→</span>
-                    {selectedListStatuses.length > 0 ? (
-                      <select
-                        value={statusMapBuugToClickUp[bs] || ''}
-                        onChange={e => setStatusMapBuugToClickUp(prev => ({ ...prev, [bs]: e.target.value }))}
-                        style={{ ...selectStyle, width: 'auto', minWidth: '10rem' }}
-                      >
-                        <option value="">Não mapear</option>
-                        {selectedListStatuses.map(cs => <option key={cs} value={cs}>{cs}</option>)}
-                      </select>
-                    ) : (
-                      <input
-                        value={statusMapBuugToClickUp[bs] || ''}
-                        onChange={e => setStatusMapBuugToClickUp(prev => ({ ...prev, [bs]: e.target.value }))}
-                        placeholder="ex.: to do"
-                        style={{ ...inputStyle, width: 'auto', minWidth: '10rem' }}
-                      />
-                    )}
-                  </Row>
-                ))}
-
-                <Text variant="label-default-s" style={{ marginTop: '0.75rem' }}>ClickUp → Buug</Text>
-                <Text variant="body-default-xs" onBackground="neutral-weak">
-                  Quando uma tarefa muda de status no ClickUp, qual status aplicar no Buug?
-                </Text>
-                {(selectedListStatuses.length > 0 ? selectedListStatuses : Object.keys(statusMapClickUpToBuug)).map(cs => (
-                  <Row key={cs} gap="s" vertical="center" wrap>
-                    <Tag variant="neutral" size="s" label={cs} />
-                    <span style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)' }}>→</span>
-                    <select
-                      value={statusMapClickUpToBuug[cs] || ''}
-                      onChange={e => setStatusMapClickUpToBuug(prev => ({ ...prev, [cs]: e.target.value }))}
-                      style={{ ...selectStyle, width: 'auto', minWidth: '10rem' }}
-                    >
-                      <option value="">Não mapear</option>
-                      {BUUG_STATUSES.map(bs => <option key={bs} value={bs}>{BUUG_STATUS_LABELS[bs]}</option>)}
-                    </select>
-                  </Row>
-                ))}
-              </Column>
-            </Row>
-
-            <Row gap="s" vertical="start">
-              <StepBadge n={4} done={configured && enabled} />
-              <Column gap="s" style={{ flex: 1 }}>
-                <Text variant="label-default-s">Ativar integração</Text>
-                <Text variant="body-default-xs" onBackground="neutral-weak">
-                  Ao salvar, novos reports criarão tarefas no ClickUp e mudanças de status serão sincronizadas.
-                  Se o ClickUp estiver fora do ar, o Buug continua funcionando normalmente.
-                </Text>
-                {saveMsg && <FeedbackAlert variant={saveMsg.type}>{saveMsg.text}</FeedbackAlert>}
-                <Button
-                  size="m"
-                  variant="primary"
-                  label={saving ? 'Salvando…' : (configured ? 'Atualizar integração' : 'Ativar integração')}
-                  onClick={handleSave}
-                  loading={saving}
-                  disabled={!canSave}
+                <input
+                  type="password"
+                  placeholder={configured ? `****${tokenHint} (já salvo)` : 'pk_...'}
+                  value={token}
+                  onChange={e => setToken(e.target.value)}
+                  style={inputStyle}
+                  autoComplete="off"
                 />
               </Column>
-            </Row>
-          </Column>
-        </Column>
-      </Card>
 
-      <Card fillWidth padding="l" radius="l" style={{ background: 'var(--neutral-alpha-weak)' }}>
-        <Column gap="s">
-          <Text variant="label-default-s">Como funciona</Text>
-          <ul style={{ margin: 0, paddingLeft: '1.25rem', fontSize: '0.875rem', lineHeight: 1.65, color: 'var(--neutral-on-background-weak)' }}>
-            <li>Cada novo report no Buug cria automaticamente uma tarefa na lista escolhida do ClickUp.</li>
-            <li>Quando você muda o status de um report no Buug, a tarefa no ClickUp é atualizada.</li>
-            <li>Quando alguém muda o status da tarefa no ClickUp, o report no Buug é atualizado.</li>
-            <li>Se o ClickUp estiver fora do ar ou retornar erro, o Buug continua funcionando — nenhum report é perdido.</li>
-          </ul>
-        </Column>
-      </Card>
+              {testResult && (
+                <Text variant="body-default-xs" onBackground={testResult.valid ? 'success-strong' : 'danger-strong'}>
+                  {testResult.valid
+                    ? `Conectado como ${testResult.user?.username}`
+                    : testResult.error || 'Token inválido'}
+                </Text>
+              )}
+              {saveMsg && <FeedbackAlert variant={saveMsg.type}>{saveMsg.text}</FeedbackAlert>}
+            </Column>
+          </div>
+
+          <Row
+            fillWidth
+            vertical="center"
+            wrap
+            gap="m"
+            style={{
+              marginTop: '1rem',
+              paddingTop: '1rem',
+              borderTop: '1px solid var(--neutral-border-medium)',
+            }}
+          >
+            {editingActiveConnection ? (
+              <div style={{ marginRight: 'auto' }}>
+                <Button size="m" variant="tertiary" label="Voltar às automações" onClick={closeConnectionEditor} />
+              </div>
+            ) : null}
+            <Row gap="s" vertical="center" wrap horizontal="end" style={{ marginLeft: editingActiveConnection ? undefined : 'auto' }}>
+              <Button
+                size="m"
+                variant="secondary"
+                label={testing ? 'Testando…' : 'Testar conexão'}
+                onClick={handleTestToken}
+                loading={testing}
+                disabled={!token.trim() || !integrationEntitled}
+              />
+              <Button
+                size="m"
+                variant="primary"
+                label={saving ? 'Salvando…' : (configured ? 'Salvar' : 'Salvar e ativar')}
+                onClick={handleSave}
+                loading={saving}
+                disabled={!canSave || !integrationEntitled}
+              />
+            </Row>
+          </Row>
+        </>
+      )}
     </Column>
+    {disconnectModal}
+    </>
   )
 }

@@ -1,5 +1,9 @@
 import { createClient } from '@supabase/supabase-js'
 import { createHmac } from 'crypto'
+import {
+  fetchOrgIntegrationGate,
+  hasActiveIntegrationEntitlement,
+} from '@/lib/integration-entitlement'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,6 +19,9 @@ export async function dispatchWebhookEvent(params: {
   payload: Record<string, unknown>
 }): Promise<void> {
   const { organizationId, event, payload } = params
+
+  const orgGate = await fetchOrgIntegrationGate(supabaseAdmin, organizationId)
+  if (!orgGate || !hasActiveIntegrationEntitlement(orgGate)) return
 
   // Find all active webhooks for this org that listen to this event
   const { data: webhooks } = await supabaseAdmin

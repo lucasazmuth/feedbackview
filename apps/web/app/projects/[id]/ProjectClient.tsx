@@ -23,6 +23,7 @@ import {
   Spinner,
 } from '@once-ui-system/core'
 import AppLayout from '@/components/ui/AppLayout'
+import { useOrg } from '@/contexts/OrgContext'
 import ProjectFeedbacksTab from './ProjectFeedbacksTab'
 
 const SessionReplay = dynamic(() => import('@/components/viewer/SessionReplay'), { ssr: false })
@@ -246,6 +247,7 @@ export default function ProjectClient({
   currentUserId,
 }: ProjectClientProps) {
   const router = useRouter()
+  const { currentOrg } = useOrg()
   const canEdit = userRole === 'OWNER' || userRole === 'ADMIN'
   const [localFeedbacks, setLocalFeedbacks] = useState(feedbacks)
   const [localAssigneesMap, setLocalAssigneesMap] = useState(feedbackAssigneesMap)
@@ -1910,6 +1912,60 @@ export default function ProjectClient({
                 )}
               </Column>
             </Card>
+
+            {canEdit && project ? (
+              <Card fillWidth padding="l" radius="l">
+                <Row gap="m" vertical="start" fillWidth>
+                  <div
+                    style={{
+                      flexShrink: 0,
+                      width: 40,
+                      height: 40,
+                      marginTop: 2,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: 10,
+                      background: 'var(--neutral-alpha-weak)',
+                      color: 'var(--neutral-on-background-strong)',
+                    }}
+                  >
+                    <Icon name="link" size="l" />
+                  </div>
+                  <Column gap="s" fillWidth style={{ minWidth: 0 }}>
+                    <Heading variant="heading-strong-s" as="h3">
+                      Integrações
+                    </Heading>
+                    <Text variant="body-default-s" onBackground="neutral-weak" style={{ lineHeight: 1.55 }}>
+                      As conexões externas da organização ficam em <strong>Configurações → Integrações</strong>. É nessa página que você vincula este projeto aos destinos disponíveis; outras integrações passarão a aparecer no mesmo lugar.
+                    </Text>
+                    {project.organizationId && currentOrg?.id !== project.organizationId && (
+                      <FeedbackAlert variant="warning">
+                        Selecione no menu da equipe a organização à qual este projeto pertence; o atalho ajusta a organização ao abrir Integrações.
+                      </FeedbackAlert>
+                    )}
+                    {!project.organizationId && (
+                      <Text variant="body-default-xs" onBackground="neutral-weak">
+                        Associe o projeto a uma organização para usar integrações.
+                      </Text>
+                    )}
+                    <div style={{ alignSelf: 'flex-start' }}>
+                      <Button
+                        variant="primary"
+                        size="m"
+                        label="Abrir Integrações"
+                        disabled={!project.organizationId}
+                        onClick={() => {
+                          if (!project.organizationId) return
+                          const q = new URLSearchParams({ orgId: project.organizationId })
+                          void router.push(`/settings/integrations?${q.toString()}`)
+                        }}
+                      />
+                    </div>
+                  </Column>
+                </Row>
+              </Card>
+            ) : null}
 
             {/* Widget appearance */}
             <Card fillWidth padding="l" radius="l">

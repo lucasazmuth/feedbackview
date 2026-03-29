@@ -14,7 +14,8 @@ interface Org {
 interface OrgContextType {
   orgs: Org[]
   currentOrg: Org | null
-  switchOrg: (orgId: string) => void
+  /** `skipRedirect`: só atualiza org na sessão (ex.: deep link para Integrações). */
+  switchOrg: (orgId: string, options?: { skipRedirect?: boolean }) => void
   refreshOrgs: () => Promise<void>
   loading: boolean
 }
@@ -93,10 +94,10 @@ export function OrgProvider({ children }: { children: ReactNode }) {
     fetchOrgs()
   }, [fetchOrgs])
 
-  const switchOrg = useCallback((orgId: string) => {
+  const switchOrg = useCallback((orgId: string, options?: { skipRedirect?: boolean }) => {
     setCurrentOrgId(orgId)
     localStorage.setItem(STORAGE_KEY, orgId)
-    // Navigate to dashboard to avoid showing stale data from another org
+    if (options?.skipRedirect) return
     window.location.href = '/dashboard'
   }, [])
 

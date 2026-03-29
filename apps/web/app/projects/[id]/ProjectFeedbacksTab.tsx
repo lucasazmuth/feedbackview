@@ -184,17 +184,40 @@ export default function ProjectFeedbacksTab({
   }, [setManualSort])
 
   // Bulk
-  const [bulkStatusLoading, setBulkStatusLoading] = useState(false)
+  const [bulkActionLoading, setBulkActionLoading] = useState(false)
   const handleBulkStatusChange = useCallback(async (status: string) => {
-    setBulkStatusLoading(true)
+    setBulkActionLoading(true)
     const ids = selectionRef.current.selectedArray
     setFeedbacks(prev => prev.map(f => ids.includes(f.id) ? { ...f, status } : f))
     try {
       await api.feedbacks.bulkUpdateStatus(ids, status)
       selectionRef.current.clearSelection()
     } catch { setFeedbacks(initialFeedbacks) }
-    setBulkStatusLoading(false)
+    setBulkActionLoading(false)
   }, [initialFeedbacks])
+
+  const handleBulkDelete = useCallback(async () => {
+    const ids = selectionRef.current.selectedArray
+    if (ids.length === 0) return
+    setBulkActionLoading(true)
+    setFeedbacks(prev => prev.filter(f => !ids.includes(f.id)))
+    setFeedbackAssigneesMap(prev => {
+      const next = { ...prev }
+      ids.forEach((id) => {
+        delete next[id]
+      })
+      return next
+    })
+    try {
+      await api.feedbacks.bulkDelete(ids)
+      selectionRef.current.clearSelection()
+    } catch {
+      setFeedbacks(initialFeedbacks)
+      setFeedbackAssigneesMap(initialAssigneesMap)
+    } finally {
+      setBulkActionLoading(false)
+    }
+  }, [initialFeedbacks, initialAssigneesMap])
 
   const displayFeedbacks = viewMode === 'kanban' ? filteredFeedbacks : sortedFeedbacks
 
@@ -316,9 +339,9 @@ export default function ProjectFeedbacksTab({
       <BulkToolbar
         selectedCount={selection.selectedCount}
         onChangeStatus={handleBulkStatusChange}
-        onArchive={() => handleBulkStatusChange('ARCHIVED')}
+        onDelete={handleBulkDelete}
         onClearSelection={selection.clearSelection}
-        statusLoading={bulkStatusLoading}
+        actionLoading={bulkActionLoading}
       />
 
       <FeedbackDetailModal

@@ -24,16 +24,32 @@ export async function PATCH(
     const body = await req.json()
 
     // Verify OWNER/ADMIN access (direct owner or org role)
-    const access = await getProjectWriteAccess(user.id, id, 'id, ownerId, organizationId, name, targetUrl, description')
+    const access = await getProjectWriteAccess(
+      user.id,
+      id,
+      'id, ownerId, organizationId, name, targetUrl, description',
+    )
     if (!access) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 })
     }
     const project = access.project
 
-    const allowedFields = ['name', 'description', 'targetUrl', 'widgetPosition', 'widgetColor', 'widgetStyle', 'widgetText', 'embedPaused']
+    const allowedFields = [
+      'name',
+      'description',
+      'targetUrl',
+      'widgetPosition',
+      'widgetColor',
+      'widgetStyle',
+      'widgetText',
+      'embedPaused',
+    ]
     const updateData: Record<string, unknown> = {}
     for (const key of allowedFields) {
-      if (body[key] !== undefined) updateData[key] = body[key]
+      if (body[key] !== undefined) {
+        let v = body[key]
+        updateData[key] = v
+      }
     }
 
     if (Object.keys(updateData).length === 0) {

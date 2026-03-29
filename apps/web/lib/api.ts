@@ -86,6 +86,19 @@ export const api = {
       return res.json()
     },
 
+    async bulkDelete(feedbackIds: string[]) {
+      const res = await fetch('/api/feedbacks/bulk-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feedbackIds }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Erro ao excluir reports')
+      }
+      return res.json()
+    },
+
     async updateStartDate(feedbackId: string, startDate: string | null) {
       const res = await fetch('/api/feedbacks/start-date', {
         method: 'PATCH',

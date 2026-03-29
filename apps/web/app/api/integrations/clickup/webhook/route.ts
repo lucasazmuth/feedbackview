@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import type { ClickUpIntegrationConfig } from '@/lib/clickup/types'
+import {
+  fetchOrgIntegrationGate,
+  hasActiveIntegrationEntitlement,
+} from '@/lib/integration-entitlement'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -45,6 +49,11 @@ export async function POST(req: NextRequest) {
   const orgId = (feedback as any).Project?.organizationId
   if (!orgId) return NextResponse.json({ ok: true })
 
+  const orgGate = await fetchOrgIntegrationGate(supabaseAdmin, orgId)
+  if (!orgGate || !hasActiveIntegrationEntitlement(orgGate)) {
+    return NextResponse.json({ ok: true })
+  }
+
   const { data: org } = await supabaseAdmin
     .from('Organization')
     .select('clickupIntegration')
@@ -54,7 +63,12 @@ export async function POST(req: NextRequest) {
   const config = org?.clickupIntegration as ClickUpIntegrationConfig | null
   if (!config?.enabled) return NextResponse.json({ ok: true })
 
-  const buugStatus = config.statusMapClickUpToBuug?.[newClickUpStatus]
+  const map = config.statusMapClickUpToBuug || {}
+  let buugStatus: string | undefined = map[newClickUpStatus]
+  if (!buugStatus) {
+    const hit = Object.entries(map).find(([k]) => k.toLowerCase() === newClickUpStatus)
+    buugStatus = hit?.[1] as string | undefined
+  }
   if (!buugStatus) return NextResponse.json({ ok: true })
 
   if (buugStatus === feedback.status) return NextResponse.json({ ok: true })

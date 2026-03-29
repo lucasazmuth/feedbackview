@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { validateApiKey, hasPermission, isApiRateLimited } from '@/lib/api-auth'
+import {
+  fetchOrgIntegrationGate,
+  hasActiveIntegrationEntitlement,
+  integrationEntitlementErrorBody,
+} from '@/lib/integration-entitlement'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,6 +24,11 @@ export async function GET(req: NextRequest) {
 
   if (isApiRateLimited(apiKey.id)) {
     return NextResponse.json({ error: 'Rate limit exceeded. Max 100 requests/minute.' }, { status: 429 })
+  }
+
+  const orgGate = await fetchOrgIntegrationGate(supabase, apiKey.organizationId)
+  if (!orgGate || !hasActiveIntegrationEntitlement(orgGate)) {
+    return NextResponse.json(integrationEntitlementErrorBody(), { status: 403 })
   }
 
   const { data, error } = await supabase

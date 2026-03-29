@@ -350,7 +350,8 @@ export function IntegrationsDocsReference({
                 <Text variant="body-default-m" onBackground="neutral-weak">
                   Use a <strong>API REST</strong> quando seu sistema precisar <strong>buscar ou atualizar</strong> dados no
                   Buug com uma chave de acesso. Use <strong>webhooks</strong> quando quiser que o Buug{' '}
-                  <strong>avisar automaticamente</strong> um endereço seu sempre que algo acontecer.
+                  <strong>avisar automaticamente</strong> um endereço seu sempre que algo acontecer. A API e os webhooks de
+                  saída exigem <strong>plano Pro ou Business com assinatura ativa</strong> no workspace.
                 </Text>
                 <SectionLabel>Índice de endpoints</SectionLabel>
                 <div style={{ overflowX: 'auto' }}>
@@ -408,6 +409,11 @@ export function IntegrationsDocsReference({
                   rows={[
                     { status: '401', title: 'Chave ausente ou inválida' },
                     { status: '403', title: 'Chave sem permissão para a operação' },
+                    {
+                      status: '403',
+                      title:
+                        'Organização sem plano pago ativo (código INTEGRATIONS_REQUIRE_PAID_PLAN) — API disponível só em Pro/Business com assinatura ativa',
+                    },
                     { status: '429', title: 'Limite de 100 requisições/minuto excedido' },
                   ]}
                 />
@@ -630,13 +636,19 @@ const received = req.headers['x-buug-signature']
 
             {docPage === 'limits' && (
               <>
+                <SectionLabel>Planos e integrações</SectionLabel>
+                <Text variant="body-default-s" onBackground="neutral-weak">
+                  Chaves de API, chamadas aos endpoints <code style={{ fontSize: '0.9em' }}>/api/v1</code> e entregas de
+                  webhooks de saída só funcionam com <strong>Pro ou Business</strong> e assinatura ativa no Stripe. No
+                  plano gratuito você pode revogar chaves e remover webhooks já cadastrados.
+                </Text>
                 <SectionLabel>API REST</SectionLabel>
                 <ResponseTable
                   firstColumnHeader="HTTP"
                   secondColumnHeader="Significado"
                   rows={[
                     { status: '429', title: 'Rate limit: até 100 requisições por minuto por chave' },
-                    { status: '401 / 403', title: 'Autenticação ou permissão' },
+                    { status: '401 / 403', title: 'Autenticação, permissão ou plano sem integrações' },
                     { status: '404', title: 'Recurso inexistente ou fora da organização da chave' },
                   ]}
                 />

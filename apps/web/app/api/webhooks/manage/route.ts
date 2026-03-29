@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { randomBytes } from 'crypto'
+import {
+  fetchOrgIntegrationGate,
+  hasActiveIntegrationEntitlement,
+  integrationEntitlementErrorBody,
+} from '@/lib/integration-entitlement'
 
 const supabaseAdmin = createAdminClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -77,6 +82,11 @@ export async function POST(req: NextRequest) {
 
   if (!member || !['OWNER', 'ADMIN'].includes(member.role)) {
     return NextResponse.json({ error: 'Sem permissão' }, { status: 403 })
+  }
+
+  const orgGate = await fetchOrgIntegrationGate(supabaseAdmin, orgId)
+  if (!orgGate || !hasActiveIntegrationEntitlement(orgGate)) {
+    return NextResponse.json(integrationEntitlementErrorBody(), { status: 403 })
   }
 
   const secret = `whsec_${randomBytes(24).toString('hex')}`

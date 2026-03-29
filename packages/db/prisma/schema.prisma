@@ -36,6 +36,7 @@ model Organization {
   projects             Project[]
   apiKeys              ApiKey[]
   webhooks             Webhook[]
+  clickupAutomations   ClickUpAutomation[]
 }
 
 model ApiKey {
@@ -98,17 +99,20 @@ model TeamMember {
 }
 
 model Project {
-  id             String        @id @default(cuid())
-  name           String
-  description    String?
-  targetUrl      String
-  mode           String        @default("proxy")
-  ownerId        String
-  owner          User          @relation(fields: [ownerId], references: [id])
-  organizationId String?
-  organization   Organization? @relation(fields: [organizationId], references: [id])
-  createdAt      DateTime      @default(now())
-  feedbacks      Feedback[]
+  id               String        @id @default(cuid())
+  name             String
+  description      String?
+  targetUrl        String
+  mode             String        @default("proxy")
+  ownerId          String
+  owner            User          @relation(fields: [ownerId], references: [id])
+  organizationId   String?
+  organization     Organization? @relation(fields: [organizationId], references: [id])
+  clickupListId    String?
+  clickupListPath  String?
+  createdAt        DateTime      @default(now())
+  feedbacks        Feedback[]
+  clickupAutomationLinks ClickUpAutomationProject[]
 }
 
 model Feedback {
@@ -140,6 +144,34 @@ model Feedback {
   @@index([projectId, createdAt])
   @@index([createdAt])
   @@index([clickupTaskId])
+}
+
+model ClickUpAutomation {
+  id               String                     @id @default(cuid())
+  organizationId   String
+  organization     Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name             String?
+  enabled          Boolean                    @default(true)
+  clickupTeamId    String
+  clickupSpaceId   String
+  clickupListId    String
+  listPath         String?
+  createdAt        DateTime                   @default(now())
+  updatedAt        DateTime                   @updatedAt
+  projectLinks     ClickUpAutomationProject[]
+
+  @@index([organizationId])
+}
+
+model ClickUpAutomationProject {
+  automationId String
+  automation   ClickUpAutomation @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  projectId    String
+  project      Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@id([automationId, projectId])
+  @@unique([projectId])
+  @@index([projectId])
 }
 
 enum Plan {
