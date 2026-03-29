@@ -1031,7 +1031,9 @@ export default function ProjectClient({
             projectName={project.name}
             organizationId={project.organizationId ?? null}
             currentPlanForUpgrade={
-              currentOrg?.id === project.organizationId ? currentOrg.plan : 'FREE'
+              currentOrg != null && currentOrg.id === project.organizationId
+                ? currentOrg.plan
+                : 'FREE'
             }
           />
         )}

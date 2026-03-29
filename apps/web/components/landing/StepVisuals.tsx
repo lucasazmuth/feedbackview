@@ -383,11 +383,11 @@ export function StepVisuals({ step }: StepVisualsProps) {
                         ? 'lstep-tag--st-progress'
                         : 'lstep-tag--st-open'
                   const sevClass =
-                    r.sev === 'Alta' || r.sev === 'Crítico'
-                      ? 'lstep-tag--sev-high'
-                      : r.sev === 'Baixa'
-                        ? 'lstep-tag--sev-low'
-                        : 'lstep-tag--sev-mid'
+                    r.sev === 'Baixa'
+                      ? 'lstep-tag--sev-low'
+                      : r.sev === 'Média'
+                        ? 'lstep-tag--sev-mid'
+                        : 'lstep-tag--sev-high'
                   return (
                   <div key={i} className={`lstep-report-card ${i === 0 ? 'lstep-report-card--focus' : ''}`}>
                     <div className="lstep-report-card-check" aria-hidden />
