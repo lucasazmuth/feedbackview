@@ -48,6 +48,13 @@ function formatDate(dateStr: string) {
   })
 }
 
+const DASHBOARD_ONBOARDING_STEPS = [
+  { done: true, label: 'Criar sua conta', desc: 'Conta criada com sucesso' },
+  { done: false, label: 'Criar seu primeiro projeto', desc: 'Adicione a URL do seu site' },
+  { done: false, label: 'Instalar o widget', desc: 'Cole o script ou compartilhe o link de teste' },
+  { done: false, label: 'Receber o primeiro report', desc: 'Envie um bug de teste e veja no painel' },
+] as const
+
 function getEmbedStatus(embedLastSeenAt?: string | null, embedPaused?: boolean, mode?: string | null, feedbackCount?: number): { label: string; color: string; dotColor: string } {
   // Proxy mode (shared URL) — no heartbeat, status based on reports
   if (mode === 'proxy') {
@@ -168,6 +175,7 @@ export default function DashboardClient({
   }, [orgProjects, search, filterStatus, sortBy])
 
   const hasActiveFilter = filterStatus !== 'all' || sortBy !== 'recent'
+  const isEmptyDashboard = orgProjects.length === 0 && !error
 
   async function handleUnarchive(projectId: string) {
     setUnarchiving(projectId)
@@ -187,7 +195,10 @@ export default function DashboardClient({
 
   return (
     <AppLayout>
-      <div className="app-page">
+      <div
+        className="app-page"
+        style={isEmptyDashboard ? { flex: '1 1 auto', minHeight: 0 } : undefined}
+      >
         {/* Page title */}
         <h1 className="text-2xl font-bold text-off-white">Projetos</h1>
 
@@ -404,44 +415,74 @@ export default function DashboardClient({
           </div>
         )}
 
-        {/* Empty state — onboarding checklist */}
-        {orgProjects.length === 0 && !error && (
-          <div className="w-full flex flex-col items-center justify-center py-10 gap-6">
-            <div className="flex flex-col items-center gap-2 text-center">
-              <h1 className="text-2xl font-bold text-off-white">Bem-vindo ao Buug!</h1>
-              <p className="text-base text-gray" style={{ maxWidth: '28rem' }}>
-                Siga os passos abaixo para começar a capturar reports com screenshot, replay e Web Vitals.
-              </p>
-            </div>
+        {/* Empty state — subtítulo à esquerda; cartão centralizado no espaço restante da viewport */}
+        {isEmptyDashboard && (
+          <>
+            <p className="w-full max-w-2xl shrink-0 text-left text-sm leading-relaxed text-gray">
+              Nenhum projeto ainda. Crie o projeto com a URL do site para ver os relatórios aqui.
+            </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 400 }}>
-              {[
-                { done: true, label: 'Criar sua conta', desc: 'Conta criada com sucesso' },
-                { done: false, label: 'Criar seu primeiro projeto', desc: 'Adicione a URL do seu site' },
-                { done: false, label: 'Instalar o widget', desc: 'Cole o script ou compartilhe o link' },
-                { done: false, label: 'Receber o primeiro report', desc: 'Teste enviando um bug report' },
-              ].map((step, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', borderRadius: 12, border: '1px solid var(--neutral-border-medium)', background: step.done ? 'var(--success-alpha-weak)' : 'var(--surface-background)' }}>
-                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: step.done ? '#059669' : 'var(--neutral-alpha-weak)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: step.done ? '#fff' : 'var(--neutral-on-background-weak)', fontSize: 13, fontWeight: 700 }}>
-                    {step.done ? '✓' : i + 1}
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: step.done ? '#059669' : 'var(--neutral-on-background-strong)' }}>{step.label}</div>
-                    <div style={{ fontSize: 12, color: 'var(--neutral-on-background-weak)' }}>{step.desc}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-center px-1 py-8 md:px-2 md:py-12">
+              <section
+                className="w-full max-w-2xl shrink-0 overflow-hidden rounded-2xl border border-transparent-white bg-glass-gradient shadow-[0_28px_56px_-28px_rgba(0,0,0,0.55)]"
+                aria-labelledby="dashboard-onboarding-title"
+              >
+              <div className="border-b border-[color:var(--neutral-border-medium)] bg-white/[0.03] px-5 py-6 md:px-8 md:py-7">
+                <p className="text-xs text-gray">Primeiros passos</p>
+                <h2
+                  id="dashboard-onboarding-title"
+                  className="mt-2 text-xl font-bold tracking-tight text-off-white md:text-2xl"
+                >
+                  Bem-vindo ao Buug
+                </h2>
+                <p className="mt-2 max-w-xl text-sm leading-relaxed text-gray">
+                  Replay, console, rede e Web Vitals no mesmo relatório. Falta criar o projeto e ativar a captura.
+                </p>
+              </div>
 
-            <Button
-              variant="primary"
-              size="large"
-              type="button"
-              onClick={() => router.push('/criar-projeto')}
-            >
-              Criar primeiro projeto
-            </Button>
-          </div>
+              <div className="border-b border-[color:var(--neutral-border-medium)] px-5 py-3 md:px-8">
+                <p className="text-xs tabular-nums text-[color:var(--neutral-on-background-weak)]">
+                  {DASHBOARD_ONBOARDING_STEPS.filter((s) => s.done).length} de {DASHBOARD_ONBOARDING_STEPS.length}{' '}
+                  etapas concluídas
+                </p>
+              </div>
+
+              <ol className="list-none divide-y divide-[color:var(--neutral-border-medium)] px-5 md:px-8">
+                {DASHBOARD_ONBOARDING_STEPS.map((step, i) => (
+                  <li key={step.label} className="py-4">
+                    <p
+                      className={
+                        step.done
+                          ? 'text-sm font-semibold text-[var(--success-on-background-strong)]'
+                          : 'text-sm font-semibold text-off-white'
+                      }
+                    >
+                      {i + 1}. {step.label}
+                      {step.done ? (
+                        <span className="ml-2 font-normal text-[var(--success-on-background-strong)]">
+                          (feito)
+                        </span>
+                      ) : null}
+                    </p>
+                    <p className="mt-1 text-sm leading-relaxed text-gray">{step.desc}</p>
+                  </li>
+                ))}
+              </ol>
+
+              <div className="border-t border-[color:var(--neutral-border-medium)] bg-white/[0.02] px-5 pb-5 pt-4 md:px-8 md:pb-6 md:pt-5">
+                <Button
+                  variant="primary"
+                  size="large"
+                  type="button"
+                  className="w-full shadow-primary"
+                  onClick={() => router.push('/criar-projeto')}
+                >
+                  Criar primeiro projeto
+                </Button>
+              </div>
+              </section>
+            </div>
+          </>
         )}
 
         {/* Projects grid view */}
