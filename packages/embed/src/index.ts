@@ -479,40 +479,56 @@ function getProxyIframe(): HTMLIFrameElement | null {
 
 async function captureScreenshotViaProxy(iframe: HTMLIFrameElement): Promise<string | null> {
   return new Promise((resolve) => {
-    const timeout = setTimeout(() => {
+    let settled = false
+    const timeout = setTimeout(finish, 12_000)
+    function finish() {
+      if (settled) return
+      settled = true
+      clearTimeout(timeout)
       window.removeEventListener('message', handler)
       resolve(null)
-    }, 8000)
-
+    }
     function handler(event: MessageEvent) {
       const data = event.data
       if (data?.source === 'feedbackview-tracker' && data?.type === 'SCREENSHOT_RESULT') {
+        if (settled) return
+        settled = true
         clearTimeout(timeout)
         window.removeEventListener('message', handler)
         resolve(data.payload?.dataUrl || null)
       }
     }
-
     window.addEventListener('message', handler)
-    iframe.contentWindow?.postMessage({ type: 'CAPTURE_SCREENSHOT' }, '*')
+    const post = () => iframe.contentWindow?.postMessage({ type: 'CAPTURE_SCREENSHOT' }, '*')
+    post()
+    setTimeout(post, 350)
+    setTimeout(post, 800)
   })
 }
 
-async function captureScreenshot(): Promise<string | null> {
-  // In proxy mode, request screenshot from tracker.js inside the iframe
-  const proxyIframe = getProxyIframe()
-  if (proxyIframe) {
-    return captureScreenshotViaProxy(proxyIframe)
-  }
+/** Dois rAF: deixa o layout estabilizar após pauseRecording / countdown. */
+function settleLayout(): Promise<void> {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+  })
+}
 
-  // Direct embed mode: capture with html2canvas
+/** O host #feedbackview-embed cobre o viewport (fixed inset:0); html2canvas quebra ou tela branca se incluir esse nó + shadow fechado. */
+function ignoreEmbedHost(el: Element): boolean {
+  return (el as HTMLElement).id === 'feedbackview-embed'
+}
+
+async function captureDomScreenshotOnce(): Promise<string | null> {
   try {
     const html2canvas = (await import('html2canvas')).default
+    await settleLayout()
     const canvas = await html2canvas(document.body, {
       scale: 1,
       logging: false,
       useCORS: true,
       allowTaint: true,
+      imageTimeout: 15_000,
+      ignoreElements: ignoreEmbedHost,
       x: window.scrollX,
       y: window.scrollY,
       width: window.innerWidth,
@@ -520,7 +536,6 @@ async function captureScreenshot(): Promise<string | null> {
       windowWidth: window.innerWidth,
       windowHeight: window.innerHeight,
     })
-    // Downscale if too large to keep payload under Vercel's 4.5MB limit
     const MAX_WIDTH = 1280
     if (canvas.width > MAX_WIDTH) {
       const ratio = MAX_WIDTH / canvas.width
@@ -537,6 +552,20 @@ async function captureScreenshot(): Promise<string | null> {
   } catch {
     return null
   }
+}
+
+async function captureScreenshot(): Promise<string | null> {
+  const proxyIframe = getProxyIframe()
+  if (proxyIframe) {
+    return captureScreenshotViaProxy(proxyIframe)
+  }
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const dataUrl = await captureDomScreenshotOnce()
+    if (dataUrl) return dataUrl
+    await new Promise((r) => setTimeout(r, 120 * (attempt + 1)))
+  }
+  return null
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

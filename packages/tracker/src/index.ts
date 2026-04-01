@@ -273,13 +273,16 @@ send('PAGE_URL', { url: location.href })
 window.addEventListener('message', async (event) => {
   if (event.data?.type !== 'CAPTURE_SCREENSHOT') return
   try {
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+    })
     const html2canvas = (await import('html2canvas')).default
-    // Capture only the visible viewport, not the entire page
     const canvas = await html2canvas(document.body, {
       scale: 1,
       logging: false,
       useCORS: true,
       allowTaint: true,
+      imageTimeout: 15_000,
       x: window.scrollX,
       y: window.scrollY,
       width: window.innerWidth,
