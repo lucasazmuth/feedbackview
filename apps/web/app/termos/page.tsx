@@ -1,11 +1,4 @@
 import Link from 'next/link'
-import {
-  Flex,
-  Column,
-  Row,
-  Heading,
-  Text,
-} from '@once-ui-system/core'
 
 export const metadata = {
   title: 'Termos de Uso — Buug',
@@ -13,102 +6,95 @@ export const metadata = {
 
 export default function TermosPage() {
   return (
-    <Column fillWidth style={{ minHeight: '100vh' }}>
+    <div className="flex flex-col w-full" style={{ minHeight: '100vh' }}>
       {/* Navbar */}
-      <Row
-        as="nav"
-        fillWidth
-        horizontal="between"
-        vertical="center"
-        paddingX="l"
-        paddingY="s"
-        borderBottom="neutral-medium"
-        background="surface"
-        style={{ position: 'sticky', top: 0, zIndex: 50 }}
+      <nav
+        className="flex w-full items-center justify-between px-6 py-3 border-b border-transparent-white"
+        style={{ position: 'sticky', top: 0, zIndex: 50, background: 'var(--surface-background)' }}
       >
         <Link href="/" style={{ textDecoration: 'none' }}>
-          <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '1.25rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-strong)' }}>Buug</span>
+          <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '1.25rem', letterSpacing: '-0.02em' }} className="text-off-white">Buug</span>
         </Link>
-      </Row>
+      </nav>
 
-      <Flex fillWidth horizontal="center" style={{ flex: 1 }}>
-        <Column maxWidth={48} fillWidth paddingX="l" paddingY="xl" gap="l">
-          <Heading variant="display-strong-s" as="h1">
+      <div className="flex w-full justify-center" style={{ flex: 1 }}>
+        <div style={{ padding: '6rem 2rem 3rem', maxWidth: '72rem', margin: '0 auto', color: 'var(--neutral-on-background-strong)' }}>
+          <h1 className="text-off-white text-3xl font-bold">
             Termos de Uso
-          </Heading>
-          <Text variant="body-default-s" onBackground="neutral-weak">
+          </h1>
+          <p className="text-sm text-gray">
             Última atualização: Março de 2026
-          </Text>
+          </p>
 
-          <Column gap="m">
-            <Heading variant="heading-strong-m" as="h2">1. Aceitação dos Termos</Heading>
-            <Text variant="body-default-m" onBackground="neutral-weak" style={{ lineHeight: 1.7 }}>
+          <div className="flex flex-col gap-4">
+            <h2 className="text-off-white text-lg font-semibold">1. Aceitação dos Termos</h2>
+            <p className="text-gray" style={{ lineHeight: 1.7 }}>
               Ao acessar e usar o Buug, você concorda com estes Termos de Uso. Se você não concorda com algum destes termos, não utilize nossos serviços. O uso continuado da plataforma constitui aceitação de quaisquer alterações feitas nestes termos.
-            </Text>
+            </p>
 
-            <Heading variant="heading-strong-m" as="h2">2. Descrição do Serviço</Heading>
-            <Text variant="body-default-m" onBackground="neutral-weak" style={{ lineHeight: 1.7 }}>
+            <h2 className="text-off-white text-lg font-semibold">2. Descrição do Serviço</h2>
+            <p className="text-gray" style={{ lineHeight: 1.7 }}>
               O Buug é uma plataforma de QA (Quality Assurance) que permite capturar screenshots, session replays, logs de console e rede automaticamente junto a reports de bugs e sugestões. O serviço inclui um widget embarcável, link compartilhável e painel de gerenciamento.
-            </Text>
+            </p>
 
-            <Heading variant="heading-strong-m" as="h2">3. Cadastro e Conta</Heading>
-            <Text variant="body-default-m" onBackground="neutral-weak" style={{ lineHeight: 1.7 }}>
+            <h2 className="text-off-white text-lg font-semibold">3. Cadastro e Conta</h2>
+            <p className="text-gray" style={{ lineHeight: 1.7 }}>
               Para usar o Buug, você deve criar uma conta fornecendo informações verdadeiras e completas. Você é responsável por manter a confidencialidade de suas credenciais e por todas as atividades realizadas em sua conta. Notifique-nos imediatamente caso suspeite de uso não autorizado.
-            </Text>
+            </p>
 
-            <Heading variant="heading-strong-m" as="h2">4. Uso Aceitável</Heading>
-            <Text variant="body-default-m" onBackground="neutral-weak" style={{ lineHeight: 1.7 }}>
+            <h2 className="text-off-white text-lg font-semibold">4. Uso Aceitável</h2>
+            <p className="text-gray" style={{ lineHeight: 1.7 }}>
               Você concorda em usar o Buug apenas para fins legais e de acordo com estes termos. É proibido: (a) usar o serviço para atividades ilegais; (b) tentar acessar áreas restritas da plataforma; (c) interferir no funcionamento do serviço; (d) coletar dados de outros usuários sem consentimento.
-            </Text>
+            </p>
 
-            <Heading variant="heading-strong-m" as="h2">5. Propriedade Intelectual</Heading>
-            <Text variant="body-default-m" onBackground="neutral-weak" style={{ lineHeight: 1.7 }}>
+            <h2 className="text-off-white text-lg font-semibold">5. Propriedade Intelectual</h2>
+            <p className="text-gray" style={{ lineHeight: 1.7 }}>
               Todo o conteúdo da plataforma Buug, incluindo textos, gráficos, logos, ícones e software, é protegido por leis de propriedade intelectual. Você mantém a propriedade dos dados enviados através da plataforma, concedendo-nos uma licença limitada para processar e armazenar esses dados conforme necessário para a prestação do serviço.
-            </Text>
+            </p>
 
-            <Heading variant="heading-strong-m" as="h2">6. Limitação de Responsabilidade</Heading>
-            <Text variant="body-default-m" onBackground="neutral-weak" style={{ lineHeight: 1.7 }}>
+            <h2 className="text-off-white text-lg font-semibold">6. Limitação de Responsabilidade</h2>
+            <p className="text-gray" style={{ lineHeight: 1.7 }}>
               O Buug é fornecido &ldquo;como está&rdquo;. Não garantimos que o serviço será ininterrupto ou livre de erros. Em nenhuma circunstância seremos responsáveis por danos indiretos, incidentais ou consequenciais decorrentes do uso ou impossibilidade de uso do serviço.
-            </Text>
+            </p>
 
-            <Heading variant="heading-strong-m" as="h2">7. Cancelamento</Heading>
-            <Text variant="body-default-m" onBackground="neutral-weak" style={{ lineHeight: 1.7 }}>
+            <h2 className="text-off-white text-lg font-semibold">7. Cancelamento</h2>
+            <p className="text-gray" style={{ lineHeight: 1.7 }}>
               Você pode cancelar sua conta a qualquer momento. Após o cancelamento, seus dados serão retidos por 30 dias e depois permanentemente excluídos. Reservamo-nos o direito de suspender ou encerrar contas que violem estes termos.
-            </Text>
+            </p>
 
-            <Heading variant="heading-strong-m" as="h2">8. Alterações nos Termos</Heading>
-            <Text variant="body-default-m" onBackground="neutral-weak" style={{ lineHeight: 1.7 }}>
+            <h2 className="text-off-white text-lg font-semibold">8. Alterações nos Termos</h2>
+            <p className="text-gray" style={{ lineHeight: 1.7 }}>
               Podemos atualizar estes termos periodicamente. Notificaremos sobre alterações significativas por e-mail ou aviso na plataforma. O uso continuado após as alterações constitui aceitação dos novos termos.
-            </Text>
+            </p>
 
-            <Heading variant="heading-strong-m" as="h2">9. Contato</Heading>
-            <Text variant="body-default-m" onBackground="neutral-weak" style={{ lineHeight: 1.7 }}>
+            <h2 className="text-off-white text-lg font-semibold">9. Contato</h2>
+            <p className="text-gray" style={{ lineHeight: 1.7 }}>
               Para dúvidas sobre estes termos, entre em contato através da nossa{' '}
-              <Link href="/contato" style={{ color: 'var(--brand-on-background-strong)', textDecoration: 'none', fontWeight: 600 }}>
+              <Link href="/contato" className="text-primary-text font-semibold" style={{ textDecoration: 'none' }}>
                 página de contato
               </Link>.
-            </Text>
-          </Column>
-        </Column>
-      </Flex>
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Footer */}
-      <Flex as="footer" fillWidth horizontal="center" borderTop="neutral-medium" background="surface">
-        <Row maxWidth={64} fillWidth paddingX="l" paddingY="m" horizontal="between" vertical="center">
-          <Row gap="xs" vertical="center">
-            <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '0.8rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-weak)' }}>Buug</span>
-            <Text variant="body-default-xs" onBackground="neutral-weak">&copy; {new Date().getFullYear()}</Text>
-          </Row>
-          <Row gap="m">
+      <footer className="flex w-full justify-center border-t border-transparent-white" style={{ background: 'var(--surface-background)' }}>
+        <div className="flex w-full max-w-4xl items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-2">
+            <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '0.8rem', letterSpacing: '-0.02em' }} className="text-gray">Buug</span>
+            <span className="text-xs text-gray">&copy; {new Date().getFullYear()}</span>
+          </div>
+          <div className="flex gap-4">
             <Link href="/privacidade">
-              <Text variant="body-default-xs" onBackground="neutral-weak" style={{ textDecoration: 'none' }}>Privacidade</Text>
+              <span className="text-xs text-gray" style={{ textDecoration: 'none' }}>Privacidade</span>
             </Link>
             <Link href="/contato">
-              <Text variant="body-default-xs" onBackground="neutral-weak" style={{ textDecoration: 'none' }}>Contato</Text>
+              <span className="text-xs text-gray" style={{ textDecoration: 'none' }}>Contato</span>
             </Link>
-          </Row>
-        </Row>
-      </Flex>
-    </Column>
+          </div>
+        </div>
+      </footer>
+    </div>
   )
 }

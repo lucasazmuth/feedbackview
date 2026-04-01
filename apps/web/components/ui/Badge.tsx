@@ -16,23 +16,23 @@ type BadgeVariant =
   | 'default'
 
 const variantClasses: Record<string, string> = {
-  // Types
-  BUG: 'bg-red-100 text-red-700 border-red-200',
-  SUGGESTION: 'bg-blue-100 text-blue-700 border-blue-200',
-  QUESTION: 'bg-purple-100 text-purple-700 border-purple-200',
-  PRAISE: 'bg-green-100 text-green-700 border-green-200',
+  // Types — dark-friendly alpha backgrounds
+  BUG: 'bg-red-500/15 text-red-400 border-red-500/25',
+  SUGGESTION: 'bg-blue-500/15 text-blue-400 border-blue-500/25',
+  QUESTION: 'bg-purple-500/15 text-purple-400 border-purple-500/25',
+  PRAISE: 'bg-green-500/15 text-green-400 border-green-500/25',
   // Severity
-  CRITICAL: 'bg-red-600 text-white border-red-700',
-  HIGH: 'bg-orange-100 text-orange-700 border-orange-200',
-  MEDIUM: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-  LOW: 'bg-gray-100 text-gray-600 border-gray-200',
+  CRITICAL: 'bg-red-600/90 text-white border-red-600',
+  HIGH: 'bg-orange-500/15 text-orange-400 border-orange-500/25',
+  MEDIUM: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/25',
+  LOW: 'bg-gray-500/15 text-gray-400 border-gray-500/25',
   // Status
-  OPEN: 'bg-amber-100 text-amber-700 border-amber-200',
-  IN_PROGRESS: 'bg-blue-100 text-blue-700 border-blue-200',
-  RESOLVED: 'bg-green-100 text-green-700 border-green-200',
-  CLOSED: 'bg-gray-100 text-gray-500 border-gray-200',
+  OPEN: 'bg-amber-500/15 text-amber-400 border-amber-500/25',
+  IN_PROGRESS: 'bg-blue-500/15 text-blue-400 border-blue-500/25',
+  RESOLVED: 'bg-green-500/15 text-green-400 border-green-500/25',
+  CLOSED: 'bg-gray-500/15 text-gray-400 border-gray-500/25',
   // Default
-  default: 'bg-gray-100 text-gray-600 border-gray-200',
+  default: 'bg-gray-500/15 text-gray-400 border-gray-500/25',
 }
 
 const labelMap: Record<string, string> = {

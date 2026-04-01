@@ -1,33 +1,27 @@
+'use client'
+
 import { landingProSection } from '@/content/landing.pt-BR'
 import { featureIcons } from './icons'
+import { Features } from './Features'
 
 export function ProSection() {
-  return (
-    <section className="landing-section landing-section--alt" id="integracoes-pro">
-      <div className="landing-container">
-        <div className="landing-section-intro">
-          <span className="landing-eyebrow landing-eyebrow--brand">{landingProSection.tag}</span>
-          <h2 className="landing-h2">{landingProSection.title}</h2>
-          <p className="landing-subtitle">{landingProSection.sub}</p>
-        </div>
+  const items = landingProSection.cards.map((card) => ({
+    icon: featureIcons[card.iconKey] ?? (
+      <span className="text-off-white text-sm font-bold">{card.label[0]}</span>
+    ),
+    title: card.title,
+    text: card.body,
+  }))
 
-        <div className="landing-pro-grid">
-          {landingProSection.cards.map((card) => (
-            <article key={card.title} className="landing-pro-card">
-              <div className="landing-pro-card-icon" aria-hidden="true">
-                {featureIcons[card.iconKey]}
-              </div>
-              <div className="landing-pro-card-content">
-                <div className="landing-pro-card-top">
-                  <h3 className="landing-pro-card-title">{card.title}</h3>
-                  <span className="landing-pro-card-label">{card.label}</span>
-                </div>
-                <p className="landing-pro-card-body">{card.body}</p>
-              </div>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
+  return (
+    <div id="integracoes-pro">
+      <Features color="0,225,244" colorDark="31,49,64">
+        <Features.Main
+          title={landingProSection.title}
+          text={landingProSection.sub}
+        />
+        <Features.Grid items={items} />
+      </Features>
+    </div>
   )
 }

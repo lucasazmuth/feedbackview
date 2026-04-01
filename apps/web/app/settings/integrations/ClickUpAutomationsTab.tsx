@@ -1,7 +1,10 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { Column, Row, Text, Button, Card, Heading, Feedback as FeedbackAlert } from '@once-ui-system/core'
+import { Alert } from '@/components/ui/Alert'
+import { Spinner } from '@/components/ui/Spinner'
+import { AppIcon } from '@/components/ui/AppIcon'
+import { ICON_STROKE } from '@/lib/icon-tokens'
 
 interface Team {
   id: string
@@ -69,10 +72,10 @@ const projectFilterIconBtnStyle: React.CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  width: '2.25rem',
-  height: '2.25rem',
+  width: '1.875rem',
+  height: '1.875rem',
   padding: 0,
-  borderRadius: '0.5rem',
+  borderRadius: '0.375rem',
   border: '1px solid var(--neutral-border-medium)',
   background: 'var(--surface-background)',
   color: 'var(--neutral-on-background-weak)',
@@ -81,29 +84,18 @@ const projectFilterIconBtnStyle: React.CSSProperties = {
 
 function FilterListIcon({ active }: { active: boolean }) {
   return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+    <AppIcon
+      size="sm"
+      strokeWidth={ICON_STROKE.emphasis}
       aria-hidden
-      style={{ opacity: active ? 1 : 0.85 }}
+      style={{ opacity: active ? 1 : 0.88, display: 'block' }}
     >
       <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-    </svg>
+    </AppIcon>
   )
 }
 
 const wizardStackGap = '0.875rem'
-const wizardFooterBar: React.CSSProperties = {
-  flexShrink: 0,
-  paddingTop: '0.5rem',
-  borderTop: '1px solid var(--neutral-border-medium)',
-}
 
 /** Campos + barra de ações: gap menor que o restante do assistente (evita “buraco” antes dos botões). */
 const wizardFieldsAndActionsGap = '0.5rem'
@@ -133,7 +125,6 @@ export default function ClickUpAutomationsTab({
   fillWizardHeight,
   openCreateWithProjectId,
   onOpenCreatePrefillConsumed,
-  onCloseEntireModal,
 }: {
   orgId: string
   defaultTeamId: string
@@ -145,8 +136,6 @@ export default function ClickUpAutomationsTab({
   /** Deep link: abre o assistente “nova automação” com este projeto Buug já selecionado. */
   openCreateWithProjectId?: string | null
   onOpenCreatePrefillConsumed?: () => void
-  /** Fecha o modal da integração (além de sair do assistente). */
-  onCloseEntireModal?: () => void
 }) {
   const [automations, setAutomations] = useState<AutomationDTO[]>([])
   const [loading, setLoading] = useState(true)
@@ -202,16 +191,29 @@ export default function ClickUpAutomationsTab({
 
   if (loading) {
     return (
-      <Text variant="body-default-s" onBackground="neutral-weak">Carregando automações…</Text>
+      <div
+        style={{
+          padding: '1.5rem 1.25rem 2rem',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '0.875rem',
+          minHeight: '10rem',
+        }}
+      >
+        <Spinner size="md" />
+        <span style={{ fontSize: '0.875rem', color: 'var(--neutral-on-background-weak)', textAlign: 'center' }}>
+          Carregando automações…
+        </span>
+      </div>
     )
   }
 
   const wizardFill = !!(fillWizardHeight && modal)
 
   return (
-    <Column
-      gap="m"
-      fillWidth
+    <div
       style={
         wizardFill
           ? { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', width: '100%' }
@@ -220,35 +222,50 @@ export default function ClickUpAutomationsTab({
     >
       {!modal ? (
         <>
-          <Column gap="m" fillWidth>
-            <Text
-              variant="body-default-s"
-              onBackground="neutral-weak"
-              style={{ width: '100%', lineHeight: 1.6, wordBreak: 'break-word' }}
-            >
-              Cada automação envia reports de um projeto Buug para uma lista no ClickUp. O mesmo projeto não pode estar em duas automações ao mesmo tempo.
-            </Text>
-            <Row fillWidth horizontal="start" style={{ flexShrink: 0 }}>
-              <Button size="m" variant="primary" label="Adicionar automação" onClick={() => setModal({ type: 'create' })} />
-            </Row>
-          </Column>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1rem',
+              padding: '0 1.25rem 1.25rem',
+            }}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+              <span
+                style={{ lineHeight: 1.6, wordBreak: 'break-word', fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)' }}
+              >
+                Cada automação envia reports de um projeto Buug para uma lista no ClickUp. O mesmo projeto não pode estar em duas automações ao mesmo tempo.
+              </span>
+              <div>
+                <button type="button" onClick={() => setModal({ type: 'create' })} className="app-btn-primary">
+                  Adicionar automação
+                </button>
+              </div>
+            </div>
 
-          {automations.length === 0 ? (
-            <Card fillWidth padding="m" radius="l" style={{ background: 'var(--neutral-alpha-weak)' }}>
-              <Text variant="body-default-s" onBackground="neutral-weak">
-                Nenhuma automação ainda. Adicione uma para escolher workspace, espaço, lista e projeto Buug.
-              </Text>
-            </Card>
-          ) : (
-            <Column gap="s" fillWidth>
+            {automations.length === 0 ? (
+              <div
+                style={{
+                  background: 'var(--neutral-alpha-weak)',
+                  padding: '1rem 1.125rem',
+                  borderRadius: 'var(--radius-m, 8px)',
+                  border: '1px solid var(--neutral-border-medium)',
+                }}
+              >
+                <span style={{ fontSize: '0.8125rem', lineHeight: 1.55, color: 'var(--neutral-on-background-weak)' }}>
+                  Nenhuma automação ainda. Adicione uma para escolher workspace, espaço, lista e projeto Buug.
+                </span>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
               {automations.map(a => (
-                <Card key={a.id} fillWidth padding="m" radius="l">
-                  <Row fillWidth horizontal="between" vertical="start" gap="m" wrap>
-                    <Column gap="xs" style={{ flex: 1, minWidth: 0 }}>
-                      <Text variant="body-default-s" style={{ fontWeight: 600 }}>
+                <div key={a.id} style={{ border: '1px solid var(--neutral-border-medium)', borderRadius: '0.75rem', padding: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                      <span style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--neutral-on-background-strong)' }}>
                         {a.name || 'Automação sem nome'}
-                      </Text>
-                      <Text variant="body-default-xs" onBackground="neutral-weak">
+                      </span>
+                      <span style={{ fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)' }}>
                         {a.listPath || a.clickupListId}
                         {' · '}
                         {a.projects.length === 0
@@ -256,34 +273,40 @@ export default function ClickUpAutomationsTab({
                           : a.projects.length === 1
                             ? `Projeto: ${a.projects[0].name}`
                             : `${a.projects.length} projetos (legado): ${a.projects.map(p => p.name).join(', ')}`}
-                      </Text>
+                      </span>
                       {!a.enabled && (
-                        <Text variant="body-default-xs" onBackground="danger-strong">Desativada</Text>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--warning-on-background-strong)' }}>Desativada</span>
                       )}
-                    </Column>
-                    <Row gap="s" wrap>
-                      <Button size="s" variant="secondary" label="Editar" onClick={() => setModal({ type: 'edit', automation: a })} />
-                      <Button
-                        size="s"
-                        variant="danger"
-                        label="Excluir"
-                        onClick={() => setAutomationPendingDelete(a)}
-                      />
-                    </Row>
-                  </Row>
-                </Card>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+                      <button onClick={() => setModal({ type: 'edit', automation: a })} className="app-btn-secondary" style={{ padding: '0.375rem 0.75rem', fontSize: '0.8125rem' }}>Editar</button>
+                      <button onClick={() => setAutomationPendingDelete(a)} className="app-btn-danger" style={{ padding: '0.375rem 0.75rem', fontSize: '0.8125rem' }}>Excluir</button>
+                    </div>
+                  </div>
+                </div>
               ))}
-            </Column>
-          )}
+              </div>
+            )}
 
-          <Card fillWidth padding="m" radius="l" style={{ background: 'var(--neutral-alpha-weak)' }}>
-            <Text variant="label-default-s">Como funciona</Text>
-            <ul style={{ margin: '0.5rem 0 0', paddingLeft: '1.25rem', fontSize: '0.8125rem', lineHeight: 1.6, color: 'var(--neutral-on-background-weak)' }}>
-              <li>Novo report em um projeto Buug vinculado vira tarefa na lista ClickUp da automação.</li>
-              <li>Prioridade e prazo seguem para o ClickUp quando existirem.</li>
-              <li>Status sincroniza com webhook configurado no ClickUp.</li>
-            </ul>
-          </Card>
+            <div
+              style={{
+                background: 'var(--neutral-alpha-weak)',
+                padding: '1rem 1.125rem',
+                borderRadius: 'var(--radius-m, 8px)',
+                border: '1px solid var(--neutral-border-medium)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem',
+              }}
+            >
+              <span style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--neutral-on-background-strong)' }}>Como funciona</span>
+              <ul style={{ margin: 0, paddingLeft: '1.25rem', fontSize: '0.8125rem', lineHeight: 1.65, color: 'var(--neutral-on-background-weak)' }}>
+                <li>Novo report em um projeto Buug vinculado vira tarefa na lista ClickUp da automação.</li>
+                <li>Prioridade e prazo seguem para o ClickUp quando existirem.</li>
+                <li>Status sincroniza com webhook configurado no ClickUp.</li>
+              </ul>
+            </div>
+          </div>
         </>
       ) : (
         <AutomationWizardInline
@@ -298,7 +321,6 @@ export default function ClickUpAutomationsTab({
           orgScopedProjects={orgScopedProjects}
           teamsPrefetch={teamsPrefetch}
           fillHeight={wizardFill}
-          onCloseEntireModal={onCloseEntireModal}
           onClose={() => setModal(null)}
           onSaved={() => {
             setModal(null)
@@ -323,39 +345,36 @@ export default function ClickUpAutomationsTab({
           }}
           onClick={() => !deleteAutomationLoading && setAutomationPendingDelete(null)}
         >
-          <Column
+          <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="clickup-delete-automation-title"
-            padding="l"
-            gap="m"
-            radius="l"
-            background="surface"
-            border="neutral-medium"
-            style={{ maxWidth: '28rem', width: '100%', boxShadow: '0 24px 48px rgba(0,0,0,0.2)' }}
+            style={{
+              maxWidth: '28rem',
+              width: '100%',
+              background: 'var(--surface-background)',
+              border: '1px solid var(--neutral-border-medium)',
+              borderRadius: 'var(--radius-l, 12px)',
+              boxShadow: '0 24px 48px rgba(0,0,0,0.18)',
+              padding: '1.25rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1.25rem',
+            }}
             onClick={(e: React.MouseEvent) => e.stopPropagation()}
           >
-            <Column gap="s">
-              <Heading variant="heading-strong-m" as="h3" id="clickup-delete-automation-title" style={{ margin: 0 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <h3 id="clickup-delete-automation-title" style={{ margin: 0, fontSize: '1.0625rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)' }}>
                 Excluir automação
-              </Heading>
-              <Text variant="body-default-s" onBackground="neutral-weak">
-                Tem certeza que deseja excluir <strong>{automationPendingDelete.name || 'esta automação'}</strong>? Os projetos Buug vinculados poderão ser associados a outra regra depois. Esta ação não pode ser desfeita.
-              </Text>
-            </Column>
-            <Row gap="s" horizontal="end" wrap>
-              <Button
-                variant="secondary"
-                size="m"
-                label="Cancelar"
-                disabled={deleteAutomationLoading}
-                onClick={() => setAutomationPendingDelete(null)}
-              />
-              <Button
-                variant="danger"
-                size="m"
-                label={deleteAutomationLoading ? 'Excluindo…' : 'Excluir'}
-                loading={deleteAutomationLoading}
+              </h3>
+              <span style={{ fontSize: '0.875rem', color: 'var(--neutral-on-background-weak)', lineHeight: 1.55 }}>
+                Tem certeza que deseja excluir <strong style={{ color: 'var(--neutral-on-background-strong)' }}>{automationPendingDelete.name || 'esta automação'}</strong>? Os projetos Buug vinculados poderão ser associados a outra regra depois. Esta ação não pode ser desfeita.
+              </span>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', justifyContent: 'flex-end' }}>
+              <button type="button" onClick={() => setAutomationPendingDelete(null)} disabled={deleteAutomationLoading} className="app-btn-secondary">Cancelar</button>
+              <button
+                type="button"
                 disabled={deleteAutomationLoading}
                 onClick={async () => {
                   const id = automationPendingDelete.id
@@ -374,12 +393,15 @@ export default function ClickUpAutomationsTab({
                     setDeleteAutomationLoading(false)
                   }
                 }}
-              />
-            </Row>
-          </Column>
+                className="app-btn-danger"
+              >
+                {deleteAutomationLoading ? 'Excluindo...' : 'Excluir'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
-    </Column>
+    </div>
   )
 }
 
@@ -388,42 +410,12 @@ const WIZARD_STEPS = [
   { id: 1, label: 'Projeto Buug' },
 ] as const
 
-function ClickUpWizardCloseButton({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label="Fechar janela"
-      title="Fechar"
-      style={{
-        flexShrink: 0,
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '2.25rem',
-        height: '2.25rem',
-        padding: 0,
-        border: 'none',
-        borderRadius: 'var(--radius-m, 8px)',
-        background: 'transparent',
-        color: 'var(--neutral-on-background-weak)',
-        cursor: 'pointer',
-      }}
-    >
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
-        <path d="M18 6L6 18M6 6l12 12" />
-      </svg>
-    </button>
-  )
-}
-
 function AutomationWizardInline({
   orgId,
   mode,
   defaultTeamId,
   orgScopedProjects,
   teamsPrefetch,
-  onCloseEntireModal,
   onClose,
   onSaved,
   fillHeight,
@@ -434,7 +426,6 @@ function AutomationWizardInline({
   orgScopedProjects: OrgProjectScoped[]
   /** Workspaces já pedidos na aba; `null` se o prefetch ainda não terminou. */
   teamsPrefetch: Team[] | null
-  onCloseEntireModal?: () => void
   onClose: () => void
   onSaved: () => void
   fillHeight?: boolean
@@ -574,12 +565,6 @@ function AutomationWizardInline({
     if (step === 0 && validateStep0()) setStep(1)
   }
 
-  const goBack = () => {
-    setErr(null)
-    if (step === 0) onClose()
-    else setStep(0)
-  }
-
   const handleSave = async () => {
     setErr(null)
     if (!validateStep0() || !validateStep1()) return
@@ -684,23 +669,41 @@ function AutomationWizardInline({
       }
 
   const footer = (
-    <Row
-      gap="s"
-      wrap
-      horizontal="between"
-      vertical="center"
-      style={wizardFooterBar}
+    <div
+      style={{
+        flexShrink: 0,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '0.5rem',
+        padding: '1rem 1.25rem',
+        borderTop: '1px solid var(--neutral-border-medium)',
+        background: 'var(--surface-background)',
+      }}
     >
-      <Button size="m" variant="secondary" label="Cancelar" onClick={onClose} />
+      <button type="button" onClick={onClose} className="app-btn-secondary">Cancelar</button>
       {step === 0 ? (
-        <Button size="m" variant="primary" label="Continuar" onClick={goNext} />
+        <button
+          type="button"
+          onClick={goNext}
+          className="app-btn-primary"
+          disabled={!teamId || !spaceId || !listId}
+          title={
+            !teamId || !spaceId || !listId
+              ? 'Selecione workspace, espaço e lista para continuar'
+              : undefined
+          }
+        >
+          Continuar
+        </button>
       ) : (
-        <Row gap="s" wrap>
-          <Button size="m" variant="secondary" label="Voltar" onClick={() => { setErr(null); setStep(0) }} />
-          <Button size="m" variant="primary" label={saving ? 'Salvando…' : 'Salvar automação'} onClick={() => void handleSave()} loading={saving} />
-        </Row>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <button type="button" onClick={() => { setErr(null); setStep(0) }} className="app-btn-secondary">Voltar</button>
+          <button type="button" onClick={() => void handleSave()} className="app-btn-primary">{saving ? 'Salvando…' : 'Salvar automação'}</button>
+        </div>
       )}
-    </Row>
+    </div>
   )
 
   return (
@@ -710,31 +713,20 @@ function AutomationWizardInline({
       style={panelStyle}
     >
       <div style={scrollBodyStyle}>
-        <Column
-          fillWidth
+        <div
           style={{
             position: 'relative',
-            padding: 0,
+            padding: '1.25rem',
+            display: 'flex',
+            flexDirection: 'column',
             gap: wizardStackGap,
           }}
         >
           <header style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', width: '100%' }}>
-            <Button size="s" variant="tertiary" label={step === 0 ? '← Voltar às automações' : '← Voltar'} onClick={goBack} />
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                justifyContent: 'space-between',
-                gap: '0.5rem',
-                width: '100%',
-              }}
-            >
-              <Text
-                variant="body-default-s"
-                as="h2"
+            <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+              <span
                 style={{
                   margin: 0,
-                  flex: 1,
                   minWidth: 0,
                   fontWeight: 600,
                   color: 'var(--neutral-on-background-strong)',
@@ -760,27 +752,26 @@ function AutomationWizardInline({
                     · edição
                   </span>
                 ) : null}
-              </Text>
-              {onCloseEntireModal ? <ClickUpWizardCloseButton onClick={onCloseEntireModal} /> : null}
+              </span>
             </div>
           </header>
 
           {step === 0 ? (
-            <Text variant="body-default-xs" onBackground="neutral-weak" style={{ margin: 0, lineHeight: 1.5 }}>
-              Escolha o <strong>workspace</strong>, depois o <strong>espaço</strong> e por fim a <strong>lista</strong> do ClickUp — os reports viram tarefas nessa lista.
-            </Text>
+            <span style={{ margin: 0, lineHeight: 1.5, fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)' }}>
+              Os três passos são obrigatórios, um de cada vez: primeiro o <strong style={{ color: 'var(--neutral-on-background-strong)' }}>workspace</strong>; em seguida aparece o <strong style={{ color: 'var(--neutral-on-background-strong)' }}>espaço</strong>; depois a <strong style={{ color: 'var(--neutral-on-background-strong)' }}>lista</strong> do ClickUp onde os reports viram tarefas.
+            </span>
           ) : (
-            <Text variant="body-default-xs" onBackground="neutral-weak" style={{ margin: 0, lineHeight: 1.5 }}>
-              Um <strong>projeto Buug</strong> por automação — os reports dele viram tarefas na lista do passo 1. O nome acima é opcional, só para identificar esta regra.
-            </Text>
+            <span style={{ margin: 0, lineHeight: 1.5, fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)' }}>
+              Um <strong style={{ color: 'var(--neutral-on-background-strong)' }}>projeto Buug</strong> por automação — os reports dele viram tarefas na lista do passo 1. O nome acima é opcional, só para identificar esta regra.
+            </span>
           )}
 
-          {err && <FeedbackAlert variant="danger">{err}</FeedbackAlert>}
+          {err && <Alert>{err}</Alert>}
 
           {editing && editing.projects.length > 1 && step === 1 && (
-            <FeedbackAlert variant="warning">
+            <Alert>
               Esta automação tem {editing.projects.length} projetos vinculados. Ao salvar, apenas o projeto selecionado abaixo permanece; os outros serão desvinculados.
-            </FeedbackAlert>
+            </Alert>
           )}
 
           <div
@@ -794,16 +785,19 @@ function AutomationWizardInline({
             }}
           >
             {step === 0 ? (
-              <Column fillWidth style={{ gap: wizardStackGap }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: wizardStackGap }}>
                 <div>
-                  <label htmlFor="cu-team" style={fieldLabelStyle}>Workspace (time ClickUp)</label>
+                  <label htmlFor="cu-team" style={fieldLabelStyle}>
+                    1. Workspace (time ClickUp){' '}
+                    <span style={{ fontWeight: 500, opacity: 0.85 }}>— obrigatório</span>
+                  </label>
                   <select
                     id="cu-team"
                     value={teamId}
                     onChange={e => { setTeamId(e.target.value); setSpaceId(''); setListId(''); }}
                     style={selectStyle}
                     aria-busy={teamsLoading}
-                    aria-label="Workspace ClickUp"
+                    aria-label="Passo 1: workspace ClickUp"
                   >
                     <option value="">
                       {teamsLoading
@@ -815,59 +809,62 @@ function AutomationWizardInline({
                     {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                   </select>
                 </div>
-                <div>
-                  <label htmlFor="cu-space" style={fieldLabelStyle}>Espaço</label>
-                  <select
-                    id="cu-space"
-                    value={spaceId}
-                    onChange={e => { setSpaceId(e.target.value); setListId(''); }}
-                    style={selectStyle}
-                    disabled={!teamId}
-                    aria-busy={!!teamId && spacesLoading}
-                    aria-label="Espaço ClickUp"
-                  >
-                    <option value="">
-                      {!teamId
-                        ? 'Primeiro selecione o workspace'
-                        : spacesLoading
+                {teamId ? (
+                  <div>
+                    <label htmlFor="cu-space" style={fieldLabelStyle}>
+                      2. Espaço (pasta / área no ClickUp){' '}
+                      <span style={{ fontWeight: 500, opacity: 0.85 }}>— obrigatório</span>
+                    </label>
+                    <select
+                      id="cu-space"
+                      value={spaceId}
+                      onChange={e => { setSpaceId(e.target.value); setListId(''); }}
+                      style={selectStyle}
+                      aria-busy={spacesLoading}
+                      aria-label="Passo 2: espaço ClickUp"
+                    >
+                      <option value="">
+                        {spacesLoading
                           ? 'Carregando espaços…'
                           : spaces.length === 0
                             ? 'Nenhum espaço neste workspace'
                             : 'Escolha o espaço…'}
-                    </option>
-                    {spaces.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="cu-list" style={fieldLabelStyle}>Lista</label>
-                  <select
-                    id="cu-list"
-                    value={listId}
-                    onChange={e => setListId(e.target.value)}
-                    style={selectStyle}
-                    disabled={!spaceId}
-                    aria-busy={!!spaceId && listsLoading}
-                    aria-label="Lista ClickUp"
-                  >
-                    <option value="">
-                      {!spaceId
-                        ? 'Primeiro selecione o espaço'
-                        : listsLoading
+                      </option>
+                      {spaces.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                    </select>
+                  </div>
+                ) : null}
+                {teamId && spaceId ? (
+                  <div>
+                    <label htmlFor="cu-list" style={fieldLabelStyle}>
+                      3. Lista (onde as tarefas serão criadas){' '}
+                      <span style={{ fontWeight: 500, opacity: 0.85 }}>— obrigatório</span>
+                    </label>
+                    <select
+                      id="cu-list"
+                      value={listId}
+                      onChange={e => setListId(e.target.value)}
+                      style={selectStyle}
+                      aria-busy={listsLoading}
+                      aria-label="Passo 3: lista ClickUp para novas tarefas"
+                    >
+                      <option value="">
+                        {listsLoading
                           ? 'Carregando listas…'
                           : lists.length === 0 && !(listId && !lists.some(l => l.id === listId))
                             ? 'Nenhuma lista neste espaço'
                             : 'Escolha a lista…'}
-                    </option>
-                    {listId && !lists.some(l => l.id === listId) && (
-                      <option value={listId}>Lista atual</option>
-                    )}
-                    {lists.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-                  </select>
-                </div>
-              </Column>
+                      </option>
+                      {listId && !lists.some(l => l.id === listId) && (
+                        <option value={listId}>Lista atual</option>
+                      )}
+                      {lists.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+                    </select>
+                  </div>
+                ) : null}
+              </div>
             ) : (
-              <Column
-                fillWidth
+              <div
                 style={{
                   gap: wizardStackGap,
                   flex: fillHeight ? 1 : undefined,
@@ -886,8 +883,7 @@ function AutomationWizardInline({
                     style={{ ...selectStyle, cursor: 'text' }}
                   />
                 </div>
-                <Column
-                  fillWidth
+                <div
                   style={{
                     gap: '0.5rem',
                     ...(fillHeight
@@ -896,9 +892,9 @@ function AutomationWizardInline({
                   }}
                 >
                   {orgScopedProjects.length === 0 ? (
-                    <Text variant="body-default-xs" onBackground="neutral-weak">
+                    <span>
                       Nenhum projeto nesta organização. Crie projetos com a organização definida.
-                    </Text>
+                    </span>
                   ) : (
                     <>
                       <div style={{ flexShrink: 0, width: '100%', minWidth: 0 }}>
@@ -978,9 +974,9 @@ function AutomationWizardInline({
                         style={listScrollStyle}
                       >
                         {filteredProjects.length === 0 ? (
-                          <Text variant="body-default-xs" onBackground="neutral-weak" style={{ padding: '0.75rem' }}>
+                          <span style={{ padding: '0.75rem' }}>
                             Nenhum projeto corresponde à busca.
-                          </Text>
+                          </span>
                         ) : (
                           filteredProjects.map(p => {
                             const selected = projectId === p.id
@@ -1037,25 +1033,45 @@ function AutomationWizardInline({
                       </div>
                     </>
                   )}
-                </Column>
-              </Column>
+                </div>
+              </div>
             )}
 
             {!fillHeight ? (
-              <Row gap="s" wrap horizontal="between" vertical="center" style={wizardFooterBar}>
-                <Button size="m" variant="secondary" label="Cancelar" onClick={onClose} />
+              <div
+                style={{
+                  flexShrink: 0,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '0.5rem',
+                  paddingTop: '1rem',
+                  marginTop: '0.25rem',
+                  borderTop: '1px solid var(--neutral-border-medium)',
+                }}
+              >
+                <button type="button" onClick={onClose} className="app-btn-secondary">
+                  Cancelar
+                </button>
                 {step === 0 ? (
-                  <Button size="m" variant="primary" label="Continuar" onClick={goNext} />
+                  <button type="button" onClick={goNext} className="app-btn-primary">
+                    Continuar
+                  </button>
                 ) : (
-                  <Row gap="s" wrap>
-                    <Button size="m" variant="secondary" label="Voltar" onClick={() => { setErr(null); setStep(0) }} />
-                    <Button size="m" variant="primary" label={saving ? 'Salvando…' : 'Salvar automação'} onClick={() => void handleSave()} loading={saving} />
-                  </Row>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    <button type="button" onClick={() => { setErr(null); setStep(0) }} className="app-btn-secondary">
+                      Voltar
+                    </button>
+                    <button type="button" onClick={() => void handleSave()} className="app-btn-primary">
+                      {saving ? 'Salvando…' : 'Salvar automação'}
+                    </button>
+                  </div>
                 )}
-              </Row>
+              </div>
             ) : null}
           </div>
-        </Column>
+        </div>
       </div>
       {fillHeight ? footer : null}
     </div>

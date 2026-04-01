@@ -3,15 +3,15 @@
  * Skill: .cursor/skills/landing-copy-br (no repo feedback_view)
  */
 
-/** SEO da home — alinhado ao tom de `landingHero` */
+/** SEO da home; alinhado ao tom de `landingHero` */
 export const landingMeta = {
-  title: 'Buug — Bug report com sessão gravada',
+  title: 'Buug: Bug report com sessão gravada',
   description:
     'Link de teste ou botão no site: relatório com gravação, tela, console, rede e Web Vitals. Homologação sem código; produção com uma linha. API, webhooks, ClickUp e exportação filtrada nos planos Pro e Business.',
-  openGraphTitle: 'Buug — Bug no site? Você vê o que a pessoa fez e o registro técnico',
+  openGraphTitle: 'Buug: Bug no site? Você vê o que a pessoa fez e o registro técnico',
   openGraphDescription:
     'Quem reporta clica; seu time recebe sessão gravada, logs e métricas de carregamento num relatório. Pro e Business: API, webhooks, ClickUp e exportação filtrada.',
-  twitterTitle: 'Buug — Bug report com sessão gravada',
+  twitterTitle: 'Buug: Bug report com sessão gravada',
   twitterDescription:
     'Link ou botão no site. Gravação, tela, console, rede e Web Vitals juntos. API e webhooks nos planos pagos ativos.',
 } as const
@@ -24,6 +24,13 @@ export type LandingFeatureItem = {
 
 export type LandingFaqItem = { question: string; answer: string }
 
+export type LandingTestimonialItem = {
+  quote: string
+  name: string
+  role: string
+  rating: number
+}
+
 export type LandingNavItem = { label: string; href: string }
 
 export const landingViewerUrl = 'https://buug.io/p/seu-projeto-id'
@@ -33,8 +40,10 @@ export const landingEmbedSnippet =
 
 export const landingNavLinks: LandingNavItem[] = [
   { label: 'Como funciona', href: '#como-funciona' },
+  { label: 'Stacks', href: '#stacks' },
   { label: 'Planos', href: '#planos' },
   { label: 'API e integrações', href: '#integracoes-pro' },
+  { label: 'Avaliações', href: '#avaliacoes' },
   { label: 'FAQ', href: '#faq' },
 ]
 
@@ -49,10 +58,12 @@ export const landingAuth = {
 
 export const landingHero = {
   tag: 'Bug report com sessão gravada',
-  h1: 'Veja exatamente o que o usuário viu.',
+  /** Duas linhas fixas no hero; linhas curtas para não quebrar de novo no meio */
+  h1Line1: 'Veja exatamente o bug',
+  h1Line2: 'que o usuário encontrou.',
   sub:
-    'Replay da sessão, console, rede e Web Vitals — tudo no mesmo relatório. Sem pedir print, sem adivinhar.',
-  /** Selo sobre a animação do hero — gravação contínua para o relatório */
+    'Replay da sessão, console, rede e Web Vitals no mesmo relatório. Sem pedir print, sem adivinhar.',
+  /** Selo sobre a animação do hero; gravação contínua para o relatório */
   liveCaptureLabel: 'Capturando ao vivo',
   ctaHow: 'Ver como funciona',
   proofItems: [
@@ -62,7 +73,7 @@ export const landingHero = {
   ],
 } as const
 
-/** Destaques factuais (sem números inventados) — `value` é o título em destaque na barra */
+/** Destaques factuais (sem números inventados); `value` é o título em destaque na barra */
 export const landingMetrics: { value: string; label: string }[] = [
   { value: 'Replay', label: 'Reproduz a sessão sem pedir passo a passo de novo' },
   { value: 'Web Vitals', label: 'LCP, CLS e INP ao lado do erro e dos logs' },
@@ -73,9 +84,12 @@ export const landingMetrics: { value: string; label: string }[] = [
 /** Carrossel “Como funciona” + textos do mock */
 export const landingFlow = {
   sectionTag: 'Como funciona',
+  sectionTitle: 'No painel, tudo chega em um só lugar',
+  sectionLead:
+    'Lista de reports, busca e prioridades: a visão do time depois do envio pelo widget (que você vê no topo da página). Abaixo, do projeto a essa triagem em quatro ideias.',
   stepLabels: ['Projeto', 'No site', 'Relato', 'Painel'],
   browserUrls: [
-    'buug.io/projects/new',
+    'buug.io/criar-projeto',
     'meusite.com.br',
     'meusite.com.br',
     'buug.io/projects/meu-ecommerce',
@@ -89,11 +103,12 @@ export const landingFlow = {
   descriptions: [
     'URL do site, modo de integração e pronto. Nada de sprint só para “ativar o coletor”.',
     'Captura, replay e métricas rodam em silêncio. Quem reporta só clica e descreve.',
-    'O time de produto ou dev abre e já enxerga o que aconteceu — sem pedir mais evidência.',
+    'O time de produto ou dev abre e já enxerga o que aconteceu, sem pedir mais evidência.',
     'Bug, sugestão ou crítica com severidade e rastro. E-commerce, SaaS interno ou entrega para cliente.',
   ],
 } as const
 
+/** Só o essencial para venda; integrações e export ficam em planos/FAQ */
 export const landingFeatures: LandingFeatureItem[] = [
   {
     iconKey: 'replay',
@@ -103,12 +118,7 @@ export const landingFeatures: LandingFeatureItem[] = [
   {
     iconKey: 'vitals',
     title: 'Web Vitals',
-    description: 'LCP, CLS e INP junto ao erro. Performance ou lógica — resposta na primeira leitura.',
-  },
-  {
-    iconKey: 'click',
-    title: 'Rage clicks',
-    description: 'Cliques repetidos e toques em área morta. Sinal claro de UX quebrada.',
+    description: 'LCP, CLS e INP junto ao erro. Performance ou lógica: resposta na primeira leitura.',
   },
   {
     iconKey: 'logs',
@@ -116,24 +126,9 @@ export const landingFeatures: LandingFeatureItem[] = [
     description: 'Stack JS, requests falhando e screenshot juntos. Um lugar, quadro completo.',
   },
   {
-    iconKey: 'globe',
-    title: 'Contexto completo',
-    description: 'Device, viewport, fuso e trilha de cliques. Dados sensíveis mascarados.',
-  },
-  {
     iconKey: 'bolt',
     title: 'Setup em minutos',
     description: 'Link de teste ou uma linha de script. Sem SDK pesado.',
-  },
-  {
-    iconKey: 'plug',
-    title: 'API e integrações',
-    description: 'REST, webhooks assinados e ClickUp. Planos Pro e Business.',
-  },
-  {
-    iconKey: 'download',
-    title: 'Exportação filtrada',
-    description: 'CSV ou XLSX do que você filtrou. Mesmo recorte da tela.',
   },
 ]
 
@@ -165,7 +160,7 @@ export const landingFaqs: LandingFaqItem[] = [
   {
     question: 'Como funciona esse replay?',
     answer:
-      'Gravamos interação com rrweb — clique, scroll, tecla. Na hora de debugar você dá play e vê a sequência. Isso mata a dependência de print gigante e do “não sei reproduzir”.',
+      'Gravamos interação com rrweb (clique, scroll, tecla). Na hora de debugar você dá play e vê a sequência. Isso mata a dependência de print gigante e do “não sei reproduzir”.',
   },
   {
     question: 'Preciso publicar código no site?',
@@ -212,7 +207,7 @@ export const landingFaqs: LandingFaqItem[] = [
 export const landingFeaturesSection = {
   tag: 'Funcionalidades',
   title: 'Tudo no mesmo relatório',
-  sub: 'Cada envio já vem completo. Nada de módulo solto.',
+  sub: 'Replay, Vitals, logs e rede no mesmo envio. API, webhooks e export vêm nos planos pagos.',
 } as const
 
 export const landingThreeStepsSection = {
@@ -239,10 +234,43 @@ export const landingIntegrationSection = {
   },
 } as const
 
+/** Depoimentos ilustrativos (personas fictícias; ver `disclaimer` na seção) */
+export const landingTestimonialsSection = {
+  tag: 'Avaliações',
+  title: 'Quem manda relatório, seu time agradece',
+  sub: 'Menos “consegue reproduzir?” e mais contexto na primeira abertura.',
+  disclaimer:
+    'Personas e falas de exemplo para ilustrar o uso; não são depoimentos de clientes reais.',
+} as const
+
+export const landingTestimonials: LandingTestimonialItem[] = [
+  {
+    rating: 5,
+    name: 'Rafaela M.',
+    role: 'PM, e-commerce',
+    quote:
+      'Antes era print no WhatsApp e três dias até alguém entender o fluxo. Com replay e prioridade no mesmo card, o dev já abre sabendo onde olhar.',
+  },
+  {
+    rating: 5,
+    name: 'Guilherme T.',
+    role: 'Desenvolvedor front-end',
+    quote:
+      'Console e rede no mesmo relatório que a sessão. Parei de pedir extensão ou “abre o DevTools e manda foto”.',
+  },
+  {
+    rating: 5,
+    name: 'Camila R.',
+    role: 'Líder de QA',
+    quote:
+      'O link de homologação salvou: stakeholder testa sem commit meu. Quando quebra, o pacote chega fechado.',
+  },
+]
+
 export const landingProSection = {
   tag: 'Integrações',
   title: 'Conecta com o que você já usa',
-  sub: 'Bug vira tarefa, evento ou planilha — sem copiar e colar. Planos Pro e Business.',
+  sub: 'Bug vira tarefa, evento ou planilha, sem copiar e colar. Planos Pro e Business.',
   cards: [
     {
       iconKey: 'plug',
@@ -257,7 +285,7 @@ export const landingProSection = {
       label: 'Tempo real',
     },
     {
-      iconKey: 'dashboard',
+      iconKey: 'clickup',
       title: 'ClickUp',
       body: 'Tarefa nasce do relatório. Status sincroniza entre Buug e quadro.',
       label: 'Gestão',
@@ -284,14 +312,14 @@ export const landingTechStack = [
 export const landingPlatformsSection = {
   tag: 'Multiplataforma',
   title: 'Roda onde há navegador',
-  sub: 'React, Vue, Angular ou HTML puro: o script não escolhe framework. O modo link vale para qualquer URL aberta no browser.',
-  footnote: 'E-commerce, SaaS, intranet ou landing estática — se renderiza no cliente, o pacote de contexto segue igual.',
+  sub: 'Next.js, Flutter, React, Vue, Angular ou HTML puro: o script não escolhe framework. O modo link vale para qualquer URL aberta no browser.',
+  footnote: 'E-commerce, SaaS, intranet ou landing estática: se renderiza no cliente, o pacote de contexto segue igual.',
 } as const
 
 export const landingComparisonSection = {
   tag: 'Comparativo',
   title: 'O pacote Buug vs. “só print”',
-  sub: 'Além da captura: Web Vitals, rage/dead clicks, trilha e contexto de aparelho — e homologação por link sem tocar no repo. Camada paga quando você quiser API, webhooks e ClickUp.',
+  sub: 'Além da captura: Web Vitals, rage/dead clicks, trilha e contexto de aparelho, mais homologação por link sem tocar no repo. Camada paga quando você quiser API, webhooks e ClickUp.',
   tableHeaders: {
     feature: 'Funcionalidade',
     buug: 'Buug',
@@ -314,7 +342,7 @@ export const landingComparisonSection = {
 export const landingPricingSection = {
   tag: 'Planos',
   title: 'Preço claro, em reais',
-  sub: 'Começa no free com o pacote completo de captura até o teto de relatórios. Volume maior? Pro e Business liberam API, webhooks, ClickUp e exportação — com assinatura ativa.',
+  sub: 'Começa no free com o pacote completo de captura até o teto de relatórios. Volume maior? Pro e Business liberam API, webhooks, ClickUp e exportação com assinatura ativa.',
   period: '/mês',
   free: {
     name: 'Gratuito',
@@ -339,7 +367,7 @@ export const landingPricingSection = {
       '2.000 relatórios por mês',
       'Projetos ilimitados',
       'Membros ilimitados',
-      'Exportar filtrado — CSV ou Excel (com assinatura ativa)',
+      'Exportar filtrado em CSV ou Excel (com assinatura ativa)',
       'API REST, webhooks e ClickUp (com assinatura ativa)',
       'Captura de tela + replay da sessão',
       'Console, rede e logs customizados',
@@ -355,7 +383,7 @@ export const landingPricingSection = {
       '10.000 relatórios por mês',
       'Projetos ilimitados',
       'Membros ilimitados',
-      'Exportar filtrado — CSV ou Excel (com assinatura ativa)',
+      'Exportar filtrado em CSV ou Excel (com assinatura ativa)',
       'API REST, webhooks e ClickUp (com assinatura ativa)',
       'Captura de tela + replay da sessão',
       'Console, rede e logs customizados',
@@ -369,7 +397,7 @@ export const landingPricingSection = {
 export const landingFaqSection = {
   tag: 'FAQ',
   title: 'Perguntas frequentes',
-  sub: 'Plano, técnica, segurança e LGPD — direto ao ponto.',
+  sub: 'Plano, técnica, segurança e LGPD, direto ao ponto.',
 } as const
 
 export const landingCtaSection = {
@@ -386,6 +414,7 @@ export const landingFooter = {
     { label: 'Funcionalidades', href: '#funcionalidades' },
     { label: 'Widget e link', href: '#integracao' },
     { label: 'API e integrações', href: '#integracoes-pro' },
+    { label: 'Avaliações', href: '#avaliacoes' },
     { label: 'Planos', href: '#planos' },
     { label: 'FAQ', href: '#faq' },
     { label: 'Ver fluxo', href: '#como-funciona' },
@@ -411,7 +440,7 @@ export const landingDemo = {
     stepperData: 'Dados',
     stepperWidget: 'Widget',
     heading: 'Qual site você quer monitorar?',
-    lead: 'Cole o endereço do seu site — aquele que aparece na barra do navegador.',
+    lead: 'Cole o endereço do seu site, aquele que aparece na barra do navegador.',
     urlSample: 'meusite.com.br',
     urlHint: 'Ex: meusite.com.br, minhaloja.shopify.com, app.meuservico.com',
     continueLabel: 'Continuar',
@@ -428,18 +457,34 @@ export const landingDemo = {
     chartTitle: 'Vendas por dia',
     tableHeaders: ['Produto', 'Vendas', 'Receita'],
   },
+  /** Mock alinhado a `components/viewer/FeedbackModal.tsx` (Novo report) */
   step2: {
-    reportTitle: 'Reportar Bug',
-    replayLabel: 'Replay da sessão',
-    fieldTitle: 'Título',
-    fieldTitleValue: 'Botão de pagamento não responde',
-    fieldDescription: 'Descrição',
-    fieldDescriptionValue: 'Erro 500 ao fechar pedido',
+    modalTitle: 'Reportar Bug',
+    headerDate: '31 de mar. de 2026, 23:20',
+    tabReplay: 'Replay',
+    tabScreenshot: 'Screenshot',
+    replayCaption: 'Um envio: replay, vitals, logs e tela fechados.',
+    replayCurrent: '0:09',
+    replayTotal: '0:17',
+    descriptionLabel: 'Descrição',
+    descriptionPlaceholder:
+      'Descreva o problema ou sugestão em detalhes… (mínimo 10 caracteres)',
+    descriptionSample: '',
     typeLabel: 'Tipo',
-    types: ['Bug', 'Sugestão'],
+    typeLabels: ['Bug', 'Sugestão', 'Dúvida', 'Elogio'] as const,
     priorityLabel: 'Prioridade',
-    priorities: ['Alta', 'Baixa'],
-    submit: 'Enviar relatório',
+    priorityLabels: ['Baixa', 'Média', 'Alta', 'Crítica'] as const,
+    priorityColors: ['#22c55e', '#f59e0b', '#f97316', '#ef4444'] as const,
+    activePriorityIndex: 1,
+    sidebarBrowser: 'Chrome 142.0.7444.265',
+    sidebarOs: 'macOS 10.15.7',
+    sidebarViewport: '1052 × 894',
+    sidebarSource: 'Widget embed',
+    pageOpen: 'Abrir',
+    consoleSummary: '0 logs',
+    networkSummary: '0 req.',
+    submitCta: 'Enviar Bug',
+    poweredBy: 'Powered by Buug',
   },
   step3: {
     projectName: 'Meu e-commerce',

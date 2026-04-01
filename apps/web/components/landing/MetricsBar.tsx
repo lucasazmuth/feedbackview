@@ -1,17 +1,26 @@
-import { Flex, Row } from '@once-ui-system/core'
+import { Container } from '@/components/ui/Container'
 import { landingMetrics } from '@/content/landing.pt-BR'
 
 export function MetricsBar() {
   return (
-    <Flex fillWidth horizontal="center" background="page" className="landing-metrics-bar">
-      <Row maxWidth={64} fillWidth paddingX="l" paddingY="l" horizontal="center" gap="xl" className="landing-metrics-row">
-        {landingMetrics.map((stat, i) => (
-          <div key={i} className="landing-metric-cell">
-            <div className="landing-metric-value">{stat.value}</div>
-            <div className="landing-metric-label">{stat.label}</div>
-          </div>
-        ))}
-      </Row>
-    </Flex>
+    <section className="border-t border-b border-transparent-white py-10 bg-background">
+      <Container>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-y-8 gap-x-4">
+          {landingMetrics.map((m, i) => (
+            <div
+              key={i}
+              className="flex flex-col items-center text-center md:border-r md:last:border-r-0 border-transparent-white px-4"
+            >
+              <span className="text-off-white text-2xl md:text-3xl font-bold mb-1">
+                {m.value}
+              </span>
+              <span className="text-primary-text text-sm leading-snug max-w-[20rem]">
+                {m.label}
+              </span>
+            </div>
+          ))}
+        </div>
+      </Container>
+    </section>
   )
 }

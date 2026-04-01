@@ -1,19 +1,15 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, type ReactNode } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { useSidebarContext } from './AppLayout'
 import { useOrg } from '@/contexts/OrgContext'
 import { getPlanLimits, type Plan } from '@/lib/limits'
+import { ICON_PX } from '@/lib/icon-tokens'
+import { AppIcon, appIconWithSize } from '@/components/ui/AppIcon'
 
-function SvgIcon({ children, size = 18 }: { children: React.ReactNode; size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-      {children}
-    </svg>
-  )
-}
+const COLLAPSED_RAIL_WIDTH = '4rem'
+const COLLAPSED_HIT = 32
 
 export default function Sidebar() {
   const pathname = usePathname()
@@ -65,7 +61,12 @@ export default function Sidebar() {
 
   function isActive(prefix: string) {
     if (prefix === '/dashboard') {
-      return pathname === '/dashboard' || pathname.startsWith('/projects') || pathname.startsWith('/feedbacks')
+      return (
+        pathname === '/dashboard' ||
+        pathname === '/criar-projeto' ||
+        pathname.startsWith('/projects') ||
+        pathname.startsWith('/feedbacks')
+      )
     }
     if (prefix === '/reports') {
       return pathname === '/reports' || pathname.startsWith('/reports/')
@@ -77,18 +78,6 @@ export default function Sidebar() {
     return pathname.startsWith(prefix)
   }
 
-  async function handleSignOut() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    // Clear cached org data so next login doesn't show stale data
-    try {
-      localStorage.removeItem('qbugs_current_org_id')
-      sessionStorage.clear()
-    } catch {}
-    // Hard navigation to clear Next.js Router Cache completely
-    window.location.href = '/auth/login'
-  }
-
   const filteredOrgs = orgs.filter((org) =>
     org.name.toLowerCase().includes(wsSearch.toLowerCase())
   )
@@ -97,19 +86,19 @@ export default function Sidebar() {
     {
       label: 'Projetos',
       href: '/dashboard',
-      icon: <SvgIcon><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></SvgIcon>,
+      icon: <AppIcon><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></AppIcon>,
       matchPrefix: '/dashboard',
     },
     {
       label: 'Reports',
       href: '/reports',
-      icon: <SvgIcon><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></SvgIcon>,
+      icon: <AppIcon><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></AppIcon>,
       matchPrefix: '/reports',
     },
     {
       label: 'Equipe',
       href: '/team',
-      icon: <SvgIcon><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></SvgIcon>,
+      icon: <AppIcon><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></AppIcon>,
       matchPrefix: '/team',
     },
   ]
@@ -120,28 +109,29 @@ export default function Sidebar() {
     {
       label: 'Planos',
       href: '/plans',
-      icon: <SvgIcon><path d="M21 4H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z" /><path d="M1 10h22" /></SvgIcon>,
+      icon: <AppIcon><path d="M21 4H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z" /><path d="M1 10h22" /></AppIcon>,
     },
     {
       label: 'Integrações',
       href: '/settings/integrations',
-      icon: <SvgIcon><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></SvgIcon>,
+      icon: <AppIcon><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></AppIcon>,
     },
     {
       label: 'Configurações',
       href: '/settings',
-      icon: <SvgIcon><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></SvgIcon>,
+      icon: <AppIcon><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></AppIcon>,
     },
   ]
 
-  function CollapsedIconButton({ icon, label, badge, onClick, active }: { icon: React.ReactNode; label: string; badge?: number; onClick: () => void; active?: boolean }) {
+  function CollapsedIconButton({ icon, label, badge, onClick, active }: { icon: ReactNode; label: string; badge?: number; onClick: () => void; active?: boolean }) {
+    const renderedIcon = appIconWithSize(icon, ICON_PX.navCollapsed)
     return (
       <button
         onClick={onClick}
         title={label}
         style={{
-          width: 36,
-          height: 36,
+          width: COLLAPSED_HIT,
+          height: COLLAPSED_HIT,
           borderRadius: 8,
           border: 'none',
           background: active ? 'var(--neutral-alpha-medium)' : 'transparent',
@@ -157,12 +147,12 @@ export default function Sidebar() {
         onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = 'var(--neutral-alpha-weak)' }}
         onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = active ? 'var(--neutral-alpha-medium)' : 'transparent' }}
       >
-        {icon}
+        {renderedIcon}
         {badge && badge > 0 ? (
           <span style={{
             position: 'absolute',
-            top: 2,
-            right: 2,
+            top: 1,
+            right: 1,
             minWidth: 16,
             height: 16,
             borderRadius: 8,
@@ -187,7 +177,7 @@ export default function Sidebar() {
     return (
       <nav
         style={{
-          width: '3.5rem',
+          width: COLLAPSED_RAIL_WIDTH,
           height: '100vh',
           position: 'fixed',
           top: 0,
@@ -197,7 +187,8 @@ export default function Sidebar() {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          padding: '0.75rem 0',
+          padding: '0.75rem 0.375rem',
+          boxSizing: 'border-box',
           gap: '0.25rem',
           zIndex: 100,
           transition: 'width 0.2s ease',
@@ -209,16 +200,16 @@ export default function Sidebar() {
             onClick={() => setCollapsed(false)}
             title={currentOrg.name}
             style={{
-              width: 36,
-              height: 36,
-              borderRadius: 10,
+              width: COLLAPSED_HIT,
+              height: COLLAPSED_HIT,
+              borderRadius: 8,
               background: 'var(--brand-solid-strong)',
               color: '#fff',
               border: 'none',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '0.8rem',
+              fontSize: '0.75rem',
               fontWeight: 700,
               cursor: 'pointer',
               flexShrink: 0,
@@ -230,7 +221,7 @@ export default function Sidebar() {
         )}
 
         {/* Separator */}
-        <div style={{ width: 24, height: 1, background: 'var(--neutral-border-medium)', flexShrink: 0, margin: '0.25rem 0' }} />
+        <div style={{ width: '100%', maxWidth: 28, height: 1, background: 'var(--neutral-border-medium)', flexShrink: 0, margin: '0.25rem 0' }} />
 
         {/* Workspace nav icons */}
         {wsNavItems.map((item) => (
@@ -247,7 +238,7 @@ export default function Sidebar() {
         <div style={{ flex: 1 }} />
 
         {/* Separator */}
-        <div style={{ width: 24, height: 1, background: 'var(--neutral-border-medium)', flexShrink: 0, margin: '0.25rem 0' }} />
+        <div style={{ width: '100%', maxWidth: 28, height: 1, background: 'var(--neutral-border-medium)', flexShrink: 0, margin: '0.25rem 0' }} />
 
         {/* Bottom nav icons */}
         {bottomNavItems.map((item) => (
@@ -260,16 +251,9 @@ export default function Sidebar() {
           />
         ))}
 
-        {/* Sign out */}
-        <CollapsedIconButton
-          icon={<SvgIcon><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></SvgIcon>}
-          label="Sair"
-          onClick={handleSignOut}
-        />
-
         {/* Expand */}
         <CollapsedIconButton
-          icon={<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="m9 18 6-6-6-6" /></svg>}
+          icon={<AppIcon size="navCollapsed"><path d="m9 18 6-6-6-6" /></AppIcon>}
           label="Expandir menu"
           onClick={() => setCollapsed(false)}
         />
@@ -355,23 +339,16 @@ export default function Sidebar() {
           </div>
 
           {/* Chevron */}
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="var(--neutral-on-background-weak)"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+          <AppIcon
+            size="md"
             style={{
-              flexShrink: 0,
+              color: 'var(--neutral-on-background-weak)',
               transition: 'transform 0.15s',
               transform: wsDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
             }}
           >
             <path d="m6 9 6 6 6-6" />
-          </svg>
+          </AppIcon>
         </button>
 
         {/* ── Workspace Dropdown ── */}
@@ -403,10 +380,10 @@ export default function Sidebar() {
                 borderRadius: 8,
                 background: 'var(--neutral-alpha-weak)',
               }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--neutral-on-background-weak)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <AppIcon size="sm" style={{ color: 'var(--neutral-on-background-weak)' }}>
                   <circle cx="11" cy="11" r="8" />
                   <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
+                </AppIcon>
                 <input
                   type="text"
                   placeholder="Buscar workspaces"
@@ -489,9 +466,9 @@ export default function Sidebar() {
                         {org.plan || 'Free'}
                       </div>
                     </div>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--neutral-on-background-weak)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                    <AppIcon size="sm" style={{ color: 'var(--neutral-on-background-weak)' }}>
                       <path d="m9 18 6-6-6-6" />
-                    </svg>
+                    </AppIcon>
                   </button>
                 )
               })}
@@ -515,7 +492,7 @@ export default function Sidebar() {
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.625rem',
+                gap: '0.5rem',
                 padding: '0.5rem 0.75rem',
                 borderRadius: '0.5rem',
                 border: 'none',
@@ -598,7 +575,7 @@ export default function Sidebar() {
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.625rem',
+                gap: '0.5rem',
                 padding: '0.5rem 0.75rem',
                 borderRadius: '0.5rem',
                 border: 'none',
@@ -625,43 +602,13 @@ export default function Sidebar() {
           )
         })}
 
-        {/* Sign Out */}
-        <button
-          onClick={handleSignOut}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.625rem',
-            padding: '0.5rem 0.75rem',
-            borderRadius: '0.5rem',
-            border: 'none',
-            background: 'transparent',
-            color: 'var(--neutral-on-background-weak)',
-            cursor: 'pointer',
-            fontSize: '0.875rem',
-            fontWeight: 400,
-            width: '100%',
-            textAlign: 'left',
-            transition: 'background 0.15s',
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--neutral-alpha-weak)' }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
-        >
-          <SvgIcon>
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <polyline points="16 17 21 12 16 7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
-          </SvgIcon>
-          Sair
-        </button>
-
         {/* Collapse button */}
         <button
           onClick={() => setCollapsed(true)}
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '0.625rem',
+            gap: '0.5rem',
             padding: '0.5rem 0.75rem',
             borderRadius: '0.5rem',
             border: 'none',
@@ -677,9 +624,9 @@ export default function Sidebar() {
           onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--neutral-alpha-weak)' }}
           onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+          <AppIcon>
             <path d="m15 18-6-6 6-6" />
-          </svg>
+          </AppIcon>
           Minimizar
         </button>
       </div>

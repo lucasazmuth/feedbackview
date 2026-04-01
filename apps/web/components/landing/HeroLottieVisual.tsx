@@ -5,9 +5,6 @@ import Lottie from 'lottie-react'
 import { landingHero } from '@/content/landing.pt-BR'
 import { HeroCodeStream } from './HeroCodeStream'
 
-/**
- * Hero visual — /typing-animation.json (“Typing”, 744×512).
- */
 export function HeroLottieVisual() {
   const [data, setData] = useState<unknown>(null)
   const [reduceMotion, setReduceMotion] = useState(false)
@@ -37,42 +34,64 @@ export function HeroLottieVisual() {
   }, [reduceMotion])
 
   return (
-    <div className="landing-hero-lottie-root">
-      <div className="landing-hero-gradient" />
+    <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
+      {/* Code stream behind */}
       <div
-        className={
-          reduceMotion
-            ? 'landing-hero-visual-layer landing-hero-visual-layer--reduced'
-            : 'landing-hero-visual-layer'
-        }
+        className="absolute inset-0 z-0"
+        style={{ opacity: reduceMotion ? 0.12 : 0.065 }}
       >
         <HeroCodeStream reduceMotion={reduceMotion} variant="behind" />
-        {!reduceMotion ? (
-          <div className="landing-hero-lottie-slot">
-            {data ? (
+      </div>
+
+      {/* Lottie: cartão quadrado — centraliza na área útil abaixo do badge */}
+      {!reduceMotion && (
+        <div className="relative z-[2] flex h-full min-h-0 w-full flex-col items-center justify-center px-2 pb-2 pt-11 sm:px-3 sm:pt-12">
+          {data ? (
+            <div className="flex h-full min-h-0 w-full flex-1 items-center justify-center px-1">
               <Lottie
                 animationData={data}
                 loop
-                className="landing-hero-lottie"
+                className="max-h-full w-auto max-w-full flex-shrink-0"
+                style={{ height: '100%', width: 'auto', maxWidth: '100%' }}
                 aria-hidden
               />
-            ) : (
-              <div className="landing-hero-lottie-skel" aria-hidden />
-            )}
-          </div>
-        ) : null}
-      </div>
-      <div className="landing-hero-live-badge" aria-hidden="true">
+            </div>
+          ) : (
+            <div
+              className="mx-auto aspect-[744/512] h-full max-h-full w-auto max-w-full rounded-xl"
+              style={{
+                background: 'var(--neutral-alpha-weak)',
+                border: '1px solid var(--neutral-border-medium)',
+                animation: 'landing-hero-lottie-skel-pulse 1.2s ease-in-out infinite',
+              }}
+              aria-hidden
+            />
+          )}
+        </div>
+      )}
+
+      {/* Live badge */}
+      <div
+        className="absolute top-3.5 left-3.5 z-[4] inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11px] font-semibold uppercase tracking-wide backdrop-blur-lg"
+        style={{
+          color: 'var(--neutral-on-background-strong)',
+          background: 'color-mix(in srgb, var(--surface-background) 86%, transparent)',
+          border: '1px solid var(--neutral-border-medium)',
+          boxShadow: '0 2px 14px color-mix(in srgb, var(--neutral-solid-strong) 8%, transparent)',
+        }}
+        aria-hidden="true"
+      >
         <span
-          className={
-            reduceMotion
-              ? 'landing-hero-live-dot landing-hero-live-dot--static'
-              : 'landing-hero-live-dot'
-          }
+          className="w-2 h-2 rounded-full flex-shrink-0"
+          style={{
+            background: 'var(--danger-solid-strong)',
+            boxShadow: reduceMotion
+              ? 'none'
+              : '0 0 0 0 color-mix(in srgb, var(--danger-solid-strong) 45%, transparent)',
+            animation: reduceMotion ? 'none' : 'landing-hero-live-dot-pulse 1.6s ease-in-out infinite',
+          }}
         />
-        <span className="landing-hero-live-badge-text">
-          {landingHero.liveCaptureLabel}
-        </span>
+        <span className="leading-none">{landingHero.liveCaptureLabel}</span>
       </div>
     </div>
   )

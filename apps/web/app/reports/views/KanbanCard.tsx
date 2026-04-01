@@ -2,8 +2,9 @@
 
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Tag, Text } from '@once-ui-system/core'
-import { getTagVariant, getTypeLabel, getSeverityLabel } from '../utils/labels'
+import { getTagColors, getTypeLabel, getSeverityLabel } from '../utils/labels'
+import { AppIcon } from '@/components/ui/AppIcon'
+import { ICON_STROKE } from '@/lib/icon-tokens'
 
 interface Feedback {
   id: string
@@ -70,50 +71,46 @@ export default function KanbanCard({ feedback, assignees, onClick }: KanbanCardP
     >
       {/* Tags row */}
       <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
-        <Tag variant={getTagVariant(feedback.type)} size="s" label={getTypeLabel(feedback.type)} />
+        <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: getTagColors(feedback.type).bg, color: getTagColors(feedback.type).color }}>{getTypeLabel(feedback.type)}</span>
         {feedback.severity && (
-          <Tag variant={getTagVariant(feedback.severity)} size="s" label={getSeverityLabel(feedback.severity)} />
+          <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: getTagColors(feedback.severity).bg, color: getTagColors(feedback.severity).color }}>{getSeverityLabel(feedback.severity)}</span>
         )}
       </div>
 
       {/* Title/comment */}
-      <Text
-        variant="body-default-s"
+      <span
+        className="text-sm text-primary-text font-medium"
         style={{
           display: '-webkit-box',
           WebkitLineClamp: 2,
           WebkitBoxOrient: 'vertical',
           overflow: 'hidden',
           lineHeight: 1.4,
-          fontWeight: 500,
         }}
       >
         {feedback.title || feedback.comment?.slice(0, 80)}
-      </Text>
+      </span>
 
       {/* Project name + date row */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
         {feedback.Project?.name ? (
-          <Text variant="body-default-xs" onBackground="neutral-weak" style={{
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0,
-          }}>
+          <span className="text-xs text-gray truncate" style={{ minWidth: 0 }}>
             {feedback.Project.name}
-          </Text>
+          </span>
         ) : (
           <span />
         )}
-        <Text
-          variant="body-default-xs"
-          onBackground={isOverdue ? 'danger-strong' : 'neutral-weak'}
-          style={{ fontSize: '0.6875rem', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '0.2rem' }}
+        <span
+          className={`text-xs flex-shrink-0 flex items-center gap-0.5 ${isOverdue ? 'text-red-400' : 'text-gray'}`}
+          style={{ fontSize: '0.6875rem' }}
         >
           {hasDueDate && (
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <AppIcon size={10} strokeWidth={ICON_STROKE.emphasis}>
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
-            </svg>
+            </AppIcon>
           )}
           {dueDateStr || dateStr}
-        </Text>
+        </span>
       </div>
 
       {/* Assignees row — bottom right like ClickUp */}

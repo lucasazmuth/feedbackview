@@ -26,12 +26,12 @@ export function ComparisonSection() {
                   <td className="landing-cmp-td landing-cmp-td--buug">
                     {row.buug
                       ? <span className="landing-cmp-check" aria-label="Sim">&#10003;</span>
-                      : <span className="landing-cmp-dash" aria-label="Não">—</span>}
+                      : <span className="landing-cmp-dash" aria-label="Não">×</span>}
                   </td>
                   <td className="landing-cmp-td landing-cmp-center">
                     {row.others
                       ? <span className="landing-cmp-check" aria-label="Sim">&#10003;</span>
-                      : <span className="landing-cmp-dash" aria-label="Não">—</span>}
+                      : <span className="landing-cmp-dash" aria-label="Não">×</span>}
                   </td>
                 </tr>
               ))}

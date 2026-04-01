@@ -2,9 +2,12 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Column, Row, Heading, Text, Button, Feedback as FeedbackAlert } from '@once-ui-system/core'
 import { DEFAULT_STATUS_MAP_BUUG_TO_CLICKUP, DEFAULT_STATUS_MAP_CLICKUP_TO_BUUG } from '@/lib/clickup/types'
 import ClickUpAutomationsTab from '@/app/settings/integrations/ClickUpAutomationsTab'
+import { Alert } from '@/components/ui/Alert'
+import { Spinner } from '@/components/ui/Spinner'
+import { AppIcon } from '@/components/ui/AppIcon'
+import { ICON_STROKE } from '@/lib/icon-tokens'
 
 interface OrgProject {
   id: string
@@ -58,9 +61,9 @@ function ClickUpModalCloseButton({ onClose }: { onClose: () => void }) {
         marginTop: 2,
       }}
     >
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+      <AppIcon size="xl" strokeWidth={ICON_STROKE.emphasis} aria-hidden>
         <path d="M18 6L6 18M6 6l12 12" />
-      </svg>
+      </AppIcon>
     </button>
   )
 }
@@ -259,57 +262,73 @@ export default function ClickUpSetup({
       }}
       onClick={() => !disconnecting && setShowDisconnectConfirm(false)}
     >
-      <Column
-        padding="l"
-        gap="m"
-        radius="l"
-        background="surface"
-        border="neutral-medium"
-        style={{ maxWidth: '28rem', width: '100%', boxShadow: '0 24px 48px rgba(0,0,0,0.2)' }}
+      <div
+        style={{
+          maxWidth: '28rem',
+          width: '100%',
+          background: 'var(--surface-background)',
+          border: '1px solid var(--neutral-border-medium)',
+          borderRadius: 'var(--radius-l, 12px)',
+          boxShadow: '0 24px 48px rgba(0,0,0,0.18)',
+          padding: '1.25rem',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1.25rem',
+        }}
         onClick={(e: React.MouseEvent) => e.stopPropagation()}
       >
-        <Column gap="s">
-          <Heading variant="heading-strong-m" as="h3" id="clickup-disconnect-title" style={{ margin: 0 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <h3 id="clickup-disconnect-title" style={{ margin: 0, fontSize: '1.0625rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)' }}>
             Desconectar ClickUp
-          </Heading>
-          <Text variant="body-default-s" onBackground="neutral-weak">
+          </h3>
+          <span style={{ fontSize: '0.875rem', lineHeight: 1.55, color: 'var(--neutral-on-background-weak)' }}>
             Tem certeza? O token da API será removido, a integração desativada e as automações desta organização deixarão de enviar reports ao ClickUp. Você poderá conectar de novo depois.
-          </Text>
-        </Column>
-        <Row gap="s" horizontal="end" wrap>
-          <Button
-            variant="secondary"
-            size="m"
-            label="Cancelar"
-            disabled={disconnecting}
-            onClick={() => setShowDisconnectConfirm(false)}
-          />
-          <Button
-            variant="danger"
-            size="m"
-            label={disconnecting ? 'Desconectando…' : 'Desconectar'}
-            loading={disconnecting}
-            disabled={disconnecting}
-            onClick={() => void performDisconnect()}
-          />
-        </Row>
-      </Column>
+          </span>
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', justifyContent: 'flex-end' }}>
+          <button type="button" onClick={() => setShowDisconnectConfirm(false)} disabled={disconnecting} className="app-btn-secondary">
+            Cancelar
+          </button>
+          <button type="button" onClick={() => void performDisconnect()} disabled={disconnecting} className="app-btn-danger">
+            {disconnecting ? 'Desconectando…' : 'Desconectar'}
+          </button>
+        </div>
+      </div>
     </div>
   ) : null
 
   if (loading) {
     return (
       <>
-        <Column fillWidth gap="m" style={{ position: 'relative' }}>
-          {onClose ? (
-            <Row fillWidth horizontal="end" style={{ flexShrink: 0 }}>
-              <ClickUpModalCloseButton onClose={onClose} />
-            </Row>
-          ) : null}
-          <Column fillWidth padding="xl" horizontal="center" gap="m">
-            <Text variant="body-default-s" onBackground="neutral-weak">Carregando configuração do ClickUp…</Text>
-          </Column>
-        </Column>
+        <div
+          style={{
+            padding: '1.25rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1.25rem',
+            minHeight: '12rem',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'flex-end', minHeight: onClose ? undefined : 0 }}>
+            {onClose ? <ClickUpModalCloseButton onClose={onClose} /> : null}
+          </div>
+          <div
+            style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.875rem',
+              padding: '1rem 0 2rem',
+            }}
+          >
+            <Spinner size="md" />
+            <span style={{ fontSize: '0.875rem', color: 'var(--neutral-on-background-weak)', textAlign: 'center' }}>
+              Carregando configuração do ClickUp…
+            </span>
+          </div>
+        </div>
         {disconnectModal}
       </>
     )
@@ -317,19 +336,19 @@ export default function ClickUpSetup({
 
   if (!integrationEntitled && !configured) {
     return (
-      <Column fillWidth gap="m" style={{ position: 'relative' }}>
+      <div style={{ position: 'relative' }}>
         {onClose ? (
-          <Row fillWidth horizontal="end" style={{ flexShrink: 0 }}>
+          <div style={{ flexShrink: 0 }}>
             <ClickUpModalCloseButton onClose={onClose} />
-          </Row>
+          </div>
         ) : null}
-        <FeedbackAlert variant="warning" title="Plano Pro ou Business">
-          <Text variant="body-default-s" onBackground="neutral-weak">
+        <Alert><strong>Plano Pro ou Business</strong> 
+          <span>
             A integração ClickUp e as automações exigem plano pago com assinatura ativa.
-          </Text>
-        </FeedbackAlert>
-        <Button variant="primary" size="m" label="Ver planos" onClick={() => router.push('/plans/upgrade')} />
-      </Column>
+          </span>
+        </Alert>
+        <button onClick={() => router.push('/plans/upgrade')} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', background: 'var(--brand-solid-strong)', color: '#fff', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>Ver planos</button>
+      </div>
     )
   }
 
@@ -353,9 +372,7 @@ export default function ClickUpSetup({
     if (!integrationEntitled) {
       return (
         <>
-          <Column
-            fillWidth
-            gap="m"
+          <div
             style={{
               minHeight: 0,
               flex: automationWizardOpen ? 1 : undefined,
@@ -364,69 +381,68 @@ export default function ClickUpSetup({
               flexDirection: 'column',
             }}
           >
-            <Column fillWidth gap="m" style={{ marginBottom: '1rem', flexShrink: 0 }}>
-              <Row gap="m" vertical="start" fillWidth horizontal="between" style={{ alignItems: 'flex-start' }}>
-                <Row gap="m" vertical="start" style={{ flex: 1, minWidth: 0, alignItems: 'flex-start' }}>
-                  <img src="/integrations/clickup.svg" alt="" width={44} height={44} style={{ flexShrink: 0, marginTop: 2 }} />
-                  <Column gap="xs" fillWidth style={{ minWidth: 0 }}>
-                    <Heading variant="heading-strong-s" as="h2" id="clickup-modal-title" style={{ margin: 0, lineHeight: 1.25 }}>
+            <div style={{ marginBottom: '1rem', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div style={{ display: 'flex', flex: 1, minWidth: 0, alignItems: 'center', gap: '0.75rem' }}>
+                  <img src="/integrations/clickup.svg" alt="" width={44} height={44} style={{ flexShrink: 0, display: 'block' }} />
+                  <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0.25rem', justifyContent: 'center' }}>
+                    <h2 id="clickup-modal-title" style={{ margin: 0, lineHeight: 1.25, fontSize: '1.125rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)' }}>
                       ClickUp
-                    </Heading>
-                    <Text variant="body-default-xs" onBackground="neutral-weak" style={{ lineHeight: 1.5, wordBreak: 'break-word' }}>
+                    </h2>
+                    <span style={{ lineHeight: 1.5, wordBreak: 'break-word', fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)' }}>
                       <span style={{ color: 'var(--warning-on-background-strong, #b45309)' }}>Integrações pausadas</span>
                       {' · '}Sem plano Pro/Business ativo a sincronização e as automações não funcionam. Pode desconectar para remover credenciais.
-                    </Text>
-                  </Column>
-                </Row>
+                    </span>
+                  </div>
+                </div>
                 {onClose ? <ClickUpModalCloseButton onClose={onClose} /> : null}
-              </Row>
-              <Row gap="s" vertical="center" wrap fillWidth horizontal="start" style={{ flexShrink: 0 }}>
-                <Button size="s" variant="primary" label="Ver planos" onClick={() => router.push('/plans/upgrade')} />
-                <Button size="s" variant="danger" label="Desconectar" onClick={() => setShowDisconnectConfirm(true)} />
-              </Row>
-            </Column>
-          </Column>
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+                <button onClick={() => router.push('/plans/upgrade')} className="app-btn-primary">Ver planos</button>
+                <button onClick={() => setShowDisconnectConfirm(true)} className="app-btn-danger">Desconectar</button>
+              </div>
+            </div>
+          </div>
           {disconnectModal}
         </>
       )
     }
     return (
       <>
-      <Column
-        fillWidth
-        gap="0"
+      <div
         style={{
           minHeight: 0,
           flex: automationWizardOpen ? 1 : undefined,
           alignSelf: 'stretch',
           display: 'flex',
           flexDirection: 'column',
+          gap: automationWizardOpen ? 0 : '1rem',
         }}
       >
         {!automationWizardOpen ? (
-          <Column fillWidth gap="m" style={{ marginBottom: '1rem', flexShrink: 0 }}>
-            <Row gap="m" vertical="start" fillWidth horizontal="between" style={{ alignItems: 'flex-start' }}>
-              <Row gap="m" vertical="start" style={{ flex: 1, minWidth: 0, alignItems: 'flex-start' }}>
-                <img src="/integrations/clickup.svg" alt="" width={44} height={44} style={{ flexShrink: 0, marginTop: 2 }} />
-                <Column gap="xs" fillWidth style={{ minWidth: 0 }}>
-                  <Heading variant="heading-strong-s" as="h2" id="clickup-modal-title" style={{ margin: 0, lineHeight: 1.25 }}>
+          <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1.25rem 1.25rem 0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', flex: 1, minWidth: 0, alignItems: 'center', gap: '0.75rem' }}>
+                <img src="/integrations/clickup.svg" alt="" width={44} height={44} style={{ flexShrink: 0, display: 'block' }} />
+                <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0.25rem', justifyContent: 'center' }}>
+                  <h2 id="clickup-modal-title" style={{ margin: 0, lineHeight: 1.25, fontSize: '1.125rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)' }}>
                     Automações ClickUp
-                  </Heading>
-                  <Text variant="body-default-xs" onBackground="neutral-weak" style={{ lineHeight: 1.5, wordBreak: 'break-word' }}>
+                  </h2>
+                  <span style={{ lineHeight: 1.5, wordBreak: 'break-word', fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)' }}>
                     <span style={{ color: 'var(--success-on-background-strong)' }}>Conexão ativa</span>
                     {` · ${automationStats.count} automação(ões) · ${automationStats.coveredProjects} projeto(s) com destino`}
-                  </Text>
-                </Column>
-              </Row>
+                  </span>
+                </div>
+              </div>
               {onClose ? <ClickUpModalCloseButton onClose={onClose} /> : null}
-            </Row>
-            <Row gap="s" vertical="center" wrap fillWidth horizontal="start" style={{ flexShrink: 0 }}>
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
               {integrationEntitled ? (
-                <Button size="s" variant="secondary" label="Editar chave API" onClick={openConnectionEditor} />
+                <button onClick={openConnectionEditor} className="app-btn-secondary">Editar chave API</button>
               ) : null}
-              <Button size="s" variant="danger" label="Desconectar" onClick={() => setShowDisconnectConfirm(true)} />
-            </Row>
-          </Column>
+              <button onClick={() => setShowDisconnectConfirm(true)} className="app-btn-danger">Desconectar</button>
+            </div>
+          </div>
         ) : null}
         <div
           style={{
@@ -435,7 +451,8 @@ export default function ClickUpSetup({
             maxHeight: automationWizardOpen ? 'none' : 'min(58vh, 520px)',
             overflowY: automationWizardOpen ? 'hidden' : 'auto',
             overflowX: 'hidden',
-            paddingRight: '0.25rem',
+            paddingRight: automationWizardOpen ? 0 : '0.25rem',
+            paddingBottom: automationWizardOpen ? 0 : '0.25rem',
             display: automationWizardOpen ? 'flex' : undefined,
             flexDirection: automationWizardOpen ? 'column' : undefined,
           }}
@@ -447,7 +464,6 @@ export default function ClickUpSetup({
             fillWizardHeight={automationWizardOpen}
             openCreateWithProjectId={prefillAutomationProjectId}
             onOpenCreatePrefillConsumed={onPrefillAutomationConsumed}
-            onCloseEntireModal={onClose}
             onWizardOpenChange={setAutomationWizardOpen}
             onChange={() => {
               void refreshAutomationStats()
@@ -455,7 +471,7 @@ export default function ClickUpSetup({
             }}
           />
         </div>
-      </Column>
+      </div>
       {disconnectModal}
       </>
     )
@@ -463,20 +479,20 @@ export default function ClickUpSetup({
 
   return (
     <>
-    <Column fillWidth gap="0" style={{ minHeight: 0 }}>
-      <Column fillWidth gap="m" style={{ marginBottom: editingActiveConnection ? '0.75rem' : '1rem' }}>
-        <Row gap="m" vertical="start" fillWidth horizontal="between" style={{ alignItems: 'flex-start' }}>
-          <Row gap="m" vertical="start" style={{ flex: 1, minWidth: 0, alignItems: 'flex-start' }}>
-            <img src="/integrations/clickup.svg" alt="" width={44} height={44} style={{ flexShrink: 0, marginTop: 2 }} />
-            <Column gap="xs" fillWidth style={{ minWidth: 0 }}>
-              <Heading variant="heading-strong-s" as="h2" id="clickup-modal-title" style={{ margin: 0, lineHeight: 1.25 }}>
+    <div style={{ minHeight: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1.25rem 1.25rem 0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', flex: 1, minWidth: 0, alignItems: 'center', gap: '0.75rem' }}>
+            <img src="/integrations/clickup.svg" alt="" width={44} height={44} style={{ flexShrink: 0, display: 'block' }} />
+            <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0.25rem', justifyContent: 'center' }}>
+              <h2 id="clickup-modal-title" style={{ margin: 0, lineHeight: 1.25, fontSize: '1.125rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)' }}>
                 {editingActiveConnection
                   ? 'Editar conexão ClickUp'
                   : mainTab === 'connection'
                     ? 'Conectar ao ClickUp'
                     : 'Automações'}
-              </Heading>
-              <Text variant="body-default-xs" onBackground="neutral-weak" style={{ lineHeight: 1.5, wordBreak: 'break-word' }}>
+              </h2>
+              <span style={{ lineHeight: 1.5, wordBreak: 'break-word', fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)' }}>
                 {editingActiveConnection ? (
                   <>
                     <span style={{ color: 'var(--success-on-background-strong)' }}>Integração ativa</span>
@@ -496,44 +512,48 @@ export default function ClickUpSetup({
                 ) : (
                   'Gerencie para onde cada projeto Buug envia reports no ClickUp'
                 )}
-              </Text>
-            </Column>
-          </Row>
+              </span>
+            </div>
+          </div>
           {onClose ? <ClickUpModalCloseButton onClose={onClose} /> : null}
-        </Row>
+        </div>
         {!editingActiveConnection ? (
-          <Row gap="s" vertical="center" wrap fillWidth horizontal="start" style={{ flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
             {configured ? (
-              <Button size="s" variant="danger" label="Desconectar" onClick={() => setShowDisconnectConfirm(true)} />
+              <button onClick={() => setShowDisconnectConfirm(true)} className="app-btn-danger">Desconectar</button>
             ) : null}
-          </Row>
+          </div>
         ) : null}
-      </Column>
+      </div>
 
       {!integrationEntitled && configured ? (
-        <FeedbackAlert variant="warning" title="Integrações pausadas">
-          <Text variant="body-default-s" onBackground="neutral-weak">
-            Renove o plano Pro ou Business para editar a conexão ou gerir automações. Pode desconectar para remover o token.
-          </Text>
-        </FeedbackAlert>
+        <div style={{ padding: '0 1.25rem' }}>
+          <Alert><strong>Integrações pausadas</strong> 
+            <span>
+              Renove o plano Pro ou Business para editar a conexão ou gerir automações. Pode desconectar para remover o token.
+            </span>
+          </Alert>
+        </div>
       ) : null}
 
       {!editingActiveConnection ? (
-        <Row gap="xs" wrap style={{ marginBottom: '0.75rem' }}>
-          <Button
-            size="s"
-            variant={mainTab === 'connection' ? 'primary' : 'secondary'}
-            label="Conexão"
+        <div style={{ display: 'flex', gap: '0.25rem', padding: '0 1.25rem' }}>
+          <button
             onClick={() => setMainTab('connection')}
-          />
-          <Button
-            size="s"
-            variant={mainTab === 'automations' ? 'primary' : 'secondary'}
-            label="Automações"
+            className={`app-filter-chip${mainTab === 'connection' ? ' app-filter-chip--active' : ''}`}
+            style={{ padding: '0.5rem 1rem', fontSize: '0.8125rem' }}
+          >
+            Conexão
+          </button>
+          <button
             onClick={() => setMainTab('automations')}
             disabled={!configured || !enabled}
-          />
-        </Row>
+            className={`app-filter-chip${mainTab === 'automations' ? ' app-filter-chip--active' : ''}`}
+            style={{ padding: '0.5rem 1rem', fontSize: '0.8125rem', opacity: (!configured || !enabled) ? 0.5 : 1 }}
+          >
+            Automações
+          </button>
+        </div>
       ) : null}
 
       {mainTab === 'automations' && configured && enabled && integrationEntitled && !editingActiveConnection && (
@@ -543,7 +563,6 @@ export default function ClickUpSetup({
           orgScopedProjects={orgScopedProjects}
           openCreateWithProjectId={prefillAutomationProjectId}
           onOpenCreatePrefillConsumed={onPrefillAutomationConsumed}
-          onCloseEntireModal={onClose}
           onWizardOpenChange={setAutomationWizardOpen}
           onChange={() => {
             void refreshAutomationStats()
@@ -553,20 +572,24 @@ export default function ClickUpSetup({
       )}
 
       {mainTab === 'automations' && (!configured || !enabled) && (
-        <FeedbackAlert variant="warning" title="Conecte o ClickUp">
-          Use a aba Conexão para salvar o token e ativar a integração antes das automações.
-        </FeedbackAlert>
+        <div style={{ padding: '0 1.25rem' }}>
+          <Alert><strong>Conecte o ClickUp</strong> 
+            Use a aba Conexão para salvar o token e ativar a integração antes das automações.
+          </Alert>
+        </div>
       )}
 
       {mainTab === 'automations' && configured && enabled && !integrationEntitled && !editingActiveConnection && (
-        <FeedbackAlert variant="warning" title="Plano necessário">
-          <Text variant="body-default-s" onBackground="neutral-weak">
-            As automações exigem plano Pro ou Business com assinatura ativa.
-          </Text>
-          <Row gap="s" style={{ marginTop: '0.75rem' }}>
-            <Button size="s" variant="primary" label="Ver planos" onClick={() => router.push('/plans/upgrade')} />
-          </Row>
-        </FeedbackAlert>
+        <div style={{ padding: '0 1.25rem' }}>
+          <Alert><strong>Plano necessário</strong> 
+            <span>
+              As automações exigem plano Pro ou Business com assinatura ativa.
+            </span>
+            <div style={{ marginTop: '0.75rem' }}>
+              <button type="button" onClick={() => router.push('/plans/upgrade')} className="app-btn-primary">Ver planos</button>
+            </div>
+          </Alert>
+        </div>
       )}
 
       {mainTab === 'connection' && (
@@ -575,82 +598,66 @@ export default function ClickUpSetup({
             style={{
               maxHeight: 'min(58vh, 520px)',
               overflowY: 'auto',
-              paddingRight: '0.25rem',
+              padding: '0 1.25rem',
             }}
           >
-            <Column gap="m" fillWidth>
-              <Text variant="body-default-s" onBackground="neutral-weak" style={{ lineHeight: 1.55 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <span style={{ lineHeight: 1.55, fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)' }}>
                 {editingActiveConnection
                   ? 'O token salvo continua ativo. Para trocar, cole o novo valor, teste e salve. Para sair sem mudanças: use Voltar ou clique fora do modal.'
                   : 'Cole o token da API, teste a conexão e salve. Workspace e lista você define ao criar cada automação.'}
-              </Text>
-              <Text variant="body-default-xs" onBackground="neutral-weak">
-                ClickUp: <strong>Configurações → Apps → API Token</strong> (geralmente <code style={{ fontSize: '0.8em' }}>pk_</code>…).
-              </Text>
+              </span>
+              <span style={{ fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)' }}>
+                ClickUp: <strong style={{ color: 'var(--neutral-on-background-strong)' }}>Configurações → Apps → API Token</strong> (geralmente <code style={{ fontSize: '0.8em', background: 'var(--neutral-alpha-weak)', padding: '1px 4px', borderRadius: '3px' }}>pk_</code>…).
+              </span>
 
-              <Column gap="xs" fillWidth>
-                <Text variant="label-default-s" style={{ color: 'var(--neutral-on-background-weak)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--neutral-on-background-weak)' }}>
                   Token da API
-                </Text>
+                </span>
                 <input
                   type="password"
                   placeholder={configured ? `****${tokenHint} (já salvo)` : 'pk_...'}
                   value={token}
                   onChange={e => setToken(e.target.value)}
-                  style={inputStyle}
+                  className="app-input"
                   autoComplete="off"
                 />
-              </Column>
+              </div>
 
               {testResult && (
-                <Text variant="body-default-xs" onBackground={testResult.valid ? 'success-strong' : 'danger-strong'}>
+                <span style={{ fontSize: '0.8125rem', fontWeight: 500, color: testResult.valid ? 'var(--success-on-background-strong)' : 'var(--danger-on-background-strong)' }}>
                   {testResult.valid
-                    ? `Conectado como ${testResult.user?.username}`
-                    : testResult.error || 'Token inválido'}
-                </Text>
+                    ? `✓ Conectado como ${testResult.user?.username}`
+                    : `✗ ${testResult.error || 'Token inválido'}`}
+                </span>
               )}
-              {saveMsg && <FeedbackAlert variant={saveMsg.type}>{saveMsg.text}</FeedbackAlert>}
-            </Column>
+              {saveMsg && <Alert variant={saveMsg.type}>{saveMsg.text}</Alert>}
+            </div>
           </div>
 
-          <Row
-            fillWidth
-            vertical="center"
-            wrap
-            gap="m"
+          <div
             style={{
-              marginTop: '1rem',
-              paddingTop: '1rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '0.5rem',
+              padding: '1rem 1.25rem',
               borderTop: '1px solid var(--neutral-border-medium)',
             }}
           >
             {editingActiveConnection ? (
-              <div style={{ marginRight: 'auto' }}>
-                <Button size="m" variant="tertiary" label="Voltar às automações" onClick={closeConnectionEditor} />
-              </div>
-            ) : null}
-            <Row gap="s" vertical="center" wrap horizontal="end" style={{ marginLeft: editingActiveConnection ? undefined : 'auto' }}>
-              <Button
-                size="m"
-                variant="secondary"
-                label={testing ? 'Testando…' : 'Testar conexão'}
-                onClick={handleTestToken}
-                loading={testing}
-                disabled={!token.trim() || !integrationEntitled}
-              />
-              <Button
-                size="m"
-                variant="primary"
-                label={saving ? 'Salvando…' : (configured ? 'Salvar' : 'Salvar e ativar')}
-                onClick={handleSave}
-                loading={saving}
-                disabled={!canSave || !integrationEntitled}
-              />
-            </Row>
-          </Row>
+              <button onClick={closeConnectionEditor} className="app-btn-secondary" style={{ padding: '0.375rem 0.75rem', fontSize: '0.8125rem' }}>← Voltar às automações</button>
+            ) : <span />}
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button onClick={handleTestToken} disabled={!token.trim() || !integrationEntitled} className="app-btn-secondary">{testing ? 'Testando…' : 'Testar conexão'}</button>
+              <button onClick={handleSave} disabled={!canSave || !integrationEntitled} className="app-btn-primary">{saving ? 'Salvando…' : (configured ? 'Salvar' : 'Salvar e ativar')}</button>
+            </div>
+          </div>
         </>
       )}
-    </Column>
+    </div>
     {disconnectModal}
     </>
   )

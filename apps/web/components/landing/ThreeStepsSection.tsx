@@ -1,39 +1,31 @@
-import {
-  Flex,
-  Column,
-  Heading,
-  Text,
-  Tag,
-} from '@once-ui-system/core'
+import { Container } from '@/components/ui/Container'
 import { landingThreeStepsSection, landingSteps } from '@/content/landing.pt-BR'
 
 export function ThreeStepsSection() {
   return (
-    <Flex fillWidth horizontal="center" background="page" id="tres-passos">
-      <Column maxWidth={64} fillWidth paddingX="l" paddingY="xl" gap="xl">
-        <Column horizontal="center" gap="s" className="landing-section-header">
-          <Tag variant="neutral" size="m" label={landingThreeStepsSection.tag} />
-          <Heading variant="display-strong-s" as="h2">
-            {landingThreeStepsSection.title}
-          </Heading>
-        </Column>
+    <section id="tres-passos" className="landing-section-pad">
+      <Container className="text-center">
+        <span className="mb-4 inline-block rounded-full border border-transparent-white bg-white/5 px-3 py-1 text-xs text-gray">
+          {landingThreeStepsSection.tag}
+        </span>
+        <h2 className="text-gradient mb-12 text-4xl md:text-6xl">
+          {landingThreeStepsSection.title}
+        </h2>
 
-        <div className="landing-steps-grid" role="list">
+        <div className="mx-auto grid max-w-[90rem] grid-cols-1 gap-8 md:grid-cols-3" role="list">
           {landingSteps.map((step) => (
-            <Column key={step.number} gap="m" horizontal="center" className="landing-section-header" role="listitem">
-              <div className="landing-step-circle" aria-hidden="true">
+            <div key={step.number} className="flex flex-col items-center gap-4 text-center" role="listitem">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-gradient text-lg font-bold text-white" aria-hidden="true">
                 {step.number}
               </div>
-              <Column gap="xs">
-                <Heading variant="heading-strong-s">{step.title}</Heading>
-                <Text variant="body-default-s" onBackground="neutral-weak">
-                  {step.description}
-                </Text>
-              </Column>
-            </Column>
+              <div className="flex flex-col gap-2">
+                <h3 className="text-xl font-semibold text-off-white">{step.title}</h3>
+                <p className="text-sm text-primary-text">{step.description}</p>
+              </div>
+            </div>
           ))}
         </div>
-      </Column>
-    </Flex>
+      </Container>
+    </section>
   )
 }

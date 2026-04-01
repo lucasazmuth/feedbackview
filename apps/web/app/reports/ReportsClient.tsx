@@ -4,26 +4,17 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
-import {
-  Column,
-  Row,
-  Heading,
-  Text,
-  Tag,
-  Icon,
-  Card,
-  Flex,
-  Spinner,
-  Button,
-  Feedback,
-} from '@once-ui-system/core'
+import { MessageSquare, Loader2 } from 'lucide-react'
+import { ICON_PX, LUCIDE_ICON_PX, ICON_STROKE } from '@/lib/icon-tokens'
 import AppLayout from '@/components/ui/AppLayout'
+import { AppIcon } from '@/components/ui/AppIcon'
+import { Button } from '@/components/ui/Button'
 import UpgradeModal from '@/components/ui/UpgradeModal'
 import { useOrg } from '@/contexts/OrgContext'
 import { api } from '@/lib/api'
 
 // Utils
-import { getTagVariant, getTypeLabel, getSeverityLabel, getStatusLabel } from './utils/labels'
+import { getTypeLabel, getSeverityLabel, getStatusLabel } from './utils/labels'
 
 // Modular components
 import FilterBar from './components/FilterBar'
@@ -329,9 +320,9 @@ export default function ReportsClient({
   if (error) {
     return (
       <AppLayout>
-        <Column fillWidth horizontal="center" vertical="center" style={{ minHeight: '60vh' }}>
-          <Text variant="body-default-m" onBackground="danger-strong">{error}</Text>
-        </Column>
+        <div className="app-page" style={{ minHeight: '60vh', alignItems: 'center', justifyContent: 'center' }}>
+          <p className="text-base text-red-400">{error}</p>
+        </div>
       </AppLayout>
     )
   }
@@ -341,32 +332,32 @@ export default function ReportsClient({
 
   return (
     <AppLayout>
-      <Column as="main" fillWidth paddingX="l" paddingY="m" gap="l">
+      <main className="app-page">
         {/* Page title + stats */}
-        <Row fillWidth horizontal="between" vertical="center">
-          <Column gap="xs">
-            <Heading variant="heading-strong-l" as="h1">Reports</Heading>
-            <Text variant="body-default-s" onBackground="neutral-weak">
+        <div className="w-full flex items-center justify-between">
+          <div className="flex flex-col gap-1">
+            <h1 className="text-2xl font-bold text-off-white">Reports</h1>
+            <p className="text-sm text-gray">
               Todos os reports recebidos de todos os projetos
-            </Text>
-          </Column>
-          <Row gap="m">
+            </p>
+          </div>
+          <div className="flex gap-4">
             <div style={{ textAlign: 'center' }}>
-              <Text variant="heading-strong-m" onBackground="neutral-strong">{totalCount}</Text>
-              <Text variant="body-default-xs" onBackground="neutral-weak" style={{ display: 'block' }}>Total</Text>
+              <span className="text-lg font-bold text-off-white block">{totalCount}</span>
+              <span className="text-xs text-gray block">Total</span>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <Text variant="heading-strong-m" onBackground="warning-strong">{openCount}</Text>
-              <Text variant="body-default-xs" onBackground="neutral-weak" style={{ display: 'block' }}>Abertos</Text>
+              <span className="text-lg font-bold text-yellow-400 block">{openCount}</span>
+              <span className="text-xs text-gray block">Abertos</span>
             </div>
             {criticalCount > 0 && (
               <div style={{ textAlign: 'center' }}>
-                <Text variant="heading-strong-m" onBackground="danger-strong">{criticalCount}</Text>
-                <Text variant="body-default-xs" onBackground="neutral-weak" style={{ display: 'block' }}>Críticos</Text>
+                <span className="text-lg font-bold text-red-400 block">{criticalCount}</span>
+                <span className="text-xs text-gray block">Críticos</span>
               </div>
             )}
-          </Row>
-        </Row>
+          </div>
+        </div>
 
         {/* Search + View toggle */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', width: '100%' }}>
@@ -449,13 +440,13 @@ export default function ReportsClient({
               }}
             >
               {exportEntitled === null ? (
-                <Spinner size="s" />
+                <Loader2 size={LUCIDE_ICON_PX} className="animate-spin" />
               ) : (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis} aria-hidden>
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                   <polyline points="7 10 12 15 17 10" />
                   <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
+                </AppIcon>
               )}
             </button>
           )}
@@ -473,9 +464,9 @@ export default function ReportsClient({
                 display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.15s',
               }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis}>
                 <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" />
-              </svg>
+              </AppIcon>
             </button>
             <div style={{ width: 1, background: 'var(--neutral-border-medium)' }} />
             {/* List view */}
@@ -489,10 +480,10 @@ export default function ReportsClient({
                 display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.15s',
               }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis}>
                 <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" />
                 <line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
-              </svg>
+              </AppIcon>
             </button>
             <div style={{ width: 1, background: 'var(--neutral-border-medium)' }} />
             {/* Kanban view */}
@@ -506,38 +497,34 @@ export default function ReportsClient({
                 display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.15s',
               }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis}>
                 <rect x="3" y="3" width="5" height="18" rx="1" /><rect x="10" y="3" width="5" height="12" rx="1" /><rect x="17" y="3" width="5" height="15" rx="1" />
-              </svg>
+              </AppIcon>
             </button>
           </div>
         </div>
 
         {exportEmptyMsg && (
-          <Feedback variant="warning" onClose={() => setExportEmptyMsg(null)}>
-            {exportEmptyMsg}
-          </Feedback>
+          <div className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-sm text-yellow-300">
+            <span>{exportEmptyMsg}</span>
+            <button onClick={() => setExportEmptyMsg(null)} className="ml-2 text-yellow-400 hover:text-yellow-200">&times;</button>
+          </div>
         )}
 
         {/* Content */}
         {displayFeedbacks.length === 0 ? (
-          <Card fillWidth padding="xl" radius="l" style={{ textAlign: 'center' }}>
-            <Column fillWidth horizontal="center" gap="m" paddingY="l">
-              <Flex
-                horizontal="center"
-                vertical="center"
-                radius="full"
-                style={{ width: '3rem', height: '3rem', background: 'var(--neutral-alpha-weak)' }}
-              >
-                <Icon name="message" size="m" />
-              </Flex>
-              <Text variant="body-default-s" onBackground="neutral-weak">
+          <div className="w-full p-8 rounded-xl bg-glass-gradient border border-transparent-white text-center">
+            <div className="w-full flex flex-col items-center gap-4 py-6">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-transparent-white">
+                <MessageSquare size={ICON_PX.xl} className="text-gray" />
+              </div>
+              <p className="text-sm text-gray">
                 {orgFeedbacks.length === 0
                   ? 'Nenhum report recebido ainda.'
                   : 'Nenhum report com os filtros selecionados.'}
-              </Text>
-            </Column>
-          </Card>
+              </p>
+            </div>
+          </div>
         ) : viewMode === 'kanban' ? (
           <KanbanView
             feedbacks={displayFeedbacks}
@@ -591,65 +578,27 @@ export default function ReportsClient({
               role="dialog"
               aria-modal="true"
               aria-labelledby="export-format-title"
+              className="app-modal-overlay"
               onClick={() => setExportFormatOpen(false)}
-              style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                width: '100vw',
-                minHeight: '100vh',
-                margin: 0,
-                boxSizing: 'border-box',
-                zIndex: 100000,
-                background: 'rgba(0, 0, 0, 0.45)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '1rem',
-                isolation: 'isolate',
-              }}
             >
               <div
                 onClick={(e) => e.stopPropagation()}
-                style={{
-                  width: '100%',
-                  maxWidth: '24rem',
-                  flexShrink: 0,
-                  backgroundColor: 'var(--surface-background)',
-                  color: 'var(--neutral-on-background-strong)',
-                  borderRadius: '0.75rem',
-                  border: '1px solid var(--neutral-border-medium)',
-                  padding: '1.25rem',
-                  boxShadow: '0 16px 48px rgba(0, 0, 0, 0.22)',
-                  opacity: 1,
-                  pointerEvents: 'auto',
-                }}
+                className="app-modal"
+                style={{ maxWidth: '24rem' }}
               >
-                <Column gap="m" fillWidth>
-                  <Heading id="export-format-title" variant="heading-strong-m" as="h2">
+                <div className="flex flex-col gap-4 w-full">
+                  <h2 id="export-format-title" className="text-lg font-bold text-off-white">
                     Exportar filtrado
-                  </Heading>
-                  <Text variant="body-default-s" onBackground="neutral-weak">
+                  </h2>
+                  <p className="text-sm text-gray">
                     Escolha o formato do ficheiro: CSV (texto) ou Excel (.xlsx).
-                  </Text>
-                  <Row gap="s" wrap>
-                    <Button size="s" variant="primary" label="CSV" onClick={() => runFilteredExport('csv')} />
-                    <Button
-                      size="s"
-                      variant="secondary"
-                      label="Excel (.xlsx)"
-                      onClick={() => runFilteredExport('xlsx')}
-                    />
-                  </Row>
-                  <Button
-                    size="s"
-                    variant="tertiary"
-                    label="Cancelar"
-                    onClick={() => setExportFormatOpen(false)}
-                  />
-                </Column>
+                  </p>
+                  <div className="flex gap-2 flex-wrap">
+                    <Button size="small" variant="primary" onClick={() => runFilteredExport('csv')}>CSV</Button>
+                    <Button size="small" variant="secondary" onClick={() => runFilteredExport('xlsx')}>Excel (.xlsx)</Button>
+                  </div>
+                  <Button size="small" variant="ghost" onClick={() => setExportFormatOpen(false)}>Cancelar</Button>
+                </div>
               </div>
             </div>,
             document.body,
@@ -674,7 +623,7 @@ export default function ReportsClient({
           onStartDateChange={handleStartDateChange}
           onDueDateChange={handleDueDateChange}
         />
-      </Column>
+      </main>
     </AppLayout>
   )
 }

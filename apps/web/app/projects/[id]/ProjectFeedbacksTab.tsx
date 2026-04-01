@@ -3,21 +3,12 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import dynamic from 'next/dynamic'
-import {
-  Column,
-  Row,
-  Text,
-  Tag,
-  Icon,
-  Card,
-  Flex,
-  Spinner,
-  Button,
-  Feedback,
-  Heading,
-} from '@once-ui-system/core'
+import { Alert } from '@/components/ui/Alert'
+import { Spinner } from '@/components/ui/Spinner'
 import UpgradeModal from '@/components/ui/UpgradeModal'
 import { api } from '@/lib/api'
+import { AppIcon } from '@/components/ui/AppIcon'
+import { ICON_STROKE } from '@/lib/icon-tokens'
 
 // Reuse report management components
 import FilterBar from '@/app/reports/components/FilterBar'
@@ -286,13 +277,13 @@ export default function ProjectFeedbacksTab({
   const displayFeedbacks = viewMode === 'kanban' ? filteredFeedbacks : sortedFeedbacks
 
   return (
-    <Column gap="l" fillWidth>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%' }}>
       {/* Search + View toggle */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', width: '100%' }}>
         <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--neutral-on-background-weak)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+          <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--neutral-on-background-weak)' }}>
             <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
+          </AppIcon>
           <input
             type="text"
             placeholder="Buscar report..."
@@ -357,13 +348,13 @@ export default function ProjectFeedbacksTab({
             }}
           >
             {exportEntitled === null ? (
-              <Spinner size="s" />
+              <Spinner size="sm" />
             ) : (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis} aria-hidden>
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="7 10 12 15 17 10" />
                 <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
+              </AppIcon>
             )}
           </button>
         )}
@@ -371,9 +362,9 @@ export default function ProjectFeedbacksTab({
         {/* View toggle */}
         <div style={{ display: 'flex', borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)', overflow: 'hidden', flexShrink: 0 }}>
           {[
-            { mode: 'card' as ViewMode, title: 'Cards', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg> },
-            { mode: 'list' as ViewMode, title: 'Lista', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" /></svg> },
-            { mode: 'kanban' as ViewMode, title: 'Kanban', icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="5" height="18" rx="1" /><rect x="10" y="3" width="5" height="12" rx="1" /><rect x="17" y="3" width="5" height="15" rx="1" /></svg> },
+            { mode: 'card' as ViewMode, title: 'Cards', icon: <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis}><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></AppIcon> },
+            { mode: 'list' as ViewMode, title: 'Lista', icon: <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis}><line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" /></AppIcon> },
+            { mode: 'kanban' as ViewMode, title: 'Kanban', icon: <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis}><rect x="3" y="3" width="5" height="18" rx="1" /><rect x="10" y="3" width="5" height="12" rx="1" /><rect x="17" y="3" width="5" height="15" rx="1" /></AppIcon> },
           ].map((v, i) => (
             <button
               key={v.mode}
@@ -394,25 +385,25 @@ export default function ProjectFeedbacksTab({
       </div>
 
       {exportEmptyMsg && (
-        <Feedback variant="warning" onClose={() => setExportEmptyMsg(null)}>
+        <Alert variant="warning">
           {exportEmptyMsg}
-        </Feedback>
+        </Alert>
       )}
 
       {/* Content */}
       {displayFeedbacks.length === 0 ? (
-        <Card fillWidth padding="xl" radius="l" style={{ textAlign: 'center' }}>
-          <Column fillWidth horizontal="center" gap="m" paddingY="l">
-            <Flex horizontal="center" vertical="center" radius="full" style={{ width: '3rem', height: '3rem', background: 'var(--neutral-alpha-weak)' }}>
-              <Icon name="message" size="m" />
-            </Flex>
-            <Text variant="body-default-s" onBackground="neutral-weak">
+        <div style={{ width: '100%', padding: '2rem', borderRadius: '0.75rem', border: '1px solid var(--neutral-border-medium)', background: 'var(--surface-background)', textAlign: 'center' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', padding: '1.5rem 0', width: '100%' }}>
+            <div style={{ width: '3rem', height: '3rem', borderRadius: '50%', background: 'var(--neutral-alpha-weak)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <AppIcon size="xl" strokeWidth={ICON_STROKE.emphasis} style={{ color: 'var(--neutral-on-background-weak)' }}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></AppIcon>
+            </div>
+            <span style={{ fontSize: '0.875rem', color: 'var(--neutral-on-background-weak)' }}>
               {feedbacks.length === 0
                 ? 'Nenhum report ainda. Compartilhe a URL do visualizador!'
                 : 'Nenhum report com os filtros selecionados.'}
-            </Text>
-          </Column>
-        </Card>
+            </span>
+          </div>
+        </div>
       ) : viewMode === 'kanban' ? (
         <KanbanView
           feedbacks={displayFeedbacks}
@@ -501,29 +492,19 @@ export default function ProjectFeedbacksTab({
                 pointerEvents: 'auto',
               }}
             >
-              <Column gap="m" fillWidth>
-                <Heading id="project-export-format-title" variant="heading-strong-m" as="h2">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%' }}>
+                <h2 id="project-export-format-title" style={{ margin: 0, fontWeight: 600, color: 'var(--neutral-on-background-strong)' }}>
                   Exportar filtrado
-                </Heading>
-                <Text variant="body-default-s" onBackground="neutral-weak">
+                </h2>
+                <span style={{ fontSize: '0.875rem', color: 'var(--neutral-on-background-weak)' }}>
                   Escolha o formato do ficheiro: CSV (texto) ou Excel (.xlsx).
-                </Text>
-                <Row gap="s" wrap>
-                  <Button size="s" variant="primary" label="CSV" onClick={() => runFilteredExport('csv')} />
-                  <Button
-                    size="s"
-                    variant="secondary"
-                    label="Excel (.xlsx)"
-                    onClick={() => runFilteredExport('xlsx')}
-                  />
-                </Row>
-                <Button
-                  size="s"
-                  variant="tertiary"
-                  label="Cancelar"
-                  onClick={() => setExportFormatOpen(false)}
-                />
-              </Column>
+                </span>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <button onClick={() => runFilteredExport('csv')} style={{ padding: '0.375rem 0.75rem', borderRadius: '0.5rem', border: 'none', background: 'var(--brand-solid-strong)', color: '#fff', fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer' }}>CSV</button>
+                  <button onClick={() => runFilteredExport('xlsx')} style={{ padding: '0.375rem 0.75rem', borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)', background: 'var(--surface-background)', color: 'var(--neutral-on-background-strong)', fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer' }}>Excel (.xlsx)</button>
+                </div>
+                <button onClick={() => setExportFormatOpen(false)} style={{ padding: '0.375rem 0.75rem', borderRadius: '0.5rem', border: 'none', background: 'transparent', color: 'var(--neutral-on-background-weak)', fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer' }}>Cancelar</button>
+              </div>
             </div>
           </div>,
           document.body,
@@ -547,6 +528,6 @@ export default function ProjectFeedbacksTab({
         onStartDateChange={handleStartDateChange}
         onDueDateChange={handleDueDateChange}
       />
-    </Column>
+    </div>
   )
 }

@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useOrg } from '@/contexts/OrgContext'
+import { AppIcon } from '@/components/ui/AppIcon'
 
 function ConfettiCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -156,9 +157,9 @@ function SuccessContent() {
           boxShadow: '0 0 0 8px rgba(16, 185, 129, 0.15), 0 20px 40px rgba(16, 185, 129, 0.2)',
           animation: 'pulse-ring 2s ease-out infinite',
         }}>
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <AppIcon size={48} strokeWidth={2.5} style={{ color: '#fff' }}>
             <polyline points="20 6 9 17 4 12" />
-          </svg>
+          </AppIcon>
         </div>
 
         {/* Title */}

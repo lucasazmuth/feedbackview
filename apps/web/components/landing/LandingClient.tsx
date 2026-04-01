@@ -7,6 +7,7 @@ import { HeroSection } from './HeroSection'
 import { PricingSection } from './PricingSection'
 import { FaqSection } from './FaqSection'
 import { CtaSection } from './CtaSection'
+import { Footer } from './Footer'
 
 export function LandingClient() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -41,6 +42,7 @@ export function LandingClientBottom() {
       <PricingSection isLoggedIn={isLoggedIn} />
       <FaqSection />
       <CtaSection isLoggedIn={isLoggedIn} />
+      <Footer />
     </>
   )
 }

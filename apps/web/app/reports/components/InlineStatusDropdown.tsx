@@ -2,8 +2,7 @@
 
 import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { Tag } from '@once-ui-system/core'
-import { ALL_STATUSES, getTagVariant, getStatusLabel } from '../utils/labels'
+import { ALL_STATUSES, getTagColors, getStatusLabel } from '../utils/labels'
 
 interface InlineStatusDropdownProps {
   status: string
@@ -56,10 +55,9 @@ export default function InlineStatusDropdown({ status, onStatusChange, disabled 
 
   return (
     <div ref={triggerRef} style={{ position: 'relative', display: 'inline-flex' }}>
-      <Tag
-        variant={getTagVariant(status)}
-        size="s"
-        label={getStatusLabel(status)}
+      <span
+        className="text-xs px-2 py-0.5 rounded-full font-medium"
+        style={{ background: getTagColors(status).bg, color: getTagColors(status).color, cursor: disabled ? 'wait' : 'pointer' }}
         onClick={(e) => {
           e.stopPropagation()
           if (!disabled) {
@@ -70,8 +68,9 @@ export default function InlineStatusDropdown({ status, onStatusChange, disabled 
             setOpen(!open)
           }
         }}
-        style={{ cursor: disabled ? 'wait' : 'pointer' }}
-      />
+      >
+        {getStatusLabel(status)}
+      </span>
       {open &&
         typeof document !== 'undefined' &&
         createPortal(
@@ -116,7 +115,7 @@ export default function InlineStatusDropdown({ status, onStatusChange, disabled 
                   transition: 'background 0.1s',
                 }}
               >
-                <Tag variant={getTagVariant(opt.value)} size="s" label={opt.label} />
+                <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: getTagColors(opt.value).bg, color: getTagColors(opt.value).color }}>{opt.label}</span>
                 {status === opt.value && (
                   <svg
                     width="14"

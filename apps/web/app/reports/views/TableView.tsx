@@ -14,12 +14,13 @@ import {
 } from '@dnd-kit/core'
 import { useSortable, SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Column, Text, Tag, Icon } from '@once-ui-system/core'
-import { formatDate, getTagVariant, getTypeLabel, getSeverityLabel, getStatusLabel } from '../utils/labels'
+import { formatDate, getTagColors, getTypeLabel, getSeverityLabel, getStatusLabel } from '../utils/labels'
 import InlineStatusDropdown from '../components/InlineStatusDropdown'
 import InlineAssigneeEditor from '../components/InlineAssigneeEditor'
 import InlineDatePicker from '../components/InlineDatePicker'
 import type { SortField, SortState } from '../hooks/useSort'
+import { AppIcon } from '@/components/ui/AppIcon'
+import { ICON_STROKE } from '@/lib/icon-tokens'
 
 interface Feedback {
   id: string
@@ -61,7 +62,9 @@ interface TableViewProps {
   onDueDateChange: (feedbackId: string, dueDate: string | null) => void
 }
 
-const GRID_COLS = '1.25rem 2rem 5rem 6rem 1fr 5rem 6rem 3rem 10rem'
+const GRID_COLS = '1.25rem 1.5rem 5rem 6rem 1fr 5rem 6rem 2.5rem 11rem'
+
+const cellStyle: React.CSSProperties = { display: 'flex', alignItems: 'center', minHeight: '1.75rem' }
 
 const STATUS_ACCENT: Record<string, string> = {
   OPEN: 'var(--warning-solid-strong)',
@@ -88,9 +91,9 @@ function SortHeader({ label, field, sort, onToggleSort }: { label: string; field
     >
       {label}
       {isActive && (
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: sort.direction === 'asc' ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.15s' }}>
+        <AppIcon size={10} strokeWidth={2.5} style={{ transform: sort.direction === 'asc' ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.15s' }}>
           <polyline points="6 9 12 15 18 9" />
-        </svg>
+        </AppIcon>
       )}
     </button>
   )
@@ -109,9 +112,9 @@ function Checkbox({ checked, onClick }: { checked: boolean; onClick: (e: React.M
       }}
     >
       {checked && (
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+        <AppIcon size={10} strokeWidth={3} style={{ color: '#fff' }}>
           <polyline points="20 6 9 17 4 12" />
-        </svg>
+        </AppIcon>
       )}
     </div>
   )
@@ -125,11 +128,11 @@ function DragHandle() {
       cursor: 'grab', color: 'var(--neutral-on-background-weak)', opacity: 0.5,
       flexShrink: 0,
     }}>
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+      <AppIcon size="xs" fill="currentColor" stroke="none">
         <circle cx="9" cy="5" r="1.5" /><circle cx="15" cy="5" r="1.5" />
         <circle cx="9" cy="12" r="1.5" /><circle cx="15" cy="12" r="1.5" />
         <circle cx="9" cy="19" r="1.5" /><circle cx="15" cy="19" r="1.5" />
-      </svg>
+      </AppIcon>
     </div>
   )
 }
@@ -182,12 +185,12 @@ function SortableRow({
         ...style,
         display: 'grid',
         gridTemplateColumns: GRID_COLS,
-        padding: '0.625rem 1rem',
+        padding: '0.5rem 1rem',
         borderBottom: !isLast ? '1px solid var(--neutral-border-medium)' : undefined,
         borderLeft: `3px solid ${accentColor}`,
         cursor: 'pointer',
         transition: 'background 0.15s',
-        gap: '0.75rem',
+        gap: '0.5rem',
         alignItems: 'center',
         background: isSelected ? 'var(--brand-alpha-weak)' : 'var(--surface-background)',
       }}
@@ -195,50 +198,52 @@ function SortableRow({
       onMouseLeave={(e) => { e.currentTarget.style.background = isSelected ? 'var(--brand-alpha-weak)' : 'var(--surface-background)' }}
     >
       {/* Drag handle */}
-      <div {...attributes} {...listeners}>
+      <div style={cellStyle} {...attributes} {...listeners}>
         <DragHandle />
       </div>
-      <Checkbox
-        checked={isSelected}
-        onClick={(e) => { e.stopPropagation(); onToggleSelect(feedback.id) }}
-      />
-      <div onClick={() => onOpenDetail(feedback.id)}>
-        <Tag variant={getTagVariant(feedback.type)} size="s" label={getTypeLabel(feedback.type)} />
+      <div style={cellStyle}>
+        <Checkbox
+          checked={isSelected}
+          onClick={(e) => { e.stopPropagation(); onToggleSelect(feedback.id) }}
+        />
       </div>
-      <Text
-        variant="body-default-xs" onBackground="neutral-weak"
-        style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'pointer' }}
-        onClick={() => onOpenDetail(feedback.id)}
-      >
-        {feedback.Project?.name || '—'}
-      </Text>
-      <Text
-        variant="body-default-s"
-        style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'pointer' }}
-        onClick={() => onOpenDetail(feedback.id)}
-      >
-        {feedback.comment}
-      </Text>
-      <div onClick={() => onOpenDetail(feedback.id)}>
+      <div style={cellStyle} onClick={() => onOpenDetail(feedback.id)}>
+        <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: getTagColors(feedback.type).bg, color: getTagColors(feedback.type).color }}>{getTypeLabel(feedback.type)}</span>
+      </div>
+      <div style={{ ...cellStyle, overflow: 'hidden' }} onClick={() => onOpenDetail(feedback.id)}>
+        <span className="text-xs text-gray truncate cursor-pointer">
+          {feedback.Project?.name || '—'}
+        </span>
+      </div>
+      <div style={{ ...cellStyle, overflow: 'hidden' }} onClick={() => onOpenDetail(feedback.id)}>
+        <span className="text-sm text-primary-text truncate cursor-pointer">
+          {feedback.comment}
+        </span>
+      </div>
+      <div style={cellStyle} onClick={() => onOpenDetail(feedback.id)}>
         {feedback.severity ? (
-          <Tag variant={getTagVariant(feedback.severity)} size="s" label={getSeverityLabel(feedback.severity)} />
+          <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: getTagColors(feedback.severity).bg, color: getTagColors(feedback.severity).color }}>{getSeverityLabel(feedback.severity)}</span>
         ) : (
           <span style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)' }}>—</span>
         )}
       </div>
-      <InlineStatusDropdown
-        status={feedback.status}
-        onStatusChange={(newStatus) => onStatusChange(feedback.id, newStatus)}
-      />
-      <InlineAssigneeEditor
-        feedbackId={feedback.id}
-        assignees={feedbackAssigneesMap[feedback.id] || []}
-        teamMembers={teamMembers}
-        onAssign={onAssign}
-        onUnassign={onUnassign}
-      />
+      <div style={cellStyle}>
+        <InlineStatusDropdown
+          status={feedback.status}
+          onStatusChange={(newStatus) => onStatusChange(feedback.id, newStatus)}
+        />
+      </div>
+      <div style={cellStyle}>
+        <InlineAssigneeEditor
+          feedbackId={feedback.id}
+          assignees={feedbackAssigneesMap[feedback.id] || []}
+          teamMembers={teamMembers}
+          onAssign={onAssign}
+          onUnassign={onUnassign}
+        />
+      </div>
       {/* Combined date range: start → due */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', minWidth: 0 }}>
+      <div style={{ ...cellStyle, gap: '0.25rem', minWidth: 0 }}>
         <InlineDatePicker
           feedbackId={feedback.id}
           dueDate={feedback.startDate || feedback.createdAt}
@@ -268,10 +273,10 @@ function DragOverlayRow({ feedback }: { feedback: Feedback }) {
       boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
       maxWidth: 500,
     }}>
-      <Tag variant={getTagVariant(feedback.type)} size="s" label={getTypeLabel(feedback.type)} />
-      <Text variant="body-default-s" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: getTagColors(feedback.type).bg, color: getTagColors(feedback.type).color }}>{getTypeLabel(feedback.type)}</span>
+      <span className="text-sm text-primary-text truncate">
         {feedback.comment?.slice(0, 60)}
-      </Text>
+      </span>
     </div>
   )
 }
@@ -374,7 +379,7 @@ export default function TableView({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <Column fillWidth gap="m">
+      <div className="w-full flex flex-col gap-4" style={{ minWidth: 0 }}>
         {groups.map(group => {
           const isCollapsed = collapsed[group.status] ?? false
           const groupIds = group.items.map(f => f.id)
@@ -401,7 +406,7 @@ export default function TableView({
                 >
                   <polyline points="6 9 12 15 18 9" />
                 </svg>
-                <Tag variant={getTagVariant(group.status)} size="s" label={getStatusLabel(group.status)} />
+                <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: getTagColors(group.status).bg, color: getTagColors(group.status).color }}>{getStatusLabel(group.status)}</span>
                 <span style={{
                   fontSize: '0.75rem', fontWeight: 600, color: 'var(--neutral-on-background-weak)',
                   background: 'var(--neutral-alpha-medium)', borderRadius: '50%',
@@ -418,7 +423,7 @@ export default function TableView({
                   padding: '0.5rem 1rem',
                   borderBottom: '1px solid var(--neutral-border-medium)',
                   borderLeft: `3px solid ${accentColor}`,
-                  gap: '0.75rem', alignItems: 'center',
+                  gap: '0.5rem', alignItems: 'center',
                   background: 'var(--surface-background)',
                 }}>
                   <span /> {/* drag handle column */}
@@ -426,12 +431,12 @@ export default function TableView({
                     checked={groupIds.length > 0 && groupIds.every(id => isSelectedFn(id))}
                     onClick={(e) => { e.stopPropagation(); onSelectAll(groupIds) }}
                   />
-                  <Text variant="label-default-xs" onBackground="neutral-weak">TIPO</Text>
-                  <Text variant="label-default-xs" onBackground="neutral-weak">PROJETO</Text>
-                  <Text variant="label-default-xs" onBackground="neutral-weak">Comentário</Text>
+                  <span className="text-xs font-medium text-gray uppercase">TIPO</span>
+                  <span className="text-xs font-medium text-gray uppercase">PROJETO</span>
+                  <span className="text-xs font-medium text-gray uppercase">Comentário</span>
                   <SortHeader label="Prioridade" field="severity" sort={sort} onToggleSort={onToggleSort} />
-                  <Text variant="label-default-xs" onBackground="neutral-weak">STATUS</Text>
-                  <Text variant="label-default-xs" onBackground="neutral-weak">RESP.</Text>
+                  <span className="text-xs font-medium text-gray uppercase">STATUS</span>
+                  <span className="text-xs font-medium text-gray uppercase">RESP.</span>
                   <SortHeader label="Prazo" field="createdAt" sort={sort} onToggleSort={onToggleSort} />
                 </div>
               )}
@@ -475,7 +480,7 @@ export default function TableView({
             </div>
           )
         })}
-      </Column>
+      </div>
 
       {/* Drag overlay */}
       <DragOverlay>

@@ -1,16 +1,41 @@
-import { Fragment } from 'react'
+import { Fragment, type ReactNode } from 'react'
 import { landingDemo } from '@/content/landing.pt-BR'
+import { AppIcon } from '@/components/ui/AppIcon'
 
 interface StepVisualsProps {
   step: number
 }
 
-function SvgIcon({ children, size = 16 }: { children: React.ReactNode; size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      {children}
-    </svg>
-  )
+/** Mesmos traços de `FeedbackModal` (tipo do report) — escala para o mock */
+function LandingTypeGlyph({ i, size = 12 }: { i: number; size?: number }) {
+  const c = { strokeWidth: 2 as const, stroke: 'currentColor' as const, fill: 'none' as const }
+  switch (i) {
+    case 0:
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden>
+          <path d="M8 2l1.88 1.88M14.12 3.88L16 2M9 7.13v-1a3.003 3.003 0 116 0v1M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 014-4h4a4 4 0 014 4v3c0 3.3-2.7 6-6 6M12 20v-9M6.53 9C4.6 8.8 3 7.1 3 5M6 13H2M3 21c0-2.1 1.7-3.9 3.8-4M20.97 5c0 2.1-1.6 3.8-3.5 4M22 13h-4M17.2 17c2.1.1 3.8 1.9 3.8 4" {...c} strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      )
+    case 1:
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden>
+          <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 006 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5M9 18h6M10 22h4" {...c} strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      )
+    case 2:
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden>
+          <circle cx="12" cy="12" r="10" {...c} />
+          <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01" {...c} strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      )
+    default:
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden>
+          <path d="M7 10v12M15 5.88L14 10h5.83a2 2 0 011.92 2.56l-2.33 8A2 2 0 0117.5 22H4a2 2 0 01-2-2v-8a2 2 0 012-2h2.76a2 2 0 001.79-1.11L12 2a3.13 3.13 0 013 3.88z" {...c} strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      )
+  }
 }
 
 export function StepVisuals({ step }: StepVisualsProps) {
@@ -23,10 +48,10 @@ export function StepVisuals({ step }: StepVisualsProps) {
           <header className="lstep-np-header">
             <div className="lstep-np-header-row">
               <span className="lstep-np-back">
-                <SvgIcon size={14}>
+                <AppIcon aria-hidden size="sm">
                   <line x1="19" y1="12" x2="5" y2="12" />
                   <polyline points="12 19 5 12 12 5" />
-                </SvgIcon>
+                </AppIcon>
                 {d.step0.backLabel}
               </span>
               <span className="lstep-np-header-sep">/</span>
@@ -57,18 +82,18 @@ export function StepVisuals({ step }: StepVisualsProps) {
             <div className="lstep-np-card">
               <div className="lstep-np-url-field">
                 <div className="lstep-np-url-icon" aria-hidden>
-                  <SvgIcon size={18}>
+                  <AppIcon aria-hidden size="lg">
                     <circle cx="12" cy="12" r="10" />
                     <line x1="2" y1="12" x2="22" y2="12" />
                     <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                  </SvgIcon>
+                  </AppIcon>
                 </div>
                 <span className="lstep-np-url-text">{d.step0.urlSample}</span>
                 <span className="hero-typing-cursor" />
                 <div className="lstep-np-url-ok" aria-hidden>
-                  <SvgIcon size={14}>
+                  <AppIcon aria-hidden size="sm">
                     <polyline points="20 6 9 17 4 12" />
-                  </SvgIcon>
+                  </AppIcon>
                 </div>
               </div>
               <p className="lstep-np-hint">{d.step0.urlHint}</p>
@@ -167,7 +192,30 @@ export function StepVisuals({ step }: StepVisualsProps) {
         </div>
       )
 
-    case 2:
+    case 2: {
+      const s2 = d.step2
+      const speeds = [1, 2, 4, 8] as const
+      const activeSpeedIdx = 2
+      const replayPct = 10.5
+      const sbRows: { k: string; v: ReactNode }[] = [
+        { k: 'Navegador', v: s2.sidebarBrowser },
+        { k: 'OS', v: s2.sidebarOs },
+        { k: 'Viewport', v: s2.sidebarViewport },
+        { k: 'Origem', v: s2.sidebarSource },
+        {
+          k: 'Página',
+          v: (
+            <span className="lstep-fvmodal-pagelink">
+              {s2.pageOpen}
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3" />
+              </svg>
+            </span>
+          ),
+        },
+        { k: 'Console', v: s2.consoleSummary },
+        { k: 'Network', v: s2.networkSummary },
+      ]
       return (
         <div className="step-visual-container lstep-r2-root">
           <div className="step-dimmed-bg lstep-r2-bg">
@@ -215,80 +263,150 @@ export function StepVisuals({ step }: StepVisualsProps) {
               </div>
             </div>
           </div>
-          <div className="lstep-feedback-modal">
-            <div className="lstep-feedback-modal-head">
-              <span className="lstep-feedback-modal-title">{d.step2.reportTitle}</span>
-              <button type="button" className="lstep-feedback-modal-x" aria-hidden tabIndex={-1}>
-                <SvgIcon size={14}>
+
+          <div className="lstep-fvmodal">
+            <header className="lstep-fvmodal-head">
+              <span className="lstep-fvmodal-dot" />
+              <span className="lstep-fvmodal-typepill">
+                <LandingTypeGlyph i={0} size={11} />
+                Bug
+              </span>
+              <span className="lstep-fvmodal-headtitle">{s2.modalTitle}</span>
+              <span className="lstep-fvmodal-headdate">{s2.headerDate}</span>
+              <button type="button" className="lstep-fvmodal-close" aria-hidden tabIndex={-1}>
+                <AppIcon aria-hidden size="sm">
                   <path d="M18 6L6 18M6 6l12 12" />
-                </SvgIcon>
+                </AppIcon>
               </button>
-            </div>
-            <div className="lstep-feedback-modal-body">
-              <div>
-                <div className="lstep-replay-label">
-                  <span className="hero-recording-dot" />
-                  {d.step2.replayLabel}
-                </div>
-                <div className="lstep-replay-shell">
-                  <div className="lstep-replay-viewport">
-                    <div className="lstep-replay-skel-wrap">
-                      <div className="step-skel" style={{ height: 3, width: '38%' }} />
-                      <div className="step-skel" style={{ height: 3, width: '62%' }} />
-                      <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
-                        <div className="step-skel" style={{ flex: 1, height: 10 }} />
-                        <div className="step-skel" style={{ flex: 1, height: 10 }} />
+            </header>
+
+            <div className="lstep-fvmodal-body">
+              <div className="lstep-fvmodal-main">
+                <div className="lstep-fvmodal-media">
+                  <div className="lstep-fvmodal-tabs">
+                    <span className="lstep-fvmodal-tab lstep-fvmodal-tab--on">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                        <polygon points="5 3 19 12 5 21 5 3" />
+                      </svg>
+                      {s2.tabReplay}
+                    </span>
+                    <span className="lstep-fvmodal-tab">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                        <circle cx="8.5" cy="8.5" r="1.5" />
+                        <polyline points="21 15 16 10 5 21" />
+                      </svg>
+                      {s2.tabScreenshot}
+                    </span>
+                  </div>
+                  <div className="lstep-fvmodal-mediapad">
+                    <div className="lstep-fvmodal-replaybox">
+                      <div className="lstep-fvmodal-replayvp">
+                        <div className="lstep-fvmodal-replayshine" aria-hidden />
+                        <p className="lstep-fvmodal-replaycap">{s2.replayCaption}</p>
+                      </div>
+                      <div className="lstep-fvmodal-replayfoot">
+                        <div className="lstep-fvmodal-prog">
+                          <div className="lstep-fvmodal-progfill" style={{ width: `${replayPct}%` }} />
+                          <span className="lstep-fvmodal-progknob" style={{ left: `${replayPct}%` }} />
+                        </div>
+                        <div className="lstep-fvmodal-ctrlrow">
+                          <span className="lstep-fvmodal-playic" aria-hidden>
+                            <svg width="9" height="9" viewBox="0 0 24 24" fill="#fff" aria-hidden>
+                              <path d="M8 5.14v14.72a1 1 0 0 0 1.5.86l11-7.36a1 1 0 0 0 0-1.72l-11-7.36A1 1 0 0 0 8 5.14z" />
+                            </svg>
+                          </span>
+                          <span className="lstep-fvmodal-timer">
+                            {s2.replayCurrent} / {s2.replayTotal}
+                          </span>
+                          <div className="lstep-fvmodal-speeds">
+                            {speeds.map((sp, si) => (
+                              <span
+                                key={sp}
+                                className={
+                                  si === activeSpeedIdx ? 'lstep-fvmodal-spd lstep-fvmodal-spd--on' : 'lstep-fvmodal-spd'
+                                }
+                              >
+                                {sp}x
+                              </span>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div className="lstep-replay-bar">
-                    <div className="lstep-replay-play">
-                      <svg width="8" height="8" viewBox="0 0 24 24" fill="#fff" aria-hidden>
-                        <polygon points="5 3 19 12 5 21 5 3" />
-                      </svg>
-                    </div>
-                    <div className="lstep-replay-track">
-                      <div className="lstep-replay-fill" style={{ width: '62%' }} />
-                    </div>
-                    <span className="lstep-replay-time">00:21</span>
+                </div>
+
+                <div className="lstep-fvmodal-desc">
+                  <div className="lstep-fvmodal-desclabel">
+                    {s2.descriptionLabel} <span className="lstep-fvmodal-req">*</span>
+                  </div>
+                  <div className="lstep-fvmodal-ta" title={s2.descriptionPlaceholder}>
+                    {s2.descriptionSample}
                   </div>
                 </div>
               </div>
-              <div>
-                <label className="lstep-field-label">{d.step2.fieldTitle}</label>
-                <div className="lstep-field-input">{d.step2.fieldTitleValue}</div>
-              </div>
-              <div>
-                <label className="lstep-field-label">{d.step2.fieldDescription}</label>
-                <div className="lstep-field-input lstep-field-input--area">{d.step2.fieldDescriptionValue}</div>
-              </div>
-              <div className="lstep-field-row">
-                <div className="lstep-field-col">
-                  <label className="lstep-field-label">{d.step2.typeLabel}</label>
-                  <div className="lstep-pill-row">
-                    {d.step2.types.map((l, ti) => (
-                      <span key={l} className={`lstep-pill ${ti === 0 ? 'lstep-pill--on' : ''}`}>
-                        {l}
+
+              <aside className="lstep-fvmodal-sb">
+                <div className="lstep-fvmodal-sbblk">
+                  <span className="lstep-fvmodal-sblab">{s2.typeLabel}</span>
+                  <div className="lstep-fvmodal-types">
+                    {s2.typeLabels.map((label, ti) => (
+                      <span
+                        key={label}
+                        className={ti === 0 ? 'lstep-fvmodal-typb lstep-fvmodal-typb--on' : 'lstep-fvmodal-typb'}
+                      >
+                        <LandingTypeGlyph i={ti} size={10} />
+                        {label}
                       </span>
                     ))}
                   </div>
                 </div>
-                <div className="lstep-field-col">
-                  <label className="lstep-field-label">{d.step2.priorityLabel}</label>
-                  <div className="lstep-pill-row">
-                    {d.step2.priorities.map((l, pi) => (
-                      <span key={l} className={`lstep-pill ${pi === 0 ? 'lstep-pill--warn' : ''}`}>
-                        {l}
-                      </span>
-                    ))}
+                <div className="lstep-fvmodal-sbblk">
+                  <span className="lstep-fvmodal-sblab">{s2.priorityLabel}</span>
+                  <div className="lstep-fvmodal-sevs">
+                    {s2.priorityLabels.map((label, pi) => {
+                      const on = pi === s2.activePriorityIndex
+                      const c = s2.priorityColors[pi]
+                      return (
+                        <span
+                          key={label}
+                          className={on ? 'lstep-fvmodal-sevb lstep-fvmodal-sevb--on' : 'lstep-fvmodal-sevb'}
+                          style={
+                            on
+                              ? {
+                                  borderColor: c,
+                                  color: c,
+                                  background: `${c}18`,
+                                  fontWeight: 600,
+                                }
+                              : undefined
+                          }
+                        >
+                          {label}
+                        </span>
+                      )
+                    })}
                   </div>
                 </div>
-              </div>
-              <div className="lstep-feedback-submit">{d.step2.submit}</div>
+                <div className="lstep-fvmodal-sbrule" />
+                {sbRows.map(row => (
+                  <div key={row.k} className="lstep-fvmodal-sbrow">
+                    <span className="lstep-fvmodal-sbk">{row.k}</span>
+                    <div className="lstep-fvmodal-sbv">{row.v}</div>
+                  </div>
+                ))}
+              </aside>
             </div>
+
+            <footer className="lstep-fvmodal-foot">
+              <div className="lstep-fvmodal-submit">{s2.submitCta}</div>
+              <p className="lstep-fvmodal-powered">{s2.poweredBy}</p>
+            </footer>
           </div>
         </div>
       )
+    }
 
     case 3: {
       const rows = d.step3.rows
@@ -300,36 +418,36 @@ export function StepVisuals({ step }: StepVisualsProps) {
             <div className="lstep-app-sb-brand">B</div>
             <div className="lstep-app-sb-rule" />
             <div className="lstep-app-sb-item lstep-app-sb-item--active" title="Projetos">
-              <SvgIcon size={16}>
+              <AppIcon aria-hidden size="md">
                 <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-              </SvgIcon>
+              </AppIcon>
             </div>
             <div className="lstep-app-sb-item" title="Reports">
-              <SvgIcon size={16}>
+              <AppIcon aria-hidden size="md">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                 <polyline points="14 2 14 8 20 8" />
                 <line x1="16" y1="13" x2="8" y2="13" />
                 <line x1="16" y1="17" x2="8" y2="17" />
                 <polyline points="10 9 9 9 8 9" />
-              </SvgIcon>
+              </AppIcon>
             </div>
             <div className="lstep-app-sb-spacer" />
             <div className="lstep-app-sb-rule" />
             <div className="lstep-app-sb-item" title="Configurações">
-              <SvgIcon size={16}>
+              <AppIcon aria-hidden size="md">
                 <circle cx="12" cy="12" r="3" />
                 <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-              </SvgIcon>
+              </AppIcon>
             </div>
           </aside>
           <div className="lstep-app-main">
             <header className="lstep-app-top">
               <div className="lstep-app-top-row">
                 <span className="lstep-app-back">
-                  <SvgIcon size={14}>
+                  <AppIcon aria-hidden size="sm">
                     <line x1="19" y1="12" x2="5" y2="12" />
                     <polyline points="12 19 5 12 12 5" />
-                  </SvgIcon>
+                  </AppIcon>
                   Projetos
                 </span>
                 <span className="lstep-app-top-sep">/</span>
@@ -404,9 +522,9 @@ export function StepVisuals({ step }: StepVisualsProps) {
                         <span className="lstep-report-card-page">/checkout</span>
                       </div>
                     </div>
-                    <SvgIcon size={16}>
+                    <AppIcon aria-hidden size="md">
                       <polyline points="9 18 15 12 9 6" />
-                    </SvgIcon>
+                    </AppIcon>
                   </div>
                   )
                 })}

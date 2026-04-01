@@ -1,8 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Column, Row, Heading, Text, Button } from '@once-ui-system/core'
-
 export type DocPageId =
   | 'intro'
   | 'auth'
@@ -111,8 +109,7 @@ function EndpointLine({ method, fullUrl }: { method: keyof typeof METHOD_STYLES;
 
 function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <Text
-      variant="label-default-s"
+    <span
       style={{
         textTransform: 'uppercase',
         letterSpacing: '0.08em',
@@ -121,7 +118,7 @@ function SectionLabel({ children }: { children: ReactNode }) {
       }}
     >
       {children}
-    </Text>
+    </span>
   )
 }
 
@@ -140,12 +137,12 @@ const codeBox: React.CSSProperties = {
 
 function CodeBlock({ code, onCopy, copied }: { code: string; onCopy: () => void; copied: boolean }) {
   return (
-    <Column gap="xs" fillWidth>
-      <Row horizontal="end">
-        <Button size="s" variant="tertiary" label={copied ? 'Copiado' : 'Copiar'} onClick={onCopy} />
-      </Row>
+    <div>
+      <div>
+        <button onClick={onCopy} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', background: 'transparent', color: 'var(--neutral-on-background-weak)', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>{copied ? 'Copiado' : 'Copiar'}</button>
+      </div>
       <code style={codeBox}>{code}</code>
-    </Column>
+    </div>
   )
 }
 
@@ -271,7 +268,7 @@ export function IntegrationsDocsReference({
   })()
 
   return (
-    <Column gap="m" fillWidth>
+    <div>
       <div
         style={{
           padding: '0.75rem 1rem',
@@ -280,17 +277,17 @@ export function IntegrationsDocsReference({
           background: 'var(--neutral-alpha-weak)',
         }}
       >
-        <Text variant="body-default-s" onBackground="neutral-weak">
+        <span>
           Referência da API pública <strong>v1</strong> e dos webhooks do Buug. Layout inspirado em documentações de
           API como a do{' '}
           <a href="https://developer.clickup.com/reference/getaccesstoken" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--brand-on-background-strong)', fontWeight: 600 }}>
             ClickUp Developer
           </a>
           . Base atual: <code style={{ fontSize: '0.85em' }}>{apiBase}</code>
-        </Text>
+        </span>
       </div>
 
-      <Row fillWidth gap="xl" horizontal="start" vertical="start" style={{ flexWrap: 'wrap', alignItems: 'flex-start' }}>
+      <div style={{ flexWrap: 'wrap', alignItems: 'flex-start' }}>
         <nav
           aria-label="Navegação da referência"
           style={{
@@ -312,13 +309,11 @@ export function IntegrationsDocsReference({
         >
           {DOC_NAV_GROUPS.map(section => (
             <div key={section.group} style={{ marginBottom: '1.25rem' }}>
-              <Text
-                variant="label-default-s"
-                onBackground="neutral-weak"
+              <span
                 style={{ display: 'block', marginBottom: '0.35rem', fontSize: '0.6875rem', letterSpacing: '0.06em' }}
               >
                 {section.group}
-              </Text>
+              </span>
               {section.items.map(item => navButton(item.id, item.label))}
             </div>
           ))}
@@ -335,24 +330,24 @@ export function IntegrationsDocsReference({
             paddingRight: '0.25rem',
           }}
         >
-          <Column gap="l" fillWidth>
+          <div>
             <header>
-              <Heading variant="heading-strong-l" as="h1" style={{ marginBottom: '0.35rem' }}>
+              <h1  style={{ marginBottom: '0.35rem' }}>
                 {pageTitle}
-              </Heading>
-              <Text variant="body-default-xs" onBackground="neutral-weak">
+              </h1>
+              <span>
                 Buug · API pública v1 / Webhooks
-              </Text>
+              </span>
             </header>
 
             {docPage === 'intro' && (
               <>
-                <Text variant="body-default-m" onBackground="neutral-weak">
+                <span>
                   Use a <strong>API REST</strong> quando seu sistema precisar <strong>buscar ou atualizar</strong> dados no
                   Buug com uma chave de acesso. Use <strong>webhooks</strong> quando quiser que o Buug{' '}
                   <strong>avisar automaticamente</strong> um endereço seu sempre que algo acontecer. A API e os webhooks de
                   saída exigem <strong>plano Pro ou Business com assinatura ativa</strong> no workspace.
-                </Text>
+                </span>
                 <SectionLabel>Índice de endpoints</SectionLabel>
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
@@ -379,20 +374,20 @@ export function IntegrationsDocsReference({
                     </tbody>
                   </table>
                 </div>
-                <Text variant="body-default-s" onBackground="neutral-weak">
+                <span>
                   Cada linha da coluna da esquerda deste painel aprofunda um tópico — como nas páginas por endpoint da
                   documentação do ClickUp.
-                </Text>
+                </span>
               </>
             )}
 
             {docPage === 'auth' && (
               <>
-                <Text variant="body-default-m" onBackground="neutral-weak">
+                <span>
                   Todas as rotas em <code style={{ fontSize: '0.9em' }}>{apiBase}</code> exigem uma chave criada em{' '}
                   <strong>Integrações → Chaves de acesso</strong>. Envie no cabeçalho HTTP{' '}
                   <code style={{ fontSize: '0.9em' }}>Authorization</code> no formato Bearer.
-                </Text>
+                </span>
                 <SectionLabel>Cabeçalhos obrigatórios</SectionLabel>
                 <ResponseTable
                   firstColumnHeader="Cabeçalho"
@@ -422,19 +417,19 @@ export function IntegrationsDocsReference({
 
             {docPage === 'projects' && (
               <>
-                <Text variant="body-default-m" onBackground="neutral-weak">
+                <span>
                   Retorna os projetos da organização associada à chave. Projetos arquivados não entram na lista.
-                </Text>
+                </span>
                 <EndpointLine method="GET" fullUrl={`${apiBase}/projects`} />
                 <SectionLabel>Permissão</SectionLabel>
-                <Text variant="body-default-s" onBackground="neutral-weak">
+                <span>
                   <code style={{ fontSize: '0.9em' }}>read:projects</code>
-                </Text>
+                </span>
                 <SectionLabel>Resposta · 200 OK</SectionLabel>
-                <Text variant="body-default-s" onBackground="neutral-weak">
+                <span>
                   JSON com <code style={{ fontSize: '0.9em' }}>data</code> (array de projetos: id, name, targetUrl, mode,
                   createdAt, embedLastSeenAt, embedPaused) e <code style={{ fontSize: '0.9em' }}>meta.total</code>.
-                </Text>
+                </span>
                 <CodeBlock
                   code={`GET ${apiBase}/projects
 Authorization: Bearer buug_sk_...`}
@@ -446,9 +441,9 @@ Authorization: Bearer buug_sk_...`}
 
             {docPage === 'feedbacks-list' && (
               <>
-                <Text variant="body-default-m" onBackground="neutral-weak">
+                <span>
                   Lista reports dos projetos da sua organização, com filtros opcionais e paginação.
-                </Text>
+                </span>
                 <EndpointLine method="GET" fullUrl={`${apiBase}/feedbacks`} />
                 <SectionLabel>Query parameters</SectionLabel>
                 <ResponseTable
@@ -464,10 +459,10 @@ Authorization: Bearer buug_sk_...`}
                   ]}
                 />
                 <SectionLabel>Resposta · 200 OK</SectionLabel>
-                <Text variant="body-default-s" onBackground="neutral-weak">
+                <span>
                   <code style={{ fontSize: '0.9em' }}>data</code> — array de reports; <code style={{ fontSize: '0.9em' }}>meta</code> —{' '}
                   total, page, per_page.
-                </Text>
+                </span>
                 <CodeBlock
                   code={`GET ${apiBase}/feedbacks?status=OPEN&page=1&per_page=20
 Authorization: Bearer buug_sk_...`}
@@ -484,19 +479,19 @@ Authorization: Bearer buug_sk_...`}
 
             {docPage === 'feedback-one' && (
               <>
-                <Text variant="body-default-m" onBackground="neutral-weak">
+                <span>
                   Retorna um único report pelo ID. Se o report não for da organização da chave, a API responde 404.
-                </Text>
+                </span>
                 <EndpointLine method="GET" fullUrl={`${apiBase}/feedbacks/{feedback_id}`} />
                 <SectionLabel>Permissão</SectionLabel>
-                <Text variant="body-default-s" onBackground="neutral-weak">
+                <span>
                   <code style={{ fontSize: '0.9em' }}>read:feedbacks</code>
-                </Text>
+                </span>
                 <SectionLabel>Resposta · 200 OK</SectionLabel>
-                <Text variant="body-default-s" onBackground="neutral-weak">
+                <span>
                   Objeto <code style={{ fontSize: '0.9em' }}>data</code> com os campos do report e relação{' '}
                   <code style={{ fontSize: '0.9em' }}>Project</code> (id, name, organizationId).
-                </Text>
+                </span>
                 <CodeBlock
                   code={`GET ${apiBase}/feedbacks/SEU_FEEDBACK_ID
 Authorization: Bearer buug_sk_...`}
@@ -508,15 +503,15 @@ Authorization: Bearer buug_sk_...`}
 
             {docPage === 'feedback-patch' && (
               <>
-                <Text variant="body-default-m" onBackground="neutral-weak">
+                <span>
                   Atualiza parcialmente um report. Apenas os campos enviados são alterados. Mudança de status pode disparar
                   o webhook <code style={{ fontSize: '0.9em' }}>feedback.status_changed</code>.
-                </Text>
+                </span>
                 <EndpointLine method="PATCH" fullUrl={`${apiBase}/feedbacks/{feedback_id}`} />
                 <SectionLabel>Corpo da requisição · JSON</SectionLabel>
-                <Text variant="body-default-s" onBackground="neutral-weak">
+                <span>
                   Campos opcionais (pelo menos um obrigatório):
-                </Text>
+                </span>
                 <ResponseTable
                   firstColumnHeader="Campo"
                   secondColumnHeader="Descrição"
@@ -530,9 +525,9 @@ Authorization: Bearer buug_sk_...`}
                   ]}
                 />
                 <SectionLabel>Resposta · 200 OK</SectionLabel>
-                <Text variant="body-default-s" onBackground="neutral-weak">
+                <span>
                   <code style={{ fontSize: '0.9em' }}>data</code> com id e campos atualizados.
-                </Text>
+                </span>
                 <CodeBlock
                   code={`PATCH ${apiBase}/feedbacks/SEU_FEEDBACK_ID
 Authorization: Bearer buug_sk_...
@@ -552,10 +547,10 @@ Content-Type: application/json
 
             {docPage === 'webhooks' && (
               <>
-                <Text variant="body-default-m" onBackground="neutral-weak">
+                <span>
                   O Buug envia um <strong>POST</strong> para a URL cadastrada quando ocorre um evento. Timeout de 10s do
                   lado do Buug. Respostas HTTP <strong>2xx</strong> contam como entrega bem-sucedida.
-                </Text>
+                </span>
                 <EndpointLine method="POST" fullUrl="https://sua-url.com/caminho" />
                 <SectionLabel>Cabeçalhos enviados pelo Buug</SectionLabel>
                 <ResponseTable
@@ -569,10 +564,10 @@ Content-Type: application/json
                   ]}
                 />
                 <SectionLabel>Corpo · JSON</SectionLabel>
-                <Text variant="body-default-s" onBackground="neutral-weak">
+                <span>
                   Sempre: <code style={{ fontSize: '0.9em' }}>event</code>, <code style={{ fontSize: '0.9em' }}>data</code>,{' '}
                   <code style={{ fontSize: '0.9em' }}>timestamp</code> (ISO 8601).
-                </Text>
+                </span>
                 <CodeBlock
                   code={`{
   "event": "feedback.created",
@@ -593,22 +588,22 @@ Content-Type: application/json
                   }
                   copied={copiedId === 'wh1'}
                 />
-                <Text variant="body-default-xs" onBackground="neutral-weak">
+                <span>
                   Eventos na interface: feedback.created, feedback.status_changed, feedback.assigned, feedback.due_date_set,
                   project.created, ou * para todos. O conteúdo de <code style={{ fontSize: '0.85em' }}>data</code> pode variar
                   por evento.
-                </Text>
+                </span>
               </>
             )}
 
             {docPage === 'signature' && (
               <>
-                <Text variant="body-default-m" onBackground="neutral-weak">
+                <span>
                   Para garantir que o POST veio do Buug, recalcule o HMAC-SHA256 do <strong>corpo bruto</strong> (string
                   JSON exatamente como recebida) com o <strong>segredo</strong> do webhook e compare com o cabeçalho{' '}
                   <code style={{ fontSize: '0.9em' }}>X-Buug-Signature</code> (prefixo <code style={{ fontSize: '0.9em' }}>sha256=</code>
                   + hexadecimal).
-                </Text>
+                </span>
                 <SectionLabel>Passos</SectionLabel>
                 <ol style={{ margin: 0, paddingLeft: '1.25rem', fontSize: '0.875rem', lineHeight: 1.65, color: 'var(--neutral-on-background-weak)' }}>
                   <li>Leia o corpo da requisição como texto antes do parse JSON.</li>
@@ -637,11 +632,11 @@ const received = req.headers['x-buug-signature']
             {docPage === 'limits' && (
               <>
                 <SectionLabel>Planos e integrações</SectionLabel>
-                <Text variant="body-default-s" onBackground="neutral-weak">
+                <span>
                   Chaves de API, chamadas aos endpoints <code style={{ fontSize: '0.9em' }}>/api/v1</code> e entregas de
                   webhooks de saída só funcionam com <strong>Pro ou Business</strong> e assinatura ativa no Stripe. No
                   plano gratuito você pode revogar chaves e remover webhooks já cadastrados.
-                </Text>
+                </span>
                 <SectionLabel>API REST</SectionLabel>
                 <ResponseTable
                   firstColumnHeader="HTTP"
@@ -653,19 +648,19 @@ const received = req.headers['x-buug-signature']
                   ]}
                 />
                 <SectionLabel>Webhooks</SectionLabel>
-                <Text variant="body-default-s" onBackground="neutral-weak">
+                <span>
                   Entregas são registradas internamente. Falhas de rede ou respostas não-2xx são tratadas como falha na
                   entrega.
-                </Text>
+                </span>
                 <SectionLabel>Chaves</SectionLabel>
-                <Text variant="body-default-s" onBackground="neutral-weak">
+                <span>
                   O valor completo da chave só aparece uma vez na criação. Revogue chaves comprometidas e gere outra.
-                </Text>
+                </span>
               </>
             )}
-          </Column>
+          </div>
         </article>
-      </Row>
-    </Column>
+      </div>
+    </div>
   )
 }

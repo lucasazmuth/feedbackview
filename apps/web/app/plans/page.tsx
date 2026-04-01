@@ -3,19 +3,11 @@
 import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useOrg } from '@/contexts/OrgContext'
-import {
-  Column,
-  Row,
-  Heading,
-  Text,
-  Button,
-  Tag,
-  Feedback,
-} from '@once-ui-system/core'
 import AppLayout from '@/components/ui/AppLayout'
 import { getPlanLimits, type Plan } from '@/lib/limits'
-import { SkeletonBar, SkeletonCard } from '@/components/ui/LoadingSkeleton'
+import { PlansPageLoadingContent } from '@/components/ui/LoadingSkeleton'
 import { usePrices } from '@/hooks/usePrices'
+import { Alert } from '@/components/ui/Alert'
 
 function UsageBar({ label, current, max }: { label: string; current: number; max: number }) {
   const isUnlimited = max <= 0
@@ -24,13 +16,13 @@ function UsageBar({ label, current, max }: { label: string; current: number; max
   const isAtLimit = !isUnlimited && percentage >= 100
 
   return (
-    <Column gap="xs" fillWidth>
-      <Row fillWidth horizontal="between">
-        <Text variant="body-default-s" onBackground="neutral-strong">{label}</Text>
-        <Text variant="body-default-s" onBackground={isAtLimit ? 'danger-strong' : isNearLimit ? 'warning-strong' : 'neutral-medium'}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: '0.875rem', color: 'var(--neutral-on-background-strong)' }}>{label}</span>
+        <span style={{ fontSize: '0.875rem', fontWeight: 600, color: isAtLimit ? 'var(--danger-on-background-strong)' : isNearLimit ? 'var(--warning-on-background-strong)' : 'var(--neutral-on-background-medium)' }}>
           {isUnlimited ? `${current} / Ilimitado` : `${current} / ${max}`}
-        </Text>
-      </Row>
+        </span>
+      </div>
       <div style={{ width: '100%', height: 6, borderRadius: 3, background: 'var(--neutral-alpha-weak)' }}>
         {!isUnlimited && (
           <div
@@ -48,7 +40,7 @@ function UsageBar({ label, current, max }: { label: string; current: number; max
           />
         )}
       </div>
-    </Column>
+    </div>
   )
 }
 
@@ -58,6 +50,11 @@ const PLAN_NAMES: Record<Plan, string> = {
   BUSINESS: 'Business',
 }
 
+const PLAN_BADGE_COLORS: Record<Plan, { bg: string; color: string }> = {
+  FREE: { bg: 'var(--neutral-alpha-weak)', color: 'var(--neutral-on-background-weak)' },
+  PRO: { bg: 'var(--brand-alpha-weak)', color: 'var(--brand-on-background-strong)' },
+  BUSINESS: { bg: 'var(--success-alpha-weak)', color: 'var(--success-on-background-strong)' },
+}
 
 interface OrgData {
   plan: Plan
@@ -143,128 +140,105 @@ function PlansContent() {
   if (loading) {
     return (
       <AppLayout>
-        <Column as="main" fillWidth paddingX="l" paddingY="m" gap="l">
-          <style>{`@keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:.4 } }`}</style>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <SkeletonBar width="6rem" height="1.75rem" />
-            <SkeletonBar width="18rem" height="0.875rem" />
-          </div>
-          <SkeletonCard>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                  <SkeletonBar width="8rem" height="1.25rem" />
-                  <SkeletonBar width="4rem" height="1.25rem" radius="999px" />
-                </div>
-                <SkeletonBar width="5rem" height="0.75rem" />
-              </div>
-              <SkeletonBar width="8rem" height="2.25rem" />
-            </div>
-          </SkeletonCard>
-          <SkeletonCard>
-            <SkeletonBar width="6rem" height="1.25rem" />
-            {[1, 2, 3].map((i) => (
-              <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <SkeletonBar width="6rem" height="0.75rem" />
-                  <SkeletonBar width="4rem" height="0.75rem" />
-                </div>
-                <SkeletonBar width="100%" height="6px" radius="3px" />
-              </div>
-            ))}
-          </SkeletonCard>
-          <SkeletonCard>
-            <SkeletonBar width="10rem" height="1.25rem" />
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <SkeletonBar width="1rem" height="1rem" />
-                <SkeletonBar width={`${8 + i * 2}rem`} height="0.875rem" />
-              </div>
-            ))}
-          </SkeletonCard>
-        </Column>
+        <div className="app-page">
+          <PlansPageLoadingContent />
+        </div>
       </AppLayout>
     )
   }
 
   return (
     <AppLayout>
-      <Column as="main" fillWidth paddingX="l" paddingY="m" gap="l">
-        <Column gap="xs">
-          <Heading variant="heading-strong-l">Planos</Heading>
-          <Text variant="body-default-s" onBackground="neutral-weak">
+      <div className="app-page">
+        {/* Page header */}
+        <div>
+          <h2 className="app-section-title">Planos</h2>
+          <p className="app-section-sub">
             {isOwner
               ? 'Gerencie seu plano e o consumo. Pro e Business incluem integrações (API, webhooks, ClickUp) e exportação filtrada (CSV/Excel) com assinatura ativa.'
               : 'Visualize o plano e o consumo da organização.'}
-          </Text>
-        </Column>
+          </p>
+        </div>
 
         {!isOwner && (
-          <Feedback variant="info">
+          <Alert variant="warning">
             Apenas o proprietário da organização pode gerenciar o plano e pagamentos.
-          </Feedback>
+          </Alert>
         )}
 
         {success && (
-          <Feedback variant="success">Assinatura ativada com sucesso! Seus limites foram atualizados.</Feedback>
+          <Alert variant="success">Assinatura ativada com sucesso! Seus limites foram atualizados.</Alert>
         )}
         {canceled && (
-          <Feedback variant="warning">Pagamento cancelado. Nenhuma alteração foi feita no seu plano.</Feedback>
+          <Alert variant="warning">Pagamento cancelado. Nenhuma alteração foi feita no seu plano.</Alert>
         )}
 
         {/* Current plan */}
-        <Column fillWidth padding="l" gap="m" radius="l" border="neutral-medium" background="surface">
-          <Row fillWidth horizontal="between" vertical="center">
-            <Column gap="4">
-              <Row gap="s" vertical="center">
-                <Heading variant="heading-strong-m">Plano atual</Heading>
-                <Tag
-                  variant={currentPlan === 'FREE' ? 'neutral' : currentPlan === 'PRO' ? 'brand' : 'success'}
-                  size="s"
-                  label={PLAN_NAMES[currentPlan]}
-                />
-              </Row>
+        <div className="app-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <h3 className="app-section-title" style={{ fontSize: '1rem' }}>Plano atual</h3>
+                <span
+                  className="app-badge"
+                  style={{ background: PLAN_BADGE_COLORS[currentPlan]?.bg, color: PLAN_BADGE_COLORS[currentPlan]?.color }}
+                >
+                  {PLAN_NAMES[currentPlan]}
+                </span>
+              </div>
               {isOwner && (
-                <Text variant="body-default-s" onBackground="neutral-weak">
-                  {prices[currentPlan].monthlyFormatted}/mês
-                </Text>
+                <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--neutral-on-background-strong)' }}>
+                  {prices[currentPlan].monthlyFormatted}<span style={{ fontSize: '0.875rem', fontWeight: 400, color: 'var(--neutral-on-background-weak)' }}>/mês</span>
+                </span>
               )}
-            </Column>
+            </div>
             {isOwner && (
-              <Column gap="xs">
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                 {hasPaidPlan && (
-                  <Button
-                    variant="secondary"
-                    size="s"
-                    label={portalLoading ? 'Abrindo...' : 'Gerenciar assinatura'}
+                  <button
                     onClick={handleManageSubscription}
                     disabled={portalLoading}
-                  />
+                    className="app-btn-secondary"
+                  >
+                    {portalLoading ? 'Abrindo...' : 'Gerenciar assinatura'}
+                  </button>
                 )}
-                <Button
-                  variant={hasPaidPlan ? 'tertiary' : 'primary'}
-                  size="s"
-                  label={hasPaidPlan ? 'Alterar plano' : 'Fazer upgrade'}
+                <button
                   onClick={() => router.push('/plans/upgrade')}
-                />
-              </Column>
+                  className={hasPaidPlan ? 'app-btn-secondary' : 'app-btn-primary'}
+                >
+                  {hasPaidPlan ? 'Alterar plano' : 'Fazer upgrade'}
+                </button>
+              </div>
             )}
-          </Row>
-        </Column>
+          </div>
+        </div>
 
         {/* Usage */}
-        <Column fillWidth padding="l" gap="l" radius="l" border="neutral-medium" background="surface">
-          <Heading variant="heading-strong-m">Uso atual</Heading>
-          <UsageBar label={org.isLifetimeLimit ? 'Reports (total)' : 'Reports este mês'} current={usage.reportsUsed} max={org.maxReports <= 0 ? -1 : org.maxReports} />
-        </Column>
+        <div className="app-card">
+          <h3 className="app-section-title" style={{ fontSize: '1rem' }}>Uso atual</h3>
+          <UsageBar
+            label={org.isLifetimeLimit ? 'Reports (total)' : 'Reports este mês'}
+            current={usage.reportsUsed}
+            max={org.maxReports <= 0 ? -1 : org.maxReports}
+          />
+        </div>
 
         {/* Features */}
-        <Column fillWidth padding="l" gap="m" radius="l" border="neutral-medium" background="surface">
-          <Row fillWidth horizontal="between" vertical="center">
-            <Heading variant="heading-strong-m">Recursos do plano</Heading>
-            {isOwner && <Button variant="tertiary" size="s" label="Ver todos os planos" onClick={() => router.push('/plans/upgrade')} />}
-          </Row>
-          <Column gap="s">
+        <div className="app-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 className="app-section-title" style={{ fontSize: '1rem' }}>Recursos do plano</h3>
+            {isOwner && (
+              <button
+                onClick={() => router.push('/plans/upgrade')}
+                className="app-btn-secondary"
+                style={{ padding: '0.375rem 0.75rem', fontSize: '0.8125rem' }}
+              >
+                Ver todos os planos
+              </button>
+            )}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
             {[
               { label: 'Screenshot automático', available: true },
               { label: 'Console & network logs', available: true },
@@ -274,30 +248,43 @@ function PlansContent() {
                 available: currentPlan === 'PRO' || currentPlan === 'BUSINESS',
               },
               {
-                label: 'Exportar reports filtrados — CSV ou Excel (assinatura ativa)',
+                label: 'Exportar reports filtrados em CSV ou Excel (assinatura ativa)',
                 available: currentPlan === 'PRO' || currentPlan === 'BUSINESS',
               },
               { label: `Retenção de ${limits.retentionDays} dias`, available: true },
             ].map((feature) => (
-              <Row key={feature.label} gap="s" vertical="center">
-                <Text
-                  variant="body-default-m"
-                  style={{ flexShrink: 0, color: feature.available ? 'var(--brand-on-background-strong)' : 'var(--neutral-on-background-weak)' }}
+              <div key={feature.label} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <span
+                  style={{
+                    flexShrink: 0,
+                    width: '1.25rem',
+                    height: '1.25rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: '50%',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    background: feature.available ? 'var(--brand-alpha-weak)' : 'var(--neutral-alpha-weak)',
+                    color: feature.available ? 'var(--brand-on-background-strong)' : 'var(--neutral-on-background-weak)',
+                  }}
                 >
                   {feature.available ? '✓' : '✗'}
-                </Text>
-                <Text
-                  variant="body-default-m"
-                  onBackground={feature.available ? 'neutral-strong' : 'neutral-weak'}
-                  style={{ textDecoration: feature.available ? 'none' : 'line-through' }}
+                </span>
+                <span
+                  style={{
+                    fontSize: '0.875rem',
+                    textDecoration: feature.available ? 'none' : 'line-through',
+                    color: feature.available ? 'var(--neutral-on-background-strong)' : 'var(--neutral-on-background-weak)',
+                  }}
                 >
                   {feature.label}
-                </Text>
-              </Row>
+                </span>
+              </div>
             ))}
-          </Column>
-        </Column>
-      </Column>
+          </div>
+        </div>
+      </div>
     </AppLayout>
   )
 }

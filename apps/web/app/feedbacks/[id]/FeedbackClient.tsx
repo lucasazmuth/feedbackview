@@ -3,24 +3,12 @@
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import {
-  Flex,
-  Column,
-  Row,
-  Heading,
-  Text,
-  Button,
-  IconButton,
-  Card,
-  Textarea,
-  Select,
-  Tag,
-  Icon,
-  Feedback as FeedbackAlert,
-  Spinner,
-} from '@once-ui-system/core'
 import { api } from '@/lib/api'
 import AppLayout from '@/components/ui/AppLayout'
+import { Alert } from '@/components/ui/Alert'
+import { Spinner } from '@/components/ui/Spinner'
+import { AppIcon } from '@/components/ui/AppIcon'
+import { ICON_STROKE } from '@/lib/icon-tokens'
 
 const SessionReplay = dynamic(() => import('@/components/viewer/SessionReplay'), { ssr: false })
 
@@ -189,14 +177,14 @@ export default function FeedbackClient({
   if (error || !feedback) {
     return (
       <AppLayout>
-        <Flex fillWidth style={{ minHeight: '100vh' }} horizontal="center" vertical="center">
-          <Column horizontal="center" gap="m">
-            <FeedbackAlert variant="danger">{error || 'Report não encontrado.'}</FeedbackAlert>
+        <div className="app-page app-page--narrow">
+          <div>
+            <Alert>{error || 'Report não encontrado.'}</Alert>
             <Link href="/dashboard">
-              <Button variant="tertiary" size="s" label="Voltar ao dashboard" />
+              <button style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', background: 'transparent', color: 'var(--neutral-on-background-weak)', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>Voltar ao dashboard</button>
             </Link>
-          </Column>
-        </Flex>
+          </div>
+        </div>
       </AppLayout>
     )
   }
@@ -254,16 +242,9 @@ export default function FeedbackClient({
 
   return (
     <AppLayout>
+      <div className="app-page app-page--narrow">
       {/* Header */}
-      <Row
-        as="header"
-        fillWidth
-        paddingX="l"
-        paddingY="m"
-        vertical="center"
-        gap="m"
-        borderBottom="neutral-medium"
-        background="surface"
+      <div
         style={{ position: 'sticky', top: 0, zIndex: 10 }}
       >
         <Link
@@ -278,149 +259,124 @@ export default function FeedbackClient({
             flexShrink: 0,
           }}
         >
-          <Icon name="arrowLeft" size="xs" />
+          <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis}><path d="m15 18-6-6 6-6"/></AppIcon>
           {feedback.Project?.name || 'Projeto'}
         </Link>
-        <Text variant="body-default-s" onBackground="neutral-weak" style={{ flexShrink: 0 }}>/</Text>
-        <Tag variant={getTypeTagVariant(feedback.type)} size="s" label={getTypeLabel(feedback.type)} />
-        <Text
-          variant="body-default-s"
-          onBackground="neutral-strong"
+        <span style={{ flexShrink: 0 }}>/</span>
+        <span style={{ display: "inline-flex", alignItems: "center", padding: "0.125rem 0.5rem", borderRadius: "999px", fontSize: "0.75rem", fontWeight: 600, background: "var(--neutral-alpha-weak)", color: "var(--neutral-on-background-weak)" }}></span>
+        <span
           style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '20rem', flexShrink: 0 }}
         >
           {comment || 'Sem descrição'}
-        </Text>
-      </Row>
-      <Column fillWidth paddingX="l" paddingY="l" gap="m">
+        </span>
+      </div>
+      <div>
 
       <style>{`#status-select { padding-top: 8px !important; padding-bottom: 8px !important; }`}</style>
-      <Flex fillWidth>
-        <Row
-          fillWidth
-          gap="l"
+      <div>
+        <div
           style={{ alignItems: 'flex-start' }}
         >
           {/* Left column */}
-          <Column gap="l" fillWidth style={{ flex: 2, minWidth: 0 }}>
+          <div style={{ flex: 2, minWidth: 0 }}>
             {/* Warning for non-embed reports that have rrweb events */}
             {feedback.metadata?.rrwebEvents && feedback.metadata.rrwebEvents.length > 0 && feedback.metadata?.source !== 'embed' && (
-              <Card fillWidth padding="m" radius="l" style={{ background: 'var(--warning-alpha-weak)', border: '1px solid var(--warning-border-medium)' }}>
-                <Row gap="s" vertical="center">
-                  <Icon name="warning" size="s" onBackground="warning-strong" />
-                  <Column gap="4">
-                    <Text variant="label-default-s" onBackground="warning-strong">Report via URL compartilhada</Text>
-                    <Text variant="body-default-xs" onBackground="warning-medium">O Session Replay não está disponível para reports enviados via URL compartilhada. Utilize o screenshot como referência visual.</Text>
-                  </Column>
-                </Row>
-              </Card>
+              <div style={{ background: 'var(--warning-alpha-weak)', border: '1px solid var(--warning-border-medium)' }}>
+                <div>
+                  <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></AppIcon>
+                  <div>
+                    <span>Report via URL compartilhada</span>
+                    <span>O Session Replay não está disponível para reports enviados via URL compartilhada. Utilize o screenshot como referência visual.</span>
+                  </div>
+                </div>
+              </div>
             )}
 
             {/* Session Replay (only for embed source — replay is unreliable in proxy mode) */}
             {feedback.metadata?.rrwebEvents && feedback.metadata.rrwebEvents.length > 0 && feedback.metadata?.source === 'embed' && (
-              <Card fillWidth radius="l" style={{ overflow: 'hidden', padding: 0 }}>
+              <div style={{ overflow: 'hidden', padding: 0 }}>
                 <SessionReplay events={feedback.metadata.rrwebEvents} />
-              </Card>
+              </div>
             )}
 
             {/* Screenshot */}
             {feedback.screenshotUrl && (
-              <Card fillWidth padding="l" radius="l">
-                <Column gap="s">
-                  <Heading variant="heading-strong-s">Screenshot</Heading>
+              <div>
+                <div>
+                  <h2>Screenshot</h2>
                   <img
                     src={feedback.screenshotUrl}
                     alt="Screenshot"
                     style={{ width: '100%', borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)' }}
                   />
-                </Column>
-              </Card>
+                </div>
+              </div>
             )}
 
             {/* Description */}
-            <Card fillWidth padding="l" radius="l">
-              <Column gap="s">
-                <Row fillWidth horizontal="between" vertical="center">
-                  <Heading variant="heading-strong-s">Descrição</Heading>
+            <div>
+              <div>
+                <div>
+                  <h2>Descrição</h2>
                   {!editingComment && (
-                    <IconButton
-                      icon="edit"
-                      variant="tertiary"
-                      size="s"
-                      tooltip="Editar"
-                      onClick={() => { setCommentDraft(comment); setEditingComment(true) }}
-                    />
+                    <button onClick={() => { setCommentDraft(comment); setEditingComment(true) }} title="Editar" style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: '0.25rem', color: 'var(--neutral-on-background-weak)', display: 'inline-flex', alignItems: 'center' }}><AppIcon size="md" strokeWidth={ICON_STROKE.emphasis}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></AppIcon></button>
                   )}
-                </Row>
+                </div>
                 {editingComment ? (
-                  <Column gap="s">
-                    <Textarea
+                  <div>
+                    <textarea
                       id="comment-edit"
-                      label="Descrição"
                       value={commentDraft}
-                      lines={4}
-                      resize="vertical"
                       onChange={(e) => setCommentDraft(e.target.value)}
                       disabled={commentSaving}
                     />
-                    <Row gap="s" horizontal="end">
-                      <Button
-                        variant="secondary"
-                        size="s"
-                        label="Cancelar"
-                        onClick={() => setEditingComment(false)}
-                        disabled={commentSaving}
-                      />
-                      <Button
-                        variant="primary"
-                        size="s"
-                        label="Salvar"
-                        onClick={handleCommentSave}
-                        loading={commentSaving}
-                      />
-                    </Row>
-                  </Column>
+                    <div>
+                      <button onClick={() => setEditingComment(false)} disabled={commentSaving} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)', background: 'var(--surface-background)', color: 'var(--neutral-on-background-strong)', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>Cancelar</button>
+                      <button onClick={handleCommentSave} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', background: 'var(--brand-solid-strong)', color: '#fff', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>Salvar</button>
+                    </div>
+                  </div>
                 ) : (
-                  <Text variant="body-default-s" style={{ whiteSpace: 'pre-wrap' }}>{comment}</Text>
+                  <span style={{ whiteSpace: 'pre-wrap' }}>{comment}</span>
                 )}
-              </Column>
-            </Card>
+              </div>
+            </div>
 
             {/* Steps to Reproduce / Expected / Actual */}
             {(feedback.metadata?.stepsToReproduce || feedback.metadata?.expectedResult || feedback.metadata?.actualResult) && (
-              <Card fillWidth padding="l" radius="l">
-                <Column gap="m">
+              <div>
+                <div>
                   {feedback.metadata?.stepsToReproduce && (
-                    <Column gap="xs">
-                      <Heading variant="heading-strong-s">Passos para reproduzir</Heading>
-                      <Text variant="body-default-s" style={{ whiteSpace: 'pre-wrap' }}>{feedback.metadata.stepsToReproduce}</Text>
-                    </Column>
+                    <div>
+                      <h2>Passos para reproduzir</h2>
+                      <span style={{ whiteSpace: 'pre-wrap' }}>{feedback.metadata.stepsToReproduce}</span>
+                    </div>
                   )}
                   {feedback.metadata?.expectedResult && (
-                    <Column gap="xs">
-                      <Heading variant="heading-strong-s">Resultado esperado</Heading>
-                      <Text variant="body-default-s" style={{ whiteSpace: 'pre-wrap' }}>{feedback.metadata.expectedResult}</Text>
-                    </Column>
+                    <div>
+                      <h2>Resultado esperado</h2>
+                      <span style={{ whiteSpace: 'pre-wrap' }}>{feedback.metadata.expectedResult}</span>
+                    </div>
                   )}
                   {feedback.metadata?.actualResult && (
-                    <Column gap="xs">
-                      <Heading variant="heading-strong-s">Resultado real</Heading>
-                      <Text variant="body-default-s" style={{ whiteSpace: 'pre-wrap' }}>{feedback.metadata.actualResult}</Text>
-                    </Column>
+                    <div>
+                      <h2>Resultado real</h2>
+                      <span style={{ whiteSpace: 'pre-wrap' }}>{feedback.metadata.actualResult}</span>
+                    </div>
                   )}
-                </Column>
-              </Card>
+                </div>
+              </div>
             )}
 
             {/* Network Logs */}
             {networkLogs.length > 0 && (
-              <Card fillWidth padding="0" radius="l" style={{ overflow: 'hidden' }}>
-                <Column fillWidth>
+              <div style={{ overflow: 'hidden' }}>
+                <div>
                   <div
                     onClick={() => setNetworkLogsOpen(!networkLogsOpen)}
                     style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', cursor: 'pointer' }}
                   >
-                    <Heading variant="heading-strong-s">Network Logs ({networkLogs.length})</Heading>
-                    <Icon name="chevronDown" size="xs" style={{ transform: networkLogsOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }} />
+                    <h2>Network Logs ({networkLogs.length})</h2>
+                    <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis}><circle cx="12" cy="12" r="1"/></AppIcon>
                   </div>
                   {networkLogsOpen && (
                     <div style={{ maxHeight: '28rem', overflowY: 'auto' }}>
@@ -429,11 +385,7 @@ export default function FeedbackClient({
                           key={i}
                           style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderTop: '1px solid var(--neutral-border-medium)' }}
                         >
-                          <Tag
-                            variant={log.status && log.status >= 400 ? 'danger' : 'success'}
-                            size="s"
-                            label={String(log.status ?? '-')}
-                          />
+                          <span style={{ display: "inline-flex", alignItems: "center", padding: "0.125rem 0.5rem", borderRadius: "999px", fontSize: "0.75rem", fontWeight: 600, background: "var(--neutral-alpha-weak)", color: "var(--neutral-on-background-weak)" }}></span>
                           <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '0.75rem', flexShrink: 0 }}>{log.method}</span>
                           <span
                             style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}
@@ -446,20 +398,20 @@ export default function FeedbackClient({
                       ))}
                     </div>
                   )}
-                </Column>
-              </Card>
+                </div>
+              </div>
             )}
 
             {/* Console Logs */}
             {consoleLogs.length > 0 && (
-              <Card fillWidth padding="0" radius="l" style={{ overflow: 'hidden' }}>
-                <Column fillWidth>
+              <div style={{ overflow: 'hidden' }}>
+                <div>
                   <div
                     onClick={() => setConsoleLogsOpen(!consoleLogsOpen)}
                     style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', cursor: 'pointer' }}
                   >
-                    <Heading variant="heading-strong-s">Console Logs ({consoleLogs.length})</Heading>
-                    <Icon name="chevronDown" size="xs" style={{ transform: consoleLogsOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }} />
+                    <h2>Console Logs ({consoleLogs.length})</h2>
+                    <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis}><circle cx="12" cy="12" r="1"/></AppIcon>
                   </div>
                   {consoleLogsOpen && (
                     <div style={{ maxHeight: '28rem', overflowY: 'auto' }}>
@@ -471,12 +423,7 @@ export default function FeedbackClient({
                             key={i}
                             style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', padding: '0.5rem 1rem', borderTop: '1px solid var(--neutral-border-medium)' }}
                           >
-                            <Tag
-                              variant={variant as any}
-                              size="s"
-                              label={level}
-                              style={{ flexShrink: 0 }}
-                            />
+                            <span style={{ display: "inline-flex", alignItems: "center", padding: "0.125rem 0.5rem", borderRadius: "999px", fontSize: "0.75rem", fontWeight: 600, background: "var(--neutral-alpha-weak)", color: "var(--neutral-on-background-weak)" }}></span>
                             <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', wordBreak: 'break-word', flex: 1, minWidth: 0 }}>
                               {log.message}
                             </span>
@@ -485,57 +432,60 @@ export default function FeedbackClient({
                       })}
                     </div>
                   )}
-                </Column>
-              </Card>
+                </div>
+              </div>
             )}
 
-          </Column>
+          </div>
 
           {/* Right sidebar */}
-          <Column gap="m" style={{ flex: 1, minWidth: '16rem', maxWidth: '20rem', position: 'sticky', top: '1.5rem' }}>
+          <div style={{ flex: 1, minWidth: '16rem', maxWidth: '20rem', position: 'sticky', top: '1.5rem' }}>
             {/* Status */}
-            <Card fillWidth padding="l" radius="l">
-              <Column gap="m">
-                <Row horizontal="between" vertical="center">
-                  <Heading variant="heading-strong-s">Status</Heading>
-                  <Tag variant={getStatusTagVariant(status)} size="s" label={getStatusLabel(status)} />
-                </Row>
-                <Select
+            <div>
+              <div>
+                <div>
+                  <h2>Status</h2>
+                  <span style={{ display: "inline-flex", alignItems: "center", padding: "0.125rem 0.5rem", borderRadius: "999px", fontSize: "0.75rem", fontWeight: 600, background: "var(--neutral-alpha-weak)", color: "var(--neutral-on-background-weak)" }}></span>
+                </div>
+                <select
                   id="status-select"
-                  label=""
-                  options={STATUS_OPTIONS}
                   value={status}
-                  onSelect={handleStatusChange}
-                />
+                  onChange={(e) => handleStatusChange(e.target.value)}
+                  style={{ width: '100%', padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)', background: 'var(--surface-background)', color: 'var(--neutral-on-background-strong)', fontSize: '0.875rem', outline: 'none', cursor: 'pointer' }}
+                >
+                  {STATUS_OPTIONS.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
                 {statusSaving && (
-                  <Row gap="xs" vertical="center">
-                    <Spinner size="s" />
-                    <Text variant="body-default-xs" onBackground="neutral-weak">Salvando...</Text>
-                  </Row>
+                  <div>
+                    <Spinner size="sm" />
+                    <span>Salvando...</span>
+                  </div>
                 )}
                 {statusError && (
-                  <FeedbackAlert variant="danger">{statusError}</FeedbackAlert>
+                  <Alert>{statusError}</Alert>
                 )}
-              </Column>
-            </Card>
+              </div>
+            </div>
 
             {/* Assignees */}
-            <Card fillWidth padding="l" radius="l">
-              <Column gap="m">
-                <Row horizontal="between" vertical="center">
-                  <Heading variant="heading-strong-s">Responsáveis</Heading>
-                  {assignSaving && <Spinner size="s" />}
-                </Row>
+            <div>
+              <div>
+                <div>
+                  <h2>Responsáveis</h2>
+                  {assignSaving && <Spinner size="sm" />}
+                </div>
 
                 {assignees.length === 0 && (
-                  <Text variant="body-default-xs" onBackground="neutral-weak">Nenhum responsável atribuído.</Text>
+                  <span>Nenhum responsável atribuído.</span>
                 )}
 
                 {assignees.length > 0 && (
-                  <Column gap="xs">
+                  <div>
                     {assignees.map((a) => (
-                      <Row key={a.userId} horizontal="between" vertical="center" style={{ padding: '4px 0' }}>
-                        <Row gap="xs" vertical="center">
+                      <div key={a.userId} style={{ padding: '4px 0' }}>
+                        <div>
                           <div style={{
                             width: 24, height: 24, borderRadius: '50%',
                             background: 'var(--neutral-alpha-weak)',
@@ -544,11 +494,11 @@ export default function FeedbackClient({
                           }}>
                             {(a.name || a.email).charAt(0).toUpperCase()}
                           </div>
-                          <Column gap="1">
-                            <Text variant="label-default-s">{a.name || a.email.split('@')[0]}</Text>
-                            <Text variant="body-default-xs" onBackground="neutral-weak">{a.email}</Text>
-                          </Column>
-                        </Row>
+                          <div>
+                            <span>{a.name || a.email.split('@')[0]}</span>
+                            <span>{a.email}</span>
+                          </div>
+                        </div>
                         {canAssign && (
                           <button
                             onClick={() => handleUnassign(a.userId)}
@@ -562,19 +512,14 @@ export default function FeedbackClient({
                             ✕
                           </button>
                         )}
-                      </Row>
+                      </div>
                     ))}
-                  </Column>
+                  </div>
                 )}
 
                 {canAssign && (
                   <div style={{ position: 'relative' }}>
-                    <Button
-                      variant="tertiary"
-                      size="s"
-                      label="+ Atribuir"
-                      onClick={() => setShowAssignDropdown(!showAssignDropdown)}
-                    />
+                    <button onClick={() => setShowAssignDropdown(!showAssignDropdown)} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', background: 'transparent', color: 'var(--neutral-on-background-weak)', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>+ Atribuir</button>
                     {showAssignDropdown && (
                       <div style={{
                         position: 'absolute', top: '100%', left: 0, right: 0,
@@ -620,29 +565,29 @@ export default function FeedbackClient({
                     )}
                   </div>
                 )}
-              </Column>
-            </Card>
+              </div>
+            </div>
 
             {/* Metadata */}
-            <Card fillWidth padding="l" radius="l">
-              <Column gap="m">
-                <Heading variant="heading-strong-s">Detalhes</Heading>
+            <div>
+              <div>
+                <h2>Detalhes</h2>
 
                 {/* Tags */}
-                <Column gap="xs">
-                  <Text variant="label-default-s" onBackground="neutral-weak">Tipo e Severidade</Text>
-                  <Row gap="xs" wrap>
-                    <Tag variant={getTypeTagVariant(feedback.type)} size="m" label={getTypeLabel(feedback.type)} />
+                <div>
+                  <span>Tipo e Severidade</span>
+                  <div>
+                    <span style={{ display: "inline-flex", alignItems: "center", padding: "0.125rem 0.5rem", borderRadius: "999px", fontSize: "0.75rem", fontWeight: 600, background: "var(--neutral-alpha-weak)", color: "var(--neutral-on-background-weak)" }}></span>
                     {feedback.severity && (
-                      <Tag variant={getSeverityTagVariant(feedback.severity)} size="m" label={getSeverityLabel(feedback.severity)} />
+                      <span style={{ display: "inline-flex", alignItems: "center", padding: "0.125rem 0.5rem", borderRadius: "999px", fontSize: "0.75rem", fontWeight: 600, background: "var(--neutral-alpha-weak)", color: "var(--neutral-on-background-weak)" }}></span>
                     )}
-                  </Row>
-                </Column>
+                  </div>
+                </div>
 
                 {/* Page URL */}
                 {feedback.pageUrl && (
-                  <Column gap="xs">
-                    <Text variant="label-default-s" onBackground="neutral-weak">Página</Text>
+                  <div>
+                    <span>Página</span>
                     <a
                       href={feedback.pageUrl}
                       target="_blank"
@@ -659,37 +604,37 @@ export default function FeedbackClient({
                       }}
                     >
                       {feedback.pageUrl}
-                      <Icon name="openLink" size="xs" style={{ flexShrink: 0 }} />
+                      <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis}><circle cx="12" cy="12" r="1"/></AppIcon>
                     </a>
-                  </Column>
+                  </div>
                 )}
 
                 {/* Date */}
-                <Column gap="xs">
-                  <Text variant="label-default-s" onBackground="neutral-weak">Data</Text>
-                  <Row gap="xs" vertical="center">
-                    <Icon name="clock" size="xs" />
-                    <Text variant="body-default-xs">{formatDate(feedback.createdAt)}</Text>
-                  </Row>
-                </Column>
+                <div>
+                  <span>Data</span>
+                  <div>
+                    <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis}><circle cx="12" cy="12" r="1"/></AppIcon>
+                    <span>{formatDate(feedback.createdAt)}</span>
+                  </div>
+                </div>
 
                 {/* User Agent (parsed) + Viewport */}
                 {feedback.userAgent && (() => {
                   const { os, browser } = parseUserAgent(feedback.userAgent)
                   return (
-                    <Column gap="xs">
-                      <Text variant="label-default-s" onBackground="neutral-weak">Navegador</Text>
-                      <Row gap="xs" vertical="center">
-                        <Icon name="monitor" size="xs" />
-                        <Text variant="body-default-xs">{os} • {browser}</Text>
-                      </Row>
+                    <div>
+                      <span>Navegador</span>
+                      <div>
+                        <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis}><circle cx="12" cy="12" r="1"/></AppIcon>
+                        <span>{os} • {browser}</span>
+                      </div>
                       {feedback.metadata?.viewport && (
-                        <Row gap="xs" vertical="center">
-                          <Icon name="viewport" size="xs" />
-                          <Text variant="body-default-xs">Viewport: {feedback.metadata.viewport}</Text>
-                        </Row>
+                        <div>
+                          <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis}><circle cx="12" cy="12" r="1"/></AppIcon>
+                          <span>Viewport: {feedback.metadata.viewport}</span>
+                        </div>
                       )}
-                    </Column>
+                    </div>
                   )
                 })()}
 
@@ -699,32 +644,32 @@ export default function FeedbackClient({
                   const warnCount = consoleLogs.filter((l: any) => l.level === 'warn' || l.level === 'warning').length
                   const failedRequests = networkLogs.filter((l: any) => l.status && l.status >= 400).length
                   return (
-                    <Column gap="xs">
-                      <Text variant="label-default-s" onBackground="neutral-weak">Eventos Capturados</Text>
-                      <Column gap="xs">
-                        <Row gap="xs" vertical="center">
-                          <Icon name="monitor" size="xs" />
-                          <Text variant="body-default-xs">
+                    <div>
+                      <span>Eventos Capturados</span>
+                      <div>
+                        <div>
+                          <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis}><circle cx="12" cy="12" r="1"/></AppIcon>
+                          <span>
                             {feedback.metadata?.rrwebEvents?.length ?? 0} eventos de sessão
-                          </Text>
-                        </Row>
-                        <Row gap="xs" vertical="center">
-                          <Icon name="message" size="xs" />
-                          <Text variant="body-default-xs">
+                          </span>
+                        </div>
+                        <div>
+                          <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></AppIcon>
+                          <span>
                             {consoleLogs.length} console log{consoleLogs.length !== 1 ? 's' : ''}
                             {errorCount > 0 && <span style={{ color: 'var(--danger-solid-strong)' }}> ({errorCount} {errorCount === 1 ? 'erro' : 'erros'})</span>}
                             {warnCount > 0 && <span style={{ color: 'var(--warning-solid-strong)' }}> ({warnCount} {warnCount === 1 ? 'aviso' : 'avisos'})</span>}
-                          </Text>
-                        </Row>
-                        <Row gap="xs" vertical="center">
-                          <Icon name="openLink" size="xs" />
-                          <Text variant="body-default-xs">
+                          </span>
+                        </div>
+                        <div>
+                          <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis}><circle cx="12" cy="12" r="1"/></AppIcon>
+                          <span>
                             {networkLogs.length} requisição{networkLogs.length !== 1 ? 'ões' : ''} de rede
                             {failedRequests > 0 && <span style={{ color: 'var(--danger-solid-strong)' }}> ({failedRequests} {failedRequests === 1 ? 'falha' : 'falhas'})</span>}
-                          </Text>
-                        </Row>
-                      </Column>
-                    </Column>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   )
                 })()}
 
@@ -739,141 +684,142 @@ export default function FeedbackClient({
                   const inpColor = p.inp ? (p.inp <= 200 ? 'var(--success-solid-strong)' : p.inp <= 500 ? 'var(--warning-solid-strong)' : 'var(--danger-solid-strong)') : undefined
 
                   return (
-                    <Column gap="xs">
-                      <Text variant="label-default-s" onBackground="neutral-weak">Performance</Text>
+                    <div>
+                      <span>Performance</span>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
                         {p.lcp !== undefined && (
                           <div style={{ padding: '6px 8px', borderRadius: 6, background: 'var(--neutral-alpha-weak)' }}>
-                            <Text variant="body-default-xs" onBackground="neutral-weak">LCP</Text>
-                            <Text variant="label-default-s" style={{ color: lcpColor }}>{(p.lcp / 1000).toFixed(1)}s</Text>
+                            <span>LCP</span>
+                            <span style={{ color: lcpColor }}>{(p.lcp / 1000).toFixed(1)}s</span>
                           </div>
                         )}
                         {p.cls !== undefined && (
                           <div style={{ padding: '6px 8px', borderRadius: 6, background: 'var(--neutral-alpha-weak)' }}>
-                            <Text variant="body-default-xs" onBackground="neutral-weak">CLS</Text>
-                            <Text variant="label-default-s" style={{ color: clsColor }}>{p.cls.toFixed(3)}</Text>
+                            <span>CLS</span>
+                            <span style={{ color: clsColor }}>{p.cls.toFixed(3)}</span>
                           </div>
                         )}
                         {p.inp !== undefined && (
                           <div style={{ padding: '6px 8px', borderRadius: 6, background: 'var(--neutral-alpha-weak)' }}>
-                            <Text variant="body-default-xs" onBackground="neutral-weak">INP</Text>
-                            <Text variant="label-default-s" style={{ color: inpColor }}>{p.inp}ms</Text>
+                            <span>INP</span>
+                            <span style={{ color: inpColor }}>{p.inp}ms</span>
                           </div>
                         )}
                         {p.pageLoadMs !== undefined && (
                           <div style={{ padding: '6px 8px', borderRadius: 6, background: 'var(--neutral-alpha-weak)' }}>
-                            <Text variant="body-default-xs" onBackground="neutral-weak">Load</Text>
-                            <Text variant="label-default-s">{(p.pageLoadMs / 1000).toFixed(1)}s</Text>
+                            <span>Load</span>
+                            <span>{(p.pageLoadMs / 1000).toFixed(1)}s</span>
                           </div>
                         )}
                       </div>
                       {p.memoryMB !== undefined && (
-                        <Row gap="xs" vertical="center">
-                          <Text variant="body-default-xs" onBackground="neutral-weak">Memória: {p.memoryMB}MB</Text>
-                        </Row>
+                        <div>
+                          <span>Memória: {p.memoryMB}MB</span>
+                        </div>
                       )}
-                    </Column>
+                    </div>
                   )
                 })()}
 
                 {/* Rage Clicks */}
                 {feedback.metadata?.rageClicks && feedback.metadata.rageClicks.length > 0 && (
-                  <Column gap="xs">
-                    <Row gap="xs" vertical="center">
+                  <div>
+                    <div>
                       <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--danger-solid-strong)' }} />
-                      <Text variant="label-default-s" style={{ color: 'var(--danger-solid-strong)' }}>
+                      <span style={{ color: 'var(--danger-solid-strong)' }}>
                         {feedback.metadata.rageClicks.length} Rage Click{feedback.metadata.rageClicks.length > 1 ? 's' : ''}
-                      </Text>
-                    </Row>
+                      </span>
+                    </div>
                     {feedback.metadata.rageClicks.map((rc, i) => (
-                      <Text key={i} variant="body-default-xs" onBackground="neutral-weak">
+                      <span key={i}>
                         {rc.count}x em &lt;{rc.tag.toLowerCase()}&gt; {rc.text ? `"${rc.text}"` : rc.sel}
-                      </Text>
+                      </span>
                     ))}
-                  </Column>
+                  </div>
                 )}
 
                 {/* Dead Clicks */}
                 {feedback.metadata?.deadClicks && feedback.metadata.deadClicks.length > 0 && (
-                  <Column gap="xs">
-                    <Row gap="xs" vertical="center">
+                  <div>
+                    <div>
                       <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--warning-solid-strong)' }} />
-                      <Text variant="label-default-s" style={{ color: 'var(--warning-solid-strong)' }}>
+                      <span style={{ color: 'var(--warning-solid-strong)' }}>
                         {feedback.metadata.deadClicks.length} Dead Click{feedback.metadata.deadClicks.length > 1 ? 's' : ''}
-                      </Text>
-                    </Row>
+                      </span>
+                    </div>
                     {feedback.metadata.deadClicks.map((dc, i) => (
-                      <Text key={i} variant="body-default-xs" onBackground="neutral-weak">
+                      <span key={i}>
                         &lt;{dc.tag.toLowerCase()}&gt; {dc.text ? `"${dc.text}"` : dc.sel}
-                      </Text>
+                      </span>
                     ))}
-                  </Column>
+                  </div>
                 )}
 
                 {/* Display + Connection + Geo */}
                 {(feedback.metadata?.display || feedback.metadata?.connection || feedback.metadata?.geo) && (
-                  <Column gap="xs">
-                    <Text variant="label-default-s" onBackground="neutral-weak">Ambiente</Text>
+                  <div>
+                    <span>Ambiente</span>
                     {feedback.metadata?.display && (
-                      <Row gap="xs" vertical="center">
-                        <Icon name="monitor" size="xs" />
-                        <Text variant="body-default-xs">
+                      <div>
+                        <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis}><circle cx="12" cy="12" r="1"/></AppIcon>
+                        <span>
                           Tela: {feedback.metadata.display.screenW}×{feedback.metadata.display.screenH} ({feedback.metadata.display.dpr}x)
                           {feedback.metadata.display.touch ? ' • Touch' : ''}
-                        </Text>
-                      </Row>
+                        </span>
+                      </div>
                     )}
                     {feedback.metadata?.connection && feedback.metadata.connection.effectiveType && (
-                      <Row gap="xs" vertical="center">
-                        <Icon name="openLink" size="xs" />
-                        <Text variant="body-default-xs">
+                      <div>
+                        <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis}><circle cx="12" cy="12" r="1"/></AppIcon>
+                        <span>
                           Rede: {feedback.metadata.connection.effectiveType.toUpperCase()}
                           {feedback.metadata.connection.downlink ? ` • ${feedback.metadata.connection.downlink}Mbps` : ''}
                           {feedback.metadata.connection.rtt ? ` • ${feedback.metadata.connection.rtt}ms RTT` : ''}
-                        </Text>
-                      </Row>
+                        </span>
+                      </div>
                     )}
                     {feedback.metadata?.geo && (
-                      <Row gap="xs" vertical="center">
-                        <Icon name="globe" size="xs" />
-                        <Text variant="body-default-xs">
+                      <div>
+                        <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis}><circle cx="12" cy="12" r="1"/></AppIcon>
+                        <span>
                           {feedback.metadata.geo.tz} • {feedback.metadata.geo.lang}
-                        </Text>
-                      </Row>
+                        </span>
+                      </div>
                     )}
-                  </Column>
+                  </div>
                 )}
-              </Column>
-            </Card>
+              </div>
+            </div>
 
             {/* Click Breadcrumbs (separate card, collapsible) */}
             {feedback.metadata?.clickBreadcrumbs && feedback.metadata.clickBreadcrumbs.length > 0 && (
-              <Card padding="0" radius="l" border="neutral-medium">
+              <div>
                 <details>
                   <summary style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', cursor: 'pointer' }}>
-                    <Text variant="label-default-s">
+                    <span>
                       Breadcrumbs ({feedback.metadata.clickBreadcrumbs.length} cliques)
-                    </Text>
+                    </span>
                   </summary>
                   <div style={{ maxHeight: '300px', overflowY: 'auto', borderTop: '1px solid var(--neutral-border-medium)' }}>
                     {feedback.metadata.clickBreadcrumbs.map((bc, i) => (
                       <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', padding: '0.4rem 1rem', borderTop: i > 0 ? '1px solid var(--neutral-border-medium)' : 'none' }}>
-                        <Text variant="body-default-xs" onBackground="neutral-weak" style={{ whiteSpace: 'nowrap', minWidth: '1.5rem' }}>
+                        <span style={{ whiteSpace: 'nowrap', minWidth: '1.5rem' }}>
                           {i + 1}.
-                        </Text>
-                        <Text variant="body-default-xs" style={{ fontFamily: 'var(--font-code)' }}>
+                        </span>
+                        <span style={{ fontFamily: 'var(--font-code)' }}>
                           &lt;{bc.tag.toLowerCase()}&gt;{bc.text ? ` "${bc.text}"` : ''}
-                        </Text>
+                        </span>
                       </div>
                     ))}
                   </div>
                 </details>
-              </Card>
+              </div>
             )}
-          </Column>
-        </Row>
-      </Flex>
-      </Column>
+          </div>
+        </div>
+      </div>
+      </div>
+      </div>
     </AppLayout>
   )
 }

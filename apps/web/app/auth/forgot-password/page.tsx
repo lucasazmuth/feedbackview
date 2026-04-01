@@ -6,15 +6,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import {
-  Flex,
-  Column,
-  Heading,
-  Text,
-  Input,
-  Button,
-  Feedback,
-} from '@once-ui-system/core'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Alert } from '@/components/ui/Alert'
+import { Spinner } from '@/components/ui/Spinner'
 
 const schema = z.object({
   email: z.string().email('E-mail inválido'),
@@ -48,55 +43,62 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <Flex fillWidth style={{ minHeight: '100vh' }} horizontal="center" vertical="center" padding="l">
-      <Column maxWidth={24} fillWidth gap="xl">
-        <Column gap="4">
-          <a href="/" style={{ textDecoration: 'none' }}>
-            <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '1.5rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-strong)' }}>Buug</span>
+    <div className="flex w-full min-h-screen items-center justify-center p-8 bg-background">
+      <div className="w-full max-w-lg flex flex-col gap-8">
+        <div className="flex flex-col gap-2">
+          <a href="/" className="no-underline">
+            <span className="font-logo font-bold text-2xl tracking-tight text-off-white">Buug</span>
           </a>
-          <Heading variant="display-strong-s" as="h1">
+          <h1 className="text-3xl font-bold text-off-white">
             Recuperar senha
-          </Heading>
-          <Text variant="body-default-m" onBackground="neutral-weak">
+          </h1>
+          <p className="text-base text-primary-text">
             Informe seu e-mail e enviaremos um link para redefinir sua senha.
-          </Text>
-        </Column>
+          </p>
+        </div>
 
-        {serverError && <Feedback variant="danger">{serverError}</Feedback>}
+        {serverError && <Alert variant="danger">{serverError}</Alert>}
 
         {sent ? (
-          <Feedback variant="success">
+          <Alert variant="success">
             E-mail enviado! Verifique sua caixa de entrada (e o spam) para redefinir a senha.
-          </Feedback>
+          </Alert>
         ) : (
-          <Column as="form" onSubmit={handleSubmit(onSubmit)} gap="m" fillWidth>
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 w-full">
             <Input
               id="email"
               label="E-mail"
               type="email"
               placeholder="voce@empresa.com"
-              error={!!errors.email}
-              errorMessage={errors.email?.message}
+              error={errors.email?.message}
               {...register('email')}
             />
             <Button
               type="submit"
               variant="primary"
-              size="l"
-              fillWidth
-              loading={isSubmitting}
-              label={isSubmitting ? 'Enviando...' : 'Enviar link de recuperação'}
-            />
-          </Column>
+              size="large"
+              className="w-full"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <span className="flex items-center gap-2">
+                  <Spinner size="sm" />
+                  Enviando...
+                </span>
+              ) : (
+                'Enviar link de recuperação'
+              )}
+            </Button>
+          </form>
         )}
 
-        <Text variant="body-default-s" onBackground="neutral-weak" align="center">
+        <p className="text-sm text-primary-text text-center">
           Lembrou a senha?{' '}
-          <Link href="/auth/login" style={{ color: 'var(--brand-on-background-strong)', fontWeight: 600, textDecoration: 'none' }}>
+          <Link href="/auth/login" className="text-[rgb(86,67,204)] hover:text-[rgb(69,94,181)] font-semibold no-underline">
             Fazer login
           </Link>
-        </Text>
-      </Column>
-    </Flex>
+        </p>
+      </div>
+    </div>
   )
 }

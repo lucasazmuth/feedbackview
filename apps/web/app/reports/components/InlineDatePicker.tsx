@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect, useMemo } from 'react'
+import { AppIcon } from '@/components/ui/AppIcon'
+import { ICON_STROKE } from '@/lib/icon-tokens'
 
 interface InlineDatePickerProps {
   feedbackId: string
@@ -65,7 +67,7 @@ function MiniCalendar({ selected, onSelect }: { selected: Date | null; onSelect:
           onClick={(e) => { e.stopPropagation(); setViewDate(new Date(year, month - 1, 1)) }}
           style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', color: 'var(--neutral-on-background-weak)', borderRadius: '0.25rem' }}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+          <AppIcon size="sm" strokeWidth={ICON_STROKE.emphasis}><polyline points="15 18 9 12 15 6" /></AppIcon>
         </button>
         <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)' }}>
           {MONTHS[month]} {year}
@@ -74,7 +76,7 @@ function MiniCalendar({ selected, onSelect }: { selected: Date | null; onSelect:
           onClick={(e) => { e.stopPropagation(); setViewDate(new Date(year, month + 1, 1)) }}
           style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', color: 'var(--neutral-on-background-weak)', borderRadius: '0.25rem' }}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+          <AppIcon size="sm" strokeWidth={ICON_STROKE.emphasis}><polyline points="9 18 15 12 9 6" /></AppIcon>
         </button>
       </div>
 
@@ -193,12 +195,12 @@ export default function InlineDatePicker({ feedbackId, dueDate, onDueDateChange,
           whiteSpace: 'nowrap',
         }}
       >
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <AppIcon size={11} strokeWidth={ICON_STROKE.emphasis}>
           <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
           <line x1="16" y1="2" x2="16" y2="6" />
           <line x1="8" y1="2" x2="8" y2="6" />
           <line x1="3" y1="10" x2="21" y2="10" />
-        </svg>
+        </AppIcon>
         {dueDate ? formatDueDate(dueDate) : (label || 'Prazo')}
       </button>
 

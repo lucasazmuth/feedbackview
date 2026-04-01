@@ -2,18 +2,11 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  Flex,
-  Column,
-  Row,
-  Grid,
-  Heading,
-  Text,
-  Button,
-  Tag,
-  Icon,
-} from '@once-ui-system/core'
+import { ChevronRight } from 'lucide-react'
 import AppLayout from '@/components/ui/AppLayout'
+import { AppIcon } from '@/components/ui/AppIcon'
+import { ICON_PX, LUCIDE_ICON_PX, ICON_STROKE } from '@/lib/icon-tokens'
+import { Button } from '@/components/ui/Button'
 import UpgradeModal from '@/components/ui/UpgradeModal'
 import { useOrg } from '@/contexts/OrgContext'
 import { getPlanLimits, getUsageWarning, getReportsUsagePercent, type Plan, type Role, type Usage } from '@/lib/limits'
@@ -194,45 +187,39 @@ export default function DashboardClient({
 
   return (
     <AppLayout>
-      <Column as="main" fillWidth paddingX="l" paddingY="m" gap="l">
+      <div className="app-page">
         {/* Page title */}
-        <Heading variant="heading-strong-l">Projetos</Heading>
+        <h1 className="text-2xl font-bold text-off-white">Projetos</h1>
 
 
         {/* Error state */}
         {error && (
-          <Row
-            fillWidth
-            padding="m"
-            radius="l"
-            background="danger-weak"
-            border="danger-medium"
-          >
-            <Text variant="body-default-s" onBackground="danger-strong">
+          <div className="w-full p-4 rounded-xl bg-red-500/10 border border-red-500/30">
+            <p className="text-sm text-red-400">
               {error}
-            </Text>
-          </Row>
+            </p>
+          </div>
         )}
 
-        {/* Toolbar: search + filter + new project */}
+        {/* Toolbar: search + filter + new project — z-index acima do backdrop do filtro (fixed z-199) para cliques funcionarem */}
         {orgProjects.length > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', width: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', width: '100%', position: 'relative', zIndex: 210 }}>
             {/* Search */}
             <div style={{ position: 'relative', flex: 1, minWidth: 0 }}>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="var(--neutral-on-background-weak)"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
+              <AppIcon
+                size="md"
+                style={{
+                  position: 'absolute',
+                  left: '0.75rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  pointerEvents: 'none',
+                  color: 'var(--neutral-on-background-weak)',
+                }}
               >
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
+              </AppIcon>
               <input
                 type="text"
                 placeholder="Buscar projeto por nome ou URL..."
@@ -281,11 +268,11 @@ export default function DashboardClient({
                   if (!hasActiveFilter) e.currentTarget.style.background = 'var(--surface-background)'
                 }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis}>
                   <line x1="4" y1="6" x2="20" y2="6" />
                   <line x1="7" y1="12" x2="17" y2="12" />
                   <line x1="10" y1="18" x2="14" y2="18" />
-                </svg>
+                </AppIcon>
               </button>
               {showFilter && (
                 <>
@@ -299,59 +286,29 @@ export default function DashboardClient({
                       top: 'calc(100% + 0.5rem)',
                       right: 0,
                       zIndex: 200,
-                      background: 'var(--surface-background)',
-                      border: '1px solid var(--neutral-border-medium)',
-                      borderRadius: '0.75rem',
-                      padding: '1rem',
-                      width: '16rem',
-                      boxShadow: '0 4px 24px rgba(0,0,0,0.1)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '1rem',
                     }}
+                    className="app-filter-dropdown"
                   >
-                    <Text variant="label-default-s" onBackground="neutral-strong">Status</Text>
-                    <div style={{ display: 'flex', gap: '0.375rem' }}>
+                    <span className="app-filter-label" style={{ marginBottom: 0 }}>Status</span>
+                    <div className="app-filter-chips">
                       {([['all', 'Todos'], ['open', 'Com abertos'], ['none', 'Sem abertos']] as const).map(([val, label]) => (
                         <button
                           key={val}
                           onClick={() => setFilterStatus(val)}
-                          style={{
-                            padding: '0.375rem 0.625rem',
-                            borderRadius: '0.375rem',
-                            border: '1px solid',
-                            borderColor: filterStatus === val ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)',
-                            background: filterStatus === val ? 'var(--brand-solid-strong)' : 'transparent',
-                            color: filterStatus === val ? '#fff' : 'var(--neutral-on-background-weak)',
-                            fontSize: '0.75rem',
-                            fontWeight: filterStatus === val ? 600 : 400,
-                            cursor: 'pointer',
-                            transition: 'all 0.15s',
-                          }}
+                          className={`app-filter-chip${filterStatus === val ? ' app-filter-chip--active' : ''}`}
                         >
                           {label}
                         </button>
                       ))}
                     </div>
 
-                    <Text variant="label-default-s" onBackground="neutral-strong">Ordenar por</Text>
-                    <div style={{ display: 'flex', gap: '0.375rem' }}>
+                    <span className="app-filter-label" style={{ marginBottom: 0 }}>Ordenar por</span>
+                    <div className="app-filter-chips">
                       {([['recent', 'Recentes'], ['name', 'Nome'], ['feedbacks', 'Reports']] as const).map(([val, label]) => (
                         <button
                           key={val}
                           onClick={() => setSortBy(val)}
-                          style={{
-                            padding: '0.375rem 0.625rem',
-                            borderRadius: '0.375rem',
-                            border: '1px solid',
-                            borderColor: sortBy === val ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)',
-                            background: sortBy === val ? 'var(--brand-solid-strong)' : 'transparent',
-                            color: sortBy === val ? '#fff' : 'var(--neutral-on-background-weak)',
-                            fontSize: '0.75rem',
-                            fontWeight: sortBy === val ? 600 : 400,
-                            cursor: 'pointer',
-                            transition: 'all 0.15s',
-                          }}
+                          className={`app-filter-chip${sortBy === val ? ' app-filter-chip--active' : ''}`}
                         >
                           {label}
                         </button>
@@ -397,12 +354,12 @@ export default function DashboardClient({
                   transition: 'all 0.15s',
                 }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis}>
                   <rect x="3" y="3" width="7" height="7" />
                   <rect x="14" y="3" width="7" height="7" />
                   <rect x="3" y="14" width="7" height="7" />
                   <rect x="14" y="14" width="7" height="7" />
-                </svg>
+                </AppIcon>
               </button>
               <div style={{ width: 1, background: 'var(--neutral-border-medium)' }} />
               <button
@@ -421,23 +378,26 @@ export default function DashboardClient({
                   transition: 'all 0.15s',
                 }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis}>
                   <line x1="8" y1="6" x2="21" y2="6" />
                   <line x1="8" y1="12" x2="21" y2="12" />
                   <line x1="8" y1="18" x2="21" y2="18" />
                   <line x1="3" y1="6" x2="3.01" y2="6" />
                   <line x1="3" y1="12" x2="3.01" y2="12" />
                   <line x1="3" y1="18" x2="3.01" y2="18" />
-                </svg>
+                </AppIcon>
               </button>
             </div>
 
-            {/* New project button */}
+            {/* New project — router.push evita falha de clique quando overlay/stacking ou Link prefere não navegar */}
             <Button
               variant="primary"
-              prefixIcon="plus"
-              size="m"
-              href="/projects/new"
+              size="medium"
+              type="button"
+              onClick={() => {
+                setShowFilter(false)
+                router.push('/criar-projeto')
+              }}
             >
               Novo Projeto
             </Button>
@@ -446,13 +406,13 @@ export default function DashboardClient({
 
         {/* Empty state — onboarding checklist */}
         {orgProjects.length === 0 && !error && (
-          <Column fillWidth horizontal="center" vertical="center" paddingY="xl" gap="l">
-            <Column horizontal="center" gap="s" style={{ textAlign: 'center' }}>
-              <Heading variant="heading-strong-l">Bem-vindo ao Buug!</Heading>
-              <Text variant="body-default-m" onBackground="neutral-weak" style={{ maxWidth: '28rem' }}>
+          <div className="w-full flex flex-col items-center justify-center py-10 gap-6">
+            <div className="flex flex-col items-center gap-2 text-center">
+              <h1 className="text-2xl font-bold text-off-white">Bem-vindo ao Buug!</h1>
+              <p className="text-base text-gray" style={{ maxWidth: '28rem' }}>
                 Siga os passos abaixo para começar a capturar reports com screenshot, replay e Web Vitals.
-              </Text>
-            </Column>
+              </p>
+            </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 400 }}>
               {[
@@ -461,12 +421,12 @@ export default function DashboardClient({
                 { done: false, label: 'Instalar o widget', desc: 'Cole o script ou compartilhe o link' },
                 { done: false, label: 'Receber o primeiro report', desc: 'Teste enviando um bug report' },
               ].map((step, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', borderRadius: 12, border: '1px solid var(--neutral-border-medium)', background: step.done ? 'var(--success-alpha-weak)' : '#fff' }}>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 18px', borderRadius: 12, border: '1px solid var(--neutral-border-medium)', background: step.done ? 'var(--success-alpha-weak)' : 'var(--surface-background)' }}>
                   <div style={{ width: 28, height: 28, borderRadius: '50%', background: step.done ? '#059669' : 'var(--neutral-alpha-weak)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: step.done ? '#fff' : 'var(--neutral-on-background-weak)', fontSize: 13, fontWeight: 700 }}>
                     {step.done ? '✓' : i + 1}
                   </div>
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: step.done ? '#059669' : '#111' }}>{step.label}</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: step.done ? '#059669' : 'var(--neutral-on-background-strong)' }}>{step.label}</div>
                     <div style={{ fontSize: 12, color: 'var(--neutral-on-background-weak)' }}>{step.desc}</div>
                   </div>
                 </div>
@@ -475,92 +435,86 @@ export default function DashboardClient({
 
             <Button
               variant="primary"
-              prefixIcon="plus"
-              size="l"
-              href="/projects/new"
+              size="large"
+              type="button"
+              onClick={() => router.push('/criar-projeto')}
             >
               Criar primeiro projeto
             </Button>
-          </Column>
+          </div>
         )}
 
         {/* Projects grid view */}
         {filteredProjects.length > 0 && viewMode === 'grid' && (
-          <Grid fillWidth columns={3} gap="m" s={{ columns: 1 }} m={{ columns: 2 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem', width: '100%' }}>
             {filteredProjects.map((project) => {
               const openCount = project.openFeedbackCount ?? project._count?.feedbacks ?? 0
               const embedStatus = getEmbedStatus(project.embedLastSeenAt, project.embedPaused, project.mode, project._count?.feedbacks)
               return (
-                <Column
+                <div
                   key={project.id}
-                  fillWidth
-                  padding="m"
-                  gap="s"
-                  radius="l"
-                  border="neutral-medium"
-                  background="surface"
+                  className="w-full p-4 flex flex-col gap-2 rounded-xl border border-transparent-white bg-glass-gradient cursor-pointer hover:border-gray/30 transition-colors"
                   onClick={() => router.push(`/projects/${project.id}`)}
-                  style={{ justifyContent: 'space-between', cursor: 'pointer', minHeight: '8rem' }}
+                  style={{ justifyContent: 'space-between', minHeight: '8rem' }}
                 >
-                  <Column gap="xs" style={{ minWidth: 0 }}>
-                    <Row fillWidth horizontal="between" vertical="center">
-                      <Heading
-                        variant="heading-strong-m"
-                        style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}
+                  <div className="flex flex-col gap-1" style={{ minWidth: 0 }}>
+                    <div className="w-full flex items-center justify-between">
+                      <h3
+                        className="text-base font-bold text-off-white truncate flex-1 min-w-0"
                       >
                         {project.name}
-                      </Heading>
-                      <Icon name="chevronRight" size="s" style={{ flexShrink: 0 }} />
-                    </Row>
-                    <Text
-                      variant="body-default-xs"
-                      onBackground="neutral-weak"
-                      style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                    >
+                      </h3>
+                      <ChevronRight size={LUCIDE_ICON_PX} className="text-gray flex-shrink-0" />
+                    </div>
+                    <p className="text-xs text-gray truncate">
                       {project.url}
-                    </Text>
-                  </Column>
+                    </p>
+                  </div>
 
-                  <Row fillWidth vertical="center" gap="s" style={{ marginTop: 'auto', overflow: 'hidden', minWidth: 0, flexWrap: 'wrap' }}>
+                  <div className="w-full flex items-center gap-2 mt-auto flex-wrap" style={{ overflow: 'hidden', minWidth: 0 }}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.7rem', color: embedStatus.color, fontWeight: 500, flexShrink: 0 }}>
                       <span style={{ width: 6, height: 6, borderRadius: '50%', background: embedStatus.dotColor, flexShrink: 0 }} />
                       {embedStatus.label}
                     </span>
-                    <Tag
-                      variant={openCount > 0 ? 'warning' : 'neutral'}
-                      size="s"
-                      label={`${openCount} aberto${openCount !== 1 ? 's' : ''}`}
-                    />
-                    <Text variant="body-default-xs" onBackground="neutral-weak" style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
+                    <span
+                      className="text-xs px-2 py-0.5 rounded-full"
+                      style={{
+                        background: openCount > 0 ? 'rgba(234, 179, 8, 0.15)' : 'rgba(255,255,255,0.06)',
+                        color: openCount > 0 ? '#eab308' : '#9ca3af',
+                      }}
+                    >
+                      {`${openCount} aberto${openCount !== 1 ? 's' : ''}`}
+                    </span>
+                    <span className="text-xs text-gray whitespace-nowrap flex-shrink-0">
                       {formatDate(project.createdAt)}
-                    </Text>
-                  </Row>
-                </Column>
+                    </span>
+                  </div>
+                </div>
               )
             })}
-          </Grid>
+          </div>
         )}
 
         {/* Projects list view */}
         {filteredProjects.length > 0 && viewMode === 'list' && (
-          <Column fillWidth radius="l" border="neutral-medium" style={{ overflow: 'hidden' }}>
+          <div className="w-full rounded-xl border border-transparent-white overflow-hidden">
             {/* List header */}
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: '1fr 12rem 6rem 8rem 6rem 2rem',
+                gridTemplateColumns: '1fr 10rem 5rem 7rem 5rem 1.5rem',
                 padding: '0.625rem 1rem',
-                borderBottom: '1px solid var(--neutral-border-medium)',
-                background: 'var(--neutral-alpha-weak)',
-                gap: '0.75rem',
+                borderBottom: '1px solid rgba(255,255,255,0.08)',
+                background: 'rgba(255,255,255,0.03)',
+                gap: '0.5rem',
                 alignItems: 'center',
               }}
             >
-              <Text variant="label-default-xs" onBackground="neutral-weak">Nome</Text>
-              <Text variant="label-default-xs" onBackground="neutral-weak">URL</Text>
-              <Text variant="label-default-xs" onBackground="neutral-weak">Status</Text>
-              <Text variant="label-default-xs" onBackground="neutral-weak">Reports</Text>
-              <Text variant="label-default-xs" onBackground="neutral-weak">Criado</Text>
+              <span className="text-xs font-medium text-gray">Nome</span>
+              <span className="text-xs font-medium text-gray">URL</span>
+              <span className="text-xs font-medium text-gray">Status</span>
+              <span className="text-xs font-medium text-gray">Reports</span>
+              <span className="text-xs font-medium text-gray">Criado</span>
               <span />
             </div>
             {filteredProjects.map((project, i) => {
@@ -572,53 +526,55 @@ export default function DashboardClient({
                   onClick={() => router.push(`/projects/${project.id}`)}
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: '1fr 12rem 6rem 8rem 6rem 2rem',
-                    padding: '0.75rem 1rem',
+                    gridTemplateColumns: '1fr 10rem 5rem 7rem 5rem 1.5rem',
+                    padding: '0.625rem 1rem',
                     borderBottom: i < filteredProjects.length - 1 ? '1px solid var(--neutral-border-medium)' : undefined,
                     cursor: 'pointer',
                     transition: 'background 0.15s',
-                    gap: '0.75rem',
+                    gap: '0.5rem',
                     alignItems: 'center',
                   }}
                   onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--neutral-alpha-weak)' }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
                 >
-                  <Text
-                    variant="body-default-s"
-                    onBackground="neutral-strong"
-                    style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}
-                  >
-                    {project.name}
-                  </Text>
-                  <Text
-                    variant="body-default-xs"
-                    onBackground="neutral-weak"
-                    style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                  >
-                    {project.url}
-                  </Text>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.7rem', color: embedStatus.color, fontWeight: 500 }}>
-                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: embedStatus.dotColor, flexShrink: 0 }} />
-                    {embedStatus.label}
-                  </span>
-                  <Tag
-                    variant={openCount > 0 ? 'warning' : 'neutral'}
-                    size="s"
-                    label={`${openCount} aberto${openCount !== 1 ? 's' : ''}`}
-                  />
-                  <Text variant="body-default-xs" onBackground="neutral-weak" style={{ whiteSpace: 'nowrap' }}>
-                    {formatDate(project.createdAt)}
-                  </Text>
-                  <Icon name="chevronRight" size="xs" />
+                  <div style={{ display: 'flex', alignItems: 'center', minHeight: '1.75rem', overflow: 'hidden' }}>
+                    <span className="text-sm text-off-white font-medium truncate">{project.name}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', minHeight: '1.75rem', overflow: 'hidden' }}>
+                    <span className="text-xs text-gray truncate">{project.url}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', minHeight: '1.75rem' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.7rem', color: embedStatus.color, fontWeight: 500 }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: embedStatus.dotColor, flexShrink: 0 }} />
+                      {embedStatus.label}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', minHeight: '1.75rem' }}>
+                    <span
+                      className="text-xs px-2 py-0.5 rounded-full"
+                      style={{
+                        background: openCount > 0 ? 'rgba(234, 179, 8, 0.15)' : 'rgba(255,255,255,0.06)',
+                        color: openCount > 0 ? '#eab308' : '#9ca3af',
+                      }}
+                    >
+                      {`${openCount} aberto${openCount !== 1 ? 's' : ''}`}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', minHeight: '1.75rem' }}>
+                    <span className="text-xs text-gray whitespace-nowrap">{formatDate(project.createdAt)}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', minHeight: '1.75rem' }}>
+                    <ChevronRight size={ICON_PX.sm} className="text-gray" />
+                  </div>
                 </div>
               )
             })}
-          </Column>
+          </div>
         )}
 
         {/* Archived projects */}
         {archivedProjects.length > 0 && (
-          <Column fillWidth gap="m">
+          <div className="w-full flex flex-col gap-4">
             <button
               onClick={() => setShowArchived(!showArchived)}
               style={{
@@ -634,53 +590,39 @@ export default function DashboardClient({
                 fontWeight: 500,
               }}
             >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+              <AppIcon
+                size="md"
+                strokeWidth={ICON_STROKE.emphasis}
                 style={{ transform: showArchived ? 'rotate(90deg)' : 'rotate(0deg)', transition: 'transform 0.15s' }}
               >
                 <polyline points="9 18 15 12 9 6" />
-              </svg>
+              </AppIcon>
               Arquivados ({archivedProjects.length})
             </button>
 
             {showArchived && (
-              <Column fillWidth radius="l" border="neutral-medium" style={{ overflow: 'hidden', opacity: 0.75 }}>
+              <div className="w-full rounded-xl border border-transparent-white overflow-hidden opacity-75">
                 {archivedProjects.map((project, i) => (
                   <div
                     key={project.id}
                     style={{
                       display: 'grid',
-                      gridTemplateColumns: '1fr 12rem 8rem auto',
-                      padding: '0.75rem 1rem',
+                      gridTemplateColumns: '1fr 10rem 6rem auto',
+                      padding: '0.625rem 1rem',
                       borderBottom: i < archivedProjects.length - 1 ? '1px solid var(--neutral-border-medium)' : undefined,
                       gap: '0.75rem',
                       alignItems: 'center',
                     }}
                   >
-                    <Text
-                      variant="body-default-s"
-                      onBackground="neutral-weak"
-                      style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}
-                    >
+                    <span className="text-sm text-gray font-medium truncate">
                       {project.name}
-                    </Text>
-                    <Text
-                      variant="body-default-xs"
-                      onBackground="neutral-weak"
-                      style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                    >
+                    </span>
+                    <span className="text-xs text-gray truncate">
                       {project.url}
-                    </Text>
-                    <Text variant="body-default-xs" onBackground="neutral-weak" style={{ whiteSpace: 'nowrap' }}>
+                    </span>
+                    <span className="text-xs text-gray whitespace-nowrap">
                       {formatDate(project.createdAt)}
-                    </Text>
+                    </span>
                     <button
                       onClick={() => handleUnarchive(project.id)}
                       disabled={unarchiving === project.id}
@@ -702,11 +644,11 @@ export default function DashboardClient({
                     </button>
                   </div>
                 ))}
-              </Column>
+              </div>
             )}
-          </Column>
+          </div>
         )}
-      </Column>
+      </div>
       {showUpgradeModal && (
         <UpgradeModal
           currentPlan={currentPlan}

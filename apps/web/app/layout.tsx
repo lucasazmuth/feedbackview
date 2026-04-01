@@ -1,19 +1,21 @@
 import Script from 'next/script'
 import type { Metadata, Viewport } from 'next'
-import { Inter, Space_Grotesk } from 'next/font/google'
-import '@once-ui-system/core/css/tokens.css'
-import '@once-ui-system/core/css/styles.css'
+import { Space_Grotesk } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
 import { landingMeta } from '@/content/landing.pt-BR'
 
-const inter = Inter({ subsets: ['latin'] })
-const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], weight: ['700'] })
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin', 'latin-ext'],
+  weight: ['500', '600', '700'],
+  variable: '--font-space-grotesk',
+  display: 'swap',
+})
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#4f46e5',
+  themeColor: '#000212',
 }
 
 const SITE_URL = 'https://buug.io'
@@ -46,7 +48,7 @@ export const metadata: Metadata = {
     siteName: 'Buug',
     title: landingMeta.openGraphTitle,
     description: landingMeta.openGraphDescription,
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Buug — QA com replay e Web Vitals' }],
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Buug: QA com replay e Web Vitals' }],
   },
   twitter: {
     card: 'summary_large_image',
@@ -64,22 +66,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="pt-BR"
-      data-theme="light"
-      data-brand="indigo"
-      data-accent="violet"
-      data-neutral="slate"
-      data-solid="contrast"
-      data-solid-style="flat"
-      data-border="playful"
-      data-surface="filled"
-      data-transition="all"
-      data-scaling="100"
-      data-viz-style="gradient"
-      suppressHydrationWarning
-    >
-      <body className={inter.className} style={{ ['--font-logo' as string]: spaceGrotesk.style.fontFamily }}>
+    <html lang="pt-BR" suppressHydrationWarning className={spaceGrotesk.variable}>
+      <body>
         <Providers>{children}</Providers>
         <Script src={`/embed.js?v=${Date.now()}`} data-project="d21f0583-5d85-4e3f-aa4b-e1a6c9bcd2a6" strategy="lazyOnload" />
         {/* Google Analytics 4 — set NEXT_PUBLIC_GA_ID in .env to activate */}

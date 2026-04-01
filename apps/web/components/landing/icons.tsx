@@ -55,6 +55,18 @@ export const DashboardIcon = () => (
   </svg>
 )
 
+/** Logo colorido da marca (SVG em /public). */
+export const ClickUpIcon = () => (
+  <img
+    src="/integrations/clickup.svg"
+    alt=""
+    width={24}
+    height={24}
+    className="h-6 w-6 shrink-0 select-none"
+    draggable={false}
+  />
+)
+
 export const VitalsIcon = () => (
   <svg {...svgProps}>
     <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
@@ -166,6 +178,7 @@ export const featureIcons: Record<string, ReactNode> = {
   bolt: <BoltIcon />,
   lock: <LockIcon />,
   dashboard: <DashboardIcon />,
+  clickup: <ClickUpIcon />,
   vitals: <VitalsIcon />,
   click: <ClickIcon />,
   globe: <GlobeIcon />,

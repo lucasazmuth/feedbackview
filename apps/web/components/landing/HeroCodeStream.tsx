@@ -60,7 +60,7 @@ function StreamRow({ line }: { line: StreamLine }) {
         {line.ms != null ? (
           <span className="landing-hero-stream-ms">{line.ms} ms</span>
         ) : (
-          <span className="landing-hero-stream-ms landing-hero-stream-ms--dash">—</span>
+          <span className="landing-hero-stream-ms landing-hero-stream-ms--dash">-</span>
         )}
       </div>
     )

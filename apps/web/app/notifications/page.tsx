@@ -2,18 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  Column,
-  Row,
-  Heading,
-  Text,
-  Button,
-  Tag,
-  Feedback,
-} from '@once-ui-system/core'
 import AppLayout from '@/components/ui/AppLayout'
 import { useOrg } from '@/contexts/OrgContext'
 import { SkeletonBar, SkeletonCard } from '@/components/ui/LoadingSkeleton'
+import { Alert } from '@/components/ui/Alert'
+import { AppIcon } from '@/components/ui/AppIcon'
 
 interface Notification {
   id: string
@@ -42,116 +35,116 @@ interface Notification {
 const ROLE_LABELS: Record<string, string> = {
   OWNER: 'Proprietário',
   ADMIN: 'Admin',
-  MEMBER: 'Membro',
+  MEMBER: 'Editor',
   VIEWER: 'Visualizador',
 }
 
 const TYPE_CONFIG: Record<string, { icon: React.ReactNode; color: string }> = {
   STATUS_CHANGE: {
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <AppIcon size="md">
         <polyline points="23 4 23 10 17 10" />
         <polyline points="1 20 1 14 7 14" />
         <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-      </svg>
+      </AppIcon>
     ),
     color: '#3b82f6',
   },
   PROJECT_CREATED: {
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <AppIcon size="md">
         <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
         <line x1="12" y1="11" x2="12" y2="17" />
         <line x1="9" y1="14" x2="15" y2="14" />
-      </svg>
+      </AppIcon>
     ),
     color: '#8b5cf6',
   },
   EMBED_CONNECTED: {
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <AppIcon size="md">
         <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
         <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-      </svg>
+      </AppIcon>
     ),
     color: '#10b981',
   },
   MEMBER_JOINED: {
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <AppIcon size="md">
         <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
         <circle cx="8.5" cy="7" r="4" />
         <line x1="20" y1="8" x2="20" y2="14" />
         <line x1="23" y1="11" x2="17" y2="11" />
-      </svg>
+      </AppIcon>
     ),
     color: '#22c55e',
   },
   MEMBER_LEFT: {
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <AppIcon size="md">
         <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
         <circle cx="8.5" cy="7" r="4" />
         <line x1="23" y1="11" x2="17" y2="11" />
-      </svg>
+      </AppIcon>
     ),
     color: '#ef4444',
   },
   PLAN_ACTIVATED: {
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <AppIcon size="md">
         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-      </svg>
+      </AppIcon>
     ),
     color: '#f59e0b',
   },
   PLAN_EXPIRED: {
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <AppIcon size="md">
         <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
         <line x1="12" y1="9" x2="12" y2="13" />
         <line x1="12" y1="17" x2="12.01" y2="17" />
-      </svg>
+      </AppIcon>
     ),
     color: '#ef4444',
   },
   DUE_DATE_SET: {
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <AppIcon size="md">
         <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
         <line x1="16" y1="2" x2="16" y2="6" />
         <line x1="8" y1="2" x2="8" y2="6" />
         <line x1="3" y1="10" x2="21" y2="10" />
-      </svg>
+      </AppIcon>
     ),
     color: '#3b82f6',
   },
   DUE_DATE_APPROACHING: {
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <AppIcon size="md">
         <circle cx="12" cy="12" r="10" />
         <polyline points="12 6 12 12 16 14" />
-      </svg>
+      </AppIcon>
     ),
     color: '#f59e0b',
   },
   DUE_DATE_EXPIRED: {
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <AppIcon size="md">
         <circle cx="12" cy="12" r="10" />
         <line x1="12" y1="8" x2="12" y2="12" />
         <line x1="12" y1="16" x2="12.01" y2="16" />
-      </svg>
+      </AppIcon>
     ),
     color: '#ef4444',
   },
   DUE_DATE_OVERDUE: {
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <AppIcon size="md">
         <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
         <line x1="12" y1="9" x2="12" y2="13" />
         <line x1="12" y1="17" x2="12.01" y2="17" />
-      </svg>
+      </AppIcon>
     ),
     color: '#dc2626',
   },
@@ -298,7 +291,7 @@ export default function NotificationsPage() {
   if (loading) {
     return (
       <AppLayout>
-        <Column as="main" fillWidth paddingX="l" paddingY="m" gap="l">
+        <div className="app-page" style={{ maxWidth: '100%' }}>
           <style>{`@keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:.4 } }`}</style>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <SkeletonBar width="10rem" height="1.75rem" />
@@ -308,7 +301,7 @@ export default function NotificationsPage() {
             <SkeletonCard key={i}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                  <SkeletonBar width="2rem" height="2rem" radius="0.5rem" />
+                  <SkeletonBar width="2rem" height="2rem" />
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
                     <SkeletonBar width="10rem" height="1rem" />
                     <SkeletonBar width="14rem" height="0.75rem" />
@@ -317,50 +310,45 @@ export default function NotificationsPage() {
               </div>
             </SkeletonCard>
           ))}
-        </Column>
+        </div>
       </AppLayout>
     )
   }
 
   return (
     <AppLayout>
-      <Column as="main" fillWidth paddingX="l" paddingY="m" gap="l">
-        <Column gap="xs">
-          <Heading variant="heading-strong-l">Notificações</Heading>
-          <Text variant="body-default-s" onBackground="neutral-weak">
+      <div className="app-page" style={{ maxWidth: '100%' }}>
+        <div>
+          <h2 className="app-section-title" style={{ fontSize: '1.5rem' }}>Notificações</h2>
+          <p className="app-section-sub">
             Convites e atividade da plataforma
-          </Text>
-        </Column>
+          </p>
+        </div>
 
-        {message && <Feedback variant={message.type}>{message.text}</Feedback>}
+        {message && <Alert variant={message.type}>{message.text}</Alert>}
 
         {notifications.length === 0 ? (
-          <Column fillWidth padding="l" gap="m" radius="l" border="neutral-medium" background="surface" horizontal="center" vertical="center" style={{ minHeight: '8rem' }}>
-            <Text variant="body-default-m" onBackground="neutral-weak">
+          <div className="app-card" style={{ minHeight: '8rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span className="app-section-sub">
               Nenhuma notificação pendente.
-            </Text>
-          </Column>
+            </span>
+          </div>
         ) : (
-          <Column fillWidth gap="m">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
             {/* Invites section */}
             {invites.length > 0 && (
-              <Column fillWidth gap="s">
-                <Text variant="label-default-s" onBackground="neutral-weak" style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <span style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.6875rem', fontWeight: 700, color: 'var(--neutral-on-background-weak)' }}>
                   Convites pendentes
-                </Text>
+                </span>
                 {invites.map((invite) => (
-                  <Column
+                  <div
                     key={invite.id}
-                    fillWidth
-                    padding="l"
-                    gap="m"
-                    radius="l"
-                    border="neutral-medium"
-                    background="surface"
+                    className="app-card"
                   >
-                    <Row fillWidth horizontal="between" vertical="center">
-                      <Column gap="4">
-                        <Row gap="s" vertical="center">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                           <div style={{
                             width: 32, height: 32, borderRadius: 8,
                             background: 'var(--brand-solid-strong)', color: '#fff',
@@ -369,48 +357,36 @@ export default function NotificationsPage() {
                           }}>
                             {(invite.orgName || 'O')[0].toUpperCase()}
                           </div>
-                          <Column gap="2">
-                            <Text variant="body-default-m" onBackground="neutral-strong" style={{ fontWeight: 500 }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem' }}>
+                            <span style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--neutral-on-background-strong)' }}>
                               {invite.orgName}
-                            </Text>
-                            <Row gap="xs" vertical="center">
-                              <Text variant="body-default-s" onBackground="neutral-weak">
+                            </span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                              <span style={{ fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)' }}>
                                 Convite para participar como
-                              </Text>
-                              <Tag variant="neutral" size="s" label={ROLE_LABELS[invite.role || ''] || invite.role || ''} />
-                            </Row>
-                          </Column>
-                        </Row>
-                      </Column>
+                              </span>
+                              <span className="app-badge" style={{ background: 'var(--brand-alpha-weak)', color: 'var(--brand-on-background-strong)' }}>{ROLE_LABELS[invite.role || ''] || invite.role}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
 
-                      <Row gap="s">
-                        <Button
-                          variant="primary"
-                          size="s"
-                          label={actionLoading === invite.id ? 'Aceitando...' : 'Aceitar'}
-                          onClick={() => handleAccept(invite.id)}
-                          disabled={!!actionLoading}
-                        />
-                        <Button
-                          variant="tertiary"
-                          size="s"
-                          label="Recusar"
-                          onClick={() => handleReject(invite.id)}
-                          disabled={!!actionLoading}
-                        />
-                      </Row>
-                    </Row>
-                  </Column>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+                        <button onClick={() => handleAccept(invite.id)} disabled={!!actionLoading} className="app-btn-primary">{actionLoading === invite.id ? 'Aceitando...' : 'Aceitar'}</button>
+                        <button onClick={() => handleReject(invite.id)} disabled={!!actionLoading} className="app-btn-secondary">Recusar</button>
+                      </div>
+                    </div>
+                  </div>
                 ))}
-              </Column>
+              </div>
             )}
 
             {/* Activity section */}
             {activityNotifs.length > 0 && (
-              <Column fillWidth gap="s">
-                <Text variant="label-default-s" onBackground="neutral-weak" style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <span style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.6875rem', fontWeight: 700, color: 'var(--neutral-on-background-weak)' }}>
                   Atividade
-                </Text>
+                </span>
                 {activityNotifs.map((notif) => {
                   const config = TYPE_CONFIG[notif.type]
                   const route = getNotifRoute(notif)
@@ -442,11 +418,11 @@ export default function NotificationsPage() {
                         flexShrink: 0,
                       }}>
                         {config?.icon || (
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <AppIcon size="md">
                             <circle cx="12" cy="12" r="10" />
                             <line x1="12" y1="8" x2="12" y2="12" />
                             <line x1="12" y1="16" x2="12.01" y2="16" />
-                          </svg>
+                          </AppIcon>
                         )}
                       </div>
 
@@ -487,18 +463,18 @@ export default function NotificationsPage() {
 
                       {/* Chevron */}
                       {route && (
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--neutral-on-background-weak)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                        <AppIcon size="md" style={{ color: 'var(--neutral-on-background-weak)' }}>
                           <polyline points="9 18 15 12 9 6" />
-                        </svg>
+                        </AppIcon>
                       )}
                     </div>
                   )
                 })}
-              </Column>
+              </div>
             )}
-          </Column>
+          </div>
         )}
-      </Column>
+      </div>
     </AppLayout>
   )
 }

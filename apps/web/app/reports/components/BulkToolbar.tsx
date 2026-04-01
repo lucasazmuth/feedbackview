@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { Tag, Button, Text, Row, Column, Heading } from '@once-ui-system/core'
+import { Button } from '@/components/ui/Button'
+import { getTagColors } from '../utils/labels'
 
 const STATUS_OPTIONS = [
   { value: 'OPEN', label: 'Aberto' },
@@ -65,20 +66,21 @@ export default function BulkToolbar({
           pointerEvents: 'auto',
         }}
       >
-        <Row gap="12" vertical="center" horizontal="between">
-          <Text variant="body-default-s" onBackground="neutral-strong">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-sm text-off-white">
             {selectedCount} selecionados
-          </Text>
+          </span>
 
-          <Row gap="8" vertical="center">
+          <div className="flex items-center gap-2">
             <div style={{ position: 'relative' }}>
               <Button
-                size="s"
+                size="small"
                 variant="secondary"
-                label={actionLoading ? 'Atualizando...' : 'Status'}
                 disabled={actionLoading || deleteWorking}
                 onClick={() => setShowStatusDropdown((v) => !v)}
-              />
+              >
+                {actionLoading ? 'Atualizando...' : 'Status'}
+              </Button>
               {showStatusDropdown && (
                 <div
                   style={{
@@ -107,7 +109,7 @@ export default function BulkToolbar({
                         setShowStatusDropdown(false)
                       }}
                     >
-                      <Tag label={opt.label} variant="neutral" />
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: 'rgba(255,255,255,0.06)', color: '#9ca3af' }}>{opt.label}</span>
                     </div>
                   ))}
                 </div>
@@ -115,21 +117,23 @@ export default function BulkToolbar({
             </div>
 
             <Button
-              size="s"
+              size="small"
               variant="danger"
-              label="Excluir"
               disabled={actionLoading || deleteWorking}
               onClick={() => setDeleteConfirmOpen(true)}
-            />
+            >
+              Excluir
+            </Button>
 
             <Button
-              size="s"
-              variant="tertiary"
-              label="Limpar"
+              size="small"
+              variant="ghost"
               onClick={onClearSelection}
-            />
-          </Row>
-        </Row>
+            >
+              Limpar
+            </Button>
+          </div>
+        </div>
       </div>
 
       {deleteConfirmOpen &&
@@ -173,26 +177,26 @@ export default function BulkToolbar({
                 boxShadow: '0 16px 48px rgba(0, 0, 0, 0.22)',
               }}
             >
-              <Column gap="m" fillWidth>
-                <Heading id="bulk-delete-title" variant="heading-strong-m" as="h2">
+              <div className="flex flex-col gap-4 w-full">
+                <h2 id="bulk-delete-title" className="text-lg font-bold text-off-white">
                   Excluir reports?
-                </Heading>
-                <Text variant="body-default-s" onBackground="neutral-weak">
+                </h2>
+                <p className="text-sm text-gray">
                   Os <strong>{selectedCount}</strong> reports selecionados serão{' '}
                   <strong>apagados permanentemente</strong>. Não há como desfazer esta ação.
-                </Text>
-                <Row gap="s" wrap horizontal="end">
+                </p>
+                <div className="flex gap-2 flex-wrap justify-end">
                   <Button
-                    size="s"
-                    variant="tertiary"
-                    label="Cancelar"
+                    size="small"
+                    variant="ghost"
                     disabled={deleteWorking}
                     onClick={() => setDeleteConfirmOpen(false)}
-                  />
+                  >
+                    Cancelar
+                  </Button>
                   <Button
-                    size="s"
+                    size="small"
                     variant="danger"
-                    label={deleteWorking ? 'Excluindo...' : 'Sim, excluir'}
                     disabled={deleteWorking}
                     onClick={async () => {
                       setDeleteWorking(true)
@@ -203,9 +207,11 @@ export default function BulkToolbar({
                         setDeleteWorking(false)
                       }
                     }}
-                  />
-                </Row>
-              </Column>
+                  >
+                    {deleteWorking ? 'Excluindo...' : 'Sim, excluir'}
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>,
           document.body,

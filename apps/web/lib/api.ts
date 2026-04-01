@@ -167,6 +167,16 @@ export const api = {
       if (error) throw new Error(error.message)
     },
 
+    async updateTitle(id: string, title: string | null) {
+      const supabase = createClient()
+      const value = title && title.trim() ? title.trim() : null
+      const { error } = await supabase
+        .from('Feedback')
+        .update({ title: value })
+        .eq('id', id)
+      if (error) throw new Error(error.message)
+    },
+
     async submit(data: any) {
       const supabase = createClient()
 

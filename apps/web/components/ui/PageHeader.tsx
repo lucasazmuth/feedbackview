@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useOrg } from '@/contexts/OrgContext'
 import UpgradeModal from './UpgradeModal'
+import { AppIcon } from '@/components/ui/AppIcon'
 
 const PLAN_LABELS: Record<string, string> = {
   FREE: 'Free',
@@ -72,6 +73,8 @@ export default function PageHeader() {
   const { currentOrg } = useOrg()
   const [userName, setUserName] = useState('')
   const [userEmail, setUserEmail] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [avatarLoadError, setAvatarLoadError] = useState(false)
   const [notifCount, setNotifCount] = useState(0)
   const [showUpgrade, setShowUpgrade] = useState(false)
 
@@ -82,6 +85,13 @@ export default function PageHeader() {
       if (user) {
         setUserName(user.user_metadata?.name || '')
         setUserEmail(user.email || '')
+        const meta = user.user_metadata as Record<string, unknown> | undefined
+        const url =
+          (typeof meta?.avatar_url === 'string' && meta.avatar_url) ||
+          (typeof meta?.picture === 'string' && meta.picture) ||
+          null
+        setAvatarUrl(url)
+        setAvatarLoadError(false)
       }
     }
     fetchUser()
@@ -103,9 +113,19 @@ export default function PageHeader() {
     return () => clearInterval(interval)
   }, [fetchNotifCount])
 
-  const initials = userName
-    ? userName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
-    : userEmail ? userEmail[0].toUpperCase() : '?'
+  const displayName = userName.trim() || userEmail.split('@')[0] || userEmail
+  const initials = userName.trim()
+    ? userName
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
+    : userEmail
+      ? userEmail[0].toUpperCase()
+      : '?'
 
   const plan = currentOrg?.plan || 'FREE'
 
@@ -176,12 +196,12 @@ export default function PageHeader() {
             e.currentTarget.style.background = 'transparent'
           }}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <AppIcon size="md">
             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
             <circle cx="9" cy="7" r="4" />
             <line x1="19" y1="8" x2="19" y2="14" />
             <line x1="22" y1="11" x2="16" y2="11" />
-          </svg>
+          </AppIcon>
           Convidar membros
         </button>
 
@@ -220,23 +240,32 @@ export default function PageHeader() {
           badge={notifCount}
           onClick={() => router.push('/notifications')}
           icon={
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <AppIcon size="lg">
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
               <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-            </svg>
+            </AppIcon>
           }
         />
 
-        {/* User avatar */}
+        {/* User avatar: foto quando existir; senão letra(s) do nome */}
         <div
+          role="button"
+          tabIndex={0}
           onClick={() => router.push('/settings')}
-          title={userName || userEmail}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              router.push('/settings')
+            }
+          }}
+          title={displayName}
+          aria-label={`Conta: ${displayName}`}
           style={{
             width: 34,
             height: 34,
             borderRadius: '50%',
             background: 'var(--neutral-on-background-strong)',
-            color: '#fff',
+            color: 'var(--surface-background)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -245,9 +274,22 @@ export default function PageHeader() {
             flexShrink: 0,
             cursor: 'pointer',
             marginLeft: '0.25rem',
+            overflow: 'hidden',
           }}
         >
-          {initials}
+          {avatarUrl && !avatarLoadError ? (
+            // eslint-disable-next-line @next/next/no-img-element -- URL externa do provedor OAuth
+            <img
+              src={avatarUrl}
+              alt=""
+              width={34}
+              height={34}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              onError={() => setAvatarLoadError(true)}
+            />
+          ) : (
+            initials
+          )}
         </div>
       </div>
 

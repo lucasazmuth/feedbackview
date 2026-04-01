@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { AppIcon } from '@/components/ui/AppIcon'
+import { ICON_STROKE } from '@/lib/icon-tokens'
 
 interface SessionReplayProps {
   events: any[]
@@ -296,7 +298,7 @@ export default function SessionReplay({ events }: SessionReplayProps) {
               width: '100%',
               height: '6px',
               borderRadius: '3px',
-              background: 'var(--neutral-alpha-weak)',
+              background: 'var(--neutral-solid-medium)',
               cursor: 'pointer',
               position: 'relative',
             }}
@@ -355,14 +357,14 @@ export default function SessionReplay({ events }: SessionReplayProps) {
                 onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
               >
                 {playing ? (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <AppIcon size="sm" fill="currentColor" stroke="none" strokeWidth={0}>
                     <rect x="6" y="4" width="4" height="16" rx="1" />
                     <rect x="14" y="4" width="4" height="16" rx="1" />
-                  </svg>
+                  </AppIcon>
                 ) : (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <AppIcon size="sm" fill="currentColor" stroke="none" strokeWidth={0}>
                     <path d="M8 5.14v14.72a1 1 0 0 0 1.5.86l11-7.36a1 1 0 0 0 0-1.72l-11-7.36A1 1 0 0 0 8 5.14z" />
-                  </svg>
+                  </AppIcon>
                 )}
               </button>
               <span style={{ fontSize: '0.75rem', fontFamily: 'monospace', color: isFullscreen ? '#fff' : 'var(--neutral-on-background-weak)', whiteSpace: 'nowrap' }}>
@@ -407,17 +409,13 @@ export default function SessionReplay({ events }: SessionReplayProps) {
                   cursor: 'pointer',
                 }}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <AppIcon size="sm" strokeWidth={ICON_STROKE.emphasis}>
                   {isFullscreen ? (
-                    <>
-                      <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
-                    </>
+                    <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
                   ) : (
-                    <>
-                      <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
-                    </>
+                    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
                   )}
-                </svg>
+                </AppIcon>
               </button>
             </div>
           </div>

@@ -1,20 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import {
-  Flex,
-  Column,
-  Heading,
-  Text,
-  PasswordInput,
-  Button,
-  Feedback,
-} from '@once-ui-system/core'
+import { Button } from '@/components/ui/Button'
+import { Alert } from '@/components/ui/Alert'
+import { Input } from '@/components/ui/Input'
+import { Spinner } from '@/components/ui/Spinner'
+import { Eye, EyeOff } from 'lucide-react'
+import { ICON_PX } from '@/lib/icon-tokens'
 
 const schema = z.object({
   password: z.string().min(8, 'Senha deve ter pelo menos 8 caracteres'),
@@ -30,6 +27,8 @@ export default function ResetPasswordPage() {
   const router = useRouter()
   const [serverError, setServerError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
 
   const {
     register,
@@ -52,55 +51,85 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <Flex fillWidth style={{ minHeight: '100vh' }} horizontal="center" vertical="center" padding="l">
-      <Column maxWidth={24} fillWidth gap="xl">
-        <Column gap="4">
-          <a href="/" style={{ textDecoration: 'none' }}>
-            <span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '1.5rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-strong)' }}>Buug</span>
+    <div className="flex w-full min-h-screen items-center justify-center p-8 bg-background">
+      <div className="w-full max-w-lg flex flex-col gap-8">
+        <div className="flex flex-col gap-2">
+          <a href="/" className="no-underline">
+            <span className="font-logo font-bold text-2xl tracking-tight text-off-white">Buug</span>
           </a>
-          <Heading variant="display-strong-s" as="h1">
+          <h1 className="text-3xl font-bold text-off-white">
             Nova senha
-          </Heading>
-          <Text variant="body-default-m" onBackground="neutral-weak">
+          </h1>
+          <p className="text-base text-primary-text">
             Defina sua nova senha abaixo.
-          </Text>
-        </Column>
+          </p>
+        </div>
 
-        {serverError && <Feedback variant="danger">{serverError}</Feedback>}
+        {serverError && <Alert variant="danger">{serverError}</Alert>}
 
         {success ? (
-          <Feedback variant="success">
+          <Alert variant="success">
             Senha alterada com sucesso! Redirecionando...
-          </Feedback>
+          </Alert>
         ) : (
-          <Column as="form" onSubmit={handleSubmit(onSubmit)} gap="m" fillWidth>
-            <PasswordInput
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 w-full">
+            <Input
               id="password"
               label="Nova senha"
+              type={showPassword ? 'text' : 'password'}
               placeholder="••••••••"
-              error={!!errors.password}
-              errorMessage={errors.password?.message}
+              error={errors.password?.message}
               {...register('password')}
+              trailingSlot={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="flex text-gray transition-colors hover:text-off-white"
+                  tabIndex={-1}
+                  aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                >
+                  {showPassword ? <EyeOff size={ICON_PX.lg} /> : <Eye size={ICON_PX.lg} />}
+                </button>
+              }
             />
-            <PasswordInput
+            <Input
               id="confirmPassword"
               label="Confirmar senha"
+              type={showConfirm ? 'text' : 'password'}
               placeholder="••••••••"
-              error={!!errors.confirmPassword}
-              errorMessage={errors.confirmPassword?.message}
+              error={errors.confirmPassword?.message}
               {...register('confirmPassword')}
+              trailingSlot={
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm(!showConfirm)}
+                  className="flex text-gray transition-colors hover:text-off-white"
+                  tabIndex={-1}
+                  aria-label={showConfirm ? 'Ocultar confirmação' : 'Mostrar confirmação'}
+                >
+                  {showConfirm ? <EyeOff size={ICON_PX.lg} /> : <Eye size={ICON_PX.lg} />}
+                </button>
+              }
             />
             <Button
               type="submit"
               variant="primary"
-              size="l"
-              fillWidth
-              loading={isSubmitting}
-              label={isSubmitting ? 'Salvando...' : 'Salvar nova senha'}
-            />
-          </Column>
+              size="large"
+              className="w-full"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <span className="flex items-center gap-2">
+                  <Spinner size="sm" />
+                  Salvando...
+                </span>
+              ) : (
+                'Salvar nova senha'
+              )}
+            </Button>
+          </form>
         )}
-      </Column>
-    </Flex>
+      </div>
+    </div>
   )
 }

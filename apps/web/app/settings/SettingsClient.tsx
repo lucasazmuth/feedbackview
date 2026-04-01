@@ -6,18 +6,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import {
-  Column,
-  Row,
-  Heading,
-  Text,
-  Input,
-  PasswordInput,
-  Button,
-  Feedback,
-  Select,
-} from '@once-ui-system/core'
+import { signOutAndRedirectToLogin } from '@/lib/sign-out-client'
+import { Alert } from '@/components/ui/Alert'
 import AppLayout from '@/components/ui/AppLayout'
+import { AppIcon } from '@/components/ui/AppIcon'
 
 /* ── Schemas ── */
 const profileSchema = z.object({
@@ -71,27 +63,40 @@ function formatCepForDisplay(raw: string) {
   return raw
 }
 
+const INPUT_CLASS = 'app-input'
+const INPUT_ERROR_CLASS = 'app-input app-input--error'
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  padding: '0.5rem 0.75rem',
+  borderRadius: '0.5rem',
+  border: '1px solid var(--neutral-border-medium)',
+  background: 'var(--surface-background)',
+  color: 'var(--neutral-on-background-strong)',
+  fontSize: '0.875rem',
+  outline: 'none',
+}
+
+const labelStyle: React.CSSProperties = {
+  display: 'block',
+  fontSize: '0.75rem',
+  fontWeight: 600,
+  color: 'var(--neutral-on-background-weak)',
+  marginBottom: '0.25rem',
+}
+
 /* ── Section card ── */
 function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
   return (
-    <Column
-      fillWidth
-      padding="l"
-      gap="m"
-      radius="l"
-      border="neutral-medium"
-      background="surface"
-    >
-      <Column gap="4">
-        <Heading variant="heading-strong-m">{title}</Heading>
+    <div className="app-card">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+        <h3 className="text-off-white font-semibold" style={{ margin: 0 }}>{title}</h3>
         {description && (
-          <Text variant="body-default-s" onBackground="neutral-weak">
-            {description}
-          </Text>
+          <p className="text-sm text-gray" style={{ margin: 0 }}>{description}</p>
         )}
-      </Column>
+      </div>
       {children}
-    </Column>
+    </div>
   )
 }
 
@@ -114,6 +119,16 @@ export default function SettingsClient({
   userTeamSize,
 }: SettingsClientProps) {
   const router = useRouter()
+  const [signingOut, setSigningOut] = useState(false)
+
+  async function handleSignOut() {
+    setSigningOut(true)
+    try {
+      await signOutAndRedirectToLogin()
+    } catch {
+      setSigningOut(false)
+    }
+  }
 
   /* Profile form */
   const [profileMsg, setProfileMsg] = useState<{ type: 'success' | 'danger'; text: string } | null>(null)
@@ -202,150 +217,185 @@ export default function SettingsClient({
 
   return (
     <AppLayout>
-      <Column as="main" fillWidth paddingX="l" paddingY="m" gap="l">
+      <main className="app-page">
         {/* Page header */}
-        <Column gap="xs">
-          <Heading variant="heading-strong-l">Configurações</Heading>
-          <Text variant="body-default-s" onBackground="neutral-weak">
-            Gerencie suas informações de conta
-          </Text>
-        </Column>
+        <div>
+          <h1 className="app-section-title" style={{ fontSize: '1.5rem' }}>Configurações</h1>
+          <p className="app-section-sub">Gerencie suas informações de conta</p>
+        </div>
 
         {/* Profile section */}
         <Section title="Perfil" description="Atualize suas informações pessoais e da empresa.">
           {profileMsg && (
-            <Feedback variant={profileMsg.type}>{profileMsg.text}</Feedback>
+            <Alert variant={profileMsg.type === 'success' ? 'success' : 'danger'}>{profileMsg.text}</Alert>
           )}
 
-          <Column as="form" gap="m" onSubmit={handleProfile(onProfileSubmit)} fillWidth>
-            <Input
-              id="settings-email"
-              label="E-mail"
-              value={userEmail}
-              disabled
-            />
-
-            <Input
-              id="settings-name"
-              label="Nome"
-              placeholder="Seu nome completo"
-              error={!!profileErrors.name}
-              errorMessage={profileErrors.name?.message}
-              {...regProfile('name')}
-            />
-
-            <Input
-              id="settings-company"
-              label="Nome da empresa"
-              placeholder="Sua empresa"
-              error={!!profileErrors.company}
-              errorMessage={profileErrors.company?.message}
-              {...regProfile('company')}
-            />
-
-            <Row gap="m" fillWidth>
-              <Input
-                id="settings-phone"
-                label="Telefone"
-                type="tel"
-                placeholder="(11) 99999-9999"
-                error={!!profileErrors.phone}
-                errorMessage={profileErrors.phone?.message}
-                {...regProfile('phone', {
-                  onChange: (e) => {
-                    const formatted = maskPhone(e.target.value)
-                    setProfileValue('phone', formatted, { shouldValidate: false })
-                  },
-                })}
+          <form onSubmit={handleProfile(onProfileSubmit)} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div>
+              <label style={labelStyle} htmlFor="settings-email">E-mail</label>
+              <input
+                id="settings-email"
+                type="email"
+                value={userEmail}
+                disabled
+                style={{ ...inputStyle, opacity: 0.6 }}
               />
-              <Input
-                id="settings-cep"
-                label="CEP"
-                placeholder="00000-000"
-                error={!!profileErrors.cep}
-                errorMessage={profileErrors.cep?.message}
-                {...regProfile('cep', {
-                  onChange: (e) => {
-                    const formatted = maskCep(e.target.value)
-                    setProfileValue('cep', formatted, { shouldValidate: false })
-                  },
-                })}
-              />
-            </Row>
+            </div>
 
-            <Select
-              id="settings-teamSize"
-              label="Tamanho da equipe"
-              options={[
-                { value: '1-5', label: '1 a 5 pessoas' },
-                { value: '6-20', label: '6 a 20 pessoas' },
-                { value: '21-50', label: '21 a 50 pessoas' },
-                { value: '51+', label: 'Mais de 50 pessoas' },
-              ]}
-              value={profileTeamSize || ''}
-              error={!!profileErrors.teamSize}
-              errorMessage={profileErrors.teamSize?.message}
-              onSelect={(value: string) => setProfileValue('teamSize', value, { shouldValidate: true })}
-            />
-
-            <Row horizontal="end" fillWidth>
-              <Button
-                type="submit"
-                variant="primary"
-                size="m"
-                loading={profileSubmitting}
-                label={profileSubmitting ? 'Salvando...' : 'Salvar alterações'}
+            <div>
+              <label style={labelStyle} htmlFor="settings-name">Nome</label>
+              <input
+                id="settings-name"
+                type="text"
+                placeholder="Seu nome completo"
+                className={profileErrors.name ? INPUT_ERROR_CLASS : INPUT_CLASS}
+                {...regProfile('name')}
               />
-            </Row>
-          </Column>
+              {profileErrors.name && <span style={{ fontSize: '0.75rem', color: 'var(--danger-on-background-strong)', marginTop: '0.25rem', display: 'block' }}>{profileErrors.name.message}</span>}
+            </div>
+
+            <div>
+              <label style={labelStyle} htmlFor="settings-company">Nome da empresa</label>
+              <input
+                id="settings-company"
+                type="text"
+                placeholder="Sua empresa"
+                className={profileErrors.company ? INPUT_ERROR_CLASS : INPUT_CLASS}
+                {...regProfile('company')}
+              />
+              {profileErrors.company && <span style={{ fontSize: '0.75rem', color: 'var(--danger-on-background-strong)', marginTop: '0.25rem', display: 'block' }}>{profileErrors.company.message}</span>}
+            </div>
+
+            <div style={{ display: 'flex', gap: '1rem', width: '100%' }}>
+              <div style={{ flex: 1 }}>
+                <label style={labelStyle} htmlFor="settings-phone">Telefone</label>
+                <input
+                  id="settings-phone"
+                  type="tel"
+                  placeholder="(11) 99999-9999"
+                  className={profileErrors.phone ? INPUT_ERROR_CLASS : INPUT_CLASS}
+                  {...regProfile('phone', {
+                    onChange: (e) => {
+                      const formatted = maskPhone(e.target.value)
+                      setProfileValue('phone', formatted, { shouldValidate: false })
+                    },
+                  })}
+                />
+                {profileErrors.phone && <span style={{ fontSize: '0.75rem', color: 'var(--danger-on-background-strong)', marginTop: '0.25rem', display: 'block' }}>{profileErrors.phone.message}</span>}
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={labelStyle} htmlFor="settings-cep">CEP</label>
+                <input
+                  id="settings-cep"
+                  type="text"
+                  placeholder="00000-000"
+                  className={profileErrors.cep ? INPUT_ERROR_CLASS : INPUT_CLASS}
+                  {...regProfile('cep', {
+                    onChange: (e) => {
+                      const formatted = maskCep(e.target.value)
+                      setProfileValue('cep', formatted, { shouldValidate: false })
+                    },
+                  })}
+                />
+                {profileErrors.cep && <span style={{ fontSize: '0.75rem', color: 'var(--danger-on-background-strong)', marginTop: '0.25rem', display: 'block' }}>{profileErrors.cep.message}</span>}
+              </div>
+            </div>
+
+            <div>
+              <label style={labelStyle} htmlFor="settings-teamSize">Tamanho da equipe</label>
+              <select
+                id="settings-teamSize"
+                value={profileTeamSize || ''}
+                onChange={(e) => setProfileValue('teamSize', e.target.value, { shouldValidate: true })}
+                className="app-select"
+              >
+                <option value="">Selecione...</option>
+                <option value="1-5">1 a 5 pessoas</option>
+                <option value="6-20">6 a 20 pessoas</option>
+                <option value="21-50">21 a 50 pessoas</option>
+                <option value="51+">Mais de 50 pessoas</option>
+              </select>
+              {profileErrors.teamSize && <span style={{ fontSize: '0.75rem', color: 'var(--danger-on-background-strong)', marginTop: '0.25rem', display: 'block' }}>{profileErrors.teamSize.message}</span>}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+              <button type="submit" disabled={profileSubmitting} className="app-btn-primary">
+                {profileSubmitting ? 'Salvando...' : 'Salvar alterações'}
+              </button>
+            </div>
+          </form>
         </Section>
 
         {/* Password section */}
         <Section title="Alterar senha" description="Atualize sua senha de acesso.">
           {passwordMsg && (
-            <Feedback variant={passwordMsg.type}>{passwordMsg.text}</Feedback>
+            <Alert variant={passwordMsg.type === 'success' ? 'success' : 'danger'}>{passwordMsg.text}</Alert>
           )}
 
-          <Column as="form" gap="m" onSubmit={handlePassword(onPasswordSubmit)} fillWidth>
-            <PasswordInput
-              id="settings-currentPassword"
-              label="Senha atual"
-              placeholder="Digite sua senha atual"
-              error={!!passwordErrors.currentPassword}
-              errorMessage={passwordErrors.currentPassword?.message}
-              {...regPassword('currentPassword')}
-            />
-
-            <PasswordInput
-              id="settings-newPassword"
-              label="Nova senha"
-              placeholder="Mínimo 8 caracteres"
-              error={!!passwordErrors.newPassword}
-              errorMessage={passwordErrors.newPassword?.message}
-              {...regPassword('newPassword')}
-            />
-
-            <PasswordInput
-              id="settings-confirmPassword"
-              label="Confirmar nova senha"
-              placeholder="Repita a nova senha"
-              error={!!passwordErrors.confirmPassword}
-              errorMessage={passwordErrors.confirmPassword?.message}
-              {...regPassword('confirmPassword')}
-            />
-
-            <Row horizontal="end" fillWidth>
-              <Button
-                type="submit"
-                variant="primary"
-                size="m"
-                loading={passwordSubmitting}
-                label={passwordSubmitting ? 'Alterando...' : 'Alterar senha'}
+          <form onSubmit={handlePassword(onPasswordSubmit)} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div>
+              <label style={labelStyle} htmlFor="settings-currentPassword">Senha atual</label>
+              <input
+                id="settings-currentPassword"
+                type="password"
+                placeholder="Digite sua senha atual"
+                className={passwordErrors.currentPassword ? INPUT_ERROR_CLASS : INPUT_CLASS}
+                {...regPassword('currentPassword')}
               />
-            </Row>
-          </Column>
+              {passwordErrors.currentPassword && <span style={{ fontSize: '0.75rem', color: 'var(--danger-on-background-strong)', marginTop: '0.25rem', display: 'block' }}>{passwordErrors.currentPassword.message}</span>}
+            </div>
+
+            <div>
+              <label style={labelStyle} htmlFor="settings-newPassword">Nova senha</label>
+              <input
+                id="settings-newPassword"
+                type="password"
+                placeholder="Mínimo 8 caracteres"
+                className={passwordErrors.newPassword ? INPUT_ERROR_CLASS : INPUT_CLASS}
+                {...regPassword('newPassword')}
+              />
+              {passwordErrors.newPassword && <span style={{ fontSize: '0.75rem', color: 'var(--danger-on-background-strong)', marginTop: '0.25rem', display: 'block' }}>{passwordErrors.newPassword.message}</span>}
+            </div>
+
+            <div>
+              <label style={labelStyle} htmlFor="settings-confirmPassword">Confirmar nova senha</label>
+              <input
+                id="settings-confirmPassword"
+                type="password"
+                placeholder="Repita a nova senha"
+                className={passwordErrors.confirmPassword ? INPUT_ERROR_CLASS : INPUT_CLASS}
+                {...regPassword('confirmPassword')}
+              />
+              {passwordErrors.confirmPassword && <span style={{ fontSize: '0.75rem', color: 'var(--danger-on-background-strong)', marginTop: '0.25rem', display: 'block' }}>{passwordErrors.confirmPassword.message}</span>}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+              <button type="submit" disabled={passwordSubmitting} className="app-btn-primary">
+                {passwordSubmitting ? 'Alterando...' : 'Alterar senha'}
+              </button>
+            </div>
+          </form>
         </Section>
-      </Column>
+
+        <Section title="Sessão" description="Encerre a sessão neste dispositivo. Você precisará entrar de novo para acessar a conta.">
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.75rem' }}>
+            <button
+              type="button"
+              disabled={signingOut}
+              onClick={handleSignOut}
+              className="app-btn-danger"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <AppIcon size="sm" strokeWidth={2}>
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </AppIcon>
+              {signingOut ? 'Saindo...' : 'Sair'}
+            </button>
+          </div>
+        </Section>
+      </main>
     </AppLayout>
   )
 }

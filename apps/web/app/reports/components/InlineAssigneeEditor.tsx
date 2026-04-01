@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Text } from '@once-ui-system/core'
+import { AppIcon } from '@/components/ui/AppIcon'
 
 interface TeamMember {
   id: string
@@ -100,9 +100,9 @@ export default function InlineAssigneeEditor({ feedbackId, assignees, teamMember
           flexDirection: 'column',
           gap: '0.125rem',
         }}>
-          <Text variant="label-default-xs" onBackground="neutral-weak" style={{ padding: '0.25rem 0.5rem' }}>
+          <span className="text-xs font-medium text-gray" style={{ padding: '0.25rem 0.5rem' }}>
             Responsáveis
-          </Text>
+          </span>
           {teamMembers.map(m => {
             const isAssigned = assigneeIds.has(m.id)
             return (
@@ -137,25 +137,25 @@ export default function InlineAssigneeEditor({ feedbackId, assignees, teamMember
                   {(m.name || m.email).charAt(0).toUpperCase()}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <Text variant="body-default-s" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span className="text-sm text-primary-text block truncate">
                     {m.name || m.email.split('@')[0]}
-                  </Text>
-                  <Text variant="body-default-xs" onBackground="neutral-weak" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  </span>
+                  <span className="text-xs text-gray block truncate">
                     {m.email}
-                  </Text>
+                  </span>
                 </div>
                 {isAssigned && (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--brand-solid-strong)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                  <AppIcon size="sm" strokeWidth={2.5} style={{ flexShrink: 0, color: 'var(--brand-solid-strong)' }}>
                     <polyline points="20 6 9 17 4 12" />
-                  </svg>
+                  </AppIcon>
                 )}
               </button>
             )
           })}
           {teamMembers.length === 0 && (
-            <Text variant="body-default-xs" onBackground="neutral-weak" style={{ padding: '0.5rem', textAlign: 'center' }}>
+            <span className="text-xs text-gray block text-center" style={{ padding: '0.5rem' }}>
               Nenhum membro encontrado
-            </Text>
+            </span>
           )}
         </div>
       )}

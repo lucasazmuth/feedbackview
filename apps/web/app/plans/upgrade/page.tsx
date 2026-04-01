@@ -3,18 +3,11 @@
 import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useOrg } from '@/contexts/OrgContext'
-import {
-  Column,
-  Row,
-  Heading,
-  Text,
-  Button,
-  Tag,
-  Feedback,
-} from '@once-ui-system/core'
 import AppLayout from '@/components/ui/AppLayout'
+import { PlansUpgradeLoadingContent } from '@/components/ui/LoadingSkeleton'
 import { type Plan } from '@/lib/limits'
 import { usePrices } from '@/hooks/usePrices'
+import { Alert } from '@/components/ui/Alert'
 
 const PLANS: {
   key: Plan
@@ -151,9 +144,9 @@ function UpgradeContent() {
   if (loading) {
     return (
       <AppLayout>
-        <Column as="main" fillWidth paddingX="xl" paddingY="l" gap="l" style={{ margin: '0 auto', maxWidth: '72rem' }}>
-          <Text variant="body-default-m" onBackground="neutral-weak">Carregando...</Text>
-        </Column>
+        <div className="app-page">
+          <PlansUpgradeLoadingContent />
+        </div>
       </AppLayout>
     )
   }
@@ -161,37 +154,39 @@ function UpgradeContent() {
   if (userRole !== 'OWNER') {
     return (
       <AppLayout>
-        <Column as="main" fillWidth paddingX="xl" paddingY="l" gap="l" horizontal="center" style={{ margin: '0 auto', maxWidth: '72rem' }}>
-          <Column gap="s" horizontal="center" style={{ textAlign: 'center', paddingTop: '4rem' }}>
-            <Heading variant="heading-strong-l">Acesso restrito</Heading>
-            <Text variant="body-default-m" onBackground="neutral-weak">
+        <div className="app-page app-page--narrow">
+          <div style={{ textAlign: 'center', paddingTop: '4rem' }}>
+            <h2>Acesso restrito</h2>
+            <span>
               Apenas o proprietário da organização pode alterar o plano.
-            </Text>
-            <Button variant="secondary" size="m" label="Voltar para Planos" onClick={() => router.push('/plans')} />
-          </Column>
-        </Column>
+            </span>
+            <button onClick={() => router.push('/plans')} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)', background: 'var(--surface-background)', color: 'var(--neutral-on-background-strong)', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>Voltar para Planos</button>
+          </div>
+        </div>
       </AppLayout>
     )
   }
 
   return (
     <AppLayout>
-      <Column as="main" fillWidth paddingX="xl" paddingY="l" gap="xl" style={{ margin: '0 auto', maxWidth: '72rem' }}>
-        <Column gap="s">
-          <Button variant="tertiary" size="s" label="← Voltar para Planos" onClick={() => router.push('/plans')} />
-          <Column gap="xs" horizontal="center" style={{ textAlign: 'center' }}>
-            <Heading variant="heading-strong-l">Escolha seu plano</Heading>
-            <Text variant="body-default-m" onBackground="neutral-weak">
+      <div className="app-page">
+        {/* Header */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <button onClick={() => router.push('/plans')} className="app-btn-secondary" style={{ alignSelf: 'flex-start', padding: '0.375rem 0.75rem', fontSize: '0.8125rem' }}>← Voltar para Planos</button>
+          <div style={{ textAlign: 'center' }}>
+            <h2 className="app-section-title" style={{ fontSize: '1.5rem' }}>Escolha seu plano</h2>
+            <p className="app-section-sub" style={{ maxWidth: '42rem', margin: '0.5rem auto 0' }}>
               Faça upgrade ou downgrade a qualquer momento. Pro e Business liberam API, webhooks, integração ClickUp e exportação filtrada (CSV/Excel) enquanto a assinatura estiver ativa.
-            </Text>
-          </Column>
-        </Column>
+            </p>
+          </div>
+        </div>
 
         {canceled && (
-          <Feedback variant="warning">Pagamento cancelado. Nenhuma alteração foi feita no seu plano.</Feedback>
+          <Alert variant="warning">Pagamento cancelado. Nenhuma alteração foi feita no seu plano.</Alert>
         )}
 
-        <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', flexWrap: 'wrap', width: '100%' }}>
+        {/* Plan cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1.5rem', width: '100%' }}>
           {PLANS.map((plan) => {
             const isCurrentPlan = plan.key === currentPlan
             const isFreePlan = plan.key === 'FREE'
@@ -204,140 +199,83 @@ function UpgradeContent() {
               <div
                 key={plan.key}
                 style={{
-                  flex: '1 1 280px',
-                  maxWidth: '22rem',
-                  padding: '2rem',
+                  padding: '1.75rem',
                   borderRadius: '1rem',
                   border: plan.highlight
                     ? '2px solid var(--brand-border-strong)'
                     : isCurrentPlan
                       ? '2px solid var(--success-border-strong)'
                       : '1px solid var(--neutral-border-medium)',
-                  background: 'var(--surface-background)',
+                  background: plan.highlight
+                    ? 'linear-gradient(180deg, rgba(86,67,204,0.08) 0%, var(--surface-background) 40%)'
+                    : 'var(--surface-background)',
                   position: 'relative',
                   overflow: 'hidden',
                   display: 'flex',
                   flexDirection: 'column',
+                  gap: '1.25rem',
                 }}
               >
                 {plan.highlight && (
                   <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'var(--brand-solid-strong)' }} />
                 )}
 
-                <Column gap="m" style={{ flex: 1 }}>
-                  <Column gap="xs">
-                    <Row gap="s" vertical="center">
-                      <Text variant="label-default-s" onBackground="neutral-medium">{plan.name}</Text>
-                      {plan.highlight && <Tag variant="brand" size="s" label="Popular" />}
-                      {isCurrentPlan && <Tag variant="success" size="s" label="Atual" />}
-                    </Row>
-                    <Row gap="xs" vertical="end">
-                      <Heading variant="display-strong-s" as="span">{prices[plan.key].monthlyFormatted}</Heading>
-                      <Text variant="body-default-m" onBackground="neutral-medium" style={{ paddingBottom: '4px' }}>{plan.period}</Text>
-                    </Row>
-                    <Text variant="body-default-s" onBackground="neutral-medium">
-                      {plan.description}
-                    </Text>
-                  </Column>
-
-                  <div style={{ height: '1px', background: 'var(--neutral-border-medium)' }} />
-
-                  <Column gap="s" style={{ flex: 1 }}>
-                    {plan.features.map((feature) => (
-                      <Row key={feature} gap="s" vertical="center">
-                        <Text variant="body-default-m" onBackground="brand-strong" style={{ flexShrink: 0 }}>✓</Text>
-                        <Text variant="body-default-m" onBackground="neutral-strong">{feature}</Text>
-                      </Row>
-                    ))}
-                  </Column>
-
-                  <div style={{ marginTop: '0.5rem' }}>
-                    {isCurrentPlan && stripeSubscriptionId ? (
-                      <button
-                        onClick={handleManageSubscription}
-                        disabled={portalLoading}
-                        style={{
-                          width: '100%',
-                          padding: '0.75rem',
-                          borderRadius: '0.75rem',
-                          border: '1px solid var(--neutral-border-medium)',
-                          background: 'transparent',
-                          color: 'var(--neutral-on-background-strong)',
-                          fontWeight: 600,
-                          fontSize: '0.95rem',
-                          cursor: portalLoading ? 'wait' : 'pointer',
-                        }}
-                      >
-                        {portalLoading ? 'Abrindo...' : 'Gerenciar assinatura'}
-                      </button>
-                    ) : isCurrentPlan ? (
-                      <div
-                        style={{
-                          width: '100%',
-                          padding: '0.75rem',
-                          borderRadius: '0.75rem',
-                          border: '1px solid var(--success-border-strong)',
-                          background: 'var(--success-alpha-weak)',
-                          color: 'var(--success-on-background-strong)',
-                          textAlign: 'center',
-                          fontWeight: 600,
-                          fontSize: '0.95rem',
-                        }}
-                      >
-                        Plano atual
-                      </div>
-                    ) : canChange ? (
-                      <button
-                        onClick={() => handleUpgrade(plan.key)}
-                        disabled={!!upgradeLoading}
-                        style={{
-                          width: '100%',
-                          padding: '0.75rem',
-                          borderRadius: '0.75rem',
-                          border: isDowngrade ? '1px solid var(--neutral-border-medium)' : 'none',
-                          background: isDowngrade
-                            ? 'transparent'
-                            : plan.highlight ? 'var(--brand-solid-strong)' : 'var(--neutral-on-background-strong)',
-                          color: isDowngrade ? 'var(--neutral-on-background-strong)' : 'white',
-                          fontWeight: 600,
-                          fontSize: '0.95rem',
-                          cursor: upgradeLoading ? 'wait' : 'pointer',
-                          opacity: upgradeLoading ? 0.7 : 1,
-                        }}
-                      >
-                        {upgradeLoading === plan.key
-                          ? 'Processando...'
-                          : isUpgrade
-                            ? `Upgrade para ${plan.name}`
-                            : `Downgrade para ${plan.name}`}
-                      </button>
-                    ) : (
-                      <div
-                        style={{
-                          width: '100%',
-                          padding: '0.75rem',
-                          borderRadius: '0.75rem',
-                          border: '1px solid var(--neutral-border-medium)',
-                          background: 'transparent',
-                          color: 'var(--neutral-on-background-weak)',
-                          textAlign: 'center',
-                          fontWeight: 600,
-                          fontSize: '0.95rem',
-                        }}
-                      >
-                        Plano gratuito
-                      </div>
-                    )}
+                {/* Plan name + badges */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--neutral-on-background-strong)' }}>{plan.name}</span>
+                    {plan.highlight && <span className="app-badge" style={{ background: 'var(--brand-alpha-weak)', color: 'var(--brand-on-background-strong)' }}>Popular</span>}
+                    {isCurrentPlan && <span className="app-badge" style={{ background: 'var(--success-alpha-weak)', color: 'var(--success-on-background-strong)' }}>Atual</span>}
                   </div>
-                </Column>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
+                    <span style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--neutral-on-background-strong)', lineHeight: 1 }}>{prices[plan.key].monthlyFormatted}</span>
+                    <span style={{ fontSize: '0.875rem', color: 'var(--neutral-on-background-weak)' }}>{plan.period}</span>
+                  </div>
+                  <span style={{ fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)', lineHeight: 1.4 }}>
+                    {plan.description}
+                  </span>
+                </div>
+
+                <div style={{ height: '1px', background: 'var(--neutral-border-medium)' }} />
+
+                {/* Features */}
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {plan.features.map((feature) => (
+                    <div key={feature} style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                      <span style={{ flexShrink: 0, width: '1.125rem', height: '1.125rem', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', fontSize: '0.625rem', fontWeight: 700, background: 'var(--brand-alpha-weak)', color: 'var(--brand-on-background-strong)', marginTop: '0.125rem' }}>✓</span>
+                      <span style={{ fontSize: '0.8125rem', color: 'var(--neutral-on-background-strong)', lineHeight: 1.4 }}>{feature}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* CTA */}
+                <div style={{ marginTop: 'auto', paddingTop: '0.5rem' }}>
+                  {isCurrentPlan && stripeSubscriptionId ? (
+                    <button onClick={handleManageSubscription} disabled={portalLoading} className="app-btn-secondary" style={{ width: '100%', padding: '0.75rem', borderRadius: '0.75rem', fontSize: '0.875rem', textAlign: 'center' }}>
+                      {portalLoading ? 'Abrindo...' : 'Gerenciar assinatura'}
+                    </button>
+                  ) : isCurrentPlan ? (
+                    <div style={{ width: '100%', padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid var(--success-border-strong)', background: 'var(--success-alpha-weak)', color: 'var(--success-on-background-strong)', textAlign: 'center', fontWeight: 600, fontSize: '0.875rem' }}>
+                      Plano atual
+                    </div>
+                  ) : canChange ? (
+                    <button onClick={() => handleUpgrade(plan.key)} disabled={!!upgradeLoading} className={isDowngrade ? 'app-btn-secondary' : 'app-btn-primary'} style={{ width: '100%', padding: '0.75rem', borderRadius: '0.75rem', fontSize: '0.875rem', textAlign: 'center' }}>
+                      {upgradeLoading === plan.key ? 'Processando...' : isUpgrade ? `Upgrade para ${plan.name}` : `Downgrade para ${plan.name}`}
+                    </button>
+                  ) : (
+                    <div style={{ width: '100%', padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid var(--neutral-border-medium)', background: 'transparent', color: 'var(--neutral-on-background-weak)', textAlign: 'center', fontWeight: 600, fontSize: '0.875rem' }}>
+                      Plano gratuito
+                    </div>
+                  )}
+                </div>
               </div>
             )
           })}
         </div>
 
         {/* Comparison table */}
-        <Column fillWidth padding="l" gap="m" radius="l" border="neutral-medium" background="surface">
-          <Heading variant="heading-strong-m">Comparativo de recursos</Heading>
+        <div className="app-card" style={{ marginTop: '0.5rem' }}>
+          <h3 className="app-section-title" style={{ fontSize: '1rem' }}>Comparativo de recursos</h3>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
               <thead>
@@ -370,8 +308,8 @@ function UpgradeContent() {
               </tbody>
             </table>
           </div>
-        </Column>
-      </Column>
+        </div>
+      </div>
     </AppLayout>
   )
 }

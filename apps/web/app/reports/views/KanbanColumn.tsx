@@ -2,8 +2,7 @@
 
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { Text, Tag } from '@once-ui-system/core'
-import { getTagVariant, getStatusLabel } from '../utils/labels'
+import { getTagColors, getStatusLabel } from '../utils/labels'
 import KanbanCard from './KanbanCard'
 
 interface Feedback {
@@ -54,10 +53,10 @@ export default function KanbanColumn({ status, feedbacks, feedbackAssigneesMap, 
     >
       {/* Column header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.25rem 0.25rem 0.5rem' }}>
-        <Tag variant={getTagVariant(status)} size="s" label={getStatusLabel(status)} />
-        <Text variant="label-default-xs" onBackground="neutral-weak">
+        <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: getTagColors(status).bg, color: getTagColors(status).color }}>{getStatusLabel(status)}</span>
+        <span className="text-xs font-medium text-gray">
           {feedbacks.length}
-        </Text>
+        </span>
       </div>
 
       {/* Cards */}
@@ -79,9 +78,9 @@ export default function KanbanColumn({ status, feedbacks, feedbackAssigneesMap, 
           border: '2px dashed var(--neutral-border-medium)',
           borderRadius: '0.5rem',
         }}>
-          <Text variant="body-default-xs" onBackground="neutral-weak">
+          <span className="text-xs text-gray">
             Nenhum report
-          </Text>
+          </span>
         </div>
       )}
     </div>

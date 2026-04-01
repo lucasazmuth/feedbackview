@@ -25,6 +25,20 @@ export function parseUserAgent(ua: string): { os: string; browser: string } {
 
 export type TagVariant = 'brand' | 'danger' | 'warning' | 'success' | 'neutral' | 'info'
 
+const TAG_COLORS: Record<TagVariant, { bg: string; color: string }> = {
+  danger:  { bg: 'rgba(239, 68, 68, 0.15)', color: '#f87171' },
+  warning: { bg: 'rgba(234, 179, 8, 0.15)',  color: '#facc15' },
+  success: { bg: 'rgba(34, 197, 94, 0.15)',  color: '#4ade80' },
+  info:    { bg: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa' },
+  brand:   { bg: 'rgba(139, 92, 246, 0.15)', color: '#a78bfa' },
+  neutral: { bg: 'rgba(255, 255, 255, 0.06)', color: '#9ca3af' },
+}
+
+/** Returns background + text color for a tag value (e.g. 'BUG', 'OPEN'). */
+export function getTagColors(value: string): { bg: string; color: string } {
+  return TAG_COLORS[getTagVariant(value)] || TAG_COLORS.neutral
+}
+
 export function getTagVariant(value: string): TagVariant {
   const map: Record<string, TagVariant> = {
     BUG: 'danger',

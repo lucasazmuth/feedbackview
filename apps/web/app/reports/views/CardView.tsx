@@ -1,7 +1,9 @@
 'use client'
 
-import { Column, Row, Text, Tag, Icon, Card, Flex } from '@once-ui-system/core'
-import { formatDate, getTagVariant, getTypeLabel, getSeverityLabel, getStatusLabel } from '../utils/labels'
+import { Clock, ChevronRight } from 'lucide-react'
+import { ICON_PX, LUCIDE_ICON_PX } from '@/lib/icon-tokens'
+import { AppIcon } from '@/components/ui/AppIcon'
+import { formatDate, getTagColors, getTypeLabel, getSeverityLabel, getStatusLabel } from '../utils/labels'
 
 interface Feedback {
   id: string
@@ -34,65 +36,55 @@ export default function CardView({
   onOpenDetail,
 }: CardViewProps) {
   return (
-    <Column gap="s" fillWidth>
+    <div className="flex flex-col gap-2 w-full">
       {feedbacks.map((feedback) => {
         const selected = isSelected(feedback.id)
         return (
-          <Card
+          <div
             key={feedback.id}
-            fillWidth
-            padding="m"
-            radius="l"
+            className="w-full p-4 rounded-xl bg-glass-gradient border border-transparent-white cursor-pointer transition-shadow"
             style={{
-              transition: 'box-shadow 0.15s ease',
-              cursor: 'pointer',
-              outline: selected ? '2px solid var(--brand-solid-strong)' : undefined,
+              outline: selected ? '2px solid rgba(139, 92, 246, 0.7)' : undefined,
               outlineOffset: -1,
             }}
           >
-            <Row gap="m" vertical="center">
+            <div className="flex items-center gap-4">
               {/* Checkbox */}
               <div
                 onClick={(e) => { e.stopPropagation(); onToggleSelect(feedback.id) }}
                 style={{
                   width: 18, height: 18, borderRadius: 4,
-                  border: selected ? '2px solid var(--brand-solid-strong)' : '2px solid var(--neutral-border-medium)',
-                  background: selected ? 'var(--brand-solid-strong)' : 'transparent',
+                  border: selected ? '2px solid rgba(139, 92, 246, 0.7)' : '2px solid rgba(255,255,255,0.1)',
+                  background: selected ? 'rgba(139, 92, 246, 0.7)' : 'transparent',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   cursor: 'pointer', flexShrink: 0,
                 }}
               >
                 {selected && (
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <AppIcon size={10} strokeWidth={3} style={{ color: '#fff' }}>
                     <polyline points="20 6 9 17 4 12" />
-                  </svg>
+                  </AppIcon>
                 )}
               </div>
 
               {feedback.screenshotUrl && (
-                <Flex style={{ flexShrink: 0 }} onClick={() => onOpenDetail(feedback.id)}>
+                <div className="flex-shrink-0" onClick={() => onOpenDetail(feedback.id)}>
                   <img
                     src={feedback.screenshotUrl}
                     alt="Screenshot"
-                    style={{
-                      width: '5rem',
-                      height: '3.5rem',
-                      objectFit: 'cover',
-                      borderRadius: '0.5rem',
-                      border: '1px solid var(--neutral-border-medium)',
-                    }}
+                    className="w-20 h-14 object-cover rounded-lg border border-transparent-white"
                   />
-                </Flex>
+                </div>
               )}
-              <Column gap="s" fillWidth style={{ minWidth: 0 }} onClick={() => onOpenDetail(feedback.id)}>
-                <Row gap="xs" wrap vertical="center">
-                  <Tag variant={getTagVariant(feedback.type)} size="s" label={getTypeLabel(feedback.type)} />
+              <div className="flex flex-col gap-2 w-full min-w-0" onClick={() => onOpenDetail(feedback.id)}>
+                <div className="flex flex-wrap items-center gap-1">
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: getTagColors(feedback.type).bg, color: getTagColors(feedback.type).color }}>{getTypeLabel(feedback.type)}</span>
                   {feedback.severity && (
-                    <Tag variant={getTagVariant(feedback.severity)} size="s" label={getSeverityLabel(feedback.severity)} />
+                    <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: getTagColors(feedback.severity).bg, color: getTagColors(feedback.severity).color }}>{getSeverityLabel(feedback.severity)}</span>
                   )}
-                  <Tag variant={getTagVariant(feedback.status)} size="s" label={getStatusLabel(feedback.status)} />
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: getTagColors(feedback.status).bg, color: getTagColors(feedback.status).color }}>{getStatusLabel(feedback.status)}</span>
                   {feedback.Project?.name && (
-                    <Tag variant="neutral" size="s" label={feedback.Project.name} />
+                    <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: 'rgba(255,255,255,0.06)', color: '#9ca3af' }}>{feedback.Project.name}</span>
                   )}
                   {(feedbackAssigneesMap[feedback.id] || []).length > 0 && (
                     <div style={{ display: 'flex', marginLeft: 4 }}>
@@ -100,21 +92,21 @@ export default function CardView({
                         <div key={a.userId} title={a.name || a.email} style={{
                           width: 20, height: 20, borderRadius: '50%', background: '#111', color: '#fff',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: 9, fontWeight: 700, marginLeft: idx > 0 ? -6 : 0, border: '2px solid #fff', zIndex: 3 - idx,
+                          fontSize: 9, fontWeight: 700, marginLeft: idx > 0 ? -6 : 0, border: '2px solid var(--surface-background)', zIndex: 3 - idx,
                         }}>
                           {(a.name || a.email).charAt(0).toUpperCase()}
                         </div>
                       ))}
                       {(feedbackAssigneesMap[feedback.id] || []).length > 3 && (
-                        <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--neutral-alpha-weak)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 600, marginLeft: -6, border: '2px solid #fff' }}>
+                        <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 600, marginLeft: -6, border: '2px solid var(--surface-background)' }}>
                           +{(feedbackAssigneesMap[feedback.id] || []).length - 3}
                         </div>
                       )}
                     </div>
                   )}
-                </Row>
-                <Text
-                  variant="body-default-s"
+                </div>
+                <span
+                  className="text-sm text-primary-text"
                   style={{
                     display: '-webkit-box',
                     WebkitLineClamp: 2,
@@ -123,33 +115,29 @@ export default function CardView({
                   }}
                 >
                   {feedback.comment}
-                </Text>
-                <Row gap="s" vertical="center">
-                  <Icon name="clock" size="xs" />
-                  <Text variant="body-default-xs" onBackground="neutral-weak">
+                </span>
+                <div className="flex items-center gap-2">
+                  <Clock size={ICON_PX.xs} className="text-gray" />
+                  <span className="text-xs text-gray">
                     {formatDate(feedback.createdAt)}
-                  </Text>
+                  </span>
                   {feedback.pageUrl && (
                     <>
-                      <Text variant="body-default-xs" onBackground="neutral-weak">|</Text>
-                      <Text
-                        variant="body-default-xs"
-                        onBackground="neutral-weak"
-                        style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '15rem' }}
-                      >
+                      <span className="text-xs text-gray">|</span>
+                      <span className="text-xs text-gray truncate" style={{ maxWidth: '15rem' }}>
                         {feedback.pageUrl}
-                      </Text>
+                      </span>
                     </>
                   )}
-                </Row>
-              </Column>
-              <div onClick={() => onOpenDetail(feedback.id)}>
-                <Icon name="chevronRight" size="s" />
+                </div>
               </div>
-            </Row>
-          </Card>
+              <div onClick={() => onOpenDetail(feedback.id)}>
+                <ChevronRight size={LUCIDE_ICON_PX} className="text-gray" />
+              </div>
+            </div>
+          </div>
         )
       })}
-    </Column>
+    </div>
   )
 }

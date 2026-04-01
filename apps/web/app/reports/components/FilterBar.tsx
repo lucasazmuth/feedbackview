@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Row, Text, Tag, Icon, Button } from '@once-ui-system/core'
-import { ALL_TYPES, ALL_SEVERITIES, ALL_STATUSES, getTagVariant, getTypeLabel, getSeverityLabel, getStatusLabel } from '../utils/labels'
+import { ALL_TYPES, ALL_SEVERITIES, ALL_STATUSES, getTagColors, getTypeLabel, getSeverityLabel, getStatusLabel } from '../utils/labels'
 import type { FilterState } from '../hooks/useFilters'
+import { AppIcon } from '@/components/ui/AppIcon'
+import { ICON_STROKE } from '@/lib/icon-tokens'
 
 interface Project {
   id: string
@@ -65,7 +66,7 @@ function FilterDropdown({
       flexDirection: 'column',
       gap: '0.25rem',
     }}>
-      <Text variant="label-default-xs" onBackground="neutral-weak" style={{ padding: '0.25rem 0.5rem' }}>{label}</Text>
+      <span className="text-xs font-medium text-gray" style={{ padding: '0.25rem 0.5rem' }}>{label}</span>
       {options.map(opt => {
         const isActive = selected.includes(opt.value)
         return (
@@ -94,12 +95,12 @@ function FilterDropdown({
               flexShrink: 0,
             }}>
               {isActive && (
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <AppIcon size={10} strokeWidth={3} style={{ color: '#fff' }}>
                   <polyline points="20 6 9 17 4 12" />
-                </svg>
+                </AppIcon>
               )}
             </div>
-            <Tag variant={getTagVariant(opt.value)} size="s" label={opt.label} />
+            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: getTagColors(opt.value).bg, color: getTagColors(opt.value).color }}>{opt.label}</span>
           </button>
         )
       })}
@@ -135,7 +136,7 @@ function ProjectDropdown({
       borderRadius: '0.75rem', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 100,
       padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', maxHeight: 240, overflowY: 'auto',
     }}>
-      <Text variant="label-default-xs" onBackground="neutral-weak" style={{ padding: '0.25rem 0.5rem' }}>Projeto</Text>
+      <span className="text-xs font-medium text-gray" style={{ padding: '0.25rem 0.5rem' }}>Projeto</span>
       <button onClick={() => onSetProjectId(null)} style={{
         padding: '0.5rem', borderRadius: '0.5rem', border: 'none',
         background: !projectId ? 'var(--brand-alpha-weak)' : 'transparent',
@@ -183,23 +184,8 @@ export default function FilterBar({
     return () => document.removeEventListener('mousedown', handleClick)
   }, [panelOpen])
 
-  // Compact mode: icon-only filter button with fixed popover
+  // Compact mode: icon-only filter button with absolute popover
   const filterBtnRef = useRef<HTMLButtonElement>(null)
-  const [filterPos, setFilterPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 })
-
-  useEffect(() => {
-    if (panelOpen && filterBtnRef.current) {
-      const rect = filterBtnRef.current.getBoundingClientRect()
-      const popoverWidth = 280
-      // Align right edge of popover to right edge of button if it would overflow
-      let left = rect.left
-      if (left + popoverWidth > window.innerWidth - 16) {
-        left = rect.right - popoverWidth
-      }
-      if (left < 8) left = 8
-      setFilterPos({ top: rect.bottom + 4, left })
-    }
-  }, [panelOpen])
 
   if (compact) {
     return (
@@ -222,11 +208,11 @@ export default function FilterBar({
               flexShrink: 0,
             }}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis}>
               <line x1="4" y1="6" x2="20" y2="6" />
               <line x1="7" y1="12" x2="17" y2="12" />
               <line x1="10" y1="18" x2="14" y2="18" />
-            </svg>
+            </AppIcon>
             {activeFilterCount > 0 && (
               <span style={{
                 position: 'absolute', top: -4, right: -4,
@@ -241,12 +227,9 @@ export default function FilterBar({
           </button>
 
             {panelOpen && (
-              <div style={{
-                position: 'fixed', top: filterPos.top, left: filterPos.left,
-                background: 'var(--surface-background)', border: '1px solid var(--neutral-border-medium)',
-                borderRadius: '0.75rem', boxShadow: '0 12px 32px rgba(0,0,0,0.15)',
-                zIndex: 9999, padding: '0.75rem', width: 280, maxHeight: '70vh', overflowY: 'auto',
-                display: 'flex', flexDirection: 'column', gap: '0.75rem',
+              <div className="app-filter-dropdown" style={{
+                position: 'absolute', top: 'calc(100% + 6px)', right: 0,
+                zIndex: 9999, width: '18rem', maxHeight: '70vh', overflowY: 'auto',
               }}>
                 <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--neutral-on-background-weak)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                   Filtrar por
@@ -259,21 +242,15 @@ export default function FilterBar({
                   { key: 'statuses' as const, label: 'Status', options: ALL_STATUSES, selected: filters.statuses },
                 ].map(filter => (
                   <div key={filter.key}>
-                    <Text variant="label-default-xs" onBackground="neutral-weak" style={{ marginBottom: '0.375rem', display: 'block' }}>{filter.label}</Text>
-                    <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                    <span className="app-filter-label">{filter.label}</span>
+                    <div className="app-filter-chips">
                       {filter.options.map(opt => {
                         const isActive = filter.selected.includes(opt.value)
                         return (
                           <button
                             key={opt.value}
                             onClick={() => onToggleArrayFilter(filter.key, opt.value)}
-                            style={{
-                              padding: '0.25rem 0.5rem', borderRadius: '0.375rem',
-                              border: isActive ? '1px solid var(--brand-border-strong)' : '1px solid var(--neutral-border-medium)',
-                              background: isActive ? 'var(--brand-alpha-weak)' : 'transparent',
-                              cursor: 'pointer', fontSize: '0.6875rem', fontWeight: 500,
-                              color: 'var(--neutral-on-background-strong)',
-                            }}
+                            className={`app-filter-chip${isActive ? ' app-filter-chip--active' : ''}`}
                           >
                             {opt.label}
                           </button>
@@ -285,20 +262,20 @@ export default function FilterBar({
 
                 {/* Quick presets */}
                 <div>
-                  <Text variant="label-default-xs" onBackground="neutral-weak" style={{ marginBottom: '0.375rem', display: 'block' }}>Atalhos</Text>
-                  <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                  <span className="app-filter-label">Atalhos</span>
+                  <div className="app-filter-chips">
                     {currentUserId && (
                       <button onClick={() => { onApplyPreset('my-reports', currentUserId); setPanelOpen(false) }}
-                        style={{ padding: '0.25rem 0.5rem', borderRadius: '0.375rem', border: '1px solid var(--neutral-border-medium)', background: 'transparent', cursor: 'pointer', fontSize: '0.6875rem', color: 'var(--neutral-on-background-strong)' }}>
+                        className="app-filter-chip">
                         Meus reports
                       </button>
                     )}
                     <button onClick={() => { onApplyPreset('critical-bugs'); setPanelOpen(false) }}
-                      style={{ padding: '0.25rem 0.5rem', borderRadius: '0.375rem', border: '1px solid var(--neutral-border-medium)', background: 'transparent', cursor: 'pointer', fontSize: '0.6875rem', color: 'var(--neutral-on-background-strong)' }}>
+                      className="app-filter-chip">
                       Bugs críticos
                     </button>
                     <button onClick={() => { onApplyPreset('unassigned'); setPanelOpen(false) }}
-                      style={{ padding: '0.25rem 0.5rem', borderRadius: '0.375rem', border: '1px solid var(--neutral-border-medium)', background: 'transparent', cursor: 'pointer', fontSize: '0.6875rem', color: 'var(--neutral-on-background-strong)' }}>
+                      className="app-filter-chip">
                       Sem responsável
                     </button>
                   </div>
@@ -367,9 +344,9 @@ export default function FilterBar({
                   {filter.selected.length}
                 </span>
               )}
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: openDropdown === filter.key ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.15s' }}>
+              <AppIcon size="xs" strokeWidth={ICON_STROKE.emphasis} style={{ transform: openDropdown === filter.key ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.15s' }}>
                 <polyline points="6 9 12 15 18 9" />
-              </svg>
+              </AppIcon>
             </button>
             {openDropdown === filter.key && (
               <FilterDropdown
@@ -423,9 +400,9 @@ export default function FilterBar({
                 1
               </span>
             )}
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: openDropdown === 'project' ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.15s' }}>
+            <AppIcon size="xs" strokeWidth={ICON_STROKE.emphasis} style={{ transform: openDropdown === 'project' ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.15s' }}>
               <polyline points="6 9 12 15 18 9" />
-            </svg>
+            </AppIcon>
           </button>
           {openDropdown === 'project' && (
             <ProjectDropdown
@@ -497,36 +474,29 @@ export default function FilterBar({
       {activeFilterCount > 0 && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', flexWrap: 'wrap' }}>
           {filters.types.map(t => (
-            <Tag key={`type-${t}`} variant={getTagVariant(t)} size="s" label={getTypeLabel(t)}
-              onClick={() => onRemoveFilter('types', t)}
-              style={{ cursor: 'pointer' }}
-            />
+            <span key={`type-${t}`} className="text-xs px-2 py-0.5 rounded-full font-medium cursor-pointer" style={{ background: getTagColors(t).bg, color: getTagColors(t).color }} onClick={() => onRemoveFilter('types', t)}>
+              {getTypeLabel(t)}
+            </span>
           ))}
           {filters.severities.map(s => (
-            <Tag key={`sev-${s}`} variant={getTagVariant(s)} size="s" label={getSeverityLabel(s)}
-              onClick={() => onRemoveFilter('severities', s)}
-              style={{ cursor: 'pointer' }}
-            />
+            <span key={`sev-${s}`} className="text-xs px-2 py-0.5 rounded-full font-medium cursor-pointer" style={{ background: getTagColors(s).bg, color: getTagColors(s).color }} onClick={() => onRemoveFilter('severities', s)}>
+              {getSeverityLabel(s)}
+            </span>
           ))}
           {filters.statuses.map(s => (
-            <Tag key={`status-${s}`} variant={getTagVariant(s)} size="s" label={getStatusLabel(s)}
-              onClick={() => onRemoveFilter('statuses', s)}
-              style={{ cursor: 'pointer' }}
-            />
+            <span key={`status-${s}`} className="text-xs px-2 py-0.5 rounded-full font-medium cursor-pointer" style={{ background: getTagColors(s).bg, color: getTagColors(s).color }} onClick={() => onRemoveFilter('statuses', s)}>
+              {getStatusLabel(s)}
+            </span>
           ))}
           {filters.projectId && (
-            <Tag variant="neutral" size="s"
-              label={`Projeto: ${projects.find(p => p.id === filters.projectId)?.name || '...'}`}
-              onClick={() => onRemoveFilter('projectId')}
-              style={{ cursor: 'pointer' }}
-            />
+            <span className="text-xs px-2 py-0.5 rounded-full font-medium cursor-pointer" style={{ background: 'rgba(255,255,255,0.06)', color: '#9ca3af' }} onClick={() => onRemoveFilter('projectId')}>
+              {`Projeto: ${projects.find(p => p.id === filters.projectId)?.name || '...'}`}
+            </span>
           )}
           {filters.assignee && (
-            <Tag variant="neutral" size="s"
-              label={filters.assignee === 'unassigned' ? 'Sem responsável' : 'Meus reports'}
-              onClick={() => onRemoveFilter('assignee')}
-              style={{ cursor: 'pointer' }}
-            />
+            <span className="text-xs px-2 py-0.5 rounded-full font-medium cursor-pointer" style={{ background: 'rgba(255,255,255,0.06)', color: '#9ca3af' }} onClick={() => onRemoveFilter('assignee')}>
+              {filters.assignee === 'unassigned' ? 'Sem responsável' : 'Meus reports'}
+            </span>
           )}
           <button
             onClick={onClearAll}

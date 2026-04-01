@@ -16,7 +16,7 @@ export function useSidebarContext() {
 }
 
 const EXPANDED_WIDTH = '15rem'
-const COLLAPSED_WIDTH = '3.5rem'
+const COLLAPSED_WIDTH = '4rem'
 
 const STORAGE_KEY = 'sidebar-collapsed'
 
@@ -35,7 +35,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarContext.Provider value={{ collapsed, setCollapsed: handleSetCollapsed }}>
-      <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--surface-background)' }}>
+      <div className="app-shell flex min-h-screen bg-background">
         <Sidebar />
         <div
           style={{
@@ -50,7 +50,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           }}
         >
           <PageHeader />
-          <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+          <div
+            style={{
+              flex: 1,
+              minHeight: 0,
+              minWidth: 0,
+              width: '100%',
+              boxSizing: 'border-box',
+              overflowY: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
             {children}
           </div>
         </div>

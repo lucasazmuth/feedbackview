@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { ChevronDown, Loader2, CheckCircle2 } from 'lucide-react'
+import { ICON_PX, LUCIDE_ICON_PX, ICON_STROKE } from '@/lib/icon-tokens'
+import { AppIcon } from '@/components/ui/AppIcon'
 import { api } from '@/lib/api'
 import 'rrweb-player/dist/style.css'
 
@@ -90,16 +92,46 @@ interface DrawRect {
 }
 
 const TYPE_STYLES: Record<string, { dot: string; bg: string; fg: string; label: string }> = {
-  BUG: { dot: '#dc2626', bg: '#fef2f2', fg: '#dc2626', label: 'Bug' },
-  SUGGESTION: { dot: '#d97706', bg: '#fffbeb', fg: '#d97706', label: 'Sugestão' },
-  QUESTION: { dot: '#2563eb', bg: '#eff6ff', fg: '#2563eb', label: 'Dúvida' },
-  PRAISE: { dot: '#16a34a', bg: '#f0fdf4', fg: '#16a34a', label: 'Elogio' },
+  BUG: { dot: '#f87171', bg: 'rgba(239, 68, 68, 0.15)', fg: '#f87171', label: 'Bug' },
+  SUGGESTION: { dot: '#60a5fa', bg: 'rgba(59, 130, 246, 0.15)', fg: '#60a5fa', label: 'Sugestão' },
+  QUESTION: { dot: '#facc15', bg: 'rgba(234, 179, 8, 0.15)', fg: '#facc15', label: 'Dúvida' },
+  PRAISE: { dot: '#4ade80', bg: 'rgba(34, 197, 94, 0.15)', fg: '#4ade80', label: 'Elogio' },
 }
 
-function SidebarField({ label, children }: { label: string; children: React.ReactNode }) {
+function SidebarField({
+  label,
+  children,
+  layout = 'row',
+  sectionHeading = false,
+}: {
+  label: string
+  children: React.ReactNode
+  layout?: 'row' | 'stack'
+  sectionHeading?: boolean
+}) {
+  if (layout === 'stack') {
+    return (
+      <div style={{ padding: sectionHeading ? '0.35rem 0 0.5rem' : '0.45rem 0' }}>
+        <span
+          style={{
+            display: 'block',
+            fontSize: sectionHeading ? 10 : 11,
+            fontWeight: 600,
+            color: '#858699',
+            marginBottom: sectionHeading ? 8 : 4,
+            letterSpacing: sectionHeading ? '0.1em' : '0.02em',
+            textTransform: sectionHeading ? 'uppercase' : 'none',
+          }}
+        >
+          {label}
+        </span>
+        <div style={{ fontSize: 11, lineHeight: 1.45, wordBreak: 'break-word' }}>{children}</div>
+      </div>
+    )
+  }
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', padding: '0.625rem 0' }}>
-      <span style={{ fontSize: '0.6875rem', fontWeight: 500, color: '#6b7280', width: 72, flexShrink: 0, paddingTop: 2 }}>{label}</span>
+      <span style={{ fontSize: '0.6875rem', fontWeight: 500, color: '#858699', width: 72, flexShrink: 0, paddingTop: 2 }}>{label}</span>
       <div style={{ flex: 1, minWidth: 0 }}>{children}</div>
     </div>
   )
@@ -461,10 +493,10 @@ export default function FeedbackModal({
 
   const typeLabels: Record<string, string> = { BUG: 'Bug', SUGGESTION: 'Sugestão', QUESTION: 'Dúvida', PRAISE: 'Elogio' }
   const typeIcons: Record<string, React.ReactNode> = {
-    BUG: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 2l1.88 1.88"/><path d="M14.12 3.88L16 2"/><path d="M9 7.13v-1a3.003 3.003 0 116 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 014-4h4a4 4 0 014 4v3c0 3.3-2.7 6-6 6"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/></svg>,
-    SUGGESTION: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 006 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>,
-    QUESTION: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>,
-    PRAISE: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 10v12"/><path d="M15 5.88L14 10h5.83a2 2 0 011.92 2.56l-2.33 8A2 2 0 0117.5 22H4a2 2 0 01-2-2v-8a2 2 0 012-2h2.76a2 2 0 001.79-1.11L12 2a3.13 3.13 0 013 3.88z"/></svg>,
+    BUG: <AppIcon size="sm" strokeWidth={ICON_STROKE.emphasis}><path d="M8 2l1.88 1.88"/><path d="M14.12 3.88L16 2"/><path d="M9 7.13v-1a3.003 3.003 0 116 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 014-4h4a4 4 0 014 4v3c0 3.3-2.7 6-6 6"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/></AppIcon>,
+    SUGGESTION: <AppIcon size="sm" strokeWidth={ICON_STROKE.emphasis}><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 006 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></AppIcon>,
+    QUESTION: <AppIcon size="sm" strokeWidth={ICON_STROKE.emphasis}><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></AppIcon>,
+    PRAISE: <AppIcon size="sm" strokeWidth={ICON_STROKE.emphasis}><path d="M7 10v12"/><path d="M15 5.88L14 10h5.83a2 2 0 011.92 2.56l-2.33 8A2 2 0 0117.5 22H4a2 2 0 01-2-2v-8a2 2 0 012-2h2.76a2 2 0 001.79-1.11L12 2a3.13 3.13 0 013 3.88z"/></AppIcon>,
   }
   const severityOpts = [
     ['LOW', 'Baixa', '#22c55e'],
@@ -483,15 +515,26 @@ export default function FeedbackModal({
   })
 
   const S = {
-    font: { fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" } as React.CSSProperties,
-    label: { display: 'block', fontSize: 11, fontWeight: 500, color: '#6b7280', marginBottom: 6 } as React.CSSProperties,
-    input: { width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, outline: 'none', color: '#111827', fontFamily: 'inherit', boxSizing: 'border-box' as const } as React.CSSProperties,
+    font: { fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' } as React.CSSProperties,
+    label: { display: 'block', fontSize: 11, fontWeight: 500, color: '#858699', marginBottom: 6 } as React.CSSProperties,
+    input: {
+      width: '100%',
+      padding: '10px 12px',
+      border: '1px solid rgba(255, 255, 255, 0.15)',
+      borderRadius: 8,
+      fontSize: 13,
+      outline: 'none',
+      color: '#f7f8f8',
+      background: 'rgba(255, 255, 255, 0.04)',
+      fontFamily: 'inherit',
+      boxSizing: 'border-box' as const,
+    } as React.CSSProperties,
   }
 
   const closeIcon = (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis}>
       <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
+    </AppIcon>
   )
 
   return (
@@ -499,55 +542,97 @@ export default function FeedbackModal({
       <style>{`
         @media (max-width: 900px) {
           .fv-modal-body { flex-direction: column !important; }
-          .fv-modal-sidebar { width: 100% !important; border-left: none !important; border-top: 1px solid #e5e7eb; max-height: 42vh; }
+          .fv-modal-sidebar { width: 100% !important; border-left: none !important; border-top: 1px solid rgba(255,255,255,0.08); max-height: 42vh; }
         }
       `}</style>
       <div
+        className="px-4 sm:px-6"
         onClick={onClose}
         style={{
           position: 'fixed',
           inset: 0,
           zIndex: 9999,
-          background: 'rgba(0,0,0,0.45)',
+          background: 'rgba(0, 2, 18, 0.72)',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'flex-start',
-          paddingTop: '3vh',
+          paddingTop: 'clamp(1rem, 4vh, 2.5rem)',
+          paddingBottom: '1.5rem',
           overflowY: 'auto',
-          backdropFilter: 'blur(4px)',
-          WebkitBackdropFilter: 'blur(4px)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
           ...S.font,
         }}
       >
         <div
           onClick={e => e.stopPropagation()}
+          className="border border-transparent-white"
           style={{
             width: '100%',
-            maxWidth: '64rem',
-            maxHeight: '92vh',
-            background: '#fff',
+            maxWidth: 'min(96vw, 140rem)',
+            maxHeight: 'min(95vh, 120rem)',
+            minHeight: 'clamp(28rem, 82vh, 100rem)',
+            backgroundColor: '#000212',
+            backgroundImage: 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(120, 119, 198, 0.22), transparent)',
             borderRadius: '1rem',
-            boxShadow: '0 24px 48px rgba(0,0,0,0.15)',
-            margin: '0 1rem 2rem',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5), rgba(80, 63, 205, 0.5) 0px 1px 40px',
+            margin: '0 auto',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
           }}
         >
           {/* Cabeçalho (padrão FeedbackDetailModal) */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.875rem 1.25rem', borderBottom: '1px solid #e5e7eb', flexShrink: 0 }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1rem',
+              padding: '1.125rem 1.75rem',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+              flexShrink: 0,
+              background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, transparent 100%)',
+            }}
+          >
             <div style={{ width: 10, height: 10, borderRadius: '50%', background: ts.dot, flexShrink: 0 }} />
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 10px', borderRadius: 6, fontSize: 12, fontWeight: 600, background: ts.bg, color: ts.fg }}>
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: '3px 10px',
+                borderRadius: 9999,
+                fontSize: 12,
+                fontWeight: 600,
+                background: ts.bg,
+                color: ts.fg,
+              }}
+            >
               {typeIcons[type]} {ts.label}
             </span>
-            <span style={{ flex: 1, fontSize: '0.875rem', fontWeight: 600, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
+            <span
+              style={{
+                flex: 1,
+                fontSize: '1.6rem',
+                fontWeight: 600,
+                color: '#f7f8f8',
+                letterSpacing: '-0.02em',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                minWidth: 0,
+              }}
+            >
               {headerTitleText}
             </span>
-            <span style={{ fontSize: '0.6875rem', color: '#9ca3af', flexShrink: 0 }}>{openedDisplay}</span>
+            <span className="text-sm text-gray" style={{ flexShrink: 0 }}>
+              {openedDisplay}
+            </span>
             <button
               type="button"
               onClick={onClose}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: '0.375rem', border: 'none', background: 'transparent', color: '#9ca3af', cursor: 'pointer', flexShrink: 0 }}
+              className="inline-flex shrink-0 items-center justify-center rounded-full border border-transparent-white bg-glass-gradient text-gray transition-colors hover:bg-transparent-white hover:text-off-white"
+              style={{ width: 36, height: 36, cursor: 'pointer' }}
             >
               {closeIcon}
             </button>
@@ -555,11 +640,11 @@ export default function FeedbackModal({
 
           {submitted ? (
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: '3rem 1.5rem', minHeight: 280 }}>
-              <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <CheckCircle2 style={{ width: 36, height: 36, color: '#16a34a' }} />
+              <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(34, 197, 94, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <CheckCircle2 size={36} style={{ color: '#4ade80' }} />
               </div>
-              <h3 style={{ fontSize: 20, fontWeight: 600, color: '#111827', margin: 0 }}>Feedback enviado!</h3>
-              <p style={{ fontSize: 14, color: '#6b7280', textAlign: 'center', maxWidth: 280, margin: 0 }}>Obrigado pela contribuição.</p>
+              <h3 style={{ fontSize: 20, fontWeight: 600, color: '#f7f8f8', margin: 0 }}>Feedback enviado!</h3>
+              <p style={{ fontSize: 14, color: '#858699', textAlign: 'center', maxWidth: 280, margin: 0 }}>Obrigado pela contribuição.</p>
             </div>
           ) : (
             <>
@@ -567,82 +652,87 @@ export default function FeedbackModal({
                 {/* Coluna principal */}
                 <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
                   {/* Mídia */}
-                  <div style={{ background: '#f4f5f7', borderBottom: '1px solid #e5e7eb' }}>
+                  <div style={{ background: 'rgba(255, 255, 255, 0.04)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
                     {hasReplay && (
-                      <div style={{ display: 'flex', gap: 0, padding: '0 1rem', borderBottom: '1px solid #e5e7eb', background: '#fff' }}>
+                      <div style={{ display: 'flex', gap: 0, padding: '0 1.25rem', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', background: '#000212' }}>
                         <button
                           type="button"
                           onClick={() => setMediaTab('replay')}
                           style={{
-                            padding: '8px 12px',
-                            fontSize: 12,
+                            padding: '0.625rem 1rem',
+                            fontSize: '1.3rem',
                             fontWeight: mediaTab === 'replay' ? 600 : 500,
                             border: 'none',
                             cursor: 'pointer',
-                            borderBottom: mediaTab === 'replay' ? '2px solid #111827' : '2px solid transparent',
-                            color: mediaTab === 'replay' ? '#111827' : '#9ca3af',
+                            borderBottom: mediaTab === 'replay' ? '2px solid rgb(86, 67, 204)' : '2px solid transparent',
+                            color: mediaTab === 'replay' ? '#f7f8f8' : '#858699',
                             background: 'transparent',
                             marginBottom: -1,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 6,
+                            fontFamily: 'inherit',
                           }}
                         >
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="5 3 19 12 5 21 5 3" /></svg>
                           Replay
                         </button>
                         <button
                           type="button"
                           onClick={() => setMediaTab('screenshot')}
                           style={{
-                            padding: '8px 12px',
-                            fontSize: 12,
+                            padding: '0.625rem 1rem',
+                            fontSize: '1.3rem',
                             fontWeight: mediaTab === 'screenshot' ? 600 : 500,
                             border: 'none',
                             cursor: 'pointer',
-                            borderBottom: mediaTab === 'screenshot' ? '2px solid #111827' : '2px solid transparent',
-                            color: mediaTab === 'screenshot' ? '#111827' : '#9ca3af',
+                            borderBottom: mediaTab === 'screenshot' ? '2px solid rgb(86, 67, 204)' : '2px solid transparent',
+                            color: mediaTab === 'screenshot' ? '#f7f8f8' : '#858699',
                             background: 'transparent',
                             marginBottom: -1,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 6,
+                            fontFamily: 'inherit',
                           }}
                         >
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
                           Screenshot
                         </button>
                       </div>
                     )}
-                    <div style={{ padding: '1rem', display: 'flex', justifyContent: 'center' }}>
+                    <div style={{ padding: '1.25rem 1.75rem', display: 'flex', justifyContent: 'center' }}>
                       {(hasReplay ? mediaTab === 'replay' : false) && (
-                        <div style={{ width: '100%', maxWidth: '100%', borderRadius: '0.5rem', overflow: 'hidden', boxShadow: '0 1px 8px rgba(0,0,0,0.06)', border: '1px solid #e5e7eb', background: '#0f172a' }}>
-                          <div ref={replayContainerRef} style={{ width: '100%', minHeight: 220 }} />
+                        <div
+                          style={{
+                            width: '100%',
+                            maxWidth: '100%',
+                            minHeight: 'min(44vh, 56rem)',
+                            borderRadius: '0.75rem',
+                            overflow: 'hidden',
+                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
+                            background: '#0f172a',
+                          }}
+                        >
+                          <div ref={replayContainerRef} style={{ width: '100%', minHeight: 200 }} />
                           {rrwebEvents.length < 2 && (
-                            <div style={{ padding: 20, textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>Gravando sessão...</div>
+                            <div style={{ padding: 20, textAlign: 'center', color: '#858699', fontSize: 13 }}>Gravando sessão...</div>
                           )}
                           {hasReplay && replayTotalTime > 0 && (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, background: '#fff', padding: '12px 16px', borderTop: '1px solid #e5e7eb' }}>
-                              <div onClick={handleReplaySeek} style={{ cursor: 'pointer', height: 6, display: 'flex', alignItems: 'center', borderRadius: 3, background: '#e5e7eb', position: 'relative' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, background: '#12121a', padding: '12px 16px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                              <div onClick={handleReplaySeek} style={{ cursor: 'pointer', height: 6, display: 'flex', alignItems: 'center', borderRadius: 3, background: '#222326', position: 'relative' }}>
                                 <div style={{ height: '100%', width: `${replayProgress}%`, background: widgetColor, borderRadius: 3, transition: replayPlaying ? 'none' : 'width 0.1s linear' }} />
-                                <div style={{ position: 'absolute', top: '50%', left: `${replayProgress}%`, width: 14, height: 14, background: widgetColor, borderRadius: '50%', transform: 'translate(-50%, -50%)', boxShadow: '0 1px 3px rgba(0,0,0,0.15)', border: '2px solid #fff' }} />
+                                <div style={{ position: 'absolute', top: '50%', left: `${replayProgress}%`, width: 14, height: 14, background: widgetColor, borderRadius: '50%', transform: 'translate(-50%, -50%)', boxShadow: '0 1px 8px rgba(0,0,0,0.5)', border: '2px solid #12121a' }} />
                               </div>
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                                   <button type="button" onClick={handleReplayPlayPause} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: '50%', border: 'none', background: widgetColor, color: '#fff', cursor: 'pointer' }}>
                                     {replayPlaying ? (
-                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
+                                      <AppIcon size="sm"><rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor" stroke="none" /><rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor" stroke="none" /></AppIcon>
                                     ) : (
-                                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v14.72a1 1 0 0 0 1.5.86l11-7.36a1 1 0 0 0 0-1.72l-11-7.36A1 1 0 0 0 8 5.14z" /></svg>
+                                      <AppIcon size="sm"><path d="M8 5.14v14.72a1 1 0 0 0 1.5.86l11-7.36a1 1 0 0 0 0-1.72l-11-7.36A1 1 0 0 0 8 5.14z" fill="currentColor" stroke="none" /></AppIcon>
                                     )}
                                   </button>
-                                  <span style={{ fontSize: 12, fontFamily: 'monospace', color: '#6b7280', whiteSpace: 'nowrap' }}>
+                                  <span style={{ fontSize: 12, fontFamily: 'monospace', color: '#858699', whiteSpace: 'nowrap' }}>
                                     {fmtReplayTime(replayCurrentTime)} / {fmtReplayTime(replayTotalTime)}
                                   </span>
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                                   {[1, 2, 4, 8].map(s => (
-                                    <button key={s} type="button" onClick={() => handleReplaySpeed(s)} style={{ border: 'none', cursor: 'pointer', padding: '4px 8px', borderRadius: 6, fontSize: 11, background: replaySpeed === s ? widgetColor : 'transparent', color: replaySpeed === s ? '#fff' : '#9ca3af', fontWeight: replaySpeed === s ? 600 : 400 }}>
+                                    <button key={s} type="button" onClick={() => handleReplaySpeed(s)} style={{ border: 'none', cursor: 'pointer', padding: '4px 8px', borderRadius: 6, fontSize: 11, background: replaySpeed === s ? widgetColor : 'transparent', color: replaySpeed === s ? '#fff' : '#858699', fontWeight: replaySpeed === s ? 600 : 400 }}>
                                       {s}x
                                     </button>
                                   ))}
@@ -655,14 +745,14 @@ export default function FeedbackModal({
                       {(hasReplay ? mediaTab === 'screenshot' : true) && (
                         <div style={{ width: '100%', maxWidth: '100%' }}>
                           {!screenshotDataUrl && (
-                            <div style={{ padding: 24, textAlign: 'center', color: '#9ca3af', fontSize: 13, background: '#f9fafb', borderRadius: 8, border: '1px solid #e5e7eb' }}>
+                            <div style={{ padding: 24, textAlign: 'center', color: '#858699', fontSize: 13, background: 'rgba(255, 255, 255, 0.04)', borderRadius: 8, border: '1px solid rgba(255, 255, 255, 0.08)' }}>
                               {capturing ? 'Capturando screenshot…' : 'Screenshot indisponível.'}
                             </div>
                           )}
                           {screenshotDataUrl && (
-                            <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid #e5e7eb', background: '#0f172a' }}>
-                              <div style={{ position: 'relative', maxHeight: 360, overflow: 'hidden' }}>
-                                <img src={screenshotDataUrl} alt="Screenshot" style={{ width: '100%', display: 'block', objectFit: 'contain', objectPosition: 'top', maxHeight: 360 }} />
+                            <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255, 255, 255, 0.08)', background: '#0f172a', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)' }}>
+                              <div style={{ position: 'relative', maxHeight: 'min(52vh, 72rem)', overflow: 'hidden' }}>
+                                <img src={screenshotDataUrl} alt="Screenshot" style={{ width: '100%', display: 'block', objectFit: 'contain', objectPosition: 'top', maxHeight: 'min(52vh, 72rem)' }} />
                                 <canvas
                                   ref={overlayCanvasRef}
                                   onMouseDown={handleMouseDown}
@@ -672,10 +762,10 @@ export default function FeedbackModal({
                                   style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', cursor: 'crosshair' }}
                                 />
                               </div>
-                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#fff', padding: '8px 12px', borderTop: '1px solid #e5e7eb' }}>
-                                <span style={{ fontSize: 11, color: '#9ca3af' }}>Clique e arraste para marcar a área</span>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#12121a', padding: '8px 12px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                                <span style={{ fontSize: 11, color: '#858699' }}>Clique e arraste para marcar a área</span>
                                 {rects.length > 0 && (
-                                  <button type="button" onClick={() => { setRects([]); redrawOverlay([]) }} style={{ fontSize: 11, color: '#ef4444', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 500 }}>
+                                  <button type="button" onClick={() => { setRects([]); redrawOverlay([]) }} style={{ fontSize: 11, color: '#f87171', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 500 }}>
                                     Limpar marcações
                                   </button>
                                 )}
@@ -690,9 +780,11 @@ export default function FeedbackModal({
                   <canvas ref={canvasRef} style={{ display: 'none' }} aria-hidden />
 
                   {/* Descrição */}
-                  <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #e5e7eb' }}>
+                  <div style={{ padding: '1.5rem 2rem', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                      <span style={{ fontSize: 13, fontWeight: 600, color: '#111827' }}>Descrição <span style={{ color: '#ef4444' }}>*</span></span>
+                      <span className="text-md font-semibold text-off-white">
+                        Descrição <span style={{ color: '#f87171' }}>*</span>
+                      </span>
                     </div>
                     <textarea
                       value={comment}
@@ -700,20 +792,20 @@ export default function FeedbackModal({
                       rows={5}
                       placeholder="Descreva o problema ou sugestão em detalhes… (mínimo 10 caracteres)"
                       style={{ ...S.input, resize: 'none' as const }}
-                      onFocus={e => { e.target.style.borderColor = widgetColor; e.target.style.boxShadow = `0 0 0 3px ${widgetColor}1a` }}
-                      onBlur={e => { e.target.style.borderColor = '#d1d5db'; e.target.style.boxShadow = 'none' }}
+                      onFocus={e => { e.target.style.borderColor = widgetColor; e.target.style.boxShadow = `0 0 0 3px ${widgetColor}33` }}
+                      onBlur={e => { e.target.style.borderColor = 'rgba(255, 255, 255, 0.15)'; e.target.style.boxShadow = 'none' }}
                     />
-                    {commentError && <p style={{ marginTop: 4, fontSize: 12, color: '#dc2626' }}>{commentError}</p>}
+                    {commentError && <p style={{ marginTop: 4, fontSize: 12, color: '#f87171' }}>{commentError}</p>}
                   </div>
 
                   {/* Mais detalhes */}
-                  <div style={{ padding: '0 1.5rem 1rem' }}>
+                  <div style={{ padding: '0 2rem 1rem' }}>
                     <button
                       type="button"
                       onClick={() => setDetailsOpen(!detailsOpen)}
-                      style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 0', cursor: 'pointer', fontSize: 13, fontWeight: 500, color: '#6b7280', border: 'none', background: 'none', width: '100%', textAlign: 'left' }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 0', cursor: 'pointer', fontSize: 13, fontWeight: 500, color: '#858699', border: 'none', background: 'none', width: '100%', textAlign: 'left' }}
                     >
-                      <ChevronDown style={{ width: 14, height: 14, transform: detailsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                      <ChevronDown size={ICON_PX.sm} style={{ transform: detailsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
                       Mais detalhes
                     </button>
                     {detailsOpen && (
@@ -726,24 +818,24 @@ export default function FeedbackModal({
                             onChange={e => setTitle(e.target.value)}
                             placeholder="Resumo breve do feedback"
                             style={S.input}
-                            onFocus={e => { e.target.style.borderColor = widgetColor; e.target.style.boxShadow = `0 0 0 3px ${widgetColor}1a` }}
-                            onBlur={e => { e.target.style.borderColor = '#d1d5db'; e.target.style.boxShadow = 'none' }}
+                            onFocus={e => { e.target.style.borderColor = widgetColor; e.target.style.boxShadow = `0 0 0 3px ${widgetColor}33` }}
+                            onBlur={e => { e.target.style.borderColor = 'rgba(255, 255, 255, 0.15)'; e.target.style.boxShadow = 'none' }}
                           />
                         </div>
                         {type === 'BUG' && (
                           <>
                             <div>
-                              <label style={{ ...S.label, fontSize: 13, color: '#374151' }}>Passos para reproduzir</label>
-                              <textarea value={stepsToReproduce} onChange={e => setStepsToReproduce(e.target.value)} rows={3} placeholder="1. …" style={{ ...S.input, resize: 'vertical' as const }} onFocus={e => { e.target.style.borderColor = widgetColor; e.target.style.boxShadow = `0 0 0 3px ${widgetColor}1a` }} onBlur={e => { e.target.style.borderColor = '#d1d5db'; e.target.style.boxShadow = 'none' }} />
+                              <label style={{ ...S.label, fontSize: 13, color: '#b4bcd0' }}>Passos para reproduzir</label>
+                              <textarea value={stepsToReproduce} onChange={e => setStepsToReproduce(e.target.value)} rows={3} placeholder="1. …" style={{ ...S.input, resize: 'vertical' as const }} onFocus={e => { e.target.style.borderColor = widgetColor; e.target.style.boxShadow = `0 0 0 3px ${widgetColor}33` }} onBlur={e => { e.target.style.borderColor = 'rgba(255, 255, 255, 0.15)'; e.target.style.boxShadow = 'none' }} />
                             </div>
                             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                               <div style={{ flex: '1 1 200px' }}>
-                                <label style={{ ...S.label, fontSize: 13, color: '#374151' }}>Resultado esperado</label>
-                                <textarea value={expectedResult} onChange={e => setExpectedResult(e.target.value)} rows={3} style={{ ...S.input, resize: 'vertical' as const }} onFocus={e => { e.target.style.borderColor = widgetColor; e.target.style.boxShadow = `0 0 0 3px ${widgetColor}1a` }} onBlur={e => { e.target.style.borderColor = '#d1d5db'; e.target.style.boxShadow = 'none' }} />
+                                <label style={{ ...S.label, fontSize: 13, color: '#b4bcd0' }}>Resultado esperado</label>
+                                <textarea value={expectedResult} onChange={e => setExpectedResult(e.target.value)} rows={3} style={{ ...S.input, resize: 'vertical' as const }} onFocus={e => { e.target.style.borderColor = widgetColor; e.target.style.boxShadow = `0 0 0 3px ${widgetColor}33` }} onBlur={e => { e.target.style.borderColor = 'rgba(255, 255, 255, 0.15)'; e.target.style.boxShadow = 'none' }} />
                               </div>
                               <div style={{ flex: '1 1 200px' }}>
-                                <label style={{ ...S.label, fontSize: 13, color: '#374151' }}>Resultado real</label>
-                                <textarea value={actualResult} onChange={e => setActualResult(e.target.value)} rows={3} style={{ ...S.input, resize: 'vertical' as const }} onFocus={e => { e.target.style.borderColor = widgetColor; e.target.style.boxShadow = `0 0 0 3px ${widgetColor}1a` }} onBlur={e => { e.target.style.borderColor = '#d1d5db'; e.target.style.boxShadow = 'none' }} />
+                                <label style={{ ...S.label, fontSize: 13, color: '#b4bcd0' }}>Resultado real</label>
+                                <textarea value={actualResult} onChange={e => setActualResult(e.target.value)} rows={3} style={{ ...S.input, resize: 'vertical' as const }} onFocus={e => { e.target.style.borderColor = widgetColor; e.target.style.boxShadow = `0 0 0 3px ${widgetColor}33` }} onBlur={e => { e.target.style.borderColor = 'rgba(255, 255, 255, 0.15)'; e.target.style.boxShadow = 'none' }} />
                               </div>
                             </div>
                           </>
@@ -753,11 +845,11 @@ export default function FeedbackModal({
                   </div>
 
                   {/* Anexos + logs */}
-                  <div style={{ padding: '0 1.5rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div style={{ padding: '0 2rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 10 }}>
                     <div>
-                      <label style={{ ...S.label, fontSize: 13, color: '#374151' }}>Anexos</label>
+                      <label style={{ ...S.label, fontSize: 13, color: '#b4bcd0' }}>Anexos</label>
                       <div
-                        style={{ border: '2px dashed #d1d5db', borderRadius: 8, padding: '12px 16px', textAlign: 'center', cursor: 'pointer', background: '#f9fafb' }}
+                        style={{ border: '2px dashed rgba(255, 255, 255, 0.15)', borderRadius: 8, padding: '12px 16px', textAlign: 'center', cursor: 'pointer', background: 'rgba(255, 255, 255, 0.04)' }}
                         onClick={() => {
                           const input = document.createElement('input')
                           input.type = 'file'
@@ -777,14 +869,14 @@ export default function FeedbackModal({
                           input.click()
                         }}
                       >
-                        <span style={{ fontSize: 12, color: '#6b7280' }}>Clique para anexar arquivos (máx. 5)</span>
+                        <span style={{ fontSize: 12, color: '#858699' }}>Clique para anexar arquivos (máx. 5)</span>
                       </div>
                       {attachments.length > 0 && (
                         <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
                           {attachments.map((att, i) => (
-                            <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 8px', background: '#f3f4f6', borderRadius: 6, fontSize: 12 }}>
-                              <span style={{ color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{att.name}</span>
-                              <button type="button" onClick={e => { e.stopPropagation(); setAttachments(prev => prev.filter((_, idx) => idx !== i)) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: '0 4px', fontSize: 14 }}>×</button>
+                            <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 8px', background: 'rgba(255, 255, 255, 0.06)', borderRadius: 6, fontSize: 12 }}>
+                              <span style={{ color: '#b4bcd0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{att.name}</span>
+                              <button type="button" onClick={e => { e.stopPropagation(); setAttachments(prev => prev.filter((_, idx) => idx !== i)) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#858699', padding: '0 4px', fontSize: 14 }}>×</button>
                             </div>
                           ))}
                         </div>
@@ -792,21 +884,21 @@ export default function FeedbackModal({
                     </div>
 
                     {consoleLogs.length > 0 && (
-                      <div style={{ border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
-                        <button type="button" onClick={() => setConsoleLogsOpen(!consoleLogsOpen)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#f9fafb', cursor: 'pointer', border: 'none', textAlign: 'left', fontFamily: 'inherit' }}>
-                          <span style={{ fontSize: 13, fontWeight: 500, color: '#374151' }}>Console Logs ({consoleLogs.length})</span>
-                          <ChevronDown style={{ width: 16, height: 16, color: '#9ca3af', transform: consoleLogsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                      <div style={{ border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 12, overflow: 'hidden' }}>
+                        <button type="button" onClick={() => setConsoleLogsOpen(!consoleLogsOpen)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'rgba(255, 255, 255, 0.04)', cursor: 'pointer', border: 'none', textAlign: 'left', fontFamily: 'inherit' }}>
+                          <span style={{ fontSize: 13, fontWeight: 500, color: '#b4bcd0' }}>Console Logs ({consoleLogs.length})</span>
+                          <ChevronDown size={LUCIDE_ICON_PX} style={{ color: '#858699', transform: consoleLogsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
                         </button>
                         {consoleLogsOpen && (
                           <div style={{ maxHeight: 180, overflowY: 'auto' }}>
                             {consoleLogs.map((log, i) => {
                               const level = (log.level || 'log').toUpperCase()
-                              const tagBg = level === 'ERROR' ? '#fee2e2' : level === 'WARN' ? '#fef9c3' : '#dbeafe'
-                              const tagColor = level === 'ERROR' ? '#b91c1c' : level === 'WARN' ? '#a16207' : '#1d4ed8'
+                              const tagBg = level === 'ERROR' ? 'rgba(239, 68, 68, 0.15)' : level === 'WARN' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(59, 130, 246, 0.15)'
+                              const tagColor = level === 'ERROR' ? '#f87171' : level === 'WARN' ? '#fbbf24' : '#93c5fd'
                               return (
-                                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 6, padding: '5px 14px', borderTop: '1px solid #f3f4f6' }}>
+                                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 6, padding: '5px 14px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
                                   <span style={{ flexShrink: 0, padding: '1px 6px', borderRadius: 4, fontSize: 10, fontWeight: 700, background: tagBg, color: tagColor }}>{level}</span>
-                                  <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#6b7280', wordBreak: 'break-word', flex: 1, minWidth: 0 }}>{log.message}</span>
+                                  <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#858699', wordBreak: 'break-word', flex: 1, minWidth: 0 }}>{log.message}</span>
                                 </div>
                               )
                             })}
@@ -816,19 +908,19 @@ export default function FeedbackModal({
                     )}
 
                     {networkLogs.length > 0 && (
-                      <div style={{ border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
-                        <button type="button" onClick={() => setNetworkLogsOpen(!networkLogsOpen)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: '#f9fafb', cursor: 'pointer', border: 'none', textAlign: 'left', fontFamily: 'inherit' }}>
-                          <span style={{ fontSize: 13, fontWeight: 500, color: '#374151' }}>Network ({networkLogs.length})</span>
-                          <ChevronDown style={{ width: 16, height: 16, color: '#9ca3af', transform: networkLogsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                      <div style={{ border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 12, overflow: 'hidden' }}>
+                        <button type="button" onClick={() => setNetworkLogsOpen(!networkLogsOpen)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'rgba(255, 255, 255, 0.04)', cursor: 'pointer', border: 'none', textAlign: 'left', fontFamily: 'inherit' }}>
+                          <span style={{ fontSize: 13, fontWeight: 500, color: '#b4bcd0' }}>Network ({networkLogs.length})</span>
+                          <ChevronDown size={LUCIDE_ICON_PX} style={{ color: '#858699', transform: networkLogsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
                         </button>
                         {networkLogsOpen && (
                           <div style={{ maxHeight: 180, overflowY: 'auto' }}>
                             {networkLogs.map((log, i) => (
-                              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 14px', borderTop: '1px solid #f3f4f6' }}>
-                                <span style={{ flexShrink: 0, padding: '1px 6px', borderRadius: 4, fontSize: 10, fontWeight: 700, background: log.status != null && log.status >= 400 ? '#fee2e2' : '#dcfce7', color: log.status != null && log.status >= 400 ? '#b91c1c' : '#15803d' }}>{log.status ?? '-'}</span>
-                                <span style={{ flexShrink: 0, fontFamily: 'monospace', fontSize: 11, fontWeight: 700, color: '#374151' }}>{log.method}</span>
-                                <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }} title={log.url}>{log.url}</span>
-                                {log.duration != null && <span style={{ flexShrink: 0, fontFamily: 'monospace', fontSize: 11, color: '#9ca3af' }}>{log.duration}ms</span>}
+                              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 14px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                                <span style={{ flexShrink: 0, padding: '1px 6px', borderRadius: 4, fontSize: 10, fontWeight: 700, background: log.status != null && log.status >= 400 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(34, 197, 94, 0.15)', color: log.status != null && log.status >= 400 ? '#f87171' : '#4ade80' }}>{log.status ?? '-'}</span>
+                                <span style={{ flexShrink: 0, fontFamily: 'monospace', fontSize: 11, fontWeight: 700, color: '#b4bcd0' }}>{log.method}</span>
+                                <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#858699', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }} title={log.url}>{log.url}</span>
+                                {log.duration != null && <span style={{ flexShrink: 0, fontFamily: 'monospace', fontSize: 11, color: '#858699' }}>{log.duration}ms</span>}
                               </div>
                             ))}
                           </div>
@@ -837,103 +929,158 @@ export default function FeedbackModal({
                     )}
 
                     {submitError && (
-                      <div style={{ padding: '10px 14px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, color: '#dc2626', fontSize: 13 }}>{submitError}</div>
+                      <div style={{ padding: '10px 14px', background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.28)', borderRadius: 8, color: '#f87171', fontSize: 13 }}>{submitError}</div>
                     )}
                   </div>
                 </div>
 
                 {/* Sidebar */}
-                <div className="fv-modal-sidebar" style={{ width: 320, flexShrink: 0, borderLeft: '1px solid #e5e7eb', overflowY: 'auto', padding: '12px 20px' }}>
-                  <SidebarField label="Tipo">
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                      {(['BUG', 'SUGGESTION', 'QUESTION', 'PRAISE'] as const).map(val => (
-                        <button
-                          key={val}
-                          type="button"
-                          onClick={() => setType(val)}
-                          style={{
-                            padding: '6px 8px',
-                            borderRadius: 8,
-                            border: type === val ? `2px solid ${widgetColor}` : '1px solid #d1d5db',
-                            background: type === val ? `${widgetColor}0d` : '#fff',
-                            color: type === val ? widgetColor : '#374151',
-                            fontSize: 11,
-                            fontWeight: type === val ? 600 : 400,
-                            cursor: 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 4,
-                          }}
-                        >
-                          {typeIcons[val]} {typeLabels[val]}
-                        </button>
-                      ))}
+                <div
+                  className="fv-modal-sidebar"
+                  style={{
+                    width: 'clamp(22rem, 28vw, 44rem)',
+                    flexShrink: 0,
+                    borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
+                    overflowY: 'auto',
+                    padding: '1rem 1.5rem 1.5rem',
+                    background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, transparent 40%)',
+                  }}
+                >
+                  <SidebarField label="Tipo" layout="stack" sectionHeading>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                      {(['BUG', 'SUGGESTION', 'QUESTION', 'PRAISE'] as const).map(val => {
+                        const on = type === val
+                        return (
+                          <button
+                            key={val}
+                            type="button"
+                            onClick={() => setType(val)}
+                            style={{
+                              padding: '8px 6px',
+                              borderRadius: 8,
+                              border: on ? `2px solid ${widgetColor}` : '1px solid rgba(255, 255, 255, 0.14)',
+                              background: 'transparent',
+                              color: on ? widgetColor : '#b4bcd0',
+                              fontSize: 11,
+                              fontWeight: on ? 600 : 500,
+                              cursor: 'pointer',
+                              boxSizing: 'border-box',
+                              textAlign: 'center',
+                              lineHeight: 1.2,
+                            }}
+                          >
+                            {typeLabels[val]}
+                          </button>
+                        )
+                      })}
                     </div>
                   </SidebarField>
 
                   {type === 'BUG' && (
-                    <SidebarField label="Prioridade">
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                        {severityOpts.map(([val, label, c]) => (
-                          <button
-                            key={val}
-                            type="button"
-                            onClick={() => setSeverity(val)}
-                            style={{
-                              padding: '6px 8px',
-                              borderRadius: 8,
-                              border: severity === val ? `2px solid ${c}` : '1px solid #d1d5db',
-                              background: severity === val ? `${c}15` : '#fff',
-                              color: severity === val ? c : '#374151',
-                              fontSize: 11,
-                              fontWeight: severity === val ? 600 : 400,
-                              cursor: 'pointer',
-                            }}
-                          >
-                            {label}
-                          </button>
-                        ))}
+                    <SidebarField label="Prioridade" layout="stack" sectionHeading>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                        {severityOpts.map(([val, label, c]) => {
+                          const on = severity === val
+                          return (
+                            <button
+                              key={val}
+                              type="button"
+                              onClick={() => setSeverity(val)}
+                              style={{
+                                padding: '8px 6px',
+                                borderRadius: 8,
+                                border: on ? `2px solid ${c}` : '1px solid rgba(255, 255, 255, 0.14)',
+                                background: 'transparent',
+                                color: on ? c : '#b4bcd0',
+                                fontSize: 11,
+                                fontWeight: on ? 600 : 500,
+                                cursor: 'pointer',
+                                boxSizing: 'border-box',
+                                textAlign: 'center',
+                                lineHeight: 1.2,
+                              }}
+                            >
+                              {label}
+                            </button>
+                          )
+                        })}
                       </div>
                     </SidebarField>
                   )}
 
-                  <div style={{ height: 1, background: '#e5e7eb', margin: '8px 0' }} />
+                  <div style={{ height: 1, background: 'rgba(255, 255, 255, 0.08)', margin: '8px 0' }} />
 
-                  <SidebarField label="Navegador"><span style={{ fontSize: 11, color: '#111827' }}>{env.browser}</span></SidebarField>
-                  <SidebarField label="OS"><span style={{ fontSize: 11, color: '#111827' }}>{env.os}</span></SidebarField>
-                  <SidebarField label="Viewport"><span style={{ fontSize: 11, color: '#111827' }}>{env.viewport}</span></SidebarField>
-                  <SidebarField label="Origem"><span style={{ fontSize: 11, color: '#111827' }}>{sourceLabel}</span></SidebarField>
-                  <SidebarField label="Página">
-                    <a href={pageUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: widgetColor, fontWeight: 500, textDecoration: 'none', wordBreak: 'break-all' }}>Abrir ↗</a>
+                  <SidebarField label="Navegador" layout="stack">
+                    <span style={{ color: '#f7f8f8' }}>{env.browser}</span>
                   </SidebarField>
-                  <SidebarField label="Console">
-                    <span style={{ fontSize: 11, color: consoleErrs ? '#dc2626' : '#6b7280' }}>{consoleLogs.length} logs{consoleErrs > 0 ? ` (${consoleErrs} erros)` : ''}</span>
+                  <SidebarField label="OS" layout="stack">
+                    <span style={{ color: '#f7f8f8' }}>{env.os}</span>
                   </SidebarField>
-                  <SidebarField label="Network">
-                    <span style={{ fontSize: 11, color: netFails ? '#dc2626' : '#6b7280' }}>{networkLogs.length} req.{netFails > 0 ? ` (${netFails} falhas)` : ''}</span>
+                  <SidebarField label="Viewport" layout="stack">
+                    <span style={{ color: '#f7f8f8' }}>{env.viewport}</span>
+                  </SidebarField>
+                  <SidebarField label="Origem" layout="stack">
+                    <span style={{ color: '#f7f8f8' }}>{sourceLabel}</span>
+                  </SidebarField>
+                  <SidebarField label="Página" layout="stack">
+                    <a
+                      href={pageUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: 'rgb(103, 63, 215)', fontWeight: 500, textDecoration: 'none', wordBreak: 'break-all' }}
+                    >
+                      Abrir {'>'}
+                    </a>
+                  </SidebarField>
+                  <SidebarField label="Console" layout="stack">
+                    <span style={{ color: consoleErrs ? '#f87171' : '#858699' }}>
+                      {consoleLogs.length} logs{consoleErrs > 0 ? ` (${consoleErrs} erros)` : ''}
+                    </span>
+                  </SidebarField>
+                  <SidebarField label="Network" layout="stack">
+                    <span style={{ color: netFails ? '#f87171' : '#858699' }}>
+                      {networkLogs.length} req.{netFails > 0 ? ` (${netFails} falhas)` : ''}
+                    </span>
                   </SidebarField>
                 </div>
               </div>
 
-              <div style={{ padding: '16px 20px', borderTop: '1px solid #e5e7eb', flexShrink: 0 }}>
+              <div style={{ padding: '16px 20px', borderTop: '1px solid rgba(255, 255, 255, 0.08)', flexShrink: 0, background: '#000212' }}>
                 <button
                   type="button"
                   onClick={handleSubmit}
                   disabled={submitting || capturing}
-                  style={{ width: '100%', padding: '10px 16px', background: widgetColor, color: 'white', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 500, cursor: submitting || capturing ? 'not-allowed' : 'pointer', opacity: submitting || capturing ? 0.6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit' }}
+                  style={{
+                    width: '100%',
+                    padding: '12px 20px',
+                    background: submitting || capturing ? 'rgba(255,255,255,0.12)' : 'linear-gradient(92.88deg, rgb(69, 94, 181) 9.16%, rgb(86, 67, 204) 43.89%, rgb(103, 63, 215) 64.72%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: 9999,
+                    fontSize: 14,
+                    fontWeight: 500,
+                    cursor: submitting || capturing ? 'not-allowed' : 'pointer',
+                    opacity: submitting || capturing ? 0.55 : 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    fontFamily: 'inherit',
+                    boxShadow: submitting || capturing ? 'none' : 'rgba(80, 63, 205, 0.5) 0px 1px 40px',
+                  }}
                 >
                   {submitting ? (
                     <>
-                      <Loader2 style={{ width: 16, height: 16 }} className="animate-spin" />
+                      <Loader2 size={LUCIDE_ICON_PX} className="animate-spin" />
                       Enviando...
                     </>
                   ) : (
                     `Enviar ${typeLabels[type] || 'Bug'}`
                   )}
                 </button>
-                <p style={{ textAlign: 'center', marginTop: 8, fontSize: 11, color: '#9ca3af' }}>
+                <p style={{ textAlign: 'center', marginTop: 8, fontSize: 11, color: '#858699' }}>
                   Powered by{' '}
-                  <a href="https://buug.io" target="_blank" rel="noopener noreferrer" style={{ color: '#6b7280', textDecoration: 'none' }}>Buug</a>
+                  <a href="https://buug.io" target="_blank" rel="noopener noreferrer" className="text-primary-text hover:text-off-white transition-colors" style={{ textDecoration: 'none' }}>Buug</a>
                 </p>
               </div>
             </>

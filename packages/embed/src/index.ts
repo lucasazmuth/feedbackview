@@ -648,11 +648,6 @@ function createWidget(config: WidgetConfig) {
   const panelSide = getPanelSide(config.widgetPosition)
 
   const style = document.createElement('style')
-  // Load Inter font for brand consistency
-  const fontLink = document.createElement('link')
-  fontLink.rel = 'stylesheet'
-  fontLink.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@700;900&display=swap'
-  shadow.appendChild(fontLink)
 
   style.textContent = `
     :host {
@@ -663,6 +658,292 @@ function createWidget(config: WidgetConfig) {
       height: 100%;
       pointer-events: none;
       z-index: 2147483645;
+      --fv-surface: #000212;
+      --fv-surface-raised: #12121a;
+      --fv-border: rgba(255, 255, 255, 0.08);
+      --fv-border-strong: rgba(255, 255, 255, 0.12);
+      --fv-text: #f7f8f8;
+      --fv-text-medium: #b4bcd0;
+      --fv-text-weak: #858699;
+      --fv-muted: rgba(255, 255, 255, 0.04);
+      --fv-brand: rgb(86, 67, 204);
+      --fv-brand-text: rgb(103, 63, 215);
+      --fv-radius-l: 1rem;
+      --fv-radius-m: 0.75rem;
+      --fv-font: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --fv-mono: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+      --fv-input-bg: #222326;
+      --fv-input-bg-focus: #2a2a3a;
+      --fv-primary-gradient: linear-gradient(92.88deg, rgb(69, 94, 181) 9.16%, rgb(86, 67, 204) 43.89%, rgb(103, 63, 215) 64.72%);
+    }
+    .fv-media-shell {
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid var(--fv-border);
+    }
+    .fv-tabs-row {
+      display: flex;
+      gap: 0.25rem;
+      padding: 0 1.25rem;
+      border-bottom: 1px solid var(--fv-border);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, transparent 100%);
+    }
+    .fv-tab {
+      padding: 0.65rem 1rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      margin-bottom: -1px;
+      color: var(--fv-text-weak);
+      border-bottom: 2px solid transparent;
+      transition: color 0.18s ease, border-color 0.18s ease, font-weight 0.15s ease;
+    }
+    .fv-tab:hover { color: var(--fv-text-medium); }
+    .fv-tab-active {
+      color: var(--fv-text) !important;
+      font-weight: 600 !important;
+      border-bottom-color: var(--fv-brand) !important;
+    }
+    .fv-desc-section {
+      padding: 1.5rem 1.75rem 1.75rem;
+      border-bottom: 1px solid var(--fv-border);
+    }
+    .fv-section-heading {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--fv-text);
+    }
+    .fv-sidebar-heading {
+      display: block;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--fv-text-weak);
+      margin-bottom: 0.5rem;
+    }
+    .fv-choice-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.375rem;
+    }
+    .fv-choice-btn {
+      flex: 1;
+      min-width: 0;
+      min-height: 2.5rem;
+      padding: 0.5rem 0.375rem;
+      border-radius: 0.625rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      font-family: inherit;
+      transition: border-color 0.15s, background 0.15s, color 0.15s, box-shadow 0.15s;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--fv-text-medium);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+    }
+    .fv-choice-btn:hover {
+      border-color: rgba(255, 255, 255, 0.16);
+      background: rgba(255, 255, 255, 0.06);
+    }
+    .fv-media-pad {
+      padding: 1.25rem 1.75rem;
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+    }
+    .fv-header-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--fv-text);
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .fv-header-time {
+      font-size: 0.8125rem;
+      color: var(--fv-text-weak);
+      flex-shrink: 0;
+      margin-right: 0.5rem;
+    }
+    .fv-header-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.65rem;
+      border-radius: 9999px;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    .fv-sidebar-meta {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.5rem 0;
+      font-size: 0.6875rem;
+    }
+    .fv-sidebar-meta-label {
+      color: var(--fv-text-weak);
+      font-weight: 500;
+      width: 72px;
+      flex-shrink: 0;
+      padding-top: 2px;
+    }
+    .fv-sidebar-meta-value {
+      flex: 1;
+      min-width: 0;
+      color: var(--fv-text);
+      line-height: 1.45;
+    }
+    .fv-meta-divider {
+      height: 1px;
+      background: var(--fv-border);
+      margin: 0.5rem 0;
+    }
+    .fv-ss-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(0,0,0,0.15) 100%);
+      padding: 0.5rem 0.75rem;
+      border-top: 1px solid var(--fv-border);
+    }
+    .fv-ss-hint {
+      font-size: 0.6875rem;
+      color: var(--fv-text-weak);
+    }
+    .fv-ss-btn {
+      padding: 0.25rem 0.625rem;
+      border-radius: 9999px;
+      font-size: 0.6875rem;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+      border: 1px solid var(--fv-border);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--fv-text-medium);
+    }
+    .fv-ss-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--fv-text);
+    }
+    .fv-ss-btn-danger {
+      border-color: rgba(239, 68, 68, 0.35);
+      background: rgba(239, 68, 68, 0.1);
+      color: #f87171;
+    }
+    .fv-ss-btn-danger:hover {
+      background: rgba(239, 68, 68, 0.18);
+    }
+    .fv-capturing-pill {
+      padding: 0.75rem 1rem;
+      text-align: center;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--fv-text-weak);
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: var(--fv-radius-m);
+      border: 1px solid var(--fv-border);
+    }
+    .fv-extras-pad {
+      padding: 0 1.75rem 1.25rem;
+    }
+    .fv-bottom-stack {
+      padding: 0 1.75rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.625rem;
+    }
+    .fv-replay-controls-bar {
+      display: flex;
+      flex-direction: column;
+      gap: 0.625rem;
+      background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(0,0,0,0.2) 100%);
+      padding: 0.75rem 1rem;
+      border-top: 1px solid var(--fv-border);
+    }
+    .fv-timeline {
+      cursor: pointer;
+      height: 8px;
+      display: flex;
+      align-items: center;
+      border-radius: 9999px;
+      background: var(--fv-input-bg);
+      position: relative;
+    }
+    .fv-timeline-fill {
+      height: 100%;
+      border-radius: 9999px;
+      transition: width 0.1s linear;
+    }
+    .fv-timeline-thumb {
+      position: absolute;
+      top: 50%;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+      border: 2px solid var(--fv-surface);
+    }
+    .fv-replay-play {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+      box-shadow: 0 2px 14px rgba(0, 0, 0, 0.35);
+    }
+    .fv-replay-play:hover { transform: scale(1.06); filter: brightness(1.08); }
+    .fv-replay-play:active { transform: scale(0.98); }
+    .fv-replay-time {
+      font-size: 0.6875rem;
+      color: var(--fv-text-weak);
+      font-family: var(--fv-mono);
+      white-space: nowrap;
+    }
+    .fv-speed-pill {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+      padding: 0.25rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.6875rem;
+      font-weight: 500;
+      transition: all 0.15s ease;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--fv-text-weak);
+    }
+    .fv-replay-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .fv-replay-bottom-left {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+    }
+    .fv-replay-bottom-right {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
     }
     .fv-trigger,
     .fv-backdrop,
@@ -670,7 +951,7 @@ function createWidget(config: WidgetConfig) {
       pointer-events: auto;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--fv-font); }
 
     @keyframes fv-trigger-bounce {
       0% { transform: scale(0) rotate(-45deg); opacity: 0; }
@@ -705,17 +986,17 @@ function createWidget(config: WidgetConfig) {
       gap: 6px;
       transition: ${(config.widgetPosition.includes('center') || config.widgetPosition.includes('middle')) ? 'box-shadow 0.2s' : 'transform 0.2s, box-shadow 0.2s'};
       z-index: 2147483646;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: var(--fv-font);
       white-space: nowrap;
     }
     .fv-trigger .fv-trigger-brand {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: var(--fv-font);
       font-weight: 700;
       font-size: 0.9rem;
       letter-spacing: -0.02em;
     }
     .fv-trigger .fv-trigger-icon-text {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: var(--fv-font);
       font-weight: 900;
       font-size: 13px;
       letter-spacing: -0.04em;
@@ -784,30 +1065,33 @@ function createWidget(config: WidgetConfig) {
     .fv-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.45);
+      background: rgba(0, 2, 18, 0.72);
       z-index: 2147483646;
       opacity: 0;
       transition: opacity 0.3s ease;
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
     .fv-backdrop.open { opacity: 1; }
 
     .fv-panel {
       position: fixed;
       left: 50%;
-      top: 3vh;
+      top: clamp(1rem, 4vh, 2.5rem);
       right: auto;
-      width: min(64rem, calc(100vw - 2rem));
+      width: min(96vw, 140rem);
       max-width: 100%;
-      max-height: 92vh;
+      max-height: min(95vh, 120rem);
+      min-height: clamp(28rem, 82vh, 100rem);
       height: auto;
-      background: #fff;
+      background-color: var(--fv-surface);
+      background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(120, 119, 198, 0.22), transparent);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       z-index: 2147483647;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 24px 48px rgba(0,0,0,0.15);
-      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), rgba(80, 63, 205, 0.5) 0px 1px 40px;
+      border-radius: var(--fv-radius-l);
       transform: translate(-50%, 16px);
       opacity: 0;
       transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease;
@@ -821,26 +1105,30 @@ function createWidget(config: WidgetConfig) {
     .fv-header {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      padding: 16px 20px;
-      border-bottom: 1px solid #e5e7eb;
+      justify-content: flex-start;
+      gap: 1rem;
+      padding: 1.125rem 1.75rem;
+      border-bottom: 1px solid var(--fv-border);
+      flex-shrink: 0;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, transparent 100%);
     }
-    .fv-header h2 { font-size: 16px; font-weight: 600; color: #111827; }
+    .fv-header h2 { font-size: 16px; font-weight: 600; color: var(--fv-text); }
     .fv-close {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      border: none;
-      background: transparent;
+      width: 36px;
+      height: 36px;
+      border-radius: 9999px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: linear-gradient(rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.05) 100%);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #9ca3af;
+      color: var(--fv-text-weak);
       transition: background 0.15s, color 0.15s;
+      flex-shrink: 0;
     }
-    .fv-close:hover { background: #f3f4f6; color: #111827; }
-    .fv-close svg { width: 20px; height: 20px; }
+    .fv-close:hover { background: rgba(255, 255, 255, 0.08); color: var(--fv-text); }
+    .fv-close svg { width: 18px; height: 18px; }
 
     .fv-body {
       flex: 1;
@@ -855,9 +1143,10 @@ function createWidget(config: WidgetConfig) {
     }
     @media (max-width: 900px) {
       .fv-panel {
-        width: calc(100vw - 1rem) !important;
-        max-height: 94vh;
-        top: 2vh;
+        width: calc(100vw - 2rem) !important;
+        max-height: min(94vh, 120rem);
+        min-height: clamp(24rem, 78vh, 100rem);
+        top: clamp(0.75rem, 3vh, 1.5rem);
       }
       .fv-body {
         flex-direction: column;
@@ -865,15 +1154,15 @@ function createWidget(config: WidgetConfig) {
       .fv-sidebar {
         width: 100% !important;
         border-left: none !important;
-        border-top: 1px solid #e5e7eb;
+        border-top: 1px solid var(--fv-border);
         max-height: 42vh;
       }
     }
     .fv-preview-panel {
       width: 380px;
       flex-shrink: 0;
-      border-left: 1px solid #e5e7eb;
-      background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+      border-left: 1px solid var(--fv-border);
+      background: linear-gradient(180deg, var(--fv-surface-raised) 0%, var(--fv-surface) 100%);
       overflow-y: auto;
       padding: 20px;
     }
@@ -883,7 +1172,7 @@ function createWidget(config: WidgetConfig) {
     .fv-preview-label {
       font-size: 10px;
       font-weight: 700;
-      color: #94a3b8;
+      color: var(--fv-text-weak);
       text-transform: uppercase;
       letter-spacing: 0.1em;
       margin-bottom: 14px;
@@ -896,7 +1185,8 @@ function createWidget(config: WidgetConfig) {
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background: #10b981;
+      background: #4ade80;
+      box-shadow: 0 0 10px rgba(74, 222, 128, 0.45);
       animation: fv-dot-pulse 2s ease-in-out infinite;
     }
     @keyframes fv-dot-pulse {
@@ -904,14 +1194,14 @@ function createWidget(config: WidgetConfig) {
       50% { opacity: 1; }
     }
     .fv-preview-card {
-      background: #fff;
-      border-radius: 16px;
-      border: 1px solid #e2e8f0;
+      background: var(--fv-surface-raised);
+      border-radius: 1rem;
+      border: 1px solid var(--fv-border);
       padding: 20px;
       display: flex;
       flex-direction: column;
       gap: 14px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.35);
       overflow: hidden;
     }
     .fv-preview-badge {
@@ -927,20 +1217,20 @@ function createWidget(config: WidgetConfig) {
     .fv-preview-section-title {
       font-size: 10px;
       font-weight: 700;
-      color: #94a3b8;
+      color: var(--fv-text-weak);
       text-transform: uppercase;
       letter-spacing: 0.08em;
       margin-bottom: 6px;
     }
     .fv-preview-text {
       font-size: 13px;
-      color: #1e293b;
+      color: var(--fv-text-medium);
       line-height: 1.65;
       margin: 0;
       white-space: pre-wrap;
     }
     .fv-preview-placeholder {
-      color: #cbd5e1 !important;
+      color: var(--fv-text-weak) !important;
       font-style: italic;
     }
     .fv-preview-meta {
@@ -948,7 +1238,7 @@ function createWidget(config: WidgetConfig) {
       align-items: center;
       gap: 6px;
       font-size: 11px;
-      color: #64748b;
+      color: var(--fv-text-weak);
     }
     .fv-preview-meta svg {
       opacity: 0.5;
@@ -956,12 +1246,12 @@ function createWidget(config: WidgetConfig) {
     }
     .fv-preview-placeholder {
       font-size: 13px;
-      color: #d1d5db;
+      color: var(--fv-text-weak);
       font-style: italic;
       margin: 0;
     }
     .fv-preview-meta {
-      border-top: 1px solid #f3f4f6;
+      border-top: 1px solid var(--fv-border);
       padding-top: 12px;
       display: flex;
       flex-direction: column;
@@ -972,45 +1262,47 @@ function createWidget(config: WidgetConfig) {
       align-items: center;
       gap: 7px;
       font-size: 11px;
-      color: #64748b;
+      color: var(--fv-text-weak);
       line-height: 1;
     }
     .fv-preview-meta-icon {
-      color: #94a3b8;
+      color: var(--fv-text-weak);
       flex-shrink: 0;
       opacity: 0.7;
     }
 
     .fv-replay-section {
-      padding: 20px;
-      border-bottom: 1px solid #f3f4f6;
+      padding: 1.25rem 1.75rem;
+      border-bottom: 1px solid var(--fv-border);
     }
     .fv-replay-proxy-warning {
       display: flex;
       align-items: flex-start;
       gap: 10px;
       padding: 12px 14px;
-      background: #fef3c7;
-      border: 1px solid #fcd34d;
-      border-radius: 10px;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: 0.75rem;
       font-size: 12px;
       line-height: 1.5;
-      color: #92400e;
+      color: #fbbf24;
     }
     .fv-replay-proxy-warning svg {
       flex-shrink: 0;
       margin-top: 1px;
+      stroke: #fbbf24;
     }
     .fv-replay-proxy-warning strong {
       display: block;
       font-weight: 600;
       font-size: 13px;
       margin-bottom: 2px;
+      color: var(--fv-text);
     }
     .fv-replay-label {
       font-size: 13px;
       font-weight: 500;
-      color: #374151;
+      color: var(--fv-text-medium);
       margin-bottom: 12px;
       display: flex;
       align-items: center;
@@ -1019,7 +1311,7 @@ function createWidget(config: WidgetConfig) {
     .fv-replay-label .fv-hint {
       font-size: 12px;
       font-weight: 400;
-      color: #9ca3af;
+      color: var(--fv-text-weak);
     }
     .fv-replay-info {
       position: relative;
@@ -1029,17 +1321,17 @@ function createWidget(config: WidgetConfig) {
       width: 16px;
       height: 16px;
       border-radius: 50%;
-      border: 1.5px solid #9ca3af;
+      border: 1.5px solid var(--fv-text-weak);
       font-size: 10px;
       font-weight: 600;
-      color: #9ca3af;
+      color: var(--fv-text-weak);
       cursor: help;
       margin-left: 2px;
       flex-shrink: 0;
     }
     .fv-replay-info:hover {
-      border-color: #6b7280;
-      color: #6b7280;
+      border-color: var(--fv-text-medium);
+      color: var(--fv-text-medium);
     }
     .fv-replay-tooltip {
       display: none;
@@ -1047,15 +1339,16 @@ function createWidget(config: WidgetConfig) {
       top: calc(100% + 8px);
       left: 50%;
       transform: translateX(-50%);
-      background: #1e293b;
-      color: #f1f5f9;
-      font-size: 11px;
+      background: #222326;
+      color: var(--fv-text-medium);
+      font-size: 0.6875rem;
       font-weight: 400;
       line-height: 1.5;
-      padding: 8px 12px;
-      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      border-radius: var(--fv-radius-m);
+      border: 1px solid var(--fv-border);
       width: 240px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      box-shadow: var(--shadow-m, 0 8px 24px rgba(0,0,0,0.5));
       z-index: 10;
       pointer-events: none;
     }
@@ -1066,7 +1359,7 @@ function createWidget(config: WidgetConfig) {
       left: 50%;
       transform: translateX(-50%);
       border: 5px solid transparent;
-      border-bottom-color: #1e293b;
+      border-bottom-color: #222326;
     }
     .fv-replay-info:hover .fv-replay-tooltip {
       display: block;
@@ -1084,10 +1377,17 @@ function createWidget(config: WidgetConfig) {
       flex-shrink: 0;
     }
     .fv-replay-card {
-      border-radius: 12px;
-      border: 1px solid #1e293b;
-      background: #0f172a;
+      border-radius: var(--fv-radius-m);
+      border: none;
+      background: linear-gradient(180deg, #0d0d14 0%, #08080f 100%);
       overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+    }
+    .fv-replay-card iframe,
+    .fv-replay-card .replayer-wrapper {
+      border: none !important;
+      outline: none;
+      box-shadow: none !important;
     }
     .replayer-wrapper {
       position: relative;
@@ -1126,62 +1426,75 @@ function createWidget(config: WidgetConfig) {
     }
 
     .fv-form-section {
-      padding: 20px;
+      padding: 1rem 1.5rem 1.5rem;
     }
-    .fv-form-section > * + * { margin-top: 16px; }
+    .fv-form-section > * + * { margin-top: 1rem; }
 
     .fv-field {
       margin-bottom: 4px;
     }
     .fv-label {
       display: block;
-      font-size: 13px;
+      font-size: 0.8125rem;
       font-weight: 500;
-      color: #374151;
-      margin-bottom: 6px;
+      letter-spacing: -0.01em;
+      color: var(--fv-text-medium);
+      margin-bottom: 0.375rem;
     }
-    .fv-required { color: #ef4444; }
+    .fv-required { color: #f87171; }
 
     .fv-input {
       width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-      font-size: 13px;
+      padding: 0.6875rem 0.875rem;
+      border: 1px solid var(--fv-border-strong);
+      border-radius: var(--fv-radius-m);
+      font-size: 0.8125rem;
+      line-height: 1.45;
       outline: none;
-      transition: border-color 0.15s, box-shadow 0.15s;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
       font-family: inherit;
-      color: #111827;
+      color: var(--fv-text);
+      background: var(--fv-input-bg);
       box-sizing: border-box;
+    }
+    .fv-input::placeholder,
+    .fv-textarea::placeholder {
+      color: var(--fv-text-weak);
+      opacity: 0.85;
     }
     .fv-input:focus {
       border-color: ${color};
-      box-shadow: 0 0 0 3px ${hexToRgba(color, 0.1)};
+      background: var(--fv-input-bg-focus);
+      box-shadow: 0 0 0 3px ${hexToRgba(color, 0.12)};
     }
     .fv-textarea {
       width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #d1d5db;
-      border-radius: 8px;
-      font-size: 13px;
+      padding: 0.75rem 0.875rem;
+      border: 1px solid var(--fv-border-strong);
+      border-radius: var(--fv-radius-m);
+      font-size: 0.8125rem;
+      line-height: 1.55;
       resize: vertical;
+      min-height: 7.5rem;
       outline: none;
-      transition: border-color 0.15s, box-shadow 0.15s;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
       font-family: inherit;
-      color: #111827;
+      color: var(--fv-text);
+      background: var(--fv-input-bg);
     }
     .fv-textarea:focus {
       border-color: ${color};
-      box-shadow: 0 0 0 3px ${hexToRgba(color, 0.1)};
+      background: var(--fv-input-bg-focus);
+      box-shadow: 0 0 0 3px ${hexToRgba(color, 0.12)};
     }
     .fv-attach-drop {
-      border: 2px dashed #d1d5db;
-      border-radius: 8px;
-      padding: 12px 16px;
+      border: 1px dashed rgba(255, 255, 255, 0.14);
+      border-radius: var(--fv-radius-m);
+      padding: 0.875rem 1rem;
       text-align: center;
       cursor: pointer;
-      background: #f9fafb;
-      transition: border-color 0.2s;
+      background: rgba(255, 255, 255, 0.02);
+      transition: border-color 0.2s ease, background 0.2s ease;
     }
     .fv-attach-drop:hover {
       border-color: ${color};
@@ -1190,12 +1503,12 @@ function createWidget(config: WidgetConfig) {
     .fv-select {
       width: 100%;
       padding: 8px 12px;
-      border: 1px solid #d1d5db;
+      border: 1px solid var(--fv-border-strong);
       border-radius: 8px;
       font-size: 13px;
-      background: white;
+      background: var(--fv-muted);
       outline: none;
-      color: #111827;
+      color: var(--fv-text);
       cursor: pointer;
     }
     .fv-select:focus {
@@ -1204,30 +1517,31 @@ function createWidget(config: WidgetConfig) {
     }
 
     .fv-error-msg {
-      margin-top: 4px;
-      font-size: 12px;
-      color: #dc2626;
+      margin-top: 0.375rem;
+      font-size: 0.75rem;
+      color: #f87171;
+      font-weight: 500;
     }
 
     .fv-logs-section {
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
+      border: 1px solid var(--fv-border);
+      border-radius: var(--fv-radius-m);
       overflow: hidden;
-      margin-bottom: 12px;
+      margin-bottom: 0.75rem;
     }
     .fv-logs-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 10px 14px;
-      background: #f9fafb;
+      background: var(--fv-muted);
       cursor: pointer;
       transition: background 0.15s;
       user-select: none;
     }
-    .fv-logs-header:hover { background: #f3f4f6; }
-    .fv-logs-header span { font-size: 13px; font-weight: 500; color: #374151; }
-    .fv-logs-header svg { width: 16px; height: 16px; color: #9ca3af; transition: transform 0.2s; }
+    .fv-logs-header:hover { background: rgba(255,255,255,0.07); }
+    .fv-logs-header span { font-size: 13px; font-weight: 500; color: var(--fv-text-medium); }
+    .fv-logs-header svg { width: 16px; height: 16px; color: var(--fv-text-weak); transition: transform 0.2s; }
     .fv-logs-header.open svg { transform: rotate(180deg); }
     .fv-logs-list { max-height: 180px; overflow-y: auto; }
     .fv-log-row {
@@ -1235,7 +1549,7 @@ function createWidget(config: WidgetConfig) {
       align-items: center;
       gap: 6px;
       padding: 5px 14px;
-      border-top: 1px solid #f3f4f6;
+      border-top: 1px solid var(--fv-border);
     }
     .fv-log-row-console { align-items: flex-start; }
     .fv-log-tag {
@@ -1248,24 +1562,24 @@ function createWidget(config: WidgetConfig) {
       font-weight: 700;
       line-height: 16px;
     }
-    .fv-tag-success { background: #dcfce7; color: #15803d; }
-    .fv-tag-danger { background: #fee2e2; color: #b91c1c; }
-    .fv-tag-warning { background: #fef9c3; color: #a16207; }
-    .fv-tag-info { background: #dbeafe; color: #1d4ed8; }
-    .fv-tag-neutral { background: #e0e7ff; color: #4338ca; }
-    .fv-log-method { flex-shrink: 0; font-family: monospace; font-size: 11px; font-weight: 700; color: #374151; }
-    .fv-log-url { font-family: monospace; font-size: 11px; color: #6b7280; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
-    .fv-log-duration { flex-shrink: 0; font-family: monospace; font-size: 11px; color: #9ca3af; }
-    .fv-log-message { font-family: monospace; font-size: 11px; color: #6b7280; word-break: break-word; flex: 1; min-width: 0; }
+    .fv-tag-success { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
+    .fv-tag-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+    .fv-tag-warning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+    .fv-tag-info { background: rgba(59, 130, 246, 0.15); color: #93c5fd; }
+    .fv-tag-neutral { background: rgba(86, 67, 204, 0.2); color: #a78bfa; }
+    .fv-log-method { flex-shrink: 0; font-family: var(--fv-mono); font-size: 11px; font-weight: 700; color: var(--fv-text-medium); }
+    .fv-log-url { font-family: var(--fv-mono); font-size: 11px; color: var(--fv-text-weak); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+    .fv-log-duration { flex-shrink: 0; font-family: var(--fv-mono); font-size: 11px; color: var(--fv-text-weak); }
+    .fv-log-message { font-family: var(--fv-mono); font-size: 11px; color: var(--fv-text-weak); word-break: break-word; flex: 1; min-width: 0; }
     .fv-events-summary {
       display: flex;
       align-items: center;
       gap: 8px;
       font-size: 12px;
-      color: #6b7280;
+      color: var(--fv-text-weak);
       padding: 10px 14px;
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
+      background: var(--fv-muted);
+      border: 1px solid var(--fv-border);
       border-radius: 8px;
       margin-bottom: 12px;
     }
@@ -1274,16 +1588,17 @@ function createWidget(config: WidgetConfig) {
     .fv-details-toggle {
       display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 10px 0;
+      gap: 0.375rem;
+      padding: 0.625rem 0;
       cursor: pointer;
-      font-size: 13px;
+      font-size: 0.8125rem;
       font-weight: 500;
-      color: #6b7280;
+      letter-spacing: -0.01em;
+      color: var(--fv-text-weak);
       user-select: none;
-      transition: color 0.15s;
+      transition: color 0.15s ease;
     }
-    .fv-details-toggle:hover { color: #374151; }
+    .fv-details-toggle:hover { color: var(--fv-brand-text); }
     .fv-details-toggle svg {
       transition: transform 0.2s ease;
     }
@@ -1301,28 +1616,33 @@ function createWidget(config: WidgetConfig) {
     }
 
     .fv-footer {
-      padding: 16px 20px;
-      border-top: 1px solid #e5e7eb;
+      padding: 1.125rem 1.75rem 1.5rem;
+      border-top: 1px solid var(--fv-border);
+      flex-shrink: 0;
+      background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.02) 100%);
     }
 
     .fv-submit {
       width: 100%;
-      padding: 10px 16px;
-      background: ${color};
+      padding: 0.75rem 1.5rem;
+      background: var(--fv-primary-gradient);
       color: white;
       border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 500;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
       cursor: pointer;
-      transition: background 0.15s;
+      transition: filter 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 0.5rem;
+      box-shadow: rgba(80, 63, 205, 0.45) 0px 1px 36px;
     }
-    .fv-submit:hover { background: ${colorHover}; }
-    .fv-submit:disabled { background: ${colorDisabled}; cursor: not-allowed; }
+    .fv-submit:hover { filter: brightness(1.08); box-shadow: rgba(80, 63, 205, 0.55) 0px 4px 48px; }
+    .fv-submit:active { transform: scale(0.99); }
+    .fv-submit:disabled { background: ${colorDisabled}; opacity: 0.55; cursor: not-allowed; box-shadow: none; }
 
     @keyframes fv-success-pop {
       0% { transform: scale(0); opacity: 0; }
@@ -1356,7 +1676,7 @@ function createWidget(config: WidgetConfig) {
       width: 72px;
       height: 72px;
       border-radius: 50%;
-      background: #dcfce7;
+      background: rgba(34, 197, 94, 0.15);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1365,21 +1685,23 @@ function createWidget(config: WidgetConfig) {
     .fv-success-icon svg {
       width: 36px;
       height: 36px;
-      color: #16a34a;
+      color: #4ade80;
       stroke-dasharray: 24;
       stroke-dashoffset: 24;
       animation: fv-success-check 0.4s ease 0.4s forwards;
     }
     .fv-success h3 {
-      font-size: 20px;
+      font-size: 1.25rem;
       font-weight: 600;
-      color: #111827;
+      letter-spacing: -0.02em;
+      color: var(--fv-text);
       opacity: 0;
       animation: fv-success-fade-up 0.4s ease 0.5s forwards;
     }
     .fv-success p {
-      font-size: 14px;
-      color: #6b7280;
+      font-size: 0.875rem;
+      line-height: 1.55;
+      color: var(--fv-text-weak);
       text-align: center;
       max-width: 280px;
       opacity: 0;
@@ -1395,10 +1717,10 @@ function createWidget(config: WidgetConfig) {
 
     .fv-server-error {
       padding: 10px 14px;
-      background: #fef2f2;
-      border: 1px solid #fecaca;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.28);
       border-radius: 8px;
-      color: #dc2626;
+      color: #f87171;
       font-size: 13px;
       margin-bottom: 16px;
     }
@@ -1417,12 +1739,19 @@ function createWidget(config: WidgetConfig) {
 
     .fv-powered {
       text-align: center;
-      margin-top: 8px;
-      font-size: 11px;
-      color: #9ca3af;
+      margin-top: 0.625rem;
+      font-size: 0.6875rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: var(--fv-text-weak);
     }
-    .fv-powered a { color: #6b7280; text-decoration: none; }
-    .fv-powered a:hover { text-decoration: underline; }
+    .fv-powered a {
+      color: var(--fv-text-medium);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.15s ease;
+    }
+    .fv-powered a:hover { color: var(--fv-brand-text); }
   `
 
   shadow.appendChild(style)
@@ -1526,56 +1855,37 @@ function createWidget(config: WidgetConfig) {
       return
     }
 
-    // Header (detail-modal style: status dot + type tag + title + close)
+    // Header: título dinâmico "Reportar <tipo>" + tempo + fechar
     const header = document.createElement('div')
     header.className = 'fv-header'
-    header.style.cssText = 'display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid #e5e7eb;'
-
-    const headerDot = document.createElement('span')
-    headerDot.className = 'fv-header-dot'
-    headerDot.id = 'fv-header-dot'
-    headerDot.style.cssText = 'width:10px;height:10px;border-radius:50%;background:#dc2626;flex-shrink:0;'
-    header.appendChild(headerDot)
-
-    const headerTag = document.createElement('span')
-    headerTag.className = 'fv-header-tag'
-    headerTag.id = 'fv-header-tag'
-    headerTag.style.cssText = 'display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:600;background:#fef2f2;color:#dc2626;'
-    headerTag.textContent = 'Bug'
-    header.appendChild(headerTag)
 
     const headerTitle = document.createElement('span')
-    headerTitle.style.cssText = 'font-size:14px;font-weight:600;color:#111827;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;'
-    headerTitle.textContent = 'Novo report'
+    headerTitle.className = 'fv-header-title'
+    headerTitle.textContent = 'Reportar Bug'
     header.appendChild(headerTitle)
 
     const headerTime = document.createElement('span')
-    headerTime.style.cssText = 'font-size:11px;color:#9ca3af;flex-shrink:0;margin-right:8px;'
+    headerTime.className = 'fv-header-time'
     headerTime.textContent = new Date().toLocaleString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
     header.appendChild(headerTime)
 
     const closeBtn = document.createElement('button')
+    closeBtn.type = 'button'
     closeBtn.className = 'fv-close'
-    closeBtn.style.width = '28px'
-    closeBtn.style.height = '28px'
-    closeBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`
+    closeBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`
     closeBtn.addEventListener('click', close)
     header.appendChild(closeBtn)
     panel.appendChild(header)
 
-    // Helper to update header dot/tag when type changes
     function updateHeaderType(typeValue: string) {
-      const colorMap: Record<string, { bg: string; color: string; label: string }> = {
-        BUG: { bg: '#fef2f2', color: '#dc2626', label: 'Bug' },
-        SUGGESTION: { bg: '#fffbeb', color: '#d97706', label: 'Sugestão' },
-        QUESTION: { bg: '#eff6ff', color: '#2563eb', label: 'Dúvida' },
-        PRAISE: { bg: '#f0fdf4', color: '#16a34a', label: 'Elogio' },
+      const labels: Record<string, string> = {
+        BUG: 'Bug',
+        SUGGESTION: 'Sugestão',
+        QUESTION: 'Dúvida',
+        PRAISE: 'Elogio',
       }
-      const c = colorMap[typeValue] || colorMap.BUG
-      headerDot.style.background = c.color
-      headerTag.style.background = c.bg
-      headerTag.style.color = c.color
-      headerTag.textContent = c.label
+      const label = labels[typeValue] || labels.BUG
+      headerTitle.textContent = `Reportar ${label}`
     }
 
     // Limit reached — show message instead of form
@@ -1584,20 +1894,20 @@ function createWidget(config: WidgetConfig) {
       const pausedMsg = document.createElement('div')
       pausedMsg.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;text-align:center;gap:12px;flex:1;'
       pausedMsg.innerHTML = `
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"/>
           <line x1="10" y1="15" x2="10" y2="9"/>
           <line x1="14" y1="15" x2="14" y2="9"/>
         </svg>
-        <div style="font-size:15px;font-weight:600;color:#374151;">Widget pausado</div>
-        <div style="font-size:13px;color:#6b7280;line-height:1.6;max-width:280px;">
+        <div style="font-size:15px;font-weight:600;color:#f7f8f8;">Widget pausado</div>
+        <div style="font-size:13px;color:#858699;line-height:1.6;max-width:280px;">
           O envio de reports está temporariamente pausado pelo administrador do projeto.
         </div>
       `
       panel.appendChild(pausedMsg)
       const pausedFooter = document.createElement('div')
-      pausedFooter.style.cssText = 'padding:12px 16px;text-align:center;font-size:11px;color:#9ca3af;border-top:1px solid #f3f4f6;'
-      pausedFooter.innerHTML = 'Powered by <strong style="color:#6b7280;">Buug</strong>'
+      pausedFooter.style.cssText = 'padding:12px 16px;text-align:center;font-size:11px;color:#858699;border-top:1px solid rgba(255,255,255,0.08);'
+      pausedFooter.innerHTML = 'Powered by <strong style="color:#b4bcd0;">Buug</strong>'
       panel.appendChild(pausedFooter)
       return
     }
@@ -1606,20 +1916,20 @@ function createWidget(config: WidgetConfig) {
       const limitMsg = document.createElement('div')
       limitMsg.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;text-align:center;gap:12px;flex:1;'
       limitMsg.innerHTML = `
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#858699" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"/>
           <path d="M12 8v4"/>
           <path d="M12 16h.01"/>
         </svg>
-        <div style="font-size:15px;font-weight:600;color:#374151;">Limite de reports atingido</div>
-        <div style="font-size:13px;color:#6b7280;line-height:1.6;max-width:280px;">
+        <div style="font-size:15px;font-weight:600;color:#f7f8f8;">Limite de reports atingido</div>
+        <div style="font-size:13px;color:#858699;line-height:1.6;max-width:280px;">
           O limite de reports deste projeto foi atingido este mês. Entre em contato com o responsável pelo site para continuar reportando.
         </div>
       `
       panel.appendChild(limitMsg)
       const limitFooter = document.createElement('div')
-      limitFooter.style.cssText = 'padding:12px 16px;text-align:center;font-size:11px;color:#9ca3af;border-top:1px solid #f3f4f6;'
-      limitFooter.innerHTML = 'Powered by <strong style="color:#6b7280;">Buug</strong>'
+      limitFooter.style.cssText = 'padding:12px 16px;text-align:center;font-size:11px;color:#858699;border-top:1px solid rgba(255,255,255,0.08);'
+      limitFooter.innerHTML = 'Powered by <strong style="color:#b4bcd0;">Buug</strong>'
       panel.appendChild(limitFooter)
       return
     }
@@ -1639,7 +1949,7 @@ function createWidget(config: WidgetConfig) {
     // Right column — tipo, prioridade, system info
     const sidebar = document.createElement('div')
     sidebar.className = 'fv-sidebar'
-    sidebar.style.cssText = 'width:320px;flex-shrink:0;display:flex;flex-direction:column;overflow-y:auto;padding:12px 20px;gap:4px;border-left:1px solid #e5e7eb;background:#fff;'
+    sidebar.style.cssText = 'width:clamp(22rem, 28vw, 44rem);flex-shrink:0;display:flex;flex-direction:column;overflow-y:auto;padding:1rem 1.5rem 1.5rem;gap:4px;border-left:1px solid rgba(255,255,255,0.08);background:linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 40%);'
     body.appendChild(sidebar)
 
     // Pre-create replay container (referenced before preview panel is built)
@@ -1658,19 +1968,13 @@ function createWidget(config: WidgetConfig) {
       // Show warning instead of replay player in proxy/shared URL mode
       const proxyWarning = document.createElement('div')
       proxyWarning.className = 'fv-replay-proxy-warning'
-      proxyWarning.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#92400e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div><strong>Indisponível neste modo</strong>O Session Replay não funciona no modo URL compartilhada. O screenshot será capturado como referência visual.</div>`
+      proxyWarning.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#fbbf24;flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div><strong>Indisponível neste modo</strong>O Session Replay não funciona no modo URL compartilhada. O screenshot será capturado como referência visual.</div>`
       replaySection.appendChild(proxyWarning)
       previewReplayContainer.appendChild(replaySection)
     } else {
 
     const replayCard = document.createElement('div')
     replayCard.className = 'fv-replay-card'
-    replayCard.style.background = '#0f172a'
-    replayCard.style.padding = '0'
-    replayCard.style.overflow = 'hidden'
-    replayCard.style.borderRadius = '12px'
-    replayCard.style.margin = '0'
-    replayCard.style.maxWidth = '100%'
 
     // Player container
     const playerContainer = document.createElement('div')
@@ -1734,16 +2038,17 @@ function createWidget(config: WidgetConfig) {
         }
 
         const controls = document.createElement('div')
-        controls.className = 'fv-replay-controls'
-        controls.style.cssText = 'display:flex;flex-direction:column;gap:8px;background:#fff;padding:10px 12px;border-top:1px solid #e5e7eb;'
+        controls.className = 'fv-replay-controls fv-replay-controls-bar'
 
         // Timeline row
         const timelineRow = document.createElement('div')
-        timelineRow.style.cssText = 'cursor:pointer;height:6px;display:flex;align-items:center;border-radius:3px;background:#e5e7eb;position:relative;'
+        timelineRow.className = 'fv-timeline'
         const timelineFill = document.createElement('div')
-        timelineFill.style.cssText = `height:100%;width:0%;background:${color};border-radius:3px;transition:width 0.1s linear;`
+        timelineFill.className = 'fv-timeline-fill'
+        timelineFill.style.cssText = `width:0%;background:${color};box-shadow:0 0 12px ${hexToRgba(color, 0.35)};`
         const timelineThumb = document.createElement('div')
-        timelineThumb.style.cssText = `position:absolute;top:50%;width:14px;height:14px;background:${color};border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 1px 3px rgba(0,0,0,0.15);border:2px solid #fff;left:0%;`
+        timelineThumb.className = 'fv-timeline-thumb'
+        timelineThumb.style.cssText = `background:${color};left:0%;`
         timelineRow.appendChild(timelineFill)
         timelineRow.appendChild(timelineThumb)
 
@@ -1777,17 +2082,19 @@ function createWidget(config: WidgetConfig) {
 
         // Bottom row: play, time, speed
         const bottomRow = document.createElement('div')
-        bottomRow.style.cssText = 'display:flex;align-items:center;justify-content:space-between;'
+        bottomRow.className = 'fv-replay-bottom'
 
         let isPlaying = false
         const playSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v14.72a1 1 0 0 0 1.5.86l11-7.36a1 1 0 0 0 0-1.72l-11-7.36A1 1 0 0 0 8 5.14z"/></svg>'
         const pauseSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>'
 
         const leftControls = document.createElement('div')
-        leftControls.style.cssText = 'display:flex;align-items:center;gap:10px;'
+        leftControls.className = 'fv-replay-bottom-left'
 
         const playBtn = document.createElement('button')
-        playBtn.style.cssText = `display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;border:none;background:${color};color:#fff;cursor:pointer;transition:opacity 0.15s;`
+        playBtn.type = 'button'
+        playBtn.className = 'fv-replay-play'
+        playBtn.style.cssText = `background:linear-gradient(145deg, ${color}, ${darkenHex(color, 15)});`
         playBtn.innerHTML = playSvg
         playBtn.addEventListener('click', () => {
           if (isPlaying) {
@@ -1810,7 +2117,7 @@ function createWidget(config: WidgetConfig) {
 
         // Current time / total time
         const timeDisplay = document.createElement('span')
-        timeDisplay.style.cssText = 'font-size:11px;color:#6b7280;font-family:monospace;white-space:nowrap;'
+        timeDisplay.className = 'fv-replay-time'
         const currentTimeSpan = document.createElement('span')
         currentTimeSpan.textContent = fmtTime(0)
         const timeSep = document.createTextNode(' / ')
@@ -1824,7 +2131,7 @@ function createWidget(config: WidgetConfig) {
 
         // Speed selector (individual buttons)
         const rightControls = document.createElement('div')
-        rightControls.style.cssText = 'display:flex;align-items:center;gap:2px;'
+        rightControls.className = 'fv-replay-bottom-right'
         const speeds = [1, 2, 4, 8]
         let currentSpeed = 4
         const speedBtns: HTMLButtonElement[] = []
@@ -1833,21 +2140,26 @@ function createWidget(config: WidgetConfig) {
           speedBtns.forEach(b => {
             const s = parseInt(b.dataset.speed!)
             if (s === currentSpeed) {
-              b.style.background = color
+              b.style.background = `linear-gradient(145deg, ${color}, ${darkenHex(color, 12)})`
               b.style.color = '#fff'
               b.style.fontWeight = '600'
+              b.style.borderColor = 'transparent'
+              b.style.boxShadow = `0 0 12px ${hexToRgba(color, 0.25)}`
             } else {
-              b.style.background = 'transparent'
-              b.style.color = '#9ca3af'
-              b.style.fontWeight = '400'
+              b.style.background = 'rgba(255,255,255,0.03)'
+              b.style.color = 'var(--fv-text-weak)'
+              b.style.fontWeight = '500'
+              b.style.borderColor = 'rgba(255,255,255,0.1)'
+              b.style.boxShadow = 'none'
             }
           })
         }
 
         speeds.forEach(s => {
           const btn = document.createElement('button')
+          btn.type = 'button'
           btn.dataset.speed = String(s)
-          btn.style.cssText = 'border:none;cursor:pointer;padding:3px 7px;border-radius:6px;font-size:11px;transition:all 0.15s;'
+          btn.className = 'fv-speed-pill'
           btn.textContent = `${s}x`
           btn.addEventListener('click', () => {
             currentSpeed = s
@@ -1891,10 +2203,10 @@ function createWidget(config: WidgetConfig) {
         }
         progressTimer = setInterval(updateProgress, 100)
       } catch (err) {
-        playerContainer.innerHTML = '<div style="padding:20px;text-align:center;color:#9ca3af;font-size:13px;">Gravando sessão...</div>'
+        playerContainer.innerHTML = '<div style="padding:20px;text-align:center;color:#858699;font-size:13px;">Gravando sessão...</div>'
       }
     } else {
-      playerContainer.innerHTML = '<div style="padding:20px;text-align:center;color:#9ca3af;font-size:13px;">Gravando sessão...</div>'
+      playerContainer.innerHTML = '<div style="padding:20px;text-align:center;color:#858699;font-size:13px;">Gravando sessão...</div>'
     }
 
     replaySection.appendChild(replayCard)
@@ -1904,24 +2216,25 @@ function createWidget(config: WidgetConfig) {
     // ── Área de mídia (fundo cinza + abas como FeedbackDetailModal) ──
     let mediaActiveTab: 'replay' | 'screenshot' = 'replay'
     const mediaShell = document.createElement('div')
-    mediaShell.style.cssText = 'background:#f4f5f7;border-bottom:1px solid #e5e7eb;'
+    mediaShell.className = 'fv-media-shell'
 
     const tabsRow = document.createElement('div')
-    tabsRow.style.cssText = 'display:flex;gap:0;padding:0 16px;border-bottom:1px solid #e5e7eb;background:#fff;'
+    tabsRow.className = 'fv-tabs-row'
 
-    const tabBtnBase = 'padding:8px 12px;font-size:12px;font-weight:500;border:none;cursor:pointer;background:transparent;margin-bottom:-1px;display:flex;align-items:center;gap:6px;transition:color 0.15s,border-color 0.15s;'
     const mediaReplayTab = document.createElement('button')
-    mediaReplayTab.style.cssText = tabBtnBase + 'border-bottom:2px solid #111827;color:#111827;'
-    mediaReplayTab.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> Replay'
+    mediaReplayTab.type = 'button'
+    mediaReplayTab.className = 'fv-tab fv-tab-active'
+    mediaReplayTab.textContent = 'Replay'
     const mediaScreenshotTab = document.createElement('button')
-    mediaScreenshotTab.style.cssText = tabBtnBase + 'border-bottom:2px solid transparent;color:#9ca3af;'
-    mediaScreenshotTab.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> Screenshot'
+    mediaScreenshotTab.type = 'button'
+    mediaScreenshotTab.className = 'fv-tab'
+    mediaScreenshotTab.textContent = 'Screenshot'
     tabsRow.appendChild(mediaReplayTab)
     tabsRow.appendChild(mediaScreenshotTab)
     mediaShell.appendChild(tabsRow)
 
     const mediaPad = document.createElement('div')
-    mediaPad.style.cssText = 'padding:16px;display:flex;justify-content:center;flex-direction:column;'
+    mediaPad.className = 'fv-media-pad'
     mediaPad.appendChild(previewReplayContainer)
 
     const formScreenshotContainer = document.createElement('div')
@@ -1935,21 +2248,13 @@ function createWidget(config: WidgetConfig) {
     function switchMediaTab(tab: 'replay' | 'screenshot') {
       mediaActiveTab = tab
       if (tab === 'replay') {
-        mediaReplayTab.style.borderBottomColor = '#111827'
-        mediaReplayTab.style.color = '#111827'
-        mediaReplayTab.style.fontWeight = '600'
-        mediaScreenshotTab.style.borderBottomColor = 'transparent'
-        mediaScreenshotTab.style.color = '#9ca3af'
-        mediaScreenshotTab.style.fontWeight = '500'
+        mediaReplayTab.classList.add('fv-tab-active')
+        mediaScreenshotTab.classList.remove('fv-tab-active')
         previewReplayContainer.style.display = 'block'
         formScreenshotContainer.style.display = 'none'
       } else {
-        mediaReplayTab.style.borderBottomColor = 'transparent'
-        mediaReplayTab.style.color = '#9ca3af'
-        mediaReplayTab.style.fontWeight = '500'
-        mediaScreenshotTab.style.borderBottomColor = '#111827'
-        mediaScreenshotTab.style.color = '#111827'
-        mediaScreenshotTab.style.fontWeight = '600'
+        mediaReplayTab.classList.remove('fv-tab-active')
+        mediaScreenshotTab.classList.add('fv-tab-active')
         previewReplayContainer.style.display = 'none'
         formScreenshotContainer.style.display = 'block'
       }
@@ -1972,10 +2277,6 @@ function createWidget(config: WidgetConfig) {
     titleInput.placeholder = 'Resumo breve do feedback'
     titleInput.id = 'fv-title'
     titleField.appendChild(titleInput)
-    titleInput.addEventListener('input', () => {
-      const t = titleInput.value.trim()
-      headerTitle.textContent = t || 'Novo report'
-    })
 
     // Descrição (bloco principal sob a mídia, como no modal de detalhe)
     const commentField = document.createElement('div')
@@ -1993,11 +2294,11 @@ function createWidget(config: WidgetConfig) {
     commentField.appendChild(commentError)
 
     const descSection = document.createElement('div')
-    descSection.style.cssText = 'padding:20px 24px;border-bottom:1px solid #e5e7eb;'
+    descSection.className = 'fv-desc-section'
     const descHeadRow = document.createElement('div')
-    descHeadRow.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;'
+    descHeadRow.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:0.625rem;'
     const descHead = document.createElement('span')
-    descHead.style.cssText = 'font-size:13px;font-weight:600;color:#111827;'
+    descHead.className = 'fv-section-heading'
     descHead.innerHTML = 'Descrição <span class="fv-required">*</span>'
     descHeadRow.appendChild(descHead)
     descSection.appendChild(descHeadRow)
@@ -2007,7 +2308,7 @@ function createWidget(config: WidgetConfig) {
     // Type (segmented buttons) — sidebar
     const typeField = document.createElement('div')
     typeField.className = 'fv-field'
-    typeField.innerHTML = `<label class="fv-label" style="font-size:11px;font-weight:500;color:#6b7280;text-transform:none;letter-spacing:0;">Tipo</label>`
+    typeField.innerHTML = `<label class="fv-sidebar-heading">Tipo</label>`
     // Hidden select to keep value accessible
     const typeHidden = document.createElement('input')
     typeHidden.type = 'hidden'
@@ -2016,14 +2317,7 @@ function createWidget(config: WidgetConfig) {
     typeField.appendChild(typeHidden)
 
     const typeBtnGroup = document.createElement('div')
-    typeBtnGroup.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;'
-    // SVG icons for type buttons (14px, black, stroke-based)
-    const typeIcons: Record<string, string> = {
-      BUG: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2l1.88 1.88"/><path d="M14.12 3.88L16 2"/><path d="M9 7.13v-1a3.003 3.003 0 116 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 014-4h4a4 4 0 014 4v3c0 3.3-2.7 6-6 6"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M6 13H2"/><path d="M3 21c0-2.1 1.7-3.9 3.8-4"/><path d="M20.97 5c0 2.1-1.6 3.8-3.5 4"/><path d="M22 13h-4"/><path d="M17.2 17c2.1.1 3.8 1.9 3.8 4"/></svg>`,
-      SUGGESTION: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 006 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>`,
-      QUESTION: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>`,
-      PRAISE: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"/><path d="M15 5.88L14 10h5.83a2 2 0 011.92 2.56l-2.33 8A2 2 0 0117.5 22H4a2 2 0 01-2-2v-8a2 2 0 012-2h2.76a2 2 0 001.79-1.11L12 2a3.13 3.13 0 013 3.88z"/></svg>`,
-    }
+    typeBtnGroup.className = 'fv-choice-grid'
     const typeOptions = [
       { value: 'BUG', label: 'Bug' },
       { value: 'SUGGESTION', label: 'Sugestão' },
@@ -2037,10 +2331,11 @@ function createWidget(config: WidgetConfig) {
       typeBtns.forEach((btn) => {
         const val = btn.dataset.value!
         const isActive = val === selected
-        btn.style.border = isActive ? `2px solid ${color}` : '1px solid #d1d5db'
-        btn.style.background = isActive ? `${color}0d` : '#fff'
-        btn.style.color = isActive ? color : '#374151'
-        btn.style.fontWeight = isActive ? '600' : '400'
+        btn.style.border = isActive ? `2px solid ${color}` : ''
+        btn.style.background = isActive ? `${color}28` : ''
+        btn.style.color = isActive ? color : ''
+        btn.style.fontWeight = isActive ? '600' : '500'
+        btn.style.boxShadow = isActive ? `0 0 16px ${hexToRgba(color, 0.2)}` : 'none'
       })
     }
 
@@ -2048,8 +2343,8 @@ function createWidget(config: WidgetConfig) {
       const btn = document.createElement('button')
       btn.type = 'button'
       btn.dataset.value = opt.value
-      btn.innerHTML = `${typeIcons[opt.value] || ''} ${opt.label}`
-      btn.style.cssText = `flex:1;padding:8px 4px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;transition:all 0.15s;border:1px solid #d1d5db;background:#fff;color:#374151;display:inline-flex;align-items:center;justify-content:center;gap:4px;`
+      btn.className = 'fv-choice-btn'
+      btn.textContent = opt.label
       btn.addEventListener('click', () => {
         typeHidden.value = opt.value
         updateTypeBtns(opt.value)
@@ -2071,7 +2366,7 @@ function createWidget(config: WidgetConfig) {
     const severityField = document.createElement('div')
     severityField.className = 'fv-field'
     severityField.id = 'fv-severity-field'
-    severityField.innerHTML = `<label class="fv-label" style="font-size:11px;font-weight:500;color:#6b7280;text-transform:none;letter-spacing:0;">Prioridade</label>`
+    severityField.innerHTML = `<label class="fv-sidebar-heading">Prioridade</label>`
     const sevHidden = document.createElement('input')
     sevHidden.type = 'hidden'
     sevHidden.id = 'fv-severity'
@@ -2079,7 +2374,7 @@ function createWidget(config: WidgetConfig) {
     severityField.appendChild(sevHidden)
 
     const sevBtnGroup = document.createElement('div')
-    sevBtnGroup.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;'
+    sevBtnGroup.className = 'fv-choice-grid'
     const sevOptions = [
       { value: 'LOW', label: 'Baixa', color: '#22c55e' },
       { value: 'MEDIUM', label: 'Média', color: '#f59e0b' },
@@ -2093,10 +2388,11 @@ function createWidget(config: WidgetConfig) {
         const val = btn.dataset.value!
         const opt = sevOptions.find((o) => o.value === val)!
         const isActive = val === selected
-        btn.style.border = isActive ? `2px solid ${opt.color}` : '1px solid #d1d5db'
-        btn.style.background = isActive ? `${opt.color}15` : '#fff'
-        btn.style.color = isActive ? opt.color : '#374151'
-        btn.style.fontWeight = isActive ? '600' : '400'
+        btn.style.border = isActive ? `2px solid ${opt.color}` : ''
+        btn.style.background = isActive ? `${opt.color}30` : ''
+        btn.style.color = isActive ? opt.color : ''
+        btn.style.fontWeight = isActive ? '600' : '500'
+        btn.style.boxShadow = isActive ? `0 0 14px ${opt.color}33` : 'none'
       })
     }
 
@@ -2105,7 +2401,7 @@ function createWidget(config: WidgetConfig) {
       btn.type = 'button'
       btn.dataset.value = opt.value
       btn.textContent = opt.label
-      btn.style.cssText = `flex:1;padding:8px 4px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;transition:all 0.15s;border:1px solid #d1d5db;background:#fff;color:#374151;`
+      btn.className = 'fv-choice-btn'
       btn.addEventListener('click', () => {
         sevHidden.value = opt.value
         updateSevBtns(opt.value)
@@ -2118,7 +2414,7 @@ function createWidget(config: WidgetConfig) {
     formSection.appendChild(severityField)
 
     const metaDivider = document.createElement('div')
-    metaDivider.style.cssText = 'height:1px;background:#e5e7eb;margin:8px 0;'
+    metaDivider.className = 'fv-meta-divider'
     formSection.appendChild(metaDivider)
 
     function escMeta(s: string) {
@@ -2126,8 +2422,8 @@ function createWidget(config: WidgetConfig) {
     }
     function addSidebarMetaRow(label: string, valueHtml: string) {
       const row = document.createElement('div')
-      row.style.cssText = 'display:flex;align-items:flex-start;gap:12px;padding:10px 0;font-size:11px;'
-      row.innerHTML = `<span style="color:#6b7280;font-weight:500;width:72px;flex-shrink:0;padding-top:2px;">${escMeta(label)}</span><div style="flex:1;min-width:0;color:#111827;font-size:11px;line-height:1.4;">${valueHtml}</div>`
+      row.className = 'fv-sidebar-meta'
+      row.innerHTML = `<span class="fv-sidebar-meta-label">${escMeta(label)}</span><div class="fv-sidebar-meta-value">${valueHtml}</div>`
       formSection.appendChild(row)
     }
     const uaMeta = navigator.userAgent
@@ -2152,8 +2448,8 @@ function createWidget(config: WidgetConfig) {
     addSidebarMetaRow('Origem', escMeta(originMeta))
     const hrefSafe = pageUrlMeta.replace(/&/g, '&amp;').replace(/"/g, '&quot;')
     addSidebarMetaRow('Página', `<a href="${hrefSafe}" target="_blank" rel="noopener noreferrer" style="color:${color};font-weight:500;text-decoration:none;">Abrir ↗</a>`)
-    addSidebarMetaRow('Console', `<span style="color:${consoleErrs ? '#dc2626' : '#6b7280'}">${consoleLogs.length} logs${consoleErrs ? ` (${consoleErrs} erros)` : ''}</span>`)
-    addSidebarMetaRow('Network', `<span style="color:${netFails ? '#dc2626' : '#6b7280'}">${networkLogs.length} req.${netFails ? ` (${netFails} falhas)` : ''}</span>`)
+    addSidebarMetaRow('Console', `<span style="color:${consoleErrs ? '#f87171' : '#858699'}">${consoleLogs.length} logs${consoleErrs ? ` (${consoleErrs} erros)` : ''}</span>`)
+    addSidebarMetaRow('Network', `<span style="color:${netFails ? '#f87171' : '#858699'}">${networkLogs.length} req.${netFails ? ` (${netFails} falhas)` : ''}</span>`)
 
     // ── Bug-specific fields (steps, expected, actual) ──
     const bugFieldsContainer = document.createElement('div')
@@ -2218,7 +2514,7 @@ function createWidget(config: WidgetConfig) {
     detailsContent.appendChild(bugFieldsContainer)
 
     const leftExtras = document.createElement('div')
-    leftExtras.style.cssText = 'padding:0 24px 20px;'
+    leftExtras.className = 'fv-extras-pad'
     leftExtras.appendChild(detailsToggle)
     leftExtras.appendChild(detailsContent)
     bodyForm.appendChild(leftExtras)
@@ -2229,7 +2525,7 @@ function createWidget(config: WidgetConfig) {
     attachField.innerHTML = `<label class="fv-label">Anexos</label>`
     const attachDrop = document.createElement('div')
     attachDrop.className = 'fv-attach-drop'
-    attachDrop.innerHTML = `<span style="font-size:12px;color:#6b7280;">Clique para anexar arquivos (máx. 5)</span>`
+    attachDrop.innerHTML = `<span style="font-size:12px;color:#858699;">Clique para anexar arquivos (máx. 5)</span>`
     const attachList = document.createElement('div')
     attachList.className = 'fv-attach-list'
     embedAttachments.length = 0 // reset on re-render
@@ -2259,12 +2555,12 @@ function createWidget(config: WidgetConfig) {
       attachList.innerHTML = ''
       embedAttachments.forEach((att, i) => {
         const row = document.createElement('div')
-        row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:4px 8px;background:#f3f4f6;border-radius:6px;font-size:12px;margin-top:4px;'
+        row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:4px 8px;background:rgba(255,255,255,0.06);border-radius:6px;font-size:12px;margin-top:4px;'
         const name = document.createElement('span')
-        name.style.cssText = 'color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;'
+        name.style.cssText = 'color:#b4bcd0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;'
         name.textContent = att.name
         const removeBtn = document.createElement('button')
-        removeBtn.style.cssText = 'background:none;border:none;cursor:pointer;color:#9ca3af;padding:0 4px;font-size:14px;line-height:1;'
+        removeBtn.style.cssText = 'background:none;border:none;cursor:pointer;color:#858699;padding:0 4px;font-size:14px;line-height:1;'
         removeBtn.textContent = '×'
         removeBtn.addEventListener('click', (e) => {
           e.stopPropagation()
@@ -2281,7 +2577,7 @@ function createWidget(config: WidgetConfig) {
     attachField.appendChild(attachList)
 
     const bottomStack = document.createElement('div')
-    bottomStack.style.cssText = 'padding:0 24px 24px;display:flex;flex-direction:column;gap:10px;'
+    bottomStack.className = 'fv-bottom-stack'
     bottomStack.appendChild(attachField)
 
     // Console Logs (primeiro, como no modal de detalhe)
@@ -2359,8 +2655,8 @@ function createWidget(config: WidgetConfig) {
         const ssWrap = document.createElement('div')
 
         const capturingEl = document.createElement('div')
-        capturingEl.className = 'fv-preview-capturing'
-        capturingEl.style.cssText = 'padding:12px;text-align:center;font-size:12px;color:#9ca3af;background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;display:' + (screenshotUrl ? 'none' : 'block') + ';'
+        capturingEl.className = 'fv-preview-capturing fv-capturing-pill'
+        capturingEl.style.display = screenshotUrl ? 'none' : 'block'
         capturingEl.textContent = 'Capturando screenshot...'
         ssWrap.appendChild(capturingEl)
 
@@ -2476,12 +2772,12 @@ function createWidget(config: WidgetConfig) {
 
         // Controls bar (matching video player style)
         const ssControls = document.createElement('div')
-        ssControls.style.cssText = 'display:flex;align-items:center;justify-content:space-between;background:#fff;padding:8px 12px;border-top:1px solid #e5e7eb;'
+        ssControls.className = 'fv-ss-controls'
 
         const ssControlsLeft = document.createElement('div')
-        ssControlsLeft.style.cssText = 'display:flex;align-items:center;gap:6px;'
+        ssControlsLeft.style.cssText = 'display:flex;align-items:center;gap:0.375rem;'
         const ssHintSmall = document.createElement('span')
-        ssHintSmall.style.cssText = 'font-size:11px;color:#9ca3af;'
+        ssHintSmall.className = 'fv-ss-hint'
         ssHintSmall.textContent = 'Clique e arraste para marcar'
         ssControlsLeft.appendChild(ssHintSmall)
         ssControls.appendChild(ssControlsLeft)
@@ -2492,7 +2788,11 @@ function createWidget(config: WidgetConfig) {
         function updateDrawActions() { drawActions.style.display = drawingRects.length > 0 ? 'flex' : 'none'; ssHintSmall.style.display = drawingRects.length > 0 ? 'none' : 'inline'; }
 
         const undoBtn = document.createElement('button')
-        undoBtn.style.cssText = 'padding:4px 10px;border-radius:6px;border:1px solid #e5e7eb;background:#fff;color:#374151;font-size:11px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:4px;transition:background 0.15s;'
+        undoBtn.type = 'button'
+        undoBtn.className = 'fv-ss-btn'
+        undoBtn.style.display = 'flex'
+        undoBtn.style.alignItems = 'center'
+        undoBtn.style.gap = '0.25rem'
         undoBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg> Desfazer`
         undoBtn.onclick = (e) => {
           e.preventDefault()
@@ -2505,7 +2805,8 @@ function createWidget(config: WidgetConfig) {
         }
 
         const clearBtn = document.createElement('button')
-        clearBtn.style.cssText = 'padding:4px 10px;border-radius:6px;border:1px solid #fca5a5;background:#fff;color:#ef4444;font-size:11px;font-weight:500;cursor:pointer;transition:background 0.15s;'
+        clearBtn.type = 'button'
+        clearBtn.className = 'fv-ss-btn fv-ss-btn-danger'
         clearBtn.textContent = 'Limpar'
         clearBtn.onclick = (e) => {
           e.preventDefault()
@@ -2545,32 +2846,31 @@ function createWidget(config: WidgetConfig) {
   function renderSuccess(panel: HTMLElement, isDemoSuccess = false) {
     const header = document.createElement('div')
     header.className = 'fv-header'
-    header.style.cssText = 'display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid #e5e7eb;'
 
     const dot = document.createElement('span')
-    dot.style.cssText = 'width:10px;height:10px;border-radius:50%;background:#16a34a;flex-shrink:0;'
+    dot.style.cssText = 'width:10px;height:10px;border-radius:50%;background:#4ade80;flex-shrink:0;'
     header.appendChild(dot)
 
     const tag = document.createElement('span')
-    tag.style.cssText = 'display:inline-flex;align-items:center;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:600;background:#dcfce7;color:#15803d;'
+    tag.className = 'fv-header-pill'
+    tag.style.cssText = 'background:rgba(34,197,94,0.15);color:#4ade80;'
     tag.textContent = isDemoSuccess ? 'Demonstração' : 'Enviado'
     header.appendChild(tag)
 
     const titleEl = document.createElement('span')
-    titleEl.style.cssText = 'font-size:14px;font-weight:600;color:#111827;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;'
+    titleEl.className = 'fv-header-title'
     titleEl.textContent = isDemoSuccess ? 'Prévia do widget' : 'Feedback enviado'
     header.appendChild(titleEl)
 
     const timeEl = document.createElement('span')
-    timeEl.style.cssText = 'font-size:11px;color:#9ca3af;flex-shrink:0;margin-right:8px;'
+    timeEl.className = 'fv-header-time'
     timeEl.textContent = new Date().toLocaleString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
     header.appendChild(timeEl)
 
     const closeBtn = document.createElement('button')
+    closeBtn.type = 'button'
     closeBtn.className = 'fv-close'
-    closeBtn.style.width = '28px'
-    closeBtn.style.height = '28px'
-    closeBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`
+    closeBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`
     closeBtn.addEventListener('click', close)
     header.appendChild(closeBtn)
 
@@ -2596,7 +2896,7 @@ function createWidget(config: WidgetConfig) {
     panel.appendChild(success)
 
     // Add confetti particles
-    const colors = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
+    const colors = ['rgb(86, 67, 204)', '#4ade80', '#fbbf24', '#f87171', 'rgb(103, 63, 215)', '#93c5fd']
     for (let i = 0; i < 12; i++) {
       const particle = document.createElement('div')
       particle.className = 'fv-confetti-particle'

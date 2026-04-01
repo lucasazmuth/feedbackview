@@ -7,19 +7,13 @@ import { z } from 'zod'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import {
-  Flex,
-  Column,
-  Row,
-  Heading,
-  Text,
-  Input,
-  PasswordInput,
-  Button,
-  Card,
-  Feedback,
-  Spinner,
-} from '@once-ui-system/core'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Alert } from '@/components/ui/Alert'
+import { Spinner } from '@/components/ui/Spinner'
+import { Eye, EyeOff } from 'lucide-react'
+import { ICON_PX, ICON_STROKE } from '@/lib/icon-tokens'
+import { AppIcon } from '@/components/ui/AppIcon'
 
 const loginSchema = z.object({
   email: z.string().email('E-mail inválido'),
@@ -33,6 +27,7 @@ function LoginFormContent() {
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
   const [serverError, setServerError] = useState<string | null>(null)
+  const [showPassword, setShowPassword] = useState(false)
 
   const {
     register,
@@ -58,140 +53,129 @@ function LoginFormContent() {
   }
 
   return (
-    <Flex fillWidth style={{ minHeight: '100vh' }}>
+    <div className="flex w-full min-h-screen">
       {/* Left branding panel */}
-      <Flex
-        style={{
-          flex: 1,
-          background: 'var(--brand-solid-strong)',
-          position: 'sticky',
-          top: 0,
-          height: '100vh',
-          overflow: 'hidden',
-        }}
-        className="auth-brand-panel"
+      <div
+        className="auth-brand-panel flex-1 sticky top-0 h-screen overflow-hidden bg-primary-gradient"
       >
-        <div style={{
-          position: 'absolute',
-          inset: 0,
+        <div className="absolute inset-0" style={{
           background: 'radial-gradient(circle at 30% 70%, rgba(255,255,255,0.08) 0%, transparent 60%), radial-gradient(circle at 70% 20%, rgba(255,255,255,0.05) 0%, transparent 50%)',
         }} />
-        <Column
-          fillWidth
-          gap="xl"
-          padding="xl"
-          horizontal="start"
-          vertical="center"
-          style={{ position: 'relative', zIndex: 1 }}
-        >
-          <a href="/" style={{ textDecoration: 'none' }}><span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '1.5rem', letterSpacing: '-0.02em', color: '#fff' }}>Buug</span></a>
+        <div className="relative z-10 flex flex-col items-start justify-center w-full h-full gap-8 p-10">
+          <a href="/" className="no-underline"><span className="font-logo font-bold text-2xl tracking-tight text-white">Buug</span></a>
 
-          <Column gap="m" style={{ maxWidth: '24rem' }}>
-            <h2 style={{ color: '#fff', fontSize: '2rem', fontWeight: 700, lineHeight: 1.2, margin: 0 }}>
+          <div className="flex flex-col gap-4 max-w-[24rem]">
+            <h2 className="text-white text-[2rem] font-bold leading-tight m-0">
               QA com captura em tempo real
             </h2>
-            <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '1rem', lineHeight: 1.6, margin: 0 }}>
+            <p className="text-white/80 text-base leading-relaxed m-0">
               Screenshot, session replay e logs capturados automaticamente em cada feedback.
             </p>
-          </Column>
+          </div>
 
-          <Column gap="m" style={{ maxWidth: '22rem' }}>
+          <div className="flex flex-col gap-4 max-w-[22rem]">
             {[
-              { svg: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg>, text: 'Session replay completo' },
-              { svg: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>, text: 'Screenshot com anotações' },
-              { svg: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></svg>, text: 'Console e network logs' },
+              { svg: <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis} style={{ color: '#fff' }}><rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></AppIcon>, text: 'Session replay completo' },
+              { svg: <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis} style={{ color: '#fff' }}><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></AppIcon>, text: 'Screenshot com anotações' },
+              { svg: <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis} style={{ color: '#fff' }}><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></AppIcon>, text: 'Console e network logs' },
             ].map((item) => (
-              <Row key={item.text} gap="s" vertical="center">
-                <div style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 8,
-                  background: 'rgba(255,255,255,0.15)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                }}>
+              <div key={item.text} className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center shrink-0">
                   {item.svg}
                 </div>
-                <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.875rem' }}>{item.text}</span>
-              </Row>
+                <span className="text-white/90 text-sm">{item.text}</span>
+              </div>
             ))}
-          </Column>
-        </Column>
-      </Flex>
+          </div>
+        </div>
+      </div>
 
       {/* Right form panel */}
-      <Flex
-        horizontal="center"
-        style={{ flex: 1, minWidth: 0, overflowY: 'auto', maxHeight: '100vh', padding: '3rem 2rem' }}
-      >
-        <Column maxWidth={24} fillWidth gap="xl">
+      <div className="flex-1 min-w-0 overflow-y-auto max-h-screen flex justify-center px-8 py-12 bg-background">
+        <div className="w-full max-w-lg flex flex-col gap-8">
           {/* Mobile logo */}
-          <Column horizontal="center" gap="4" className="auth-mobile-logo">
-            <a href="/" style={{ textDecoration: 'none' }}><span style={{ fontFamily: 'var(--font-logo)', fontWeight: 700, fontSize: '1.5rem', letterSpacing: '-0.02em', color: 'var(--neutral-on-background-strong)' }}>Buug</span></a>
-            <Text variant="body-default-s" onBackground="neutral-weak">
+          <div className="auth-mobile-logo flex flex-col items-center gap-4">
+            <a href="/" className="no-underline"><span className="font-logo font-bold text-2xl tracking-tight text-off-white">Buug</span></a>
+            <p className="text-sm text-gray">
               QA com captura em tempo real
-            </Text>
-          </Column>
+            </p>
+          </div>
 
-          <Column gap="4">
-            <Heading variant="display-strong-s" as="h1">
+          <div className="flex flex-col gap-2">
+            <h1 className="text-3xl font-bold text-off-white">
               Bem-vindo de volta
-            </Heading>
-            <Text variant="body-default-m" onBackground="neutral-weak">
+            </h1>
+            <p className="text-base text-primary-text">
               Entre na sua conta para continuar
-            </Text>
-          </Column>
+            </p>
+          </div>
 
           {serverError && (
-            <Feedback variant="danger">{serverError}</Feedback>
+            <Alert variant="danger">{serverError}</Alert>
           )}
 
-          <Column as="form" onSubmit={handleSubmit(onSubmit)} gap="m" fillWidth>
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 w-full">
             <Input
               id="email"
               label="E-mail"
               type="email"
               placeholder="voce@empresa.com"
-              error={!!errors.email}
-              errorMessage={errors.email?.message}
+              error={errors.email?.message}
               {...register('email')}
             />
 
-            <Column gap="xs">
-              <PasswordInput
+            <div className="flex flex-col gap-1.5">
+              <Input
                 id="password"
                 label="Senha"
+                type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
-                error={!!errors.password}
-                errorMessage={errors.password?.message}
+                error={errors.password?.message}
                 {...register('password')}
+                trailingSlot={
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="flex text-gray transition-colors hover:text-off-white"
+                    tabIndex={-1}
+                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                  >
+                    {showPassword ? <EyeOff size={ICON_PX.lg} /> : <Eye size={ICON_PX.lg} />}
+                  </button>
+                }
               />
-              <Link href="/auth/forgot-password" style={{ alignSelf: 'flex-end', fontSize: '0.8rem', color: 'var(--brand-on-background-strong)', textDecoration: 'none', fontWeight: 500 }}>
+              <Link href="/auth/forgot-password" className="self-end text-xs text-[rgb(86,67,204)] hover:text-[rgb(69,94,181)] no-underline font-medium">
                 Esqueceu a senha?
               </Link>
-            </Column>
+            </div>
 
             <Button
               type="submit"
               variant="primary"
-              size="l"
-              fillWidth
-              loading={isSubmitting}
-              label={isSubmitting ? 'Entrando...' : 'Entrar'}
-            />
-          </Column>
+              size="large"
+              className="w-full"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <span className="flex items-center gap-2">
+                  <Spinner size="sm" />
+                  Entrando...
+                </span>
+              ) : (
+                'Entrar'
+              )}
+            </Button>
+          </form>
 
-          <Text variant="body-default-s" onBackground="neutral-weak" align="center">
+          <p className="text-sm text-primary-text text-center">
             Não tem conta?{' '}
-            <Link href="/auth/register" style={{ color: 'var(--brand-on-background-strong)', fontWeight: 600, textDecoration: 'none' }}>
+            <Link href="/auth/register" className="text-[rgb(86,67,204)] hover:text-[rgb(69,94,181)] font-semibold no-underline">
               Criar conta grátis
             </Link>
-          </Text>
-        </Column>
-      </Flex>
-    </Flex>
+          </p>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -199,9 +183,9 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <Flex fillWidth minHeight="100vh" horizontal="center" vertical="center">
-          <Spinner size="m" />
-        </Flex>
+        <div className="flex w-full min-h-screen items-center justify-center bg-background">
+          <Spinner size="lg" />
+        </div>
       }
     >
       <LoginFormContent />

@@ -1,41 +1,41 @@
-import {
-  Flex,
-  Column,
-  Heading,
-  Text,
-  Tag,
-} from '@once-ui-system/core'
+import { Container } from '@/components/ui/Container'
 import { landingPlatformsSection, landingTechStack } from '@/content/landing.pt-BR'
 
 export function PlatformsSection() {
   return (
-    <Flex fillWidth horizontal="center" background="page">
-      <Column maxWidth={64} fillWidth paddingX="l" paddingY="xl" gap="xl" horizontal="center">
-        <Column horizontal="center" gap="s" className="landing-section-header">
-          <Tag variant="neutral" size="m" label={landingPlatformsSection.tag} />
-          <Heading variant="display-strong-s" as="h2">
-            {landingPlatformsSection.title}
-          </Heading>
-          <Text variant="body-default-m" onBackground="neutral-weak" className="landing-section-sub">
-            {landingPlatformsSection.sub}
-          </Text>
-        </Column>
+    <section className="landing-section-pad" id="stacks">
+      <Container className="flex flex-col items-center text-center">
+        <span className="mb-4 inline-block rounded-full border border-transparent-white bg-white/5 px-3 py-1 text-xs text-gray">
+          {landingPlatformsSection.tag}
+        </span>
+        <h2 className="text-gradient mb-4 text-4xl md:text-6xl">
+          {landingPlatformsSection.title}
+        </h2>
+        <p className="mb-12 max-w-[60rem] text-lg text-primary-text">
+          {landingPlatformsSection.sub}
+        </p>
 
-        <div className="landing-platforms-grid" role="list">
+        <div className="flex flex-wrap justify-center gap-6" role="list">
           {landingTechStack.map((tech) => (
-            <div key={tech.name} className="landing-platform-card" role="listitem">
-              <div className="landing-platform-logo">
-                <img src={tech.logo} alt={tech.name} />
-              </div>
-              <span className="landing-platform-name">{tech.name}</span>
+            <div
+              key={tech.name}
+              className="flex flex-col items-center gap-2 rounded-xl border border-transparent-white bg-glass-gradient p-6 backdrop-blur-sm"
+              role="listitem"
+            >
+              <img
+                src={tech.logo}
+                alt={tech.name}
+                className="h-10 w-10 brightness-0 invert opacity-90"
+              />
+              <span className="text-sm text-off-white">{tech.name}</span>
             </div>
           ))}
         </div>
 
-        <Text variant="body-default-xs" onBackground="neutral-weak" className="landing-section-header">
+        <p className="mt-8 max-w-[50rem] text-xs text-gray">
           {landingPlatformsSection.footnote}
-        </Text>
-      </Column>
-    </Flex>
+        </p>
+      </Container>
+    </section>
   )
 }
