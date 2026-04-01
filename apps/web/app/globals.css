@@ -1124,8 +1124,17 @@ button.create-wizard-rail-node {
   font-weight: 500;
 }
 
-/* Painel do formulário: separador + superfície tipo app-card no desktop */
+/* Painel direito: coluna full-height, cartão só com altura do conteúdo + centralizado (evita “card esticado”) */
 .auth-form-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1 1 0%;
+  min-width: 0;
+  min-height: 100dvh;
+  padding: 2rem 1.5rem 3rem;
+  overflow-y: auto;
+  box-sizing: border-box;
   border-left: 1px solid var(--neutral-border-medium);
   background-color: var(--surface-background);
 }
@@ -1133,44 +1142,74 @@ button.create-wizard-rail-node {
 @media (max-width: 768px) {
   .auth-form-panel {
     border-left: none;
+    padding: 1.5rem 1.25rem 2.5rem;
   }
 }
 
 .auth-form-surface {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   max-width: 36rem;
+  flex-shrink: 0;
+  margin-block: auto;
   border-radius: var(--radius-l);
   border: 1px solid var(--neutral-border-medium);
   background: var(--neutral-alpha-weak);
-  padding: 2rem 1.75rem;
+  padding: 2.25rem 2rem;
+  gap: 1.75rem;
 }
 
 @media (max-width: 768px) {
   .auth-form-surface {
     max-width: none;
+    margin-block: 0;
     padding: 0;
     border: none;
     border-radius: 0;
     background: transparent;
+    gap: 1.5rem;
   }
 }
 
 .auth-form-surface--compact {
-  max-width: 28rem;
+  max-width: 30rem;
 }
 
-/* Ícones do painel gradiente: raio e vidro alinhados ao DS */
+/* Páginas auth full-width (esqueci senha / reset): mesma centralização vertical */
+.auth-form-page {
+  display: flex;
+  min-height: 100dvh;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  background-color: var(--surface-background);
+  overflow-y: auto;
+}
+
+.auth-form-page .auth-form-surface {
+  margin-block: 0;
+  flex-shrink: 0;
+}
+
+/* Ícones do painel auth (gradiente): tile e stroke menores que na landing (20×20 → ~14px) */
 .auth-brand-feature-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2rem;
+  height: 2rem;
   flex-shrink: 0;
-  border-radius: var(--radius-m);
+  border-radius: 0.5rem;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(8px);
+}
+
+.auth-brand-feature-icon svg {
+  width: 1.4rem;
+  height: 1.4rem;
 }
 
 /* ====================================================================

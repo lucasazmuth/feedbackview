@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
@@ -12,8 +11,15 @@ import { Input } from '@/components/ui/Input'
 import { Alert } from '@/components/ui/Alert'
 import { Spinner } from '@/components/ui/Spinner'
 import { Eye, EyeOff } from 'lucide-react'
-import { ICON_PX, ICON_STROKE } from '@/lib/icon-tokens'
-import { AppIcon } from '@/components/ui/AppIcon'
+import { ICON_PX } from '@/lib/icon-tokens'
+import { AuthBrandPanel } from '@/components/auth/AuthBrandPanel'
+import { AuthLogoLink } from '@/components/auth/AuthLogoLink'
+import {
+  landingHero,
+  landingSteps,
+  landingThreeStepsSection,
+} from '@/content/landing.pt-BR'
+import { featureIcons } from '@/components/landing/icons'
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
@@ -27,8 +33,22 @@ const registerSchema = z.object({
 
 type RegisterForm = z.infer<typeof registerSchema>
 
+const registerStepIconKeys = ['bolt', 'globe', 'dashboard'] as const
+
+const registerBrandFeatures = landingSteps.map((step, i) => ({
+  icon: featureIcons[registerStepIconKeys[i]],
+  title: step.title,
+  description: step.description,
+}))
+
+const selectBaseClass =
+  'h-10 w-full appearance-none box-border rounded-[0.5rem] border border-solid px-3 text-sm outline-none ' +
+  'border-[color:var(--neutral-border-medium)] bg-[var(--surface-background)] ' +
+  'text-[color:var(--neutral-on-background-strong)] ' +
+  'transition-[border-color,box-shadow] duration-150 ' +
+  'focus:border-[color:var(--brand-solid-strong)] focus:shadow-[0_0_0_2px_var(--brand-alpha-weak)]'
+
 export default function RegisterPage() {
-  const router = useRouter()
   const [serverError, setServerError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
 
@@ -80,7 +100,6 @@ export default function RegisterPage() {
         return
       }
 
-      // Create organization for the new user
       if (authData.user) {
         try {
           await fetch('/api/auth/setup-org', {
@@ -93,81 +112,42 @@ export default function RegisterPage() {
             }),
           })
         } catch {
-          // Non-blocking: org can be created later if this fails
           console.error('Failed to create organization')
         }
       }
 
-      // Hard navigation to ensure fresh data
       window.location.href = '/dashboard'
     } catch {
       setServerError('Erro de conexão. Verifique sua internet.')
     }
   }
 
+  const registerLead = landingHero.proofItems.join(' · ')
+
   return (
-    <div className="flex w-full min-h-screen">
-      {/* Left branding panel */}
-      <div
-        className="auth-brand-panel flex-1 sticky top-0 h-screen overflow-hidden bg-primary-gradient"
-      >
-        <div className="absolute inset-0" style={{
-          background: 'radial-gradient(circle at 30% 70%, rgba(255,255,255,0.08) 0%, transparent 60%), radial-gradient(circle at 70% 20%, rgba(255,255,255,0.05) 0%, transparent 50%)',
-        }} />
-        <div className="relative z-10 flex flex-col items-start justify-center w-full h-full gap-8 p-10">
-          <a href="/" className="no-underline"><span className="font-logo font-bold text-2xl tracking-tight text-white">Buug</span></a>
+    <div className="flex min-h-[100dvh] w-full">
+      <AuthBrandPanel
+        tag={landingThreeStepsSection.tag}
+        headline={landingThreeStepsSection.title}
+        lead={registerLead}
+        features={registerBrandFeatures}
+      />
 
-          <div className="flex flex-col gap-4 max-w-[24rem]">
-            <h2 className="text-white text-[2rem] font-bold leading-tight m-0">
-              Comece a capturar bugs hoje
-            </h2>
-            <p className="text-white/80 text-base leading-relaxed m-0">
-              Configure em menos de 1 minuto. Sem cartão de crédito.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-4 max-w-[22rem]">
-            {[
-              { svg: <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis} style={{ color: '#fff' }}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></AppIcon>, text: 'Setup em 1 minuto' },
-              { svg: <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis} style={{ color: '#fff' }}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></AppIcon>, text: 'Grátis para começar' },
-              { svg: <AppIcon size="md" strokeWidth={ICON_STROKE.emphasis} style={{ color: '#fff' }}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></AppIcon>, text: 'Convide toda sua equipe' },
-            ].map((item) => (
-              <div key={item.text} className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center shrink-0">
-                  {item.svg}
-                </div>
-                <span className="text-white/90 text-sm">{item.text}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Right form panel */}
-      <div className="flex-1 min-w-0 overflow-y-auto flex justify-center px-8 py-12 pb-16 bg-background">
-        <div className="w-full max-w-lg flex flex-col gap-8">
-          {/* Mobile logo */}
+      <div className="auth-form-panel">
+        <div className="auth-form-surface">
           <div className="auth-mobile-logo flex flex-col items-center gap-4">
-            <a href="/" className="no-underline"><span className="font-logo font-bold text-2xl tracking-tight text-off-white">Buug</span></a>
-            <p className="text-sm text-gray">
-              QA com captura em tempo real
-            </p>
+            <AuthLogoLink tone="on-dark" />
+            <p className="text-sm text-gray">{landingHero.tag}</p>
           </div>
 
           <div className="flex flex-col gap-2">
-            <h1 className="text-3xl font-bold text-off-white">
-              Criar sua conta
-            </h1>
-            <p className="text-base text-primary-text">
-              Comece a capturar feedbacks em minutos
-            </p>
+            <h1 className="text-3xl font-bold text-off-white">Criar sua conta</h1>
+            <p className="text-base text-primary-text">Comece a capturar feedbacks em minutos</p>
           </div>
 
-          {serverError && (
-            <Alert variant="danger">{serverError}</Alert>
-          )}
+          {serverError && <Alert variant="danger">{serverError}</Alert>}
 
-          <form className="flex flex-col gap-4 w-full" onSubmit={handleSubmit(onSubmit)}>
+          <form className="flex w-full flex-col gap-5" onSubmit={handleSubmit(onSubmit)}>
             <Input
               id="name"
               label="Nome"
@@ -193,8 +173,8 @@ export default function RegisterPage() {
               {...register('company')}
             />
 
-            <div className="flex gap-4 w-full">
-              <div className="flex-1">
+            <div className="flex w-full flex-col gap-5 sm:flex-row sm:items-start">
+              <div className="min-w-0 flex-1">
                 <Input
                   id="phone"
                   label="Telefone"
@@ -209,7 +189,7 @@ export default function RegisterPage() {
                   })}
                 />
               </div>
-              <div className="flex-1">
+              <div className="min-w-0 flex-1">
                 <Input
                   id="cep"
                   label="CEP"
@@ -225,27 +205,36 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="teamSize" className="text-sm font-medium text-off-white">
+            <div className="flex flex-col gap-2">
+              <label
+                htmlFor="teamSize"
+                className="text-sm font-medium text-[color:var(--neutral-on-background-medium)]"
+              >
                 Tamanho da equipe
               </label>
               <select
                 id="teamSize"
                 value={teamSizeValue || ''}
                 onChange={(e) => setValue('teamSize', e.target.value, { shouldValidate: true })}
-                className={`h-10 w-full rounded-lg border bg-gray-dark px-3 text-sm text-off-white border-transparent-white focus:outline-none focus:ring-2 focus:ring-[rgb(86,67,204)] focus:border-transparent transition-shadow duration-200 appearance-none ${
-                  errors.teamSize ? 'border-danger focus:ring-danger' : ''
-                }`}
+                className={`${selectBaseClass} ${errors.teamSize ? 'border-[color:var(--danger-solid-strong)] focus:border-[color:var(--danger-solid-strong)] focus:shadow-[0_0_0_2px_var(--danger-alpha-weak)]' : ''}`}
               >
-                <option value="" disabled className="bg-gray-dark text-gray">Selecione...</option>
-                <option value="1-5" className="bg-gray-dark">1 a 5 pessoas</option>
-                <option value="6-20" className="bg-gray-dark">6 a 20 pessoas</option>
-                <option value="21-50" className="bg-gray-dark">21 a 50 pessoas</option>
-                <option value="51+" className="bg-gray-dark">Mais de 50 pessoas</option>
+                <option value="" disabled className="bg-[var(--neutral-solid-medium)] text-[color:var(--neutral-on-background-weak)]">
+                  Selecione...
+                </option>
+                <option value="1-5" className="bg-[var(--neutral-solid-medium)]">
+                  1 a 5 pessoas
+                </option>
+                <option value="6-20" className="bg-[var(--neutral-solid-medium)]">
+                  6 a 20 pessoas
+                </option>
+                <option value="21-50" className="bg-[var(--neutral-solid-medium)]">
+                  21 a 50 pessoas
+                </option>
+                <option value="51+" className="bg-[var(--neutral-solid-medium)]">
+                  Mais de 50 pessoas
+                </option>
               </select>
-              {errors.teamSize && (
-                <p className="text-xs text-danger">{errors.teamSize.message}</p>
-              )}
+              {errors.teamSize && <p className="text-xs text-danger">{errors.teamSize.message}</p>}
             </div>
 
             <Input
@@ -286,13 +275,21 @@ export default function RegisterPage() {
             </Button>
           </form>
 
-          <p className="text-xs text-gray text-center">
-            Ao criar uma conta, você concorda com nossos termos de uso.
+          <p className="text-center text-xs leading-relaxed text-gray">
+            Ao criar uma conta, você concorda com nossos{' '}
+            <Link href="/termos" className="auth-link">
+              Termos de Uso
+            </Link>{' '}
+            e{' '}
+            <Link href="/privacidade" className="auth-link">
+              Política de Privacidade
+            </Link>
+            .
           </p>
 
-          <p className="text-sm text-primary-text text-center">
+          <p className="text-center text-sm text-primary-text">
             Já tem conta?{' '}
-            <Link href="/auth/login" className="text-[rgb(86,67,204)] hover:text-[rgb(69,94,181)] font-semibold no-underline">
+            <Link href="/auth/login" className="auth-link">
               Entrar
             </Link>
           </p>

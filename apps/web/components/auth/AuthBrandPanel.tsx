@@ -1,21 +1,27 @@
+import type { ReactNode } from 'react'
+import clsx from 'clsx'
 import { AuthLogoLink } from './AuthLogoLink'
 
 export type AuthBrandFeature = {
-  icon: React.ReactNode
-  text: string
+  icon: ReactNode
+  title: string
+  description?: string
 }
 
 export function AuthBrandPanel({
+  tag,
   headline,
   lead,
   features,
 }: {
-  headline: string
+  /** Mesmo padrão do pill do hero da landing (`landingHero.tag`). */
+  tag?: string
+  headline: ReactNode
   lead: string
   features: AuthBrandFeature[]
 }) {
   return (
-    <div className="auth-brand-panel relative flex-1 overflow-hidden bg-primary-gradient sticky top-0 h-screen">
+    <div className="auth-brand-panel relative h-screen flex-1 overflow-hidden bg-primary-gradient sticky top-0">
       <div
         className="pointer-events-none absolute inset-0"
         style={{
@@ -23,19 +29,42 @@ export function AuthBrandPanel({
             'radial-gradient(circle at 30% 70%, rgba(255,255,255,0.08) 0%, transparent 60%), radial-gradient(circle at 70% 20%, rgba(255,255,255,0.05) 0%, transparent 50%)',
         }}
       />
-      <div className="relative z-10 flex h-full w-full flex-col items-start justify-center gap-8 p-10 md:p-12">
+      <div
+        className={clsx(
+          'relative z-10 flex h-full w-full flex-col items-start justify-center gap-8',
+          'px-4 py-12 md:px-8 md:py-16'
+        )}
+      >
         <AuthLogoLink tone="on-gradient" />
 
-        <div className="flex max-w-[24rem] flex-col gap-4">
-          <h2 className="m-0 text-[2rem] font-bold leading-tight text-white">{headline}</h2>
-          <p className="m-0 text-base leading-relaxed text-white/80">{lead}</p>
+        {tag ? (
+          <span
+            className={clsx(
+              'inline-flex items-center rounded-full border border-transparent-white px-4 py-1.5',
+              'text-xs text-primary-text'
+            )}
+          >
+            {tag}
+          </span>
+        ) : null}
+
+        <div className="flex max-w-[28rem] flex-col gap-4">
+          <h2 className="text-gradient text-3xl font-bold leading-[1.12] tracking-tight md:text-4xl md:leading-[1.1]">
+            {headline}
+          </h2>
+          <p className="m-0 text-lg leading-relaxed text-primary-text">{lead}</p>
         </div>
 
-        <ul className="flex max-w-[22rem] list-none flex-col gap-4 p-0 m-0">
+        <ul className="m-0 flex max-w-[28rem] list-none flex-col gap-5 p-0">
           {features.map((item) => (
-            <li key={item.text} className="flex items-center gap-3">
-              <div className="auth-brand-feature-icon">{item.icon}</div>
-              <span className="text-sm text-white/90">{item.text}</span>
+            <li key={item.title} className="flex items-start gap-3">
+              <div className="auth-brand-feature-icon text-white">{item.icon}</div>
+              <div className="min-w-0 pt-0.5">
+                <span className="text-sm font-medium text-off-white">{item.title}</span>
+                {item.description ? (
+                  <p className="mt-1 text-xs leading-relaxed text-primary-text">{item.description}</p>
+                ) : null}
+              </div>
             </li>
           ))}
         </ul>

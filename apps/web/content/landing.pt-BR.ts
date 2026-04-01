@@ -211,8 +211,8 @@ export const landingFeaturesSection = {
 } as const
 
 export const landingThreeStepsSection = {
-  tag: 'Resumo',
-  title: 'Três passos, zero manual grosso.',
+  tag: 'Em três passos',
+  title: 'Projeto no ar, captura automática e triagem com contexto',
 } as const
 
 export const landingIntegrationSection = {
@@ -403,7 +403,6 @@ export const landingFaqSection = {
 export const landingCtaSection = {
   title: 'Pare de debugar no escuro',
   sub: 'Replay, vitals e logs no mesmo envio. Conta grátis, sem cartão.',
-  trust: ['Sem cartão', 'No ar em minutos', 'Cancele quando quiser'],
 } as const
 
 export const landingFooter = {

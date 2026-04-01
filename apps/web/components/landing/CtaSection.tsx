@@ -20,7 +20,7 @@ export function CtaSection({ isLoggedIn }: CtaSectionProps) {
           {landingCtaSection.sub}
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           {isLoggedIn ? (
             <Link
               href="/dashboard"
@@ -52,27 +52,6 @@ export function CtaSection({ isLoggedIn }: CtaSectionProps) {
               </Link>
             </>
           )}
-        </div>
-
-        {/* Trust badges */}
-        <div className="flex flex-wrap items-center justify-center gap-4">
-          {landingCtaSection.trust.map((badge) => (
-            <span
-              key={badge}
-              className="inline-flex items-center gap-2 rounded-full border border-transparent-white px-4 py-1.5 text-xs text-primary-text"
-            >
-              <svg
-                className="h-3.5 w-3.5 text-success"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-              {badge}
-            </span>
-          ))}
         </div>
       </Container>
     </section>

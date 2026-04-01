@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/Input'
 import { Spinner } from '@/components/ui/Spinner'
 import { Eye, EyeOff } from 'lucide-react'
 import { ICON_PX } from '@/lib/icon-tokens'
+import { AuthLogoLink } from '@/components/auth/AuthLogoLink'
 
 const schema = z.object({
   password: z.string().min(8, 'Senha deve ter pelo menos 8 caracteres'),
@@ -51,12 +52,10 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="flex w-full min-h-screen items-center justify-center p-8 bg-background">
-      <div className="w-full max-w-lg flex flex-col gap-8">
+    <div className="auth-form-page">
+      <div className="auth-form-surface auth-form-surface--compact w-full">
         <div className="flex flex-col gap-2">
-          <a href="/" className="no-underline">
-            <span className="font-logo font-bold text-2xl tracking-tight text-off-white">Buug</span>
-          </a>
+          <AuthLogoLink tone="on-dark" />
           <h1 className="text-3xl font-bold text-off-white">
             Nova senha
           </h1>
@@ -72,7 +71,7 @@ export default function ResetPasswordPage() {
             Senha alterada com sucesso! Redirecionando...
           </Alert>
         ) : (
-          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 w-full">
+          <form onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col gap-5">
             <Input
               id="password"
               label="Nova senha"

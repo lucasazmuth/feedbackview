@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Alert } from '@/components/ui/Alert'
 import { Spinner } from '@/components/ui/Spinner'
+import { AuthLogoLink } from '@/components/auth/AuthLogoLink'
 
 const schema = z.object({
   email: z.string().email('E-mail inválido'),
@@ -43,12 +44,10 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="flex w-full min-h-screen items-center justify-center p-8 bg-background">
-      <div className="w-full max-w-lg flex flex-col gap-8">
+    <div className="auth-form-page">
+      <div className="auth-form-surface auth-form-surface--compact w-full">
         <div className="flex flex-col gap-2">
-          <a href="/" className="no-underline">
-            <span className="font-logo font-bold text-2xl tracking-tight text-off-white">Buug</span>
-          </a>
+          <AuthLogoLink tone="on-dark" />
           <h1 className="text-3xl font-bold text-off-white">
             Recuperar senha
           </h1>
@@ -64,7 +63,7 @@ export default function ForgotPasswordPage() {
             E-mail enviado! Verifique sua caixa de entrada (e o spam) para redefinir a senha.
           </Alert>
         ) : (
-          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 w-full">
+          <form onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col gap-5">
             <Input
               id="email"
               label="E-mail"
@@ -92,9 +91,9 @@ export default function ForgotPasswordPage() {
           </form>
         )}
 
-        <p className="text-sm text-primary-text text-center">
+        <p className="text-center text-sm text-primary-text">
           Lembrou a senha?{' '}
-          <Link href="/auth/login" className="text-[rgb(86,67,204)] hover:text-[rgb(69,94,181)] font-semibold no-underline">
+          <Link href="/auth/login" className="auth-link">
             Fazer login
           </Link>
         </p>

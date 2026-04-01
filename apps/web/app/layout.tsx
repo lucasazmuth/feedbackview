@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next'
 import { Space_Grotesk } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
+import { ConditionalEmbed } from '@/components/ConditionalEmbed'
 import { landingMeta } from '@/content/landing.pt-BR'
 
 const spaceGrotesk = Space_Grotesk({
@@ -69,7 +70,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pt-BR" suppressHydrationWarning className={spaceGrotesk.variable}>
       <body>
         <Providers>{children}</Providers>
-        <Script src={`/embed.js?v=${Date.now()}`} data-project="d21f0583-5d85-4e3f-aa4b-e1a6c9bcd2a6" strategy="lazyOnload" />
+        <ConditionalEmbed />
         {/* Google Analytics 4 — set NEXT_PUBLIC_GA_ID in .env to activate */}
         {process.env.NEXT_PUBLIC_GA_ID && (
           <>
