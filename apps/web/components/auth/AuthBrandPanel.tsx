@@ -31,8 +31,8 @@ export function AuthBrandPanel({
       />
       <div
         className={clsx(
-          'relative z-10 flex h-full w-full flex-col items-start justify-center gap-8',
-          'px-4 py-12 md:px-8 md:py-16'
+          'relative z-10 flex h-full w-full flex-col items-start justify-center gap-6',
+          'px-6 py-10 md:px-10 md:py-16 lg:px-12'
         )}
       >
         <AuthLogoLink tone="on-gradient" />
@@ -40,7 +40,7 @@ export function AuthBrandPanel({
         {tag ? (
           <span
             className={clsx(
-              'inline-flex items-center rounded-full border border-transparent-white px-4 py-1.5',
+              'inline-flex items-center rounded-full border border-transparent-white px-3 py-1',
               'text-xs text-primary-text'
             )}
           >
@@ -48,21 +48,21 @@ export function AuthBrandPanel({
           </span>
         ) : null}
 
-        <div className="flex max-w-[28rem] flex-col gap-4">
-          <h2 className="text-gradient text-3xl font-bold leading-[1.12] tracking-tight md:text-4xl md:leading-[1.1]">
+        <div className="flex max-w-[26rem] flex-col gap-3">
+          <h2 className="text-gradient text-2xl font-bold leading-[1.15] tracking-tight md:text-3xl md:leading-[1.12]">
             {headline}
           </h2>
-          <p className="m-0 text-lg leading-relaxed text-primary-text">{lead}</p>
+          <p className="m-0 text-sm leading-relaxed text-primary-text">{lead}</p>
         </div>
 
-        <ul className="m-0 flex max-w-[28rem] list-none flex-col gap-5 p-0">
+        <ul className="m-0 flex max-w-[26rem] list-none flex-col gap-4 p-0">
           {features.map((item) => (
             <li key={item.title} className="flex items-start gap-3">
               <div className="auth-brand-feature-icon text-white">{item.icon}</div>
               <div className="min-w-0 pt-0.5">
                 <span className="text-sm font-medium text-off-white">{item.title}</span>
                 {item.description ? (
-                  <p className="mt-1 text-xs leading-relaxed text-primary-text">{item.description}</p>
+                  <p className="mt-0.5 text-xs leading-relaxed text-primary-text">{item.description}</p>
                 ) : null}
               </div>
             </li>
