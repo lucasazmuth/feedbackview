@@ -62,7 +62,7 @@ interface TableViewProps {
   onDueDateChange: (feedbackId: string, dueDate: string | null) => void
 }
 
-const GRID_COLS = '1.25rem 1.5rem 5rem 6rem 1fr 5rem 6rem 2.5rem 11rem'
+const GRID_COLS = '1.25rem 1.5rem 7rem 8rem 1fr 5.5rem 7rem 2.5rem 11rem'
 
 const cellStyle: React.CSSProperties = { display: 'flex', alignItems: 'center', minHeight: '1.75rem' }
 
@@ -86,7 +86,7 @@ function SortHeader({ label, field, sort, onToggleSort }: { label: string; field
         display: 'flex', alignItems: 'center', gap: '0.25rem',
         background: 'none', border: 'none', cursor: 'pointer', padding: 0,
         color: isActive ? 'var(--neutral-on-background-strong)' : 'var(--neutral-on-background-weak)',
-        fontSize: '0.6875rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em',
+        fontSize: '1.1rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em',
       }}
     >
       {label}
@@ -190,7 +190,7 @@ function SortableRow({
         borderLeft: `3px solid ${accentColor}`,
         cursor: 'pointer',
         transition: 'background 0.15s',
-        gap: '0.5rem',
+        gap: '1rem',
         alignItems: 'center',
         background: isSelected ? 'var(--brand-alpha-weak)' : 'var(--surface-background)',
       }}
@@ -224,7 +224,7 @@ function SortableRow({
         {feedback.severity ? (
           <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: getTagColors(feedback.severity).bg, color: getTagColors(feedback.severity).color }}>{getSeverityLabel(feedback.severity)}</span>
         ) : (
-          <span style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)' }}>—</span>
+          <span style={{ fontSize: '1.2rem', color: 'var(--neutral-on-background-weak)' }}>—</span>
         )}
       </div>
       <div style={cellStyle}>
@@ -408,7 +408,7 @@ export default function TableView({
                 </svg>
                 <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: getTagColors(group.status).bg, color: getTagColors(group.status).color }}>{getStatusLabel(group.status)}</span>
                 <span style={{
-                  fontSize: '0.75rem', fontWeight: 600, color: 'var(--neutral-on-background-weak)',
+                  fontSize: '1.2rem', fontWeight: 600, color: 'var(--neutral-on-background-weak)',
                   background: 'var(--neutral-alpha-medium)', borderRadius: '50%',
                   width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
@@ -423,7 +423,7 @@ export default function TableView({
                   padding: '0.5rem 1rem',
                   borderBottom: '1px solid var(--neutral-border-medium)',
                   borderLeft: `3px solid ${accentColor}`,
-                  gap: '0.5rem', alignItems: 'center',
+                  gap: '1rem', alignItems: 'center',
                   background: 'var(--surface-background)',
                 }}>
                   <span /> {/* drag handle column */}
@@ -471,7 +471,7 @@ export default function TableView({
                   padding: '0.375rem 1rem',
                   borderLeft: `3px solid ${accentColor}`,
                   background: 'var(--neutral-alpha-weak)',
-                  fontSize: '0.6875rem',
+                  fontSize: '1.1rem',
                   color: 'var(--neutral-on-background-weak)',
                 }}>
                   {group.items.length}/{feedbacks.length} reports
