@@ -60,7 +60,7 @@ function MiniCalendar({ selected, onSelect }: { selected: Date | null; onSelect:
   const selectedYear = selected?.getFullYear()
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
       {/* Month navigation */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <button
@@ -69,7 +69,7 @@ function MiniCalendar({ selected, onSelect }: { selected: Date | null; onSelect:
         >
           <AppIcon size="sm" strokeWidth={ICON_STROKE.emphasis}><polyline points="15 18 9 12 15 6" /></AppIcon>
         </button>
-        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)' }}>
+        <span style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)' }}>
           {MONTHS[month]} {year}
         </span>
         <button
@@ -83,7 +83,7 @@ function MiniCalendar({ selected, onSelect }: { selected: Date | null; onSelect:
       {/* Weekday headers */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.125rem' }}>
         {WEEKDAYS.map(d => (
-          <span key={d} style={{ fontSize: '0.5625rem', fontWeight: 600, textAlign: 'center', color: 'var(--neutral-on-background-weak)', padding: '0.125rem 0', textTransform: 'uppercase' }}>
+          <span key={d} style={{ fontSize: '1.2rem', fontWeight: 600, textAlign: 'center', color: 'var(--neutral-on-background-weak)', padding: '0.125rem 0', textTransform: 'uppercase' }}>
             {d}
           </span>
         ))}
@@ -110,7 +110,7 @@ function MiniCalendar({ selected, onSelect }: { selected: Date | null; onSelect:
                 background: isSelected ? 'var(--brand-solid-strong)' : 'transparent',
                 color: isSelected ? '#fff' : 'var(--neutral-on-background-strong)',
                 cursor: 'pointer',
-                fontSize: '0.6875rem',
+                fontSize: '1.2rem',
                 fontWeight: isToday || isSelected ? 600 : 400,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 transition: 'background 0.1s',
@@ -170,8 +170,8 @@ export default function InlineDatePicker({ feedbackId, dueDate, onDueDateChange,
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '0.25rem',
-          padding: '0.125rem 0.375rem',
+          gap: '0.5rem',
+          padding: '0.3rem 0.6rem',
           borderRadius: '0.375rem',
           border: dueDate
             ? overdue
@@ -184,7 +184,7 @@ export default function InlineDatePicker({ feedbackId, dueDate, onDueDateChange,
               : 'var(--surface-background)'
             : 'transparent',
           cursor: 'pointer',
-          fontSize: '0.6875rem',
+          fontSize: '1.2rem',
           fontWeight: 500,
           color: dueDate
             ? overdue
@@ -224,12 +224,12 @@ export default function InlineDatePicker({ feedbackId, dueDate, onDueDateChange,
           }}
         >
           {/* Header */}
-          <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--neutral-on-background-weak)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+          <span style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--neutral-on-background-weak)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
             {label === 'Início' ? 'Data de início' : 'Data de entrega'}
           </span>
 
           {/* Quick options */}
-          <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             {[
               { label: 'Hoje', days: 0 },
               { label: 'Amanhã', days: 1 },
@@ -249,12 +249,12 @@ export default function InlineDatePicker({ feedbackId, dueDate, onDueDateChange,
                     setOpen(false)
                   }}
                   style={{
-                    padding: '0.25rem 0.5rem',
+                    padding: '0.4rem 0.8rem',
                     borderRadius: '0.375rem',
                     border: '1px solid var(--neutral-border-medium)',
                     background: 'var(--surface-background)',
                     cursor: 'pointer',
-                    fontSize: '0.6875rem',
+                    fontSize: '1.2rem',
                     fontWeight: 500,
                     color: 'var(--neutral-on-background-strong)',
                     transition: 'background 0.1s',
@@ -289,7 +289,7 @@ export default function InlineDatePicker({ feedbackId, dueDate, onDueDateChange,
                 border: 'none',
                 background: 'transparent',
                 cursor: 'pointer',
-                fontSize: '0.6875rem',
+                fontSize: '1.2rem',
                 color: 'var(--danger-on-background-strong)',
                 textAlign: 'center',
               }}

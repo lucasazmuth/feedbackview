@@ -396,7 +396,7 @@ export default function TeamPage() {
                           type="button"
                           onClick={() => openEditModal(member)}
                           className="app-btn-secondary"
-                          style={{ padding: '0.375rem 0.75rem', fontSize: '0.8125rem' }}
+                          style={{ padding: '0.375rem 0.75rem', fontSize: '1.4rem' }}
                         >
                           Editar
                         </button>
@@ -418,11 +418,11 @@ export default function TeamPage() {
                           {memberInitials(member.name, member.email)}
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem', minWidth: 0 }}>
-                          <span style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--neutral-on-background-strong)' }}>
+                          <span style={{ fontWeight: 600, fontSize: '1.4rem', color: 'var(--neutral-on-background-strong)' }}>
                             {member.name}
                           </span>
                           {member.email ? (
-                            <span style={{ fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)' }}>{member.email}</span>
+                            <span style={{ fontSize: '1.4rem', color: 'var(--neutral-on-background-weak)' }}>{member.email}</span>
                           ) : null}
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem', marginTop: '0.25rem' }}>
                             <span
@@ -454,7 +454,7 @@ export default function TeamPage() {
                           type="button"
                           onClick={() => openEditModal(member)}
                           className="app-btn-secondary"
-                          style={{ padding: '0.375rem 0.75rem', fontSize: '0.8125rem', flexShrink: 0 }}
+                          style={{ padding: '0.375rem 0.75rem', fontSize: '1.4rem', flexShrink: 0 }}
                         >
                           Editar
                         </button>
@@ -662,9 +662,9 @@ const teamPageStyles = `
   gap: 0.5rem;
   flex-wrap: wrap;
 }
-.team-page__list-title { font-size: 1rem; margin: 0; }
+.team-page__list-title { font-size: 1.6rem; margin: 0; }
 .team-page__count-pill {
-  font-size: 0.75rem;
+  font-size: 1.2rem;
   font-weight: 700;
   padding: 0.2rem 0.55rem;
   border-radius: 999px;
@@ -700,7 +700,7 @@ const teamPageStyles = `
   border-radius: 0.5rem;
   background: var(--brand-solid-strong);
   color: #fff;
-  font-size: 0.8rem;
+  font-size: 1.4rem;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -710,7 +710,7 @@ const teamPageStyles = `
 .team-page__avatar--lg {
   width: 3rem;
   height: 3rem;
-  font-size: 0.9375rem;
+  font-size: 1.4rem;
   border-radius: 0.75rem;
   background: var(--brand-solid-strong);
   color: #fff;
@@ -719,7 +719,7 @@ const teamPageStyles = `
   justify-content: center;
   flex-shrink: 0;
 }
-.team-page__role-badge { font-size: 0.6875rem; }
+.team-page__role-badge { font-size: 1.2rem; }
 .team-page__list-table { display: none; }
 .team-page__list-cards { display: flex; flex-direction: column; gap: 0.75rem; }
 .team-page__list-table-skel { display: none; }

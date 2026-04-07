@@ -145,7 +145,7 @@ export default function UpgradeModal({
           }}
         >
           <h2 style={{
-            fontSize: '1.125rem',
+            fontSize: '1.8rem',
             fontWeight: 700,
             color: 'var(--neutral-on-background-strong)',
             margin: 0,
@@ -154,7 +154,7 @@ export default function UpgradeModal({
             Faça upgrade do seu plano
           </h2>
           <p style={{
-            fontSize: '0.8125rem',
+            fontSize: '1.4rem',
             color: 'var(--neutral-on-background-weak)',
             margin: '0 0 0.75rem 0',
             lineHeight: 1.4,
@@ -192,7 +192,7 @@ export default function UpgradeModal({
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                     <span style={{
-                      fontSize: '0.875rem',
+                      fontSize: '1.4rem',
                       fontWeight: 600,
                       color: 'var(--neutral-on-background-strong)',
                     }}>
@@ -200,7 +200,7 @@ export default function UpgradeModal({
                     </span>
                     {plan.recommended && (
                       <span style={{
-                        fontSize: '0.5625rem',
+                        fontSize: '1.2rem',
                         fontWeight: 700,
                         textTransform: 'uppercase',
                         letterSpacing: '0.05em',
@@ -214,7 +214,7 @@ export default function UpgradeModal({
                     )}
                     {isCurrent && (
                       <span style={{
-                        fontSize: '0.5625rem',
+                        fontSize: '1.2rem',
                         fontWeight: 700,
                         textTransform: 'uppercase',
                         letterSpacing: '0.05em',
@@ -228,7 +228,7 @@ export default function UpgradeModal({
                     )}
                   </div>
                   <span style={{
-                    fontSize: '0.75rem',
+                    fontSize: '1.2rem',
                     color: 'var(--neutral-on-background-weak)',
                   }}>
                     {prices[plan.key].monthlyFormatted}{plan.period}
@@ -266,7 +266,7 @@ export default function UpgradeModal({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '1.25rem',
+              fontSize: '1.4rem',
             }}
           >
             <AppIcon size="lg" strokeWidth={ICON_STROKE.emphasis}>
@@ -278,7 +278,7 @@ export default function UpgradeModal({
           {/* Plan name + price */}
           <div style={{ marginBottom: '0.25rem' }}>
             <h3 style={{
-              fontSize: '1.25rem',
+              fontSize: '1.4rem',
               fontWeight: 700,
               color: 'var(--neutral-on-background-strong)',
               margin: 0,
@@ -286,7 +286,7 @@ export default function UpgradeModal({
               {selectedPlan.name}
             </h3>
             <p style={{
-              fontSize: '0.8125rem',
+              fontSize: '1.4rem',
               color: 'var(--neutral-on-background-weak)',
               margin: '0.25rem 0 0',
             }}>
@@ -304,7 +304,7 @@ export default function UpgradeModal({
               {prices[selected].monthlyFormatted}
             </span>
             <span style={{
-              fontSize: '0.875rem',
+              fontSize: '1.4rem',
               color: 'var(--neutral-on-background-weak)',
             }}>
               {selectedPlan.period}
@@ -319,7 +319,7 @@ export default function UpgradeModal({
 
           {/* Features */}
           <p style={{
-            fontSize: '0.8125rem',
+            fontSize: '1.4rem',
             fontWeight: 600,
             color: 'var(--neutral-on-background-strong)',
             margin: '0 0 0.75rem',
@@ -349,7 +349,7 @@ export default function UpgradeModal({
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
                 <span style={{
-                  fontSize: '0.8125rem',
+                  fontSize: '1.4rem',
                   color: 'var(--neutral-on-background-strong)',
                   lineHeight: 1.4,
                 }}>
@@ -376,7 +376,7 @@ export default function UpgradeModal({
                 ? 'var(--neutral-on-background-weak)'
                 : '#fff',
               fontWeight: 600,
-              fontSize: '0.9375rem',
+              fontSize: '1.4rem',
               cursor: selected === currentPlan || selected === 'FREE' ? 'default' : 'pointer',
               transition: 'opacity 0.15s',
               opacity: upgradeLoading ? 0.7 : 1,

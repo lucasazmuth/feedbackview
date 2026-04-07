@@ -31,7 +31,7 @@ export function FeaturesSection() {
                 'rounded-[2.4rem] md:rounded-[4.8rem]',
                 'transition-all duration-300 ease-out',
                 'hover:bg-transparent-white hover:-translate-y-1',
-                'hover:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.45),0_0_0_1px_rgba(120,119,198,0.12)]',
+                'hover:shadow-[0_24px_48px_-12px_rgba(0,0,0,0.08),0_0_0_1px_rgba(59,130,246,0.12)]',
                 /* Último card: sozinho na 2ª linha em lg (3 col.) — centraliza na coluna do meio */
                 i === landingFeatures.length - 1 && 'lg:col-start-2 xl:col-start-auto'
               )}

@@ -64,9 +64,9 @@ function FilterDropdown({
       padding: '0.5rem',
       display: 'flex',
       flexDirection: 'column',
-      gap: '0.25rem',
+      gap: '0.5rem',
     }}>
-      <span className="text-xs font-medium text-gray" style={{ padding: '0.25rem 0.5rem' }}>{label}</span>
+      <span className="text-xs font-medium text-gray" style={{ padding: '0.4rem 0.8rem' }}>{label}</span>
       {options.map(opt => {
         const isActive = selected.includes(opt.value)
         return (
@@ -134,13 +134,13 @@ function ProjectDropdown({
       position: 'absolute', top: '100%', left: 0, marginTop: 4, minWidth: 200,
       background: 'var(--surface-background)', border: '1px solid var(--neutral-border-medium)',
       borderRadius: '0.75rem', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 100,
-      padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', maxHeight: 240, overflowY: 'auto',
+      padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: 240, overflowY: 'auto',
     }}>
-      <span className="text-xs font-medium text-gray" style={{ padding: '0.25rem 0.5rem' }}>Projeto</span>
+      <span className="text-xs font-medium text-gray" style={{ padding: '0.4rem 0.8rem' }}>Projeto</span>
       <button onClick={() => onSetProjectId(null)} style={{
         padding: '0.5rem', borderRadius: '0.5rem', border: 'none',
         background: !projectId ? 'var(--brand-alpha-weak)' : 'transparent',
-        cursor: 'pointer', textAlign: 'left', fontSize: '0.8125rem', color: 'var(--neutral-on-background-strong)',
+        cursor: 'pointer', textAlign: 'left', fontSize: '1.4rem', color: 'var(--neutral-on-background-strong)',
       }}>
         Todos
       </button>
@@ -148,7 +148,7 @@ function ProjectDropdown({
         <button key={p.id} onClick={() => onSetProjectId(p.id)} style={{
           padding: '0.5rem', borderRadius: '0.5rem', border: 'none',
           background: projectId === p.id ? 'var(--brand-alpha-weak)' : 'transparent',
-          cursor: 'pointer', textAlign: 'left', fontSize: '0.8125rem', color: 'var(--neutral-on-background-strong)',
+          cursor: 'pointer', textAlign: 'left', fontSize: '1.4rem', color: 'var(--neutral-on-background-strong)',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
         }}>
           {p.name}
@@ -219,7 +219,7 @@ export default function FilterBar({
                 background: 'var(--brand-solid-strong)', color: '#fff',
                 borderRadius: '50%', width: 16, height: 16,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '0.5625rem', fontWeight: 700,
+                fontSize: '1.2rem', fontWeight: 700,
               }}>
                 {activeFilterCount}
               </span>
@@ -231,7 +231,7 @@ export default function FilterBar({
                 position: 'absolute', top: 'calc(100% + 6px)', right: 0,
                 zIndex: 9999, width: '18rem', maxHeight: '70vh', overflowY: 'auto',
               }}>
-                <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--neutral-on-background-weak)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                <span style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--neutral-on-background-weak)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                   Filtrar por
                 </span>
 
@@ -283,7 +283,7 @@ export default function FilterBar({
 
                 {activeFilterCount > 0 && (
                   <button onClick={() => { onClearAll(); setPanelOpen(false) }}
-                    style={{ padding: '0.375rem', borderRadius: '0.375rem', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '0.6875rem', color: 'var(--danger-on-background-strong)', textAlign: 'center' }}>
+                    style={{ padding: '0.375rem', borderRadius: '0.375rem', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.2rem', color: 'var(--danger-on-background-strong)', textAlign: 'center' }}>
                     Limpar filtros
                   </button>
                 )}
@@ -311,8 +311,8 @@ export default function FilterBar({
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.375rem',
-                padding: '0.375rem 0.75rem',
+                gap: '0.6rem',
+                padding: '0.8rem 1.2rem',
                 borderRadius: '0.5rem',
                 border: filter.selected.length > 0
                   ? '1px solid var(--brand-border-strong)'
@@ -321,7 +321,7 @@ export default function FilterBar({
                   ? 'var(--brand-alpha-weak)'
                   : 'var(--surface-background)',
                 cursor: 'pointer',
-                fontSize: '0.8125rem',
+                fontSize: '1.4rem',
                 fontWeight: 500,
                 color: 'var(--neutral-on-background-strong)',
                 transition: 'all 0.15s',
@@ -338,7 +338,7 @@ export default function FilterBar({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '0.6875rem',
+                  fontSize: '1.2rem',
                   fontWeight: 700,
                 }}>
                   {filter.selected.length}
@@ -367,8 +367,8 @@ export default function FilterBar({
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '0.375rem',
-              padding: '0.375rem 0.75rem',
+              gap: '0.6rem',
+              padding: '0.8rem 1.2rem',
               borderRadius: '0.5rem',
               border: filters.projectId
                 ? '1px solid var(--brand-border-strong)'
@@ -377,7 +377,7 @@ export default function FilterBar({
                 ? 'var(--brand-alpha-weak)'
                 : 'var(--surface-background)',
               cursor: 'pointer',
-              fontSize: '0.8125rem',
+              fontSize: '1.4rem',
               fontWeight: 500,
               color: 'var(--neutral-on-background-strong)',
               transition: 'all 0.15s',
@@ -394,7 +394,7 @@ export default function FilterBar({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '0.6875rem',
+                fontSize: '1.2rem',
                 fontWeight: 700,
               }}>
                 1
@@ -422,12 +422,12 @@ export default function FilterBar({
           <button
             onClick={() => onApplyPreset('my-reports', currentUserId)}
             style={{
-              padding: '0.375rem 0.75rem',
+              padding: '0.8rem 1.2rem',
               borderRadius: '0.5rem',
               border: '1px solid var(--neutral-border-medium)',
               background: filters.assignee === currentUserId ? 'var(--brand-alpha-weak)' : 'var(--surface-background)',
               cursor: 'pointer',
-              fontSize: '0.75rem',
+              fontSize: '1.2rem',
               fontWeight: 500,
               color: 'var(--neutral-on-background-medium)',
               transition: 'all 0.15s',
@@ -439,12 +439,12 @@ export default function FilterBar({
         <button
           onClick={() => onApplyPreset('critical-bugs')}
           style={{
-            padding: '0.375rem 0.75rem',
+            padding: '0.8rem 1.2rem',
             borderRadius: '0.5rem',
             border: '1px solid var(--neutral-border-medium)',
             background: filters.types.length === 1 && filters.types[0] === 'BUG' && filters.severities.length === 1 && filters.severities[0] === 'CRITICAL' ? 'var(--danger-alpha-weak)' : 'var(--surface-background)',
             cursor: 'pointer',
-            fontSize: '0.75rem',
+            fontSize: '1.2rem',
             fontWeight: 500,
             color: 'var(--neutral-on-background-medium)',
             transition: 'all 0.15s',
@@ -455,12 +455,12 @@ export default function FilterBar({
         <button
           onClick={() => onApplyPreset('unassigned')}
           style={{
-            padding: '0.375rem 0.75rem',
+            padding: '0.8rem 1.2rem',
             borderRadius: '0.5rem',
             border: '1px solid var(--neutral-border-medium)',
             background: filters.assignee === 'unassigned' ? 'var(--warning-alpha-weak)' : 'var(--surface-background)',
             cursor: 'pointer',
-            fontSize: '0.75rem',
+            fontSize: '1.2rem',
             fontWeight: 500,
             color: 'var(--neutral-on-background-medium)',
             transition: 'all 0.15s',
@@ -472,7 +472,7 @@ export default function FilterBar({
 
       {/* Active filter chips */}
       {activeFilterCount > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
           {filters.types.map(t => (
             <span key={`type-${t}`} className="text-xs px-2 py-0.5 rounded-full font-medium cursor-pointer" style={{ background: getTagColors(t).bg, color: getTagColors(t).color }} onClick={() => onRemoveFilter('types', t)}>
               {getTypeLabel(t)}
@@ -501,12 +501,12 @@ export default function FilterBar({
           <button
             onClick={onClearAll}
             style={{
-              padding: '0.25rem 0.5rem',
+              padding: '0.4rem 0.8rem',
               borderRadius: '0.375rem',
               border: 'none',
               background: 'transparent',
               cursor: 'pointer',
-              fontSize: '0.75rem',
+              fontSize: '1.2rem',
               fontWeight: 500,
               color: 'var(--danger-on-background-strong)',
               transition: 'color 0.15s',

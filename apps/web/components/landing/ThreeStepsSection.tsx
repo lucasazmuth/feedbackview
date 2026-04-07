@@ -5,7 +5,7 @@ export function ThreeStepsSection() {
   return (
     <section id="tres-passos" className="landing-section-pad">
       <Container className="text-center">
-        <span className="mb-4 inline-block rounded-full border border-transparent-white bg-white/5 px-3 py-1 text-xs text-gray">
+        <span className="mb-4 inline-block rounded-full border border-transparent-white bg-black/[0.03] px-3 py-1 text-xs text-gray">
           {landingThreeStepsSection.tag}
         </span>
         <h2 className="text-gradient mb-12 text-4xl md:text-6xl">

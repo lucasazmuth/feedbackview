@@ -798,7 +798,7 @@ export function CreateProjectWizard() {
                   borderRadius: 'var(--radius-l)',
                   borderWidth: 2,
                   borderStyle: 'solid',
-                  borderColor: proxyBlocked ? 'var(--neutral-border-medium)' : mode === 'proxy' ? 'var(--brand-solid-strong)' : 'rgba(255,255,255,0.1)',
+                  borderColor: proxyBlocked ? 'var(--neutral-border-medium)' : mode === 'proxy' ? 'var(--brand-solid-strong)' : '#e2e8f0',
                   background: proxyBlocked ? 'var(--neutral-alpha-weak)' : mode === 'proxy' ? 'var(--brand-alpha-weak)' : 'transparent',
                   cursor: proxyBlocked ? 'not-allowed' : 'pointer',
                   transition: 'all 0.15s',
@@ -806,7 +806,7 @@ export function CreateProjectWizard() {
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '0.75rem',
-                  boxShadow: mode === 'proxy' ? '0 0 0 1px rgba(86, 67, 204, 0.2), var(--shadow-m)' : undefined,
+                  boxShadow: mode === 'proxy' ? '0 0 0 1px rgba(30, 41, 59, 0.12), var(--shadow-m)' : undefined,
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -866,14 +866,14 @@ export function CreateProjectWizard() {
                   borderRadius: 'var(--radius-l)',
                   borderWidth: 2,
                   borderStyle: 'solid',
-                  borderColor: mode === 'embed' ? 'var(--brand-solid-strong)' : 'rgba(255,255,255,0.1)',
+                  borderColor: mode === 'embed' ? 'var(--brand-solid-strong)' : '#e2e8f0',
                   background: mode === 'embed' ? 'var(--brand-alpha-weak)' : 'transparent',
                   cursor: 'pointer',
                   transition: 'all 0.15s',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '0.75rem',
-                  boxShadow: mode === 'embed' ? '0 0 0 1px rgba(86, 67, 204, 0.2), var(--shadow-m)' : undefined,
+                  boxShadow: mode === 'embed' ? '0 0 0 1px rgba(30, 41, 59, 0.12), var(--shadow-m)' : undefined,
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -1096,7 +1096,7 @@ export function CreateProjectWizard() {
                     aspectRatio: '16 / 10',
                     maxWidth: 260,
                     borderRadius: 'var(--radius-l)',
-                    border: '1px solid rgba(255,255,255,0.1)',
+                    border: '1px solid #e2e8f0',
                     background: 'var(--neutral-alpha-weak)',
                     position: 'relative',
                   }}>

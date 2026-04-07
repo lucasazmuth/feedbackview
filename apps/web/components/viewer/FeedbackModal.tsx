@@ -117,7 +117,7 @@ function SidebarField({
             display: 'block',
             fontSize: sectionHeading ? 10 : 11,
             fontWeight: 600,
-            color: '#858699',
+            color: '#64748b',
             marginBottom: sectionHeading ? 8 : 4,
             letterSpacing: sectionHeading ? '0.1em' : '0.02em',
             textTransform: sectionHeading ? 'uppercase' : 'none',
@@ -131,7 +131,7 @@ function SidebarField({
   }
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', padding: '0.625rem 0' }}>
-      <span style={{ fontSize: '0.6875rem', fontWeight: 500, color: '#858699', width: 72, flexShrink: 0, paddingTop: 2 }}>{label}</span>
+      <span style={{ fontSize: '1.2rem', fontWeight: 500, color: '#64748b', width: 72, flexShrink: 0, paddingTop: 2 }}>{label}</span>
       <div style={{ flex: 1, minWidth: 0 }}>{children}</div>
     </div>
   )
@@ -516,16 +516,16 @@ export default function FeedbackModal({
 
   const S = {
     font: { fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' } as React.CSSProperties,
-    label: { display: 'block', fontSize: 11, fontWeight: 500, color: '#858699', marginBottom: 6 } as React.CSSProperties,
+    label: { display: 'block', fontSize: 11, fontWeight: 500, color: '#64748b', marginBottom: 6 } as React.CSSProperties,
     input: {
       width: '100%',
       padding: '10px 12px',
-      border: '1px solid rgba(255, 255, 255, 0.15)',
+      border: '1px solid #e2e8f0',
       borderRadius: 8,
       fontSize: 13,
       outline: 'none',
-      color: '#f7f8f8',
-      background: 'rgba(255, 255, 255, 0.04)',
+      color: '#0f172a',
+      background: 'rgba(0, 0, 0, 0.03)',
       fontFamily: 'inherit',
       boxSizing: 'border-box' as const,
     } as React.CSSProperties,
@@ -542,7 +542,7 @@ export default function FeedbackModal({
       <style>{`
         @media (max-width: 900px) {
           .fv-modal-body { flex-direction: column !important; }
-          .fv-modal-sidebar { width: 100% !important; border-left: none !important; border-top: 1px solid rgba(255,255,255,0.08); max-height: 42vh; }
+          .fv-modal-sidebar { width: 100% !important; border-left: none !important; border-top: 1px solid #e2e8f0; max-height: 42vh; }
         }
       `}</style>
       <div
@@ -552,7 +552,7 @@ export default function FeedbackModal({
           position: 'fixed',
           inset: 0,
           zIndex: 9999,
-          background: 'rgba(0, 2, 18, 0.72)',
+          background: 'rgba(0, 0, 0, 0.4)',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'flex-start',
@@ -572,10 +572,10 @@ export default function FeedbackModal({
             maxWidth: 'min(96vw, 140rem)',
             maxHeight: 'min(95vh, 120rem)',
             minHeight: 'clamp(28rem, 82vh, 100rem)',
-            backgroundColor: '#000212',
-            backgroundImage: 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(120, 119, 198, 0.22), transparent)',
+            backgroundColor: '#ffffff',
+            backgroundImage: 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.08), transparent)',
             borderRadius: '1rem',
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5), rgba(80, 63, 205, 0.5) 0px 1px 40px',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.1), rgba(30, 41, 59, 0.08) 0px 1px 40px',
             margin: '0 auto',
             display: 'flex',
             flexDirection: 'column',
@@ -589,9 +589,9 @@ export default function FeedbackModal({
               alignItems: 'center',
               gap: '1rem',
               padding: '1.125rem 1.75rem',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+              borderBottom: '1px solid #e2e8f0',
               flexShrink: 0,
-              background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, transparent 100%)',
+              background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.02) 0%, transparent 100%)',
             }}
           >
             <div style={{ width: 10, height: 10, borderRadius: '50%', background: ts.dot, flexShrink: 0 }} />
@@ -615,7 +615,7 @@ export default function FeedbackModal({
                 flex: 1,
                 fontSize: '1.6rem',
                 fontWeight: 600,
-                color: '#f7f8f8',
+                color: '#0f172a',
                 letterSpacing: '-0.02em',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -643,8 +643,8 @@ export default function FeedbackModal({
               <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(34, 197, 94, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <CheckCircle2 size={36} style={{ color: '#4ade80' }} />
               </div>
-              <h3 style={{ fontSize: 20, fontWeight: 600, color: '#f7f8f8', margin: 0 }}>Feedback enviado!</h3>
-              <p style={{ fontSize: 14, color: '#858699', textAlign: 'center', maxWidth: 280, margin: 0 }}>Obrigado pela contribuição.</p>
+              <h3 style={{ fontSize: 20, fontWeight: 600, color: '#0f172a', margin: 0 }}>Feedback enviado!</h3>
+              <p style={{ fontSize: 14, color: '#64748b', textAlign: 'center', maxWidth: 280, margin: 0 }}>Obrigado pela contribuição.</p>
             </div>
           ) : (
             <>
@@ -652,20 +652,20 @@ export default function FeedbackModal({
                 {/* Coluna principal */}
                 <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
                   {/* Mídia */}
-                  <div style={{ background: 'rgba(255, 255, 255, 0.04)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                  <div style={{ background: 'rgba(0, 0, 0, 0.03)', borderBottom: '1px solid #e2e8f0' }}>
                     {hasReplay && (
-                      <div style={{ display: 'flex', gap: 0, padding: '0 1.25rem', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', background: '#000212' }}>
+                      <div style={{ display: 'flex', gap: 0, padding: '0 1.25rem', borderBottom: '1px solid #e2e8f0', background: '#ffffff' }}>
                         <button
                           type="button"
                           onClick={() => setMediaTab('replay')}
                           style={{
                             padding: '0.625rem 1rem',
-                            fontSize: '1.3rem',
+                            fontSize: '1.4rem',
                             fontWeight: mediaTab === 'replay' ? 600 : 500,
                             border: 'none',
                             cursor: 'pointer',
-                            borderBottom: mediaTab === 'replay' ? '2px solid rgb(86, 67, 204)' : '2px solid transparent',
-                            color: mediaTab === 'replay' ? '#f7f8f8' : '#858699',
+                            borderBottom: mediaTab === 'replay' ? '2px solid #1e40af' : '2px solid transparent',
+                            color: mediaTab === 'replay' ? '#0f172a' : '#64748b',
                             background: 'transparent',
                             marginBottom: -1,
                             fontFamily: 'inherit',
@@ -678,12 +678,12 @@ export default function FeedbackModal({
                           onClick={() => setMediaTab('screenshot')}
                           style={{
                             padding: '0.625rem 1rem',
-                            fontSize: '1.3rem',
+                            fontSize: '1.4rem',
                             fontWeight: mediaTab === 'screenshot' ? 600 : 500,
                             border: 'none',
                             cursor: 'pointer',
-                            borderBottom: mediaTab === 'screenshot' ? '2px solid rgb(86, 67, 204)' : '2px solid transparent',
-                            color: mediaTab === 'screenshot' ? '#f7f8f8' : '#858699',
+                            borderBottom: mediaTab === 'screenshot' ? '2px solid #1e40af' : '2px solid transparent',
+                            color: mediaTab === 'screenshot' ? '#0f172a' : '#64748b',
                             background: 'transparent',
                             marginBottom: -1,
                             fontFamily: 'inherit',
@@ -702,20 +702,20 @@ export default function FeedbackModal({
                             minHeight: 'min(44vh, 56rem)',
                             borderRadius: '0.75rem',
                             overflow: 'hidden',
-                            border: '1px solid rgba(255, 255, 255, 0.08)',
-                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
-                            background: '#0f172a',
+                            border: '1px solid #e2e8f0',
+                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+                            background: '#f8fafc',
                           }}
                         >
                           <div ref={replayContainerRef} style={{ width: '100%', minHeight: 200 }} />
                           {rrwebEvents.length < 2 && (
-                            <div style={{ padding: 20, textAlign: 'center', color: '#858699', fontSize: 13 }}>Gravando sessão...</div>
+                            <div style={{ padding: 20, textAlign: 'center', color: '#64748b', fontSize: 13 }}>Gravando sessão...</div>
                           )}
                           {hasReplay && replayTotalTime > 0 && (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, background: '#12121a', padding: '12px 16px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                              <div onClick={handleReplaySeek} style={{ cursor: 'pointer', height: 6, display: 'flex', alignItems: 'center', borderRadius: 3, background: '#222326', position: 'relative' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, background: '#f8fafc', padding: '12px 16px', borderTop: '1px solid #e2e8f0' }}>
+                              <div onClick={handleReplaySeek} style={{ cursor: 'pointer', height: 6, display: 'flex', alignItems: 'center', borderRadius: 3, background: '#f1f5f9', position: 'relative' }}>
                                 <div style={{ height: '100%', width: `${replayProgress}%`, background: widgetColor, borderRadius: 3, transition: replayPlaying ? 'none' : 'width 0.1s linear' }} />
-                                <div style={{ position: 'absolute', top: '50%', left: `${replayProgress}%`, width: 14, height: 14, background: widgetColor, borderRadius: '50%', transform: 'translate(-50%, -50%)', boxShadow: '0 1px 8px rgba(0,0,0,0.5)', border: '2px solid #12121a' }} />
+                                <div style={{ position: 'absolute', top: '50%', left: `${replayProgress}%`, width: 14, height: 14, background: widgetColor, borderRadius: '50%', transform: 'translate(-50%, -50%)', boxShadow: '0 1px 8px rgba(0,0,0,0.15)', border: '2px solid #12121a' }} />
                               </div>
                               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -726,13 +726,13 @@ export default function FeedbackModal({
                                       <AppIcon size="sm"><path d="M8 5.14v14.72a1 1 0 0 0 1.5.86l11-7.36a1 1 0 0 0 0-1.72l-11-7.36A1 1 0 0 0 8 5.14z" fill="currentColor" stroke="none" /></AppIcon>
                                     )}
                                   </button>
-                                  <span style={{ fontSize: 12, fontFamily: 'monospace', color: '#858699', whiteSpace: 'nowrap' }}>
+                                  <span style={{ fontSize: 12, fontFamily: 'monospace', color: '#64748b', whiteSpace: 'nowrap' }}>
                                     {fmtReplayTime(replayCurrentTime)} / {fmtReplayTime(replayTotalTime)}
                                   </span>
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                                   {[1, 2, 4, 8].map(s => (
-                                    <button key={s} type="button" onClick={() => handleReplaySpeed(s)} style={{ border: 'none', cursor: 'pointer', padding: '4px 8px', borderRadius: 6, fontSize: 11, background: replaySpeed === s ? widgetColor : 'transparent', color: replaySpeed === s ? '#fff' : '#858699', fontWeight: replaySpeed === s ? 600 : 400 }}>
+                                    <button key={s} type="button" onClick={() => handleReplaySpeed(s)} style={{ border: 'none', cursor: 'pointer', padding: '4px 8px', borderRadius: 6, fontSize: 11, background: replaySpeed === s ? widgetColor : 'transparent', color: replaySpeed === s ? '#fff' : '#64748b', fontWeight: replaySpeed === s ? 600 : 400 }}>
                                       {s}x
                                     </button>
                                   ))}
@@ -745,12 +745,12 @@ export default function FeedbackModal({
                       {(hasReplay ? mediaTab === 'screenshot' : true) && (
                         <div style={{ width: '100%', maxWidth: '100%' }}>
                           {!screenshotDataUrl && (
-                            <div style={{ padding: 24, textAlign: 'center', color: '#858699', fontSize: 13, background: 'rgba(255, 255, 255, 0.04)', borderRadius: 8, border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                            <div style={{ padding: 24, textAlign: 'center', color: '#64748b', fontSize: 13, background: 'rgba(0, 0, 0, 0.03)', borderRadius: 8, border: '1px solid #e2e8f0' }}>
                               {capturing ? 'Capturando screenshot…' : 'Screenshot indisponível.'}
                             </div>
                           )}
                           {screenshotDataUrl && (
-                            <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255, 255, 255, 0.08)', background: '#0f172a', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)' }}>
+                            <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid #e2e8f0', background: '#f8fafc', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)' }}>
                               <div style={{ position: 'relative', maxHeight: 'min(52vh, 72rem)', overflow: 'hidden' }}>
                                 <img src={screenshotDataUrl} alt="Screenshot" style={{ width: '100%', display: 'block', objectFit: 'contain', objectPosition: 'top', maxHeight: 'min(52vh, 72rem)' }} />
                                 <canvas
@@ -762,8 +762,8 @@ export default function FeedbackModal({
                                   style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', cursor: 'crosshair' }}
                                 />
                               </div>
-                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#12121a', padding: '8px 12px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                                <span style={{ fontSize: 11, color: '#858699' }}>Clique e arraste para marcar a área</span>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc', padding: '8px 12px', borderTop: '1px solid #e2e8f0' }}>
+                                <span style={{ fontSize: 11, color: '#64748b' }}>Clique e arraste para marcar a área</span>
                                 {rects.length > 0 && (
                                   <button type="button" onClick={() => { setRects([]); redrawOverlay([]) }} style={{ fontSize: 11, color: '#f87171', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 500 }}>
                                     Limpar marcações
@@ -780,7 +780,7 @@ export default function FeedbackModal({
                   <canvas ref={canvasRef} style={{ display: 'none' }} aria-hidden />
 
                   {/* Descrição */}
-                  <div style={{ padding: '1.5rem 2rem', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                  <div style={{ padding: '1.5rem 2rem', borderBottom: '1px solid #e2e8f0' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                       <span className="text-md font-semibold text-off-white">
                         Descrição <span style={{ color: '#f87171' }}>*</span>
@@ -793,7 +793,7 @@ export default function FeedbackModal({
                       placeholder="Descreva o problema ou sugestão em detalhes… (mínimo 10 caracteres)"
                       style={{ ...S.input, resize: 'none' as const }}
                       onFocus={e => { e.target.style.borderColor = widgetColor; e.target.style.boxShadow = `0 0 0 3px ${widgetColor}33` }}
-                      onBlur={e => { e.target.style.borderColor = 'rgba(255, 255, 255, 0.15)'; e.target.style.boxShadow = 'none' }}
+                      onBlur={e => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none' }}
                     />
                     {commentError && <p style={{ marginTop: 4, fontSize: 12, color: '#f87171' }}>{commentError}</p>}
                   </div>
@@ -803,7 +803,7 @@ export default function FeedbackModal({
                     <button
                       type="button"
                       onClick={() => setDetailsOpen(!detailsOpen)}
-                      style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 0', cursor: 'pointer', fontSize: 13, fontWeight: 500, color: '#858699', border: 'none', background: 'none', width: '100%', textAlign: 'left' }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 0', cursor: 'pointer', fontSize: 13, fontWeight: 500, color: '#64748b', border: 'none', background: 'none', width: '100%', textAlign: 'left' }}
                     >
                       <ChevronDown size={ICON_PX.sm} style={{ transform: detailsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
                       Mais detalhes
@@ -819,23 +819,23 @@ export default function FeedbackModal({
                             placeholder="Resumo breve do feedback"
                             style={S.input}
                             onFocus={e => { e.target.style.borderColor = widgetColor; e.target.style.boxShadow = `0 0 0 3px ${widgetColor}33` }}
-                            onBlur={e => { e.target.style.borderColor = 'rgba(255, 255, 255, 0.15)'; e.target.style.boxShadow = 'none' }}
+                            onBlur={e => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none' }}
                           />
                         </div>
                         {type === 'BUG' && (
                           <>
                             <div>
-                              <label style={{ ...S.label, fontSize: 13, color: '#b4bcd0' }}>Passos para reproduzir</label>
-                              <textarea value={stepsToReproduce} onChange={e => setStepsToReproduce(e.target.value)} rows={3} placeholder="1. …" style={{ ...S.input, resize: 'vertical' as const }} onFocus={e => { e.target.style.borderColor = widgetColor; e.target.style.boxShadow = `0 0 0 3px ${widgetColor}33` }} onBlur={e => { e.target.style.borderColor = 'rgba(255, 255, 255, 0.15)'; e.target.style.boxShadow = 'none' }} />
+                              <label style={{ ...S.label, fontSize: 13, color: '#475569' }}>Passos para reproduzir</label>
+                              <textarea value={stepsToReproduce} onChange={e => setStepsToReproduce(e.target.value)} rows={3} placeholder="1. …" style={{ ...S.input, resize: 'vertical' as const }} onFocus={e => { e.target.style.borderColor = widgetColor; e.target.style.boxShadow = `0 0 0 3px ${widgetColor}33` }} onBlur={e => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none' }} />
                             </div>
                             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                               <div style={{ flex: '1 1 200px' }}>
-                                <label style={{ ...S.label, fontSize: 13, color: '#b4bcd0' }}>Resultado esperado</label>
-                                <textarea value={expectedResult} onChange={e => setExpectedResult(e.target.value)} rows={3} style={{ ...S.input, resize: 'vertical' as const }} onFocus={e => { e.target.style.borderColor = widgetColor; e.target.style.boxShadow = `0 0 0 3px ${widgetColor}33` }} onBlur={e => { e.target.style.borderColor = 'rgba(255, 255, 255, 0.15)'; e.target.style.boxShadow = 'none' }} />
+                                <label style={{ ...S.label, fontSize: 13, color: '#475569' }}>Resultado esperado</label>
+                                <textarea value={expectedResult} onChange={e => setExpectedResult(e.target.value)} rows={3} style={{ ...S.input, resize: 'vertical' as const }} onFocus={e => { e.target.style.borderColor = widgetColor; e.target.style.boxShadow = `0 0 0 3px ${widgetColor}33` }} onBlur={e => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none' }} />
                               </div>
                               <div style={{ flex: '1 1 200px' }}>
-                                <label style={{ ...S.label, fontSize: 13, color: '#b4bcd0' }}>Resultado real</label>
-                                <textarea value={actualResult} onChange={e => setActualResult(e.target.value)} rows={3} style={{ ...S.input, resize: 'vertical' as const }} onFocus={e => { e.target.style.borderColor = widgetColor; e.target.style.boxShadow = `0 0 0 3px ${widgetColor}33` }} onBlur={e => { e.target.style.borderColor = 'rgba(255, 255, 255, 0.15)'; e.target.style.boxShadow = 'none' }} />
+                                <label style={{ ...S.label, fontSize: 13, color: '#475569' }}>Resultado real</label>
+                                <textarea value={actualResult} onChange={e => setActualResult(e.target.value)} rows={3} style={{ ...S.input, resize: 'vertical' as const }} onFocus={e => { e.target.style.borderColor = widgetColor; e.target.style.boxShadow = `0 0 0 3px ${widgetColor}33` }} onBlur={e => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none' }} />
                               </div>
                             </div>
                           </>
@@ -847,9 +847,9 @@ export default function FeedbackModal({
                   {/* Anexos + logs */}
                   <div style={{ padding: '0 2rem 1.5rem', display: 'flex', flexDirection: 'column', gap: 10 }}>
                     <div>
-                      <label style={{ ...S.label, fontSize: 13, color: '#b4bcd0' }}>Anexos</label>
+                      <label style={{ ...S.label, fontSize: 13, color: '#475569' }}>Anexos</label>
                       <div
-                        style={{ border: '2px dashed rgba(255, 255, 255, 0.15)', borderRadius: 8, padding: '12px 16px', textAlign: 'center', cursor: 'pointer', background: 'rgba(255, 255, 255, 0.04)' }}
+                        style={{ border: '2px dashed #e2e8f0', borderRadius: 8, padding: '12px 16px', textAlign: 'center', cursor: 'pointer', background: 'rgba(0, 0, 0, 0.03)' }}
                         onClick={() => {
                           const input = document.createElement('input')
                           input.type = 'file'
@@ -869,14 +869,14 @@ export default function FeedbackModal({
                           input.click()
                         }}
                       >
-                        <span style={{ fontSize: 12, color: '#858699' }}>Clique para anexar arquivos (máx. 5)</span>
+                        <span style={{ fontSize: 12, color: '#64748b' }}>Clique para anexar arquivos (máx. 5)</span>
                       </div>
                       {attachments.length > 0 && (
                         <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
                           {attachments.map((att, i) => (
-                            <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 8px', background: 'rgba(255, 255, 255, 0.06)', borderRadius: 6, fontSize: 12 }}>
-                              <span style={{ color: '#b4bcd0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{att.name}</span>
-                              <button type="button" onClick={e => { e.stopPropagation(); setAttachments(prev => prev.filter((_, idx) => idx !== i)) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#858699', padding: '0 4px', fontSize: 14 }}>×</button>
+                            <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 8px', background: 'rgba(0, 0, 0, 0.03)', borderRadius: 6, fontSize: 12 }}>
+                              <span style={{ color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{att.name}</span>
+                              <button type="button" onClick={e => { e.stopPropagation(); setAttachments(prev => prev.filter((_, idx) => idx !== i)) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: '0 4px', fontSize: 14 }}>×</button>
                             </div>
                           ))}
                         </div>
@@ -884,10 +884,10 @@ export default function FeedbackModal({
                     </div>
 
                     {consoleLogs.length > 0 && (
-                      <div style={{ border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 12, overflow: 'hidden' }}>
-                        <button type="button" onClick={() => setConsoleLogsOpen(!consoleLogsOpen)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'rgba(255, 255, 255, 0.04)', cursor: 'pointer', border: 'none', textAlign: 'left', fontFamily: 'inherit' }}>
-                          <span style={{ fontSize: 13, fontWeight: 500, color: '#b4bcd0' }}>Console Logs ({consoleLogs.length})</span>
-                          <ChevronDown size={LUCIDE_ICON_PX} style={{ color: '#858699', transform: consoleLogsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                      <div style={{ border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden' }}>
+                        <button type="button" onClick={() => setConsoleLogsOpen(!consoleLogsOpen)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'rgba(0, 0, 0, 0.03)', cursor: 'pointer', border: 'none', textAlign: 'left', fontFamily: 'inherit' }}>
+                          <span style={{ fontSize: 13, fontWeight: 500, color: '#475569' }}>Console Logs ({consoleLogs.length})</span>
+                          <ChevronDown size={LUCIDE_ICON_PX} style={{ color: '#64748b', transform: consoleLogsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
                         </button>
                         {consoleLogsOpen && (
                           <div style={{ maxHeight: 180, overflowY: 'auto' }}>
@@ -896,9 +896,9 @@ export default function FeedbackModal({
                               const tagBg = level === 'ERROR' ? 'rgba(239, 68, 68, 0.15)' : level === 'WARN' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(59, 130, 246, 0.15)'
                               const tagColor = level === 'ERROR' ? '#f87171' : level === 'WARN' ? '#fbbf24' : '#93c5fd'
                               return (
-                                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 6, padding: '5px 14px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                                <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 6, padding: '5px 14px', borderTop: '1px solid #e2e8f0' }}>
                                   <span style={{ flexShrink: 0, padding: '1px 6px', borderRadius: 4, fontSize: 10, fontWeight: 700, background: tagBg, color: tagColor }}>{level}</span>
-                                  <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#858699', wordBreak: 'break-word', flex: 1, minWidth: 0 }}>{log.message}</span>
+                                  <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#64748b', wordBreak: 'break-word', flex: 1, minWidth: 0 }}>{log.message}</span>
                                 </div>
                               )
                             })}
@@ -908,19 +908,19 @@ export default function FeedbackModal({
                     )}
 
                     {networkLogs.length > 0 && (
-                      <div style={{ border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 12, overflow: 'hidden' }}>
-                        <button type="button" onClick={() => setNetworkLogsOpen(!networkLogsOpen)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'rgba(255, 255, 255, 0.04)', cursor: 'pointer', border: 'none', textAlign: 'left', fontFamily: 'inherit' }}>
-                          <span style={{ fontSize: 13, fontWeight: 500, color: '#b4bcd0' }}>Network ({networkLogs.length})</span>
-                          <ChevronDown size={LUCIDE_ICON_PX} style={{ color: '#858699', transform: networkLogsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                      <div style={{ border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden' }}>
+                        <button type="button" onClick={() => setNetworkLogsOpen(!networkLogsOpen)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'rgba(0, 0, 0, 0.03)', cursor: 'pointer', border: 'none', textAlign: 'left', fontFamily: 'inherit' }}>
+                          <span style={{ fontSize: 13, fontWeight: 500, color: '#475569' }}>Network ({networkLogs.length})</span>
+                          <ChevronDown size={LUCIDE_ICON_PX} style={{ color: '#64748b', transform: networkLogsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
                         </button>
                         {networkLogsOpen && (
                           <div style={{ maxHeight: 180, overflowY: 'auto' }}>
                             {networkLogs.map((log, i) => (
-                              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 14px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 14px', borderTop: '1px solid #e2e8f0' }}>
                                 <span style={{ flexShrink: 0, padding: '1px 6px', borderRadius: 4, fontSize: 10, fontWeight: 700, background: log.status != null && log.status >= 400 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(34, 197, 94, 0.15)', color: log.status != null && log.status >= 400 ? '#f87171' : '#4ade80' }}>{log.status ?? '-'}</span>
-                                <span style={{ flexShrink: 0, fontFamily: 'monospace', fontSize: 11, fontWeight: 700, color: '#b4bcd0' }}>{log.method}</span>
-                                <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#858699', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }} title={log.url}>{log.url}</span>
-                                {log.duration != null && <span style={{ flexShrink: 0, fontFamily: 'monospace', fontSize: 11, color: '#858699' }}>{log.duration}ms</span>}
+                                <span style={{ flexShrink: 0, fontFamily: 'monospace', fontSize: 11, fontWeight: 700, color: '#475569' }}>{log.method}</span>
+                                <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }} title={log.url}>{log.url}</span>
+                                {log.duration != null && <span style={{ flexShrink: 0, fontFamily: 'monospace', fontSize: 11, color: '#64748b' }}>{log.duration}ms</span>}
                               </div>
                             ))}
                           </div>
@@ -940,10 +940,10 @@ export default function FeedbackModal({
                   style={{
                     width: 'clamp(22rem, 28vw, 44rem)',
                     flexShrink: 0,
-                    borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderLeft: '1px solid #e2e8f0',
                     overflowY: 'auto',
                     padding: '1rem 1.5rem 1.5rem',
-                    background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, transparent 40%)',
+                    background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.03) 0%, transparent 40%)',
                   }}
                 >
                   <SidebarField label="Tipo" layout="stack" sectionHeading>
@@ -958,9 +958,9 @@ export default function FeedbackModal({
                             style={{
                               padding: '8px 6px',
                               borderRadius: 8,
-                              border: on ? `2px solid ${widgetColor}` : '1px solid rgba(255, 255, 255, 0.14)',
+                              border: on ? `2px solid ${widgetColor}` : '1px solid #e2e8f0',
                               background: 'transparent',
-                              color: on ? widgetColor : '#b4bcd0',
+                              color: on ? widgetColor : '#475569',
                               fontSize: 11,
                               fontWeight: on ? 600 : 500,
                               cursor: 'pointer',
@@ -989,9 +989,9 @@ export default function FeedbackModal({
                               style={{
                                 padding: '8px 6px',
                                 borderRadius: 8,
-                                border: on ? `2px solid ${c}` : '1px solid rgba(255, 255, 255, 0.14)',
+                                border: on ? `2px solid ${c}` : '1px solid #e2e8f0',
                                 background: 'transparent',
-                                color: on ? c : '#b4bcd0',
+                                color: on ? c : '#475569',
                                 fontSize: 11,
                                 fontWeight: on ? 600 : 500,
                                 cursor: 'pointer',
@@ -1008,44 +1008,44 @@ export default function FeedbackModal({
                     </SidebarField>
                   )}
 
-                  <div style={{ height: 1, background: 'rgba(255, 255, 255, 0.08)', margin: '8px 0' }} />
+                  <div style={{ height: 1, background: '#e2e8f0', margin: '8px 0' }} />
 
                   <SidebarField label="Navegador" layout="stack">
-                    <span style={{ color: '#f7f8f8' }}>{env.browser}</span>
+                    <span style={{ color: '#0f172a' }}>{env.browser}</span>
                   </SidebarField>
                   <SidebarField label="OS" layout="stack">
-                    <span style={{ color: '#f7f8f8' }}>{env.os}</span>
+                    <span style={{ color: '#0f172a' }}>{env.os}</span>
                   </SidebarField>
                   <SidebarField label="Viewport" layout="stack">
-                    <span style={{ color: '#f7f8f8' }}>{env.viewport}</span>
+                    <span style={{ color: '#0f172a' }}>{env.viewport}</span>
                   </SidebarField>
                   <SidebarField label="Origem" layout="stack">
-                    <span style={{ color: '#f7f8f8' }}>{sourceLabel}</span>
+                    <span style={{ color: '#0f172a' }}>{sourceLabel}</span>
                   </SidebarField>
                   <SidebarField label="Página" layout="stack">
                     <a
                       href={pageUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ color: 'rgb(103, 63, 215)', fontWeight: 500, textDecoration: 'none', wordBreak: 'break-all' }}
+                      style={{ color: '#3b82f6', fontWeight: 500, textDecoration: 'none', wordBreak: 'break-all' }}
                     >
                       Abrir {'>'}
                     </a>
                   </SidebarField>
                   <SidebarField label="Console" layout="stack">
-                    <span style={{ color: consoleErrs ? '#f87171' : '#858699' }}>
+                    <span style={{ color: consoleErrs ? '#f87171' : '#64748b' }}>
                       {consoleLogs.length} logs{consoleErrs > 0 ? ` (${consoleErrs} erros)` : ''}
                     </span>
                   </SidebarField>
                   <SidebarField label="Network" layout="stack">
-                    <span style={{ color: netFails ? '#f87171' : '#858699' }}>
+                    <span style={{ color: netFails ? '#f87171' : '#64748b' }}>
                       {networkLogs.length} req.{netFails > 0 ? ` (${netFails} falhas)` : ''}
                     </span>
                   </SidebarField>
                 </div>
               </div>
 
-              <div style={{ padding: '16px 20px', borderTop: '1px solid rgba(255, 255, 255, 0.08)', flexShrink: 0, background: '#000212' }}>
+              <div style={{ padding: '16px 20px', borderTop: '1px solid #e2e8f0', flexShrink: 0, background: '#ffffff' }}>
                 <button
                   type="button"
                   onClick={handleSubmit}
@@ -1053,7 +1053,7 @@ export default function FeedbackModal({
                   style={{
                     width: '100%',
                     padding: '12px 20px',
-                    background: submitting || capturing ? 'rgba(255,255,255,0.12)' : 'linear-gradient(92.88deg, rgb(69, 94, 181) 9.16%, rgb(86, 67, 204) 43.89%, rgb(103, 63, 215) 64.72%)',
+                    background: submitting || capturing ? 'rgba(0, 0, 0, 0.06)' : 'linear-gradient(92.88deg, #1e293b 9.16%, #1e40af 43.89%, #3b82f6 64.72%)',
                     color: 'white',
                     border: 'none',
                     borderRadius: 9999,
@@ -1066,7 +1066,7 @@ export default function FeedbackModal({
                     justifyContent: 'center',
                     gap: 8,
                     fontFamily: 'inherit',
-                    boxShadow: submitting || capturing ? 'none' : 'rgba(80, 63, 205, 0.5) 0px 1px 40px',
+                    boxShadow: submitting || capturing ? 'none' : 'rgba(30, 41, 59, 0.15) 0px 1px 40px',
                   }}
                 >
                   {submitting ? (
@@ -1078,7 +1078,7 @@ export default function FeedbackModal({
                     `Enviar ${typeLabels[type] || 'Bug'}`
                   )}
                 </button>
-                <p style={{ textAlign: 'center', marginTop: 8, fontSize: 11, color: '#858699' }}>
+                <p style={{ textAlign: 'center', marginTop: 8, fontSize: 11, color: '#64748b' }}>
                   Powered by{' '}
                   <a href="https://buug.io" target="_blank" rel="noopener noreferrer" className="text-primary-text hover:text-off-white transition-colors" style={{ textDecoration: 'none' }}>Buug</a>
                 </p>

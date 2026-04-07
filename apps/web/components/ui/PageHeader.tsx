@@ -54,7 +54,7 @@ function HeaderIconButton({ icon, label, badge, onClick }: { icon: React.ReactNo
           borderRadius: 8,
           background: '#ef4444',
           color: '#fff',
-          fontSize: '1rem',
+          fontSize: '1.2rem',
           fontWeight: 700,
           display: 'flex',
           alignItems: 'center',
@@ -157,7 +157,7 @@ export default function PageHeader() {
         </span>
         <span
           style={{
-            fontSize: '1.1rem',
+            fontSize: '1.2rem',
             fontWeight: 600,
             padding: '0.1875rem 0.5rem',
             borderRadius: 4,
@@ -183,7 +183,7 @@ export default function PageHeader() {
             border: '1px solid var(--neutral-border-medium)',
             background: 'transparent',
             color: 'var(--neutral-on-background-strong)',
-            fontSize: '1.3rem',
+            fontSize: '1.4rem',
             fontWeight: 500,
             cursor: 'pointer',
             transition: 'all 0.15s',
@@ -218,7 +218,7 @@ export default function PageHeader() {
               border: 'none',
               background: 'var(--brand-solid-strong)',
               color: '#fff',
-              fontSize: '1.3rem',
+              fontSize: '1.4rem',
               fontWeight: 600,
               cursor: 'pointer',
               transition: 'opacity 0.15s',

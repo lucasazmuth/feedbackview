@@ -198,7 +198,7 @@ export default function SessionReplay({ events }: SessionReplayProps) {
 
   if (events.length < 2) {
     return (
-      <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--neutral-on-background-weak)', fontSize: '0.875rem' }}>
+      <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--neutral-on-background-weak)', fontSize: '1.4rem' }}>
         Eventos insuficientes para replay.
       </div>
     )
@@ -206,7 +206,7 @@ export default function SessionReplay({ events }: SessionReplayProps) {
 
   if (error) {
     return (
-      <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--danger-on-background-strong)', fontSize: '0.875rem' }}>
+      <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--danger-on-background-strong)', fontSize: '1.4rem' }}>
         {error}
       </div>
     )
@@ -367,7 +367,7 @@ export default function SessionReplay({ events }: SessionReplayProps) {
                   </AppIcon>
                 )}
               </button>
-              <span style={{ fontSize: '0.75rem', fontFamily: 'monospace', color: isFullscreen ? '#fff' : 'var(--neutral-on-background-weak)', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: '1.2rem', fontFamily: 'monospace', color: isFullscreen ? '#fff' : 'var(--neutral-on-background-weak)', whiteSpace: 'nowrap' }}>
                 {formatTime(currentTime)} / {formatTime(totalTime)}
               </span>
             </div>
@@ -384,7 +384,7 @@ export default function SessionReplay({ events }: SessionReplayProps) {
                     border: 'none',
                     background: speed === s ? 'var(--brand-solid-strong)' : 'transparent',
                     color: speed === s ? '#fff' : (isFullscreen ? '#aaa' : 'var(--neutral-on-background-weak)'),
-                    fontSize: '0.6875rem',
+                    fontSize: '1.2rem',
                     fontWeight: speed === s ? 600 : 400,
                     cursor: 'pointer',
                     transition: 'all 0.15s',

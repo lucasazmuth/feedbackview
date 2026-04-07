@@ -382,7 +382,7 @@ export default function ReportsClient({
                 border: '1px solid var(--neutral-border-medium)',
                 background: 'var(--surface-background)',
                 color: 'var(--neutral-on-background-strong)',
-                fontSize: '0.875rem',
+                fontSize: '1.4rem',
                 outline: 'none',
                 transition: 'border-color 0.15s',
                 height: 40,

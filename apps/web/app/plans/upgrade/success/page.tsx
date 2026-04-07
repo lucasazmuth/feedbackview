@@ -174,7 +174,7 @@ function SuccessContent() {
             Bem-vindo ao {planName || 'novo plano'}!
           </h1>
           <p style={{
-            fontSize: '1.125rem',
+            fontSize: '1.2rem',
             color: '#6b7280',
             margin: 0,
             lineHeight: 1.6,
@@ -193,7 +193,7 @@ function SuccessContent() {
             border: 'none',
             background: 'linear-gradient(135deg, #111827, #374151)',
             color: '#fff',
-            fontSize: '1rem',
+            fontSize: '1.6rem',
             fontWeight: 700,
             cursor: 'pointer',
             boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)',
@@ -213,7 +213,7 @@ function SuccessContent() {
 
         {/* Powered by */}
         <p style={{
-          fontSize: '0.75rem',
+          fontSize: '1.2rem',
           color: '#9ca3af',
           margin: 0,
         }}>

@@ -8,7 +8,7 @@ import { useState } from 'react'
 import { ICON_STROKE } from '@/lib/icon-tokens'
 import { AppIcon } from '@/components/ui/AppIcon'
 
-const WIDGET_COLOR = 'rgb(86, 67, 204)'
+const WIDGET_COLOR = '#1e40af'
 
 const typeLabels: Record<string, string> = {
   BUG: 'Bug',
@@ -44,7 +44,7 @@ function SidebarField({
             display: 'block',
             fontSize: sectionHeading ? 10 : 11,
             fontWeight: 600,
-            color: '#858699',
+            color: '#64748b',
             marginBottom: sectionHeading ? 8 : 4,
             letterSpacing: sectionHeading ? '0.1em' : '0.02em',
             textTransform: sectionHeading ? 'uppercase' : 'none',
@@ -62,7 +62,7 @@ function SidebarField({
         style={{
           fontSize: 11,
           fontWeight: 500,
-          color: '#858699',
+          color: '#64748b',
           width: 78,
           flexShrink: 0,
           paddingTop: 2,
@@ -107,12 +107,12 @@ export function LandingEmbedReportModalPreview() {
     input: {
       width: '100%',
       padding: '8px 10px',
-      border: '1px solid rgba(255, 255, 255, 0.15)',
+      border: '1px solid #e2e8f0',
       borderRadius: 8,
       fontSize: 12,
       outline: 'none',
-      color: '#f7f8f8',
-      background: 'rgba(255, 255, 255, 0.04)',
+      color: '#0f172a',
+      background: 'rgba(0, 0, 0, 0.03)',
       fontFamily: 'inherit',
       boxSizing: 'border-box' as const,
     } as React.CSSProperties,
@@ -125,8 +125,8 @@ export function LandingEmbedReportModalPreview() {
     fontWeight: on ? 600 : 500,
     border: 'none',
     cursor: 'pointer',
-    borderBottom: on ? '2px solid rgb(86, 67, 204)' : '2px solid transparent',
-    color: on ? '#f7f8f8' : '#858699',
+    borderBottom: on ? '2px solid #1e40af' : '2px solid transparent',
+    color: on ? '#0f172a' : '#64748b',
     background: 'transparent',
     marginBottom: -1,
     fontFamily: 'inherit',
@@ -140,7 +140,7 @@ export function LandingEmbedReportModalPreview() {
           .landing-embed-fv-sidebar {
             width: 100% !important;
             border-left: none !important;
-            border-top: 1px solid rgba(255,255,255,0.08);
+            border-top: 1px solid #e2e8f0;
             max-height: 36vh;
           }
         }
@@ -150,9 +150,9 @@ export function LandingEmbedReportModalPreview() {
         <div
           className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[var(--radius-l)] border border-transparent-white"
           style={{
-            backgroundColor: '#000212',
-            backgroundImage: 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(120, 119, 198, 0.22), transparent)',
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5), rgba(80, 63, 205, 0.5) 0px 1px 40px',
+            backgroundColor: '#ffffff',
+            backgroundImage: 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.08), transparent)',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.08), rgba(30, 41, 59, 0.12) 0px 1px 40px',
           }}
         >
           {/* Cabeçalho — alinhado ao embed atual (título + data + fechar) */}
@@ -162,9 +162,9 @@ export function LandingEmbedReportModalPreview() {
               alignItems: 'center',
               gap: '0.65rem',
               padding: '0.5rem 0.75rem',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+              borderBottom: '1px solid #e2e8f0',
               flexShrink: 0,
-              background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, transparent 100%)',
+              background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.02) 0%, transparent 100%)',
             }}
           >
             <span
@@ -172,7 +172,7 @@ export function LandingEmbedReportModalPreview() {
                 flex: 1,
                 fontSize: 'clamp(0.95rem, 2vw, 1.35rem)',
                 fontWeight: 600,
-                color: '#f7f8f8',
+                color: '#0f172a',
                 letterSpacing: '-0.02em',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -200,14 +200,14 @@ export function LandingEmbedReportModalPreview() {
 
           <div className="landing-embed-fv-body flex min-h-0 flex-1 overflow-hidden" style={{ display: 'flex', minHeight: 0 }}>
             <div style={{ flex: 1, minWidth: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ background: 'rgba(255, 255, 255, 0.04)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+              <div style={{ background: 'rgba(0, 0, 0, 0.03)', borderBottom: '1px solid #e2e8f0' }}>
                 <div
                   style={{
                     display: 'flex',
                     gap: 0,
                     padding: '0 0.5rem',
-                    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                    background: '#000212',
+                    borderBottom: '1px solid #e2e8f0',
+                    background: '#ffffff',
                   }}
                 >
                   <button type="button" style={tabStyle(mediaTab === 'replay')} onClick={() => setMediaTab('replay')}>
@@ -224,8 +224,8 @@ export function LandingEmbedReportModalPreview() {
                         width: '100%',
                         borderRadius: '0.65rem',
                         overflow: 'hidden',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
+                        border: '1px solid #e2e8f0',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
                         background: '#0f172a',
                       }}
                     >
@@ -244,16 +244,16 @@ export function LandingEmbedReportModalPreview() {
                           display: 'flex',
                           flexDirection: 'column',
                           gap: 8,
-                          background: '#12121a',
+                          background: '#f8fafc',
                           padding: '8px 12px',
-                          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                          borderTop: '1px solid #e2e8f0',
                         }}
                       >
                         <div
                           style={{
                             height: 6,
                             borderRadius: 3,
-                            background: '#222326',
+                            background: '#f1f5f9',
                             position: 'relative',
                           }}
                         >
@@ -275,8 +275,8 @@ export function LandingEmbedReportModalPreview() {
                               background: WIDGET_COLOR,
                               borderRadius: '50%',
                               transform: 'translate(-50%, -50%)',
-                              boxShadow: '0 1px 8px rgba(0,0,0,0.5)',
-                              border: '2px solid #12121a',
+                              boxShadow: '0 1px 8px rgba(0,0,0,0.1)',
+                              border: '2px solid #f8fafc',
                             }}
                           />
                         </div>
@@ -304,7 +304,7 @@ export function LandingEmbedReportModalPreview() {
                                 />
                               </AppIcon>
                             </span>
-                            <span style={{ fontSize: 11, fontFamily: 'monospace', color: '#858699', whiteSpace: 'nowrap' }}>
+                            <span style={{ fontSize: 11, fontFamily: 'monospace', color: '#64748b', whiteSpace: 'nowrap' }}>
                               {fmtReplayTime(REPLAY_CURRENT_MS)} / {fmtReplayTime(REPLAY_TOTAL_MS)}
                             </span>
                           </div>
@@ -321,7 +321,7 @@ export function LandingEmbedReportModalPreview() {
                                   borderRadius: 6,
                                   fontSize: 10,
                                   background: replaySpeed === s ? WIDGET_COLOR : 'transparent',
-                                  color: replaySpeed === s ? '#fff' : '#858699',
+                                  color: replaySpeed === s ? '#fff' : '#64748b',
                                   fontWeight: replaySpeed === s ? 600 : 400,
                                 }}
                               >
@@ -339,9 +339,9 @@ export function LandingEmbedReportModalPreview() {
                         width: '100%',
                         borderRadius: 12,
                         overflow: 'hidden',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        border: '1px solid #e2e8f0',
                         background: '#0f172a',
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
                       }}
                     >
                       <div className="relative max-h-[min(30vh,220px)] min-h-[72px] w-full overflow-hidden sm:max-h-[min(34vh,260px)]">
@@ -359,12 +359,12 @@ export function LandingEmbedReportModalPreview() {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          background: '#12121a',
+                          background: '#f8fafc',
                           padding: '6px 10px',
-                          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                          borderTop: '1px solid #e2e8f0',
                         }}
                       >
-                        <span style={{ fontSize: 10, color: '#858699' }}>Clique e arraste para marcar a área</span>
+                        <span style={{ fontSize: 10, color: '#64748b' }}>Clique e arraste para marcar a área</span>
                       </div>
                     </div>
                   )}
@@ -375,7 +375,7 @@ export function LandingEmbedReportModalPreview() {
                 style={{
                   padding: '0.75rem 0.85rem',
                   paddingBottom: '0.85rem',
-                  borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderBottom: '1px solid #e2e8f0',
                 }}
               >
                 <span
@@ -383,7 +383,7 @@ export function LandingEmbedReportModalPreview() {
                     display: 'block',
                     fontSize: 12,
                     fontWeight: 600,
-                    color: '#f7f8f8',
+                    color: '#0f172a',
                     marginBottom: 10,
                     letterSpacing: '-0.01em',
                   }}
@@ -404,7 +404,7 @@ export function LandingEmbedReportModalPreview() {
                     display: 'block',
                     fontSize: 12,
                     fontWeight: 600,
-                    color: '#f7f8f8',
+                    color: '#0f172a',
                     marginBottom: 10,
                     letterSpacing: '-0.01em',
                   }}
@@ -413,7 +413,7 @@ export function LandingEmbedReportModalPreview() {
                 </span>
                 <div
                   style={{
-                    border: '2px dashed rgba(255, 255, 255, 0.15)',
+                    border: '2px dashed #e2e8f0',
                     borderRadius: 8,
                     padding: '12px 14px',
                     minHeight: 48,
@@ -421,10 +421,10 @@ export function LandingEmbedReportModalPreview() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     textAlign: 'center',
-                    background: 'rgba(255, 255, 255, 0.04)',
+                    background: 'rgba(0, 0, 0, 0.03)',
                   }}
                 >
-                  <span style={{ fontSize: 11, color: '#858699', lineHeight: 1.4 }}>
+                  <span style={{ fontSize: 11, color: '#64748b', lineHeight: 1.4 }}>
                     Clique para anexar arquivos (máx. 5)
                   </span>
                 </div>
@@ -436,10 +436,10 @@ export function LandingEmbedReportModalPreview() {
               style={{
                 width: 'clamp(17rem, 34vw, 22.5rem)',
                 flexShrink: 0,
-                borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
+                borderLeft: '1px solid #e2e8f0',
                 overflowY: 'auto',
                 padding: '0.65rem 0.85rem 0.75rem',
-                background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, transparent 40%)',
+                background: 'linear-gradient(180deg, rgba(0, 0, 0, 0.03) 0%, transparent 40%)',
               }}
             >
               <SidebarField label="Tipo" layout="stack" sectionHeading>
@@ -460,9 +460,9 @@ export function LandingEmbedReportModalPreview() {
                         style={{
                           padding: '8px 6px',
                           borderRadius: 8,
-                          border: on ? `2px solid ${WIDGET_COLOR}` : '1px solid rgba(255, 255, 255, 0.14)',
+                          border: on ? `2px solid ${WIDGET_COLOR}` : '1px solid #e2e8f0',
                           background: 'transparent',
-                          color: on ? WIDGET_COLOR : '#b4bcd0',
+                          color: on ? WIDGET_COLOR : '#475569',
                           fontSize: 11,
                           fontWeight: on ? 600 : 500,
                           cursor: 'pointer',
@@ -497,9 +497,9 @@ export function LandingEmbedReportModalPreview() {
                           style={{
                             padding: '8px 6px',
                             borderRadius: 8,
-                            border: on ? `2px solid ${c}` : '1px solid rgba(255, 255, 255, 0.14)',
+                            border: on ? `2px solid ${c}` : '1px solid #e2e8f0',
                             background: 'transparent',
-                            color: on ? c : '#b4bcd0',
+                            color: on ? c : '#475569',
                             fontSize: 11,
                             fontWeight: on ? 600 : 500,
                             cursor: 'pointer',
@@ -516,51 +516,51 @@ export function LandingEmbedReportModalPreview() {
                 </SidebarField>
               )}
 
-              <div style={{ height: 1, background: 'rgba(255, 255, 255, 0.08)', margin: '8px 0' }} />
+              <div style={{ height: 1, background: '#e2e8f0', margin: '8px 0' }} />
 
               <SidebarField label="Navegador" layout="stack">
-                <span style={{ color: '#f7f8f8' }}>Chrome 142.0.7444.265</span>
+                <span style={{ color: '#0f172a' }}>Chrome 142.0.7444.265</span>
               </SidebarField>
               <SidebarField label="OS" layout="stack">
-                <span style={{ color: '#f7f8f8' }}>macOS 10.15.7</span>
+                <span style={{ color: '#0f172a' }}>macOS 10.15.7</span>
               </SidebarField>
               <SidebarField label="Viewport" layout="stack">
-                <span style={{ color: '#f7f8f8' }}>1052 × 894</span>
+                <span style={{ color: '#0f172a' }}>1052 × 894</span>
               </SidebarField>
               <SidebarField label="Origem" layout="stack">
-                <span style={{ color: '#f7f8f8' }}>Widget embed</span>
+                <span style={{ color: '#0f172a' }}>Widget embed</span>
               </SidebarField>
               <SidebarField label="Página" layout="stack">
-                <span style={{ color: 'rgb(103, 63, 215)', fontWeight: 500 }}>Abrir {'>'}</span>
+                <span style={{ color: '#3b82f6', fontWeight: 500 }}>Abrir {'>'}</span>
               </SidebarField>
               <SidebarField label="Console" layout="stack">
-                <span style={{ color: '#858699' }}>0 logs</span>
+                <span style={{ color: '#64748b' }}>0 logs</span>
               </SidebarField>
               <SidebarField label="Network" layout="stack">
-                <span style={{ color: '#858699' }}>0 req.</span>
+                <span style={{ color: '#64748b' }}>0 req.</span>
               </SidebarField>
             </aside>
           </div>
 
-          <div style={{ padding: '10px 12px', borderTop: '1px solid rgba(255, 255, 255, 0.08)', flexShrink: 0, background: '#000212' }}>
+          <div style={{ padding: '10px 12px', borderTop: '1px solid #e2e8f0', flexShrink: 0, background: '#ffffff' }}>
             <button
               type="button"
               style={{
                 width: '100%',
                 padding: '10px 16px',
-                background: 'linear-gradient(92.88deg, rgb(69, 94, 181) 9.16%, rgb(86, 67, 204) 43.89%, rgb(103, 63, 215) 64.72%)',
+                background: 'linear-gradient(92.88deg, #1e293b 9.16%, #1e40af 43.89%, #3b82f6 64.72%)',
                 color: 'white',
                 border: 'none',
                 borderRadius: 9999,
                 fontSize: 13,
                 fontWeight: 500,
                 cursor: 'default',
-                boxShadow: 'rgba(80, 63, 205, 0.5) 0px 1px 40px',
+                boxShadow: 'rgba(30, 41, 59, 0.15) 0px 1px 40px',
               }}
             >
               Enviar {typeLabels[type] || 'Bug'}
             </button>
-            <p style={{ textAlign: 'center', marginTop: 6, fontSize: 10, color: '#858699' }}>
+            <p style={{ textAlign: 'center', marginTop: 6, fontSize: 10, color: '#64748b' }}>
               Powered by{' '}
               <span className="font-medium text-primary-text">Buug</span>
             </p>

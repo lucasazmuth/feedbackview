@@ -11,7 +11,7 @@ import { AppIcon } from '@/components/ui/AppIcon'
 
 const tabButtonStyle = (active: boolean): React.CSSProperties => ({
   padding: '0.65rem 1rem',
-  fontSize: '0.875rem',
+  fontSize: '1.4rem',
   fontWeight: 600,
   color: active ? 'var(--brand-on-background-strong)' : 'var(--neutral-on-background-weak)',
   background: active ? 'var(--brand-alpha-weak)' : 'transparent',
@@ -171,7 +171,7 @@ export default function IntegrationsClient({ userId: _userId }: { userId: string
     <AppLayout>
       <main className="app-page">
         <div>
-          <h1 className="app-section-title" style={{ fontSize: '1.5rem' }}>
+          <h1 className="app-section-title" style={{ fontSize: '1.6rem' }}>
             Integrações
           </h1>
           <p className="app-section-sub" style={{ maxWidth: '42rem' }}>
@@ -193,7 +193,7 @@ export default function IntegrationsClient({ userId: _userId }: { userId: string
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center', paddingTop: '0.25rem' }}>
           <button
             type="button"
-            style={{ ...tabButtonStyle(true), padding: '0.75rem 1.15rem', fontSize: '0.9375rem' }}
+            style={{ ...tabButtonStyle(true), padding: '0.75rem 1.15rem', fontSize: '1.4rem' }}
             aria-current="page"
           >
             Conexões
@@ -206,7 +206,7 @@ export default function IntegrationsClient({ userId: _userId }: { userId: string
             style={{
               ...tabButtonStyle(false),
               padding: '0.75rem 1.15rem',
-              fontSize: '0.9375rem',
+              fontSize: '1.4rem',
               opacity: 0.55,
               cursor: 'not-allowed',
             }}
@@ -218,7 +218,7 @@ export default function IntegrationsClient({ userId: _userId }: { userId: string
                 style={{
                   background: 'var(--neutral-alpha-weak)',
                   color: 'var(--neutral-on-background-weak)',
-                  fontSize: '0.6875rem',
+                  fontSize: '1.2rem',
                 }}
               >
                 Em breve
@@ -314,13 +314,13 @@ export default function IntegrationsClient({ userId: _userId }: { userId: string
                         style={{
                           margin: 0,
                           fontWeight: 600,
-                          fontSize: '1rem',
+                          fontSize: '1.6rem',
                           color: 'var(--neutral-on-background-strong)',
                         }}
                       >
                         ClickUp
                       </span>
-                      <span style={{ fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)', lineHeight: 1.5 }}>
+                      <span style={{ fontSize: '1.4rem', color: 'var(--neutral-on-background-weak)', lineHeight: 1.5 }}>
                         Reports viram tarefas no ClickUp com status, prioridade e prazo. Automações: projetos Buug → lista
                         (workspace, espaço, lista).
                       </span>
@@ -328,7 +328,7 @@ export default function IntegrationsClient({ userId: _userId }: { userId: string
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <span
                         style={{
-                          fontSize: '0.8125rem',
+                          fontSize: '1.4rem',
                           fontWeight: 600,
                           color:
                             integrationAllowed || clickUpConnected
@@ -369,13 +369,13 @@ export default function IntegrationsClient({ userId: _userId }: { userId: string
                     style={{
                       margin: 0,
                       fontWeight: 600,
-                      fontSize: '0.875rem',
+                      fontSize: '1.4rem',
                       color: 'var(--neutral-on-background-strong)',
                     }}
                   >
                     Mais conexões
                   </span>
-                  <span style={{ fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)' }}>
+                  <span style={{ fontSize: '1.4rem', color: 'var(--neutral-on-background-weak)' }}>
                     Em breve: outras ferramentas no mesmo lugar.
                   </span>
                 </div>

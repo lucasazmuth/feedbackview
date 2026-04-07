@@ -1,7 +1,7 @@
 import { SkeletonShell, pulse, SkeletonBar } from '@/components/ui/LoadingSkeleton'
 
 const TABLE_GRID =
-  '1.25rem 1.5rem 5rem 6rem minmax(6rem, 1fr) 5rem 6rem 2.5rem minmax(6rem, 11rem)' as const
+  '1.25rem 1.5rem 8rem 9rem minmax(6rem, 1fr) 7rem 8rem 3rem minmax(6rem, 13rem)' as const
 
 function StatBlock({ variant = 'neutral' }: { variant?: 'neutral' | 'danger' }) {
   const bg = variant === 'danger' ? 'var(--danger-alpha-weak)' : 'var(--neutral-alpha-weak)'
@@ -9,7 +9,7 @@ function StatBlock({ variant = 'neutral' }: { variant?: 'neutral' | 'danger' }) 
     <div
       style={{
         textAlign: 'center',
-        padding: '0.5rem 0.75rem',
+        padding: '0.8rem 1.2rem',
         borderRadius: '0.5rem',
         background: bg,
         minWidth: '3.25rem',
@@ -38,13 +38,13 @@ export default function Loading() {
               gap: '1rem',
             }}
           >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', minWidth: 0, flex: 1 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', minWidth: 0, flex: 1 }}>
               <SkeletonBar width="4.5rem" height="0.75rem" radius="0.25rem" />
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                 <SkeletonBar width="min(14rem, 55vw)" height="1.375rem" radius="0.375rem" />
                 <SkeletonBar width="5.25rem" height="1.375rem" radius="999px" />
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', maxWidth: '24rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', maxWidth: '24rem' }}>
                 <SkeletonBar width="100%" height="0.8125rem" radius="0.25rem" />
                 <SkeletonBar width="1.25rem" height="1.25rem" radius="0.25rem" />
               </div>
@@ -75,7 +75,7 @@ export default function Loading() {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.375rem',
+                  gap: '0.6rem',
                   padding: '0.5rem 0 0.75rem',
                   marginBottom: '-2px',
                   borderBottom: i === 0 ? '2px solid var(--brand-solid-strong)' : '2px solid transparent',
@@ -118,7 +118,7 @@ export default function Loading() {
             display: 'grid',
             gridTemplateColumns: TABLE_GRID,
             gap: '0.75rem',
-            padding: '0.5rem 0.75rem',
+            padding: '0.8rem 1.2rem',
             alignItems: 'center',
           }}
         >

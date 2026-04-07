@@ -243,7 +243,7 @@ export default function DashboardClient({
                   border: '1px solid var(--neutral-border-medium)',
                   background: 'var(--surface-background)',
                   color: 'var(--neutral-on-background-strong)',
-                  fontSize: '0.875rem',
+                  fontSize: '1.4rem',
                   outline: 'none',
                   transition: 'border-color 0.15s',
                   height: 40,
@@ -334,7 +334,7 @@ export default function DashboardClient({
                           border: 'none',
                           background: 'transparent',
                           color: 'var(--brand-on-background-strong)',
-                          fontSize: '0.75rem',
+                          fontSize: '1.2rem',
                           cursor: 'pointer',
                           textAlign: 'center',
                         }}
@@ -513,14 +513,14 @@ export default function DashboardClient({
                   </div>
 
                   <div className="w-full flex items-center gap-2 mt-auto flex-wrap" style={{ overflow: 'hidden', minWidth: 0 }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.7rem', color: embedStatus.color, fontWeight: 500, flexShrink: 0 }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '1.2rem', color: embedStatus.color, fontWeight: 500, flexShrink: 0 }}>
                       <span style={{ width: 6, height: 6, borderRadius: '50%', background: embedStatus.dotColor, flexShrink: 0 }} />
                       {embedStatus.label}
                     </span>
                     <span
                       className="text-xs px-2 py-0.5 rounded-full"
                       style={{
-                        background: openCount > 0 ? 'rgba(234, 179, 8, 0.15)' : 'rgba(255,255,255,0.06)',
+                        background: openCount > 0 ? 'rgba(234, 179, 8, 0.15)' : 'var(--neutral-alpha-medium)',
                         color: openCount > 0 ? '#eab308' : '#9ca3af',
                       }}
                     >
@@ -543,11 +543,11 @@ export default function DashboardClient({
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: '1fr 10rem 5rem 7rem 5rem 1.5rem',
+                gridTemplateColumns: '1fr 12rem 7rem 8rem 7rem 1.5rem',
                 padding: '0.625rem 1rem',
-                borderBottom: '1px solid rgba(255,255,255,0.08)',
-                background: 'rgba(255,255,255,0.03)',
-                gap: '0.5rem',
+                borderBottom: '1px solid var(--neutral-border-medium)',
+                background: 'var(--neutral-alpha-weak)',
+                gap: '0.8rem',
                 alignItems: 'center',
               }}
             >
@@ -567,44 +567,44 @@ export default function DashboardClient({
                   onClick={() => router.push(`/projects/${project.id}`)}
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: '1fr 10rem 5rem 7rem 5rem 1.5rem',
+                    gridTemplateColumns: '1fr 12rem 7rem 8rem 7rem 1.5rem',
                     padding: '0.625rem 1rem',
                     borderBottom: i < filteredProjects.length - 1 ? '1px solid var(--neutral-border-medium)' : undefined,
                     cursor: 'pointer',
                     transition: 'background 0.15s',
-                    gap: '0.5rem',
+                    gap: '0.8rem',
                     alignItems: 'center',
                   }}
                   onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--neutral-alpha-weak)' }}
                   onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', minHeight: '1.75rem', overflow: 'hidden' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', minHeight: '2.4rem', overflow: 'hidden' }}>
                     <span className="text-sm text-off-white font-medium truncate">{project.name}</span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', minHeight: '1.75rem', overflow: 'hidden' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', minHeight: '2.4rem', overflow: 'hidden' }}>
                     <span className="text-xs text-gray truncate">{project.url}</span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', minHeight: '1.75rem' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.7rem', color: embedStatus.color, fontWeight: 500 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', minHeight: '2.4rem' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '1.2rem', color: embedStatus.color, fontWeight: 500 }}>
                       <span style={{ width: 6, height: 6, borderRadius: '50%', background: embedStatus.dotColor, flexShrink: 0 }} />
                       {embedStatus.label}
                     </span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', minHeight: '1.75rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', minHeight: '2.4rem' }}>
                     <span
                       className="text-xs px-2 py-0.5 rounded-full"
                       style={{
-                        background: openCount > 0 ? 'rgba(234, 179, 8, 0.15)' : 'rgba(255,255,255,0.06)',
+                        background: openCount > 0 ? 'rgba(234, 179, 8, 0.15)' : 'var(--neutral-alpha-medium)',
                         color: openCount > 0 ? '#eab308' : '#9ca3af',
                       }}
                     >
                       {`${openCount} aberto${openCount !== 1 ? 's' : ''}`}
                     </span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', minHeight: '1.75rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', minHeight: '2.4rem' }}>
                     <span className="text-xs text-gray whitespace-nowrap">{formatDate(project.createdAt)}</span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', minHeight: '1.75rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', minHeight: '2.4rem' }}>
                     <ChevronRight size={ICON_PX.sm} className="text-gray" />
                   </div>
                 </div>
@@ -627,7 +627,7 @@ export default function DashboardClient({
                 cursor: 'pointer',
                 padding: 0,
                 color: 'var(--neutral-on-background-weak)',
-                fontSize: '0.875rem',
+                fontSize: '1.4rem',
                 fontWeight: 500,
               }}
             >
@@ -673,7 +673,7 @@ export default function DashboardClient({
                         border: '1px solid var(--neutral-border-medium)',
                         background: 'var(--surface-background)',
                         color: 'var(--neutral-on-background-strong)',
-                        fontSize: '0.75rem',
+                        fontSize: '1.2rem',
                         fontWeight: 500,
                         cursor: unarchiving === project.id ? 'wait' : 'pointer',
                         opacity: unarchiving === project.id ? 0.5 : 1,

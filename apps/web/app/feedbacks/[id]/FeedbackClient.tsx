@@ -181,7 +181,7 @@ export default function FeedbackClient({
           <div>
             <Alert>{error || 'Report não encontrado.'}</Alert>
             <Link href="/dashboard">
-              <button style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', background: 'transparent', color: 'var(--neutral-on-background-weak)', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>Voltar ao dashboard</button>
+              <button style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', background: 'transparent', color: 'var(--neutral-on-background-weak)', fontSize: '1.4rem', fontWeight: 600, cursor: 'pointer' }}>Voltar ao dashboard</button>
             </Link>
           </div>
         </div>
@@ -331,8 +331,8 @@ export default function FeedbackClient({
                       disabled={commentSaving}
                     />
                     <div>
-                      <button onClick={() => setEditingComment(false)} disabled={commentSaving} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)', background: 'var(--surface-background)', color: 'var(--neutral-on-background-strong)', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>Cancelar</button>
-                      <button onClick={handleCommentSave} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', background: 'var(--brand-solid-strong)', color: '#fff', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>Salvar</button>
+                      <button onClick={() => setEditingComment(false)} disabled={commentSaving} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)', background: 'var(--surface-background)', color: 'var(--neutral-on-background-strong)', fontSize: '1.4rem', fontWeight: 600, cursor: 'pointer' }}>Cancelar</button>
+                      <button onClick={handleCommentSave} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', background: 'var(--brand-solid-strong)', color: '#fff', fontSize: '1.4rem', fontWeight: 600, cursor: 'pointer' }}>Salvar</button>
                     </div>
                   </div>
                 ) : (
@@ -386,13 +386,13 @@ export default function FeedbackClient({
                           style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderTop: '1px solid var(--neutral-border-medium)' }}
                         >
                           <span style={{ display: "inline-flex", alignItems: "center", padding: "0.125rem 0.5rem", borderRadius: "999px", fontSize: "0.75rem", fontWeight: 600, background: "var(--neutral-alpha-weak)", color: "var(--neutral-on-background-weak)" }}></span>
-                          <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '0.75rem', flexShrink: 0 }}>{log.method}</span>
+                          <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '1.2rem', flexShrink: 0 }}>{log.method}</span>
                           <span
-                            style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}
+                            style={{ fontFamily: 'monospace', fontSize: '1.2rem', color: 'var(--neutral-on-background-weak)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}
                             title={log.url}
                           >{log.url}</span>
                           {log.duration != null && (
-                            <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', flexShrink: 0 }}>{log.duration}ms</span>
+                            <span style={{ fontFamily: 'monospace', fontSize: '1.2rem', color: 'var(--neutral-on-background-weak)', flexShrink: 0 }}>{log.duration}ms</span>
                           )}
                         </div>
                       ))}
@@ -424,7 +424,7 @@ export default function FeedbackClient({
                             style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', padding: '0.5rem 1rem', borderTop: '1px solid var(--neutral-border-medium)' }}
                           >
                             <span style={{ display: "inline-flex", alignItems: "center", padding: "0.125rem 0.5rem", borderRadius: "999px", fontSize: "0.75rem", fontWeight: 600, background: "var(--neutral-alpha-weak)", color: "var(--neutral-on-background-weak)" }}></span>
-                            <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', wordBreak: 'break-word', flex: 1, minWidth: 0 }}>
+                            <span style={{ fontFamily: 'monospace', fontSize: '1.2rem', color: 'var(--neutral-on-background-weak)', wordBreak: 'break-word', flex: 1, minWidth: 0 }}>
                               {log.message}
                             </span>
                           </div>
@@ -451,7 +451,7 @@ export default function FeedbackClient({
                   id="status-select"
                   value={status}
                   onChange={(e) => handleStatusChange(e.target.value)}
-                  style={{ width: '100%', padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)', background: 'var(--surface-background)', color: 'var(--neutral-on-background-strong)', fontSize: '0.875rem', outline: 'none', cursor: 'pointer' }}
+                  style={{ width: '100%', padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)', background: 'var(--surface-background)', color: 'var(--neutral-on-background-strong)', fontSize: '1.4rem', outline: 'none', cursor: 'pointer' }}
                 >
                   {STATUS_OPTIONS.map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -519,7 +519,7 @@ export default function FeedbackClient({
 
                 {canAssign && (
                   <div style={{ position: 'relative' }}>
-                    <button onClick={() => setShowAssignDropdown(!showAssignDropdown)} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', background: 'transparent', color: 'var(--neutral-on-background-weak)', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>+ Atribuir</button>
+                    <button onClick={() => setShowAssignDropdown(!showAssignDropdown)} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', background: 'transparent', color: 'var(--neutral-on-background-weak)', fontSize: '1.4rem', fontWeight: 600, cursor: 'pointer' }}>+ Atribuir</button>
                     {showAssignDropdown && (
                       <div style={{
                         position: 'absolute', top: '100%', left: 0, right: 0,
@@ -593,7 +593,7 @@ export default function FeedbackClient({
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{
-                        fontSize: '0.75rem',
+                        fontSize: '1.2rem',
                         wordBreak: 'break-all',
                         color: 'var(--brand-on-background-strong)',
                         textDecoration: 'underline',

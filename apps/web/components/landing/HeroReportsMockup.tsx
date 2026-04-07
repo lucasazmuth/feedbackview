@@ -4,9 +4,9 @@ import clsx from 'clsx'
 
 const purple = '#5b45f5'
 /** Alinhado a `--brand-solid-strong` / gradiente do produto */
-const brandMid = 'rgb(86, 67, 204)'
-const brandHi = 'rgb(103, 63, 215)'
-const border = 'rgba(255,255,255,0.08)'
+const brandMid = '#1e40af'
+const brandHi = '#3b82f6'
+const border = '#e2e8f0'
 const demoUserInitial = 'L'
 
 function SidebarIcon({
@@ -20,7 +20,7 @@ function SidebarIcon({
     <div
       className={clsx(
         'flex h-8 w-8 shrink-0 items-center justify-center rounded-md sm:h-9 sm:w-9',
-        active ? 'bg-white/[0.08] text-white' : 'text-white/45'
+        active ? 'bg-black/[0.06] text-slate-800' : 'text-slate-400'
       )}
     >
       {children}
@@ -54,7 +54,7 @@ function TypeBadge({
 
 function PriorityBadge({ level }: { level: 'critico' | 'medio' | null }) {
   if (!level)
-    return <span className="text-white/35">-</span>
+    return <span className="text-slate-400">-</span>
   if (level === 'critico')
     return (
       <span className="inline-flex rounded-md border border-red-500/25 bg-red-500/15 px-1.5 py-0.5 text-[0.5625rem] font-medium text-red-400 sm:text-[0.625rem]">
@@ -78,7 +78,7 @@ function StatusPill({
   const tones = {
     amber: 'bg-amber-500/15 text-amber-400 border-amber-500/25',
     blue: 'bg-blue-500/15 text-blue-400 border-blue-500/25',
-    violet: 'bg-violet-500/15 text-violet-300 border-violet-500/25',
+    violet: 'bg-violet-500/15 text-violet-500 border-violet-500/25',
     emerald: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25',
   }
   return (
@@ -111,7 +111,7 @@ function ReportTable({ rows }: { rows: Row[] }) {
     <div className="overflow-x-auto [-webkit-overflow-scrolling:touch]">
       <table className="w-full min-w-[36rem] border-collapse text-left">
         <thead>
-          <tr className="border-b border-white/[0.06] text-[0.5625rem] font-medium tracking-wide text-white/40 uppercase sm:text-[0.625rem]">
+          <tr className="border-b border-slate-200 text-[0.5625rem] font-medium tracking-wide text-slate-400 uppercase sm:text-[0.625rem]">
             <th className="w-6 pb-2 pl-1 pr-0 sm:w-8" aria-hidden />
             <th className="pb-2 pr-2">Tipo</th>
             <th className="pb-2 pr-2">Projeto</th>
@@ -122,13 +122,13 @@ function ReportTable({ rows }: { rows: Row[] }) {
             <th className="pb-2 pr-3">Prazo</th>
           </tr>
         </thead>
-        <tbody className="text-[0.5625rem] text-white/90 sm:text-[0.625rem]">
+        <tbody className="text-[0.5625rem] text-slate-800 sm:text-[0.625rem]">
           {rows.map((r, i) => (
             <tr
               key={i}
-              className="group border-b border-white/[0.04] transition-colors hover:bg-white/[0.02]"
+              className="group border-b border-slate-100 transition-colors hover:bg-slate-50"
             >
-              <td className="py-2 pl-1 align-middle text-white/25">
+              <td className="py-2 pl-1 align-middle text-slate-300">
                 <span className="inline-flex flex-col gap-0.5">
                   <span className="block h-px w-2 rounded-full bg-current" />
                   <span className="block h-px w-2 rounded-full bg-current" />
@@ -138,10 +138,10 @@ function ReportTable({ rows }: { rows: Row[] }) {
               <td className="py-2 pr-2 align-middle">
                 <TypeBadge type={r.type} />
               </td>
-              <td className="max-w-[5.5rem] truncate py-2 pr-2 align-middle text-blue-300/80 sm:max-w-[7rem]">
+              <td className="max-w-[5.5rem] truncate py-2 pr-2 align-middle text-blue-600/80 sm:max-w-[7rem]">
                 {r.project}
               </td>
-              <td className="max-w-[10rem] truncate py-2 pr-2 align-middle text-white/80 sm:max-w-[14rem]">
+              <td className="max-w-[10rem] truncate py-2 pr-2 align-middle text-slate-700 sm:max-w-[14rem]">
                 {r.comment}
               </td>
               <td className="py-2 pr-2 align-middle">
@@ -152,11 +152,11 @@ function ReportTable({ rows }: { rows: Row[] }) {
               </td>
               <td className="py-2 pr-2 align-middle">
                 {r.assignee === 'plus' ? (
-                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-dashed border-white/20 text-white/40">
+                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-dashed border-slate-300 text-slate-400">
                     +
                   </span>
                 ) : (
-                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-[0.625rem] font-medium text-white">
+                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-[0.625rem] font-medium text-slate-700">
                     {r.initial}
                   </span>
                 )}
@@ -165,7 +165,7 @@ function ReportTable({ rows }: { rows: Row[] }) {
                 <span
                   className={clsx(
                     'whitespace-nowrap',
-                    r.overdue ? 'font-medium text-red-400' : 'text-white/45'
+                    r.overdue ? 'font-medium text-red-500' : 'text-slate-400'
                   )}
                 >
                   {r.deadline}
@@ -195,10 +195,10 @@ function GroupHeader({
     emerald: 'bg-emerald-400',
   }[accent]
   return (
-    <div className="flex items-center gap-2 border-b border-white/[0.06] px-3 py-2.5 sm:px-4">
+    <div className="flex items-center gap-2 border-b border-slate-200 px-3 py-2.5 sm:px-4">
       <span className={clsx('h-4 w-0.5 shrink-0 rounded-full sm:h-5', bar)} />
       <svg
-        className="h-3 w-3 shrink-0 text-white/35"
+        className="h-3 w-3 shrink-0 text-slate-400"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -207,8 +207,8 @@ function GroupHeader({
       >
         <path d="M6 9l6 6 6-6" />
       </svg>
-      <span className="text-[0.6875rem] font-semibold text-white sm:text-xs">{label}</span>
-      <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-white/[0.08] px-1.5 text-[0.625rem] font-medium text-white/80">
+      <span className="text-[0.6875rem] font-semibold text-slate-800 sm:text-xs">{label}</span>
+      <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-slate-100 px-1.5 text-[0.625rem] font-medium text-slate-600">
         {count}
       </span>
     </div>
@@ -345,14 +345,14 @@ const concluidaRows: Row[] = [
 export function HeroReportsMockup() {
   return (
     <div
-      className="relative flex min-h-[17rem] w-full overflow-hidden rounded-[inherit] bg-[#06060d] text-left font-sans antialiased sm:min-h-[22rem] md:min-h-[26rem] lg:min-h-[30rem]"
+      className="relative flex min-h-[17rem] w-full overflow-hidden rounded-[inherit] bg-white text-left font-sans antialiased sm:min-h-[22rem] md:min-h-[26rem] lg:min-h-[30rem]"
       style={{ borderColor: border }}
     >
       {/* Sidebar */}
-      <aside className="flex w-11 shrink-0 flex-col justify-between border-r border-white/[0.08] bg-[#0a0a12] py-3 sm:w-14 sm:py-4">
+      <aside className="flex w-11 shrink-0 flex-col justify-between border-r border-slate-200 bg-[#f8fafc] py-3 sm:w-14 sm:py-4">
         <div className="flex flex-col items-center gap-2 sm:gap-3">
           <div
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold text-white sm:h-9 sm:w-9"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold text-white sm:h-9 sm:w-9" /* text-white kept: on purple bg */
             style={{ backgroundColor: purple }}
           >
             B
@@ -406,9 +406,9 @@ export function HeroReportsMockup() {
 
       {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-10 shrink-0 items-center justify-between border-b border-white/[0.08] px-2 sm:h-11 sm:px-4">
+        <header className="flex h-10 shrink-0 items-center justify-between border-b border-slate-200 px-2 sm:h-11 sm:px-4">
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <span className="text-sm font-semibold tracking-tight text-white sm:text-base">Buug</span>
+            <span className="text-sm font-semibold tracking-tight text-slate-900 sm:text-base">Buug</span>
             <span
               className="rounded border px-1.5 py-px text-[0.5625rem] font-medium sm:text-[0.625rem]"
               style={{ borderColor: `${purple}99`, color: purple }}
@@ -419,7 +419,7 @@ export function HeroReportsMockup() {
           <div className="flex items-center gap-1.5 sm:gap-2">
             <button
               type="button"
-              className="hidden items-center gap-1 rounded-full border border-white/15 px-2 py-1 text-[0.5625rem] text-white/80 sm:inline-flex sm:px-3 sm:text-[0.625rem]"
+              className="hidden items-center gap-1 rounded-full border border-slate-200 px-2 py-1 text-[0.5625rem] text-slate-600 sm:inline-flex sm:px-3 sm:text-[0.625rem]"
             >
               <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 5v14M5 12h14" />
@@ -428,7 +428,7 @@ export function HeroReportsMockup() {
             </button>
             <button
               type="button"
-              className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 text-white/60 sm:h-8 sm:w-8"
+              className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-500 sm:h-8 sm:w-8"
               aria-label="Notificações"
             >
               <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -439,8 +439,8 @@ export function HeroReportsMockup() {
               className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[0.65rem] font-bold tabular-nums text-white sm:h-7 sm:w-7 sm:text-[0.7rem]"
               style={{
                 background: `linear-gradient(145deg, ${brandMid} 0%, ${brandHi} 100%)`,
-                border: '1px solid rgba(255,255,255,0.14)',
-                boxShadow: `inset 0 1px 0 rgba(255,255,255,0.12), 0 0 0 1px ${purple}33`,
+                border: `1px solid ${purple}33`,
+                boxShadow: `0 0 0 1px ${purple}22`,
               }}
               aria-hidden
             >
@@ -452,14 +452,14 @@ export function HeroReportsMockup() {
         <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-2 pb-6 pt-3 sm:px-4 sm:pt-4">
           <div className="mb-3 flex flex-col gap-2 sm:mb-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className="text-base font-semibold tracking-tight text-white sm:text-lg md:text-xl">Reports</h2>
-              <p className="mt-0.5 text-[0.625rem] text-white/45 sm:text-xs">
+              <h2 className="text-base font-semibold tracking-tight text-slate-900 sm:text-lg md:text-xl">Reports</h2>
+              <p className="mt-0.5 text-[0.625rem] text-slate-400 sm:text-xs">
                 Todos os reports recebidos de todos os projetos
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2 text-[0.625rem] sm:gap-4 sm:text-xs">
-              <span className="text-white/45">
-                <span className="font-semibold text-white">17</span> Total
+              <span className="text-slate-400">
+                <span className="font-semibold text-slate-800">17</span> Total
               </span>
               <span className="text-amber-400/90">
                 <span className="font-semibold">6</span> Abertos
@@ -471,12 +471,12 @@ export function HeroReportsMockup() {
           </div>
 
           <div className="mb-3 flex flex-col gap-2 sm:mb-4 sm:flex-row sm:items-center sm:gap-2">
-            <div className="flex min-h-8 flex-1 items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.03] px-2 py-1.5 sm:min-h-9 sm:px-3">
-              <svg className="h-3.5 w-3.5 shrink-0 text-white/35" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <div className="flex min-h-8 flex-1 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 sm:min-h-9 sm:px-3">
+              <svg className="h-3.5 w-3.5 shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="11" cy="11" r="8" />
                 <path d="M21 21l-4.35-4.35" />
               </svg>
-              <span className="truncate text-[0.625rem] text-white/35 sm:text-xs">
+              <span className="truncate text-[0.625rem] text-slate-400 sm:text-xs">
                 Buscar por comentário, URL ou projeto...
               </span>
             </div>
@@ -486,8 +486,8 @@ export function HeroReportsMockup() {
                   key={id}
                   type="button"
                   className={clsx(
-                    'flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] text-white/45',
-                    id === 'list' && 'border-white/20 bg-white/[0.06] text-white/80'
+                    'flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-400',
+                    id === 'list' && 'border-slate-300 bg-slate-100 text-slate-600'
                   )}
                   aria-hidden
                 >
@@ -525,31 +525,31 @@ export function HeroReportsMockup() {
           </div>
 
           <div className="space-y-2 sm:space-y-3">
-            <section className="overflow-hidden rounded-lg border border-white/[0.08] bg-[#08080f]">
+            <section className="overflow-hidden rounded-lg border border-slate-200 bg-white">
               <GroupHeader label="Aberto" count={6} accent="amber" />
               <div className="px-1 pb-2 pt-1 sm:px-2">
                 <ReportTable rows={abertoRows} />
               </div>
-              <div className="border-t border-white/[0.05] px-3 py-1.5 text-[0.5625rem] text-white/35 sm:px-4 sm:text-[0.625rem]">
+              <div className="border-t border-slate-100 px-3 py-1.5 text-[0.5625rem] text-slate-400 sm:px-4 sm:text-[0.625rem]">
                 6/17 reports
               </div>
             </section>
 
-            <section className="overflow-hidden rounded-lg border border-white/[0.08] bg-[#08080f]">
+            <section className="overflow-hidden rounded-lg border border-slate-200 bg-white">
               <GroupHeader label="Em andamento" count={1} accent="blue" />
               <div className="px-1 pb-2 pt-1 sm:px-2">
                 <ReportTable rows={emAndamentoRows} />
               </div>
             </section>
 
-            <section className="overflow-hidden rounded-lg border border-white/[0.08] bg-[#08080f]">
+            <section className="overflow-hidden rounded-lg border border-slate-200 bg-white">
               <GroupHeader label="Sob revisão" count={1} accent="violet" />
               <div className="px-1 pb-2 pt-1 sm:px-2">
                 <ReportTable rows={sobRevisaoRows} />
               </div>
             </section>
 
-            <section className="overflow-hidden rounded-lg border border-white/[0.08] bg-[#08080f]">
+            <section className="overflow-hidden rounded-lg border border-slate-200 bg-white">
               <GroupHeader label="Concluída" count={3} accent="emerald" />
               <div className="px-1 pb-2 pt-1 sm:px-2">
                 <ReportTable rows={concluidaRows} />
@@ -566,7 +566,7 @@ export function HeroReportsMockup() {
         aria-hidden
       >
         <div
-          className="rounded-md border border-white/15 px-3 py-1 shadow-lg"
+          className="rounded-md border border-purple-200 px-3 py-1 shadow-lg"
           style={{ backgroundColor: purple }}
         >
           <span className="whitespace-nowrap text-[0.5625rem] font-semibold tracking-wide text-white sm:text-[0.625rem]">

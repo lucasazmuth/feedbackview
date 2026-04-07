@@ -73,13 +73,13 @@ const inputStyle: React.CSSProperties = {
   border: '1px solid var(--neutral-border-medium)',
   background: 'var(--surface-background)',
   color: 'var(--neutral-on-background-strong)',
-  fontSize: '0.875rem',
+  fontSize: '1.4rem',
   outline: 'none',
 }
 
 const labelStyle: React.CSSProperties = {
   display: 'block',
-  fontSize: '0.75rem',
+  fontSize: '1.2rem',
   fontWeight: 600,
   color: 'var(--neutral-on-background-weak)',
   marginBottom: '0.25rem',
@@ -220,7 +220,7 @@ export default function SettingsClient({
       <main className="app-page">
         {/* Page header */}
         <div>
-          <h1 className="app-section-title" style={{ fontSize: '1.5rem' }}>Configurações</h1>
+          <h1 className="app-section-title" style={{ fontSize: '2rem' }}>Configurações</h1>
           <p className="app-section-sub">Gerencie suas informações de conta</p>
         </div>
 
@@ -251,7 +251,7 @@ export default function SettingsClient({
                 className={profileErrors.name ? INPUT_ERROR_CLASS : INPUT_CLASS}
                 {...regProfile('name')}
               />
-              {profileErrors.name && <span style={{ fontSize: '0.75rem', color: 'var(--danger-on-background-strong)', marginTop: '0.25rem', display: 'block' }}>{profileErrors.name.message}</span>}
+              {profileErrors.name && <span style={{ fontSize: '1.2rem', color: 'var(--danger-on-background-strong)', marginTop: '0.25rem', display: 'block' }}>{profileErrors.name.message}</span>}
             </div>
 
             <div>
@@ -263,7 +263,7 @@ export default function SettingsClient({
                 className={profileErrors.company ? INPUT_ERROR_CLASS : INPUT_CLASS}
                 {...regProfile('company')}
               />
-              {profileErrors.company && <span style={{ fontSize: '0.75rem', color: 'var(--danger-on-background-strong)', marginTop: '0.25rem', display: 'block' }}>{profileErrors.company.message}</span>}
+              {profileErrors.company && <span style={{ fontSize: '1.2rem', color: 'var(--danger-on-background-strong)', marginTop: '0.25rem', display: 'block' }}>{profileErrors.company.message}</span>}
             </div>
 
             <div style={{ display: 'flex', gap: '1rem', width: '100%' }}>
@@ -281,7 +281,7 @@ export default function SettingsClient({
                     },
                   })}
                 />
-                {profileErrors.phone && <span style={{ fontSize: '0.75rem', color: 'var(--danger-on-background-strong)', marginTop: '0.25rem', display: 'block' }}>{profileErrors.phone.message}</span>}
+                {profileErrors.phone && <span style={{ fontSize: '1.2rem', color: 'var(--danger-on-background-strong)', marginTop: '0.25rem', display: 'block' }}>{profileErrors.phone.message}</span>}
               </div>
               <div style={{ flex: 1 }}>
                 <label style={labelStyle} htmlFor="settings-cep">CEP</label>
@@ -297,7 +297,7 @@ export default function SettingsClient({
                     },
                   })}
                 />
-                {profileErrors.cep && <span style={{ fontSize: '0.75rem', color: 'var(--danger-on-background-strong)', marginTop: '0.25rem', display: 'block' }}>{profileErrors.cep.message}</span>}
+                {profileErrors.cep && <span style={{ fontSize: '1.2rem', color: 'var(--danger-on-background-strong)', marginTop: '0.25rem', display: 'block' }}>{profileErrors.cep.message}</span>}
               </div>
             </div>
 
@@ -315,7 +315,7 @@ export default function SettingsClient({
                 <option value="21-50">21 a 50 pessoas</option>
                 <option value="51+">Mais de 50 pessoas</option>
               </select>
-              {profileErrors.teamSize && <span style={{ fontSize: '0.75rem', color: 'var(--danger-on-background-strong)', marginTop: '0.25rem', display: 'block' }}>{profileErrors.teamSize.message}</span>}
+              {profileErrors.teamSize && <span style={{ fontSize: '1.2rem', color: 'var(--danger-on-background-strong)', marginTop: '0.25rem', display: 'block' }}>{profileErrors.teamSize.message}</span>}
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
@@ -342,7 +342,7 @@ export default function SettingsClient({
                 className={passwordErrors.currentPassword ? INPUT_ERROR_CLASS : INPUT_CLASS}
                 {...regPassword('currentPassword')}
               />
-              {passwordErrors.currentPassword && <span style={{ fontSize: '0.75rem', color: 'var(--danger-on-background-strong)', marginTop: '0.25rem', display: 'block' }}>{passwordErrors.currentPassword.message}</span>}
+              {passwordErrors.currentPassword && <span style={{ fontSize: '1.2rem', color: 'var(--danger-on-background-strong)', marginTop: '0.25rem', display: 'block' }}>{passwordErrors.currentPassword.message}</span>}
             </div>
 
             <div>
@@ -354,7 +354,7 @@ export default function SettingsClient({
                 className={passwordErrors.newPassword ? INPUT_ERROR_CLASS : INPUT_CLASS}
                 {...regPassword('newPassword')}
               />
-              {passwordErrors.newPassword && <span style={{ fontSize: '0.75rem', color: 'var(--danger-on-background-strong)', marginTop: '0.25rem', display: 'block' }}>{passwordErrors.newPassword.message}</span>}
+              {passwordErrors.newPassword && <span style={{ fontSize: '1.2rem', color: 'var(--danger-on-background-strong)', marginTop: '0.25rem', display: 'block' }}>{passwordErrors.newPassword.message}</span>}
             </div>
 
             <div>
@@ -366,7 +366,7 @@ export default function SettingsClient({
                 className={passwordErrors.confirmPassword ? INPUT_ERROR_CLASS : INPUT_CLASS}
                 {...regPassword('confirmPassword')}
               />
-              {passwordErrors.confirmPassword && <span style={{ fontSize: '0.75rem', color: 'var(--danger-on-background-strong)', marginTop: '0.25rem', display: 'block' }}>{passwordErrors.confirmPassword.message}</span>}
+              {passwordErrors.confirmPassword && <span style={{ fontSize: '1.2rem', color: 'var(--danger-on-background-strong)', marginTop: '0.25rem', display: 'block' }}>{passwordErrors.confirmPassword.message}</span>}
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>

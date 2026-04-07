@@ -71,7 +71,7 @@ export function PricingSection({ isLoggedIn }: PricingSectionProps) {
               className={clsx(
                 'relative flex flex-col gap-6 rounded-[2.4rem] p-8',
                 plan.popular
-                  ? 'border-2 border-[rgba(80,63,205,0.6)] shadow-primary bg-glass-gradient'
+                  ? 'border-2 border-[rgba(30,41,59,0.2)] shadow-primary bg-glass-gradient'
                   : 'border border-transparent-white bg-glass-gradient'
               )}
             >
@@ -80,7 +80,7 @@ export function PricingSection({ isLoggedIn }: PricingSectionProps) {
                 <span
                   className={clsx(
                     'absolute -top-3 left-1/2 -translate-x-1/2',
-                    'rounded-full bg-primary-gradient px-4 py-1 text-xs font-bold text-off-white'
+                    'rounded-full bg-primary-gradient px-4 py-1 text-xs font-bold text-white'
                   )}
                 >
                   {(plan as typeof landingPricingSection.pro).popularLabel}
@@ -113,7 +113,7 @@ export function PricingSection({ isLoggedIn }: PricingSectionProps) {
                 className={clsx(
                   'inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-medium transition-opacity hover:opacity-90',
                   plan.popular
-                    ? 'bg-primary-gradient text-off-white shadow-primary'
+                    ? 'bg-primary-gradient text-white shadow-primary'
                     : 'border border-transparent-white text-off-white hover:bg-transparent-white'
                 )}
               >

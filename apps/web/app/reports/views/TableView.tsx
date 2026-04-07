@@ -62,9 +62,9 @@ interface TableViewProps {
   onDueDateChange: (feedbackId: string, dueDate: string | null) => void
 }
 
-const GRID_COLS = '1.25rem 1.5rem 7rem 8rem 1fr 5.5rem 7rem 2.5rem 11rem'
+const GRID_COLS = '1.25rem 1.5rem 8rem 9rem 1fr 7rem 8rem 3rem 13rem'
 
-const cellStyle: React.CSSProperties = { display: 'flex', alignItems: 'center', minHeight: '1.75rem' }
+const cellStyle: React.CSSProperties = { display: 'flex', alignItems: 'center', minHeight: '2.4rem' }
 
 const STATUS_ACCENT: Record<string, string> = {
   OPEN: 'var(--warning-solid-strong)',
@@ -83,10 +83,10 @@ function SortHeader({ label, field, sort, onToggleSort }: { label: string; field
     <button
       onClick={() => onToggleSort(field)}
       style={{
-        display: 'flex', alignItems: 'center', gap: '0.25rem',
+        display: 'flex', alignItems: 'center', gap: '0.5rem',
         background: 'none', border: 'none', cursor: 'pointer', padding: 0,
         color: isActive ? 'var(--neutral-on-background-strong)' : 'var(--neutral-on-background-weak)',
-        fontSize: '1.1rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em',
+        fontSize: '1.2rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em',
       }}
     >
       {label}
@@ -243,14 +243,14 @@ function SortableRow({
         />
       </div>
       {/* Combined date range: start → due */}
-      <div style={{ ...cellStyle, gap: '0.25rem', minWidth: 0 }}>
+      <div style={{ ...cellStyle, gap: '0.5rem', minWidth: 0 }}>
         <InlineDatePicker
           feedbackId={feedback.id}
           dueDate={feedback.startDate || feedback.createdAt}
           onDueDateChange={(id, date) => onStartDateChange(id, date)}
           label="Início"
         />
-        <span style={{ color: 'var(--neutral-on-background-weak)', fontSize: '0.6875rem' }}>&rarr;</span>
+        <span style={{ color: 'var(--neutral-on-background-weak)', fontSize: '1.2rem' }}>&rarr;</span>
         <InlineDatePicker
           feedbackId={feedback.id}
           dueDate={feedback.dueDate || null}
@@ -471,7 +471,7 @@ export default function TableView({
                   padding: '0.375rem 1rem',
                   borderLeft: `3px solid ${accentColor}`,
                   background: 'var(--neutral-alpha-weak)',
-                  fontSize: '1.1rem',
+                  fontSize: '1.2rem',
                   color: 'var(--neutral-on-background-weak)',
                 }}>
                   {group.items.length}/{feedbacks.length} reports

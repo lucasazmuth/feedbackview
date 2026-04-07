@@ -178,9 +178,9 @@ function renderActivityDetails(entry: ActivityLogEntry) {
   if (entry.action === 'PROJECT_UPDATED' && entry.details.changes) {
     const changes = entry.details.changes as Record<string, { from: unknown; to: unknown }>
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginTop: '0.25rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.25rem' }}>
         {Object.entries(changes).map(([field, { from, to }]) => (
-          <span key={field} style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)' }}>
+          <span key={field} style={{ fontSize: '1.2rem', color: 'var(--neutral-on-background-weak)' }}>
             {field}: <span style={{ textDecoration: 'line-through', opacity: 0.6 }}>{String(from || '—')}</span> → {String(to || '—')}
           </span>
         ))}
@@ -190,7 +190,7 @@ function renderActivityDetails(entry: ActivityLogEntry) {
 
   if (entry.action === 'STATUS_CHANGED') {
     return (
-      <span style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', marginTop: '0.125rem', display: 'block' }}>
+      <span style={{ fontSize: '1.2rem', color: 'var(--neutral-on-background-weak)', marginTop: '0.125rem', display: 'block' }}>
         &quot;{entry.details.feedbackTitle}&quot;: {entry.details.oldStatusLabel} → {entry.details.newStatusLabel}
       </span>
     )
@@ -198,7 +198,7 @@ function renderActivityDetails(entry: ActivityLogEntry) {
 
   if (entry.action === 'FEEDBACK_RECEIVED') {
     return (
-      <span style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', marginTop: '0.125rem', display: 'block' }}>
+      <span style={{ fontSize: '1.2rem', color: 'var(--neutral-on-background-weak)', marginTop: '0.125rem', display: 'block' }}>
         {entry.details.typeLabel}{entry.details.title ? `: ${entry.details.title}` : ''}
         {entry.details.severity ? ` (${entry.details.severity})` : ''}
       </span>
@@ -603,14 +603,14 @@ export default function ProjectClient({
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {/* Breadcrumb + name + status */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', minWidth: 0, flex: 1 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', minWidth: 0, flex: 1 }}>
             <Link
               href="/dashboard"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 4,
-                fontSize: '0.75rem',
+                fontSize: '1.2rem',
                 color: 'var(--neutral-on-background-weak)',
                 textDecoration: 'none',
               }}
@@ -619,7 +619,7 @@ export default function ProjectClient({
               Projetos
             </Link>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <h1 className="app-section-title" style={{ fontSize: '1.375rem', margin: 0 }}>{project?.name}</h1>
+              <h1 className="app-section-title" style={{ fontSize: '1.4rem', margin: 0 }}>{project?.name}</h1>
               {(() => {
                 const mode = project?.mode ?? 'proxy'
                 const lastSeen = localEmbedLastSeen
@@ -633,8 +633,8 @@ export default function ProjectClient({
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '0.375rem',
-                        fontSize: '0.6875rem',
+                        gap: '0.6rem',
+                        fontSize: '1.2rem',
                         fontWeight: 500,
                         padding: '0.1875rem 0.5rem',
                         borderRadius: '999px',
@@ -658,8 +658,8 @@ export default function ProjectClient({
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '0.375rem',
-                        fontSize: '0.6875rem',
+                        gap: '0.6rem',
+                        fontSize: '1.2rem',
                         fontWeight: 500,
                         padding: '0.1875rem 0.5rem',
                         borderRadius: '999px',
@@ -683,8 +683,8 @@ export default function ProjectClient({
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '0.375rem',
-                        fontSize: '0.6875rem',
+                        gap: '0.6rem',
+                        fontSize: '1.2rem',
                         fontWeight: 500,
                         padding: '0.1875rem 0.5rem',
                         borderRadius: '999px',
@@ -705,8 +705,8 @@ export default function ProjectClient({
                       style={{
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '0.375rem',
-                        fontSize: '0.6875rem',
+                        gap: '0.6rem',
+                        fontSize: '1.2rem',
                         fontWeight: 500,
                         padding: '0.1875rem 0.5rem',
                         borderRadius: '999px',
@@ -729,8 +729,8 @@ export default function ProjectClient({
                     style={{
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '0.375rem',
-                      fontSize: '0.6875rem',
+                      gap: '0.6rem',
+                      fontSize: '1.2rem',
                       fontWeight: 500,
                       padding: '0.1875rem 0.5rem',
                       borderRadius: '999px',
@@ -747,11 +747,11 @@ export default function ProjectClient({
               })()}
             </div>
             {displayUrl && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                 <span
                   style={{
                     fontFamily: 'monospace',
-                    fontSize: '0.8125rem',
+                    fontSize: '1.4rem',
                     color: 'var(--neutral-on-background-weak)',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
@@ -790,23 +790,23 @@ export default function ProjectClient({
             )}
           </div>
           <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-            <div style={{ textAlign: 'center', padding: '0.5rem 0.75rem', borderRadius: '0.5rem', background: 'var(--neutral-alpha-weak)' }}>
-              <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: 700, color: 'var(--neutral-on-background-strong)', lineHeight: 1 }}>{totalCount}</span>
-              <span style={{ display: 'block', fontSize: '0.6875rem', color: 'var(--neutral-on-background-weak)', marginTop: '0.25rem' }}>Total</span>
+            <div style={{ textAlign: 'center', padding: '0.8rem 1.2rem', borderRadius: '0.5rem', background: 'var(--neutral-alpha-weak)' }}>
+              <span style={{ display: 'block', fontSize: '1.6rem', fontWeight: 700, color: 'var(--neutral-on-background-strong)', lineHeight: 1 }}>{totalCount}</span>
+              <span style={{ display: 'block', fontSize: '1.2rem', color: 'var(--neutral-on-background-weak)', marginTop: '0.25rem' }}>Total</span>
             </div>
-            <div style={{ textAlign: 'center', padding: '0.5rem 0.75rem', borderRadius: '0.5rem', background: 'var(--neutral-alpha-weak)' }}>
-              <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: 700, color: 'var(--warning-on-background-strong)', lineHeight: 1 }}>{openCount}</span>
-              <span style={{ display: 'block', fontSize: '0.6875rem', color: 'var(--neutral-on-background-weak)', marginTop: '0.25rem' }}>Abertos</span>
+            <div style={{ textAlign: 'center', padding: '0.8rem 1.2rem', borderRadius: '0.5rem', background: 'var(--neutral-alpha-weak)' }}>
+              <span style={{ display: 'block', fontSize: '1.6rem', fontWeight: 700, color: 'var(--warning-on-background-strong)', lineHeight: 1 }}>{openCount}</span>
+              <span style={{ display: 'block', fontSize: '1.2rem', color: 'var(--neutral-on-background-weak)', marginTop: '0.25rem' }}>Abertos</span>
             </div>
             {criticalCount > 0 && (
-              <div style={{ textAlign: 'center', padding: '0.5rem 0.75rem', borderRadius: '0.5rem', background: 'var(--danger-alpha-weak)' }}>
-                <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: 700, color: 'var(--danger-on-background-strong)', lineHeight: 1 }}>{criticalCount}</span>
-                <span style={{ display: 'block', fontSize: '0.6875rem', color: 'var(--neutral-on-background-weak)', marginTop: '0.25rem' }}>Críticos</span>
+              <div style={{ textAlign: 'center', padding: '0.8rem 1.2rem', borderRadius: '0.5rem', background: 'var(--danger-alpha-weak)' }}>
+                <span style={{ display: 'block', fontSize: '1.6rem', fontWeight: 700, color: 'var(--danger-on-background-strong)', lineHeight: 1 }}>{criticalCount}</span>
+                <span style={{ display: 'block', fontSize: '1.2rem', color: 'var(--neutral-on-background-weak)', marginTop: '0.25rem' }}>Críticos</span>
               </div>
             )}
-            <div style={{ textAlign: 'center', padding: '0.5rem 0.75rem', borderRadius: '0.5rem', background: 'var(--neutral-alpha-weak)' }}>
-              <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: 700, color: 'var(--success-on-background-strong)', lineHeight: 1 }}>{resolvedCount}</span>
-              <span style={{ display: 'block', fontSize: '0.6875rem', color: 'var(--neutral-on-background-weak)', marginTop: '0.25rem' }}>Concluídas</span>
+            <div style={{ textAlign: 'center', padding: '0.8rem 1.2rem', borderRadius: '0.5rem', background: 'var(--neutral-alpha-weak)' }}>
+              <span style={{ display: 'block', fontSize: '1.6rem', fontWeight: 700, color: 'var(--success-on-background-strong)', lineHeight: 1 }}>{resolvedCount}</span>
+              <span style={{ display: 'block', fontSize: '1.2rem', color: 'var(--neutral-on-background-weak)', marginTop: '0.25rem' }}>Concluídas</span>
             </div>
           </div>
         </div>
@@ -878,7 +878,7 @@ export default function ProjectClient({
                 <span style={{
                   position: 'absolute', inset: 0,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '0.6875rem', fontWeight: 700,
+                  fontSize: '1.2rem', fontWeight: 700,
                   color: 'var(--brand-on-background-strong)',
                 }}>
                   {completedCount}/{steps.length}
@@ -887,14 +887,14 @@ export default function ProjectClient({
               {/* Text */}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
-                  fontSize: '0.875rem', fontWeight: 600,
+                  fontSize: '1.4rem', fontWeight: 600,
                   color: 'var(--neutral-on-background-strong)',
                   marginBottom: 2,
                 }}>
                   {currentStep?.label || 'Configure seu projeto'}
                 </div>
                 <div style={{
-                  fontSize: '0.75rem',
+                  fontSize: '1.2rem',
                   color: 'var(--neutral-on-background-weak)',
                 }}>
                   {isEmbed && currentStep?.key === 'install'
@@ -918,7 +918,7 @@ export default function ProjectClient({
                     border: 'none',
                     background: 'var(--brand-solid-strong)',
                     color: '#fff',
-                    fontSize: '0.8125rem',
+                    fontSize: '1.4rem',
                     fontWeight: 600,
                     cursor: 'pointer',
                     whiteSpace: 'nowrap',
@@ -945,9 +945,9 @@ export default function ProjectClient({
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.375rem',
+                gap: '0.6rem',
                 padding: '0.5rem 0 0.75rem',
-                fontSize: '0.875rem',
+                fontSize: '1.4rem',
                 fontWeight: 600,
                 color: activeTab === tab.key ? 'var(--brand-on-background-strong)' : 'var(--neutral-on-background-weak)',
                 background: 'none',
@@ -963,10 +963,10 @@ export default function ProjectClient({
               {tab.count !== undefined && (
                 <span
                   style={{
-                    fontSize: '0.6875rem',
+                    fontSize: '1.2rem',
                     background: activeTab === tab.key ? 'var(--brand-alpha-weak)' : 'var(--neutral-alpha-weak)',
                     color: activeTab === tab.key ? 'var(--brand-on-background-strong)' : 'var(--neutral-on-background-weak)',
-                    padding: '0.125rem 0.5rem',
+                    padding: '0.3rem 0.6rem',
                     borderRadius: '999px',
                     fontWeight: 500,
                   }}
@@ -1021,7 +1021,7 @@ export default function ProjectClient({
                     border: '1px solid var(--neutral-border-medium)',
                     background: 'var(--surface-background)',
                     color: 'var(--neutral-on-background-strong)',
-                    fontSize: '0.875rem',
+                    fontSize: '1.4rem',
                     outline: 'none',
                     transition: 'border-color 0.15s',
                     height: 40,
@@ -1087,7 +1087,7 @@ export default function ProjectClient({
                       }}
                     >
                       <span>Tipo</span>
-                      <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
                         {([['', 'Todos'], ['BUG', 'Bug'], ['SUGGESTION', 'Sugestão'], ['QUESTION', 'Dúvida'], ['PRAISE', 'Elogio']] as const).map(([val, label]) => (
                           <button
                             key={val}
@@ -1099,7 +1099,7 @@ export default function ProjectClient({
                               borderColor: typeFilter === val ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)',
                               background: typeFilter === val ? 'var(--brand-solid-strong)' : 'transparent',
                               color: typeFilter === val ? '#fff' : 'var(--neutral-on-background-weak)',
-                              fontSize: '0.75rem',
+                              fontSize: '1.2rem',
                               fontWeight: typeFilter === val ? 600 : 400,
                               cursor: 'pointer',
                               transition: 'all 0.15s',
@@ -1111,7 +1111,7 @@ export default function ProjectClient({
                       </div>
 
                       <span>Severidade</span>
-                      <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
                         {([['', 'Todas'], ['CRITICAL', 'Crítico'], ['HIGH', 'Alto'], ['MEDIUM', 'Médio'], ['LOW', 'Baixo']] as const).map(([val, label]) => (
                           <button
                             key={val}
@@ -1123,7 +1123,7 @@ export default function ProjectClient({
                               borderColor: severityFilter === val ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)',
                               background: severityFilter === val ? 'var(--brand-solid-strong)' : 'transparent',
                               color: severityFilter === val ? '#fff' : 'var(--neutral-on-background-weak)',
-                              fontSize: '0.75rem',
+                              fontSize: '1.2rem',
                               fontWeight: severityFilter === val ? 600 : 400,
                               cursor: 'pointer',
                               transition: 'all 0.15s',
@@ -1135,7 +1135,7 @@ export default function ProjectClient({
                       </div>
 
                       <span>Status</span>
-                      <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
                         {([['', 'Todos'], ['OPEN', 'Aberto'], ['IN_PROGRESS', 'Em andamento'], ['UNDER_REVIEW', 'Sob revisão'], ['RESOLVED', 'Concluída'], ['CANCELLED', 'Cancelado']] as const).map(([val, label]) => (
                           <button
                             key={val}
@@ -1147,7 +1147,7 @@ export default function ProjectClient({
                               borderColor: statusFilter === val ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)',
                               background: statusFilter === val ? 'var(--brand-solid-strong)' : 'transparent',
                               color: statusFilter === val ? '#fff' : 'var(--neutral-on-background-weak)',
-                              fontSize: '0.75rem',
+                              fontSize: '1.2rem',
                               fontWeight: statusFilter === val ? 600 : 400,
                               cursor: 'pointer',
                               transition: 'all 0.15s',
@@ -1161,7 +1161,7 @@ export default function ProjectClient({
                       {uniqueAssignees.length > 0 && (
                         <>
                           <span>Responsável</span>
-                          <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
+                          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
                             {[{ userId: '', label: 'Todos' }, ...uniqueAssignees.map(a => ({ userId: a.userId, label: a.name || a.email.split('@')[0] || 'Membro' }))].map((opt) => (
                               <button
                                 key={opt.userId}
@@ -1173,7 +1173,7 @@ export default function ProjectClient({
                                   borderColor: assigneeFilter === opt.userId ? 'var(--brand-solid-strong)' : 'var(--neutral-border-medium)',
                                   background: assigneeFilter === opt.userId ? 'var(--brand-solid-strong)' : 'transparent',
                                   color: assigneeFilter === opt.userId ? '#fff' : 'var(--neutral-on-background-weak)',
-                                  fontSize: '0.75rem',
+                                  fontSize: '1.2rem',
                                   fontWeight: assigneeFilter === opt.userId ? 600 : 400,
                                   cursor: 'pointer',
                                   transition: 'all 0.15s',
@@ -1194,7 +1194,7 @@ export default function ProjectClient({
                             border: 'none',
                             background: 'transparent',
                             color: 'var(--brand-on-background-strong)',
-                            fontSize: '0.75rem',
+                            fontSize: '1.2rem',
                             cursor: 'pointer',
                             textAlign: 'center',
                           }}
@@ -1477,7 +1477,7 @@ export default function ProjectClient({
               return (
                 <div className="project-settings-surface">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                       <h3 className="project-settings-heading">
                         Primeiros passos
                       </h3>
@@ -1568,9 +1568,9 @@ export default function ProjectClient({
                                       width: '100%',
                                       background: 'var(--neutral-solid-strong)',
                                       color: '#4ade80',
-                                      fontSize: '0.6875rem',
+                                      fontSize: '1.2rem',
                                       borderRadius: '0.375rem',
-                                      padding: '0.5rem 0.75rem',
+                                      padding: '0.8rem 1.2rem',
                                       overflow: 'auto',
                                       fontFamily: 'monospace',
                                       margin: 0,
@@ -1586,13 +1586,13 @@ export default function ProjectClient({
                                       marginTop: 6,
                                       display: 'inline-flex',
                                       alignItems: 'center',
-                                      gap: '0.25rem',
+                                      gap: '0.5rem',
                                       padding: '0.25rem 0.625rem',
                                       borderRadius: '0.375rem',
                                       border: '1px solid var(--neutral-border-medium)',
                                       background: 'var(--surface-background)',
                                       color: copiedEmbed ? 'var(--success-on-background-strong)' : 'var(--neutral-on-background-strong)',
-                                      fontSize: '0.6875rem',
+                                      fontSize: '1.2rem',
                                       fontWeight: 500,
                                       cursor: 'pointer',
                                     }}
@@ -1617,7 +1617,7 @@ export default function ProjectClient({
                                       marginLeft: 6,
                                       display: 'inline-flex',
                                       alignItems: 'center',
-                                      gap: '0.25rem',
+                                      gap: '0.5rem',
                                       padding: '0.25rem 0.625rem',
                                       borderRadius: '0.375rem',
                                       border: '1px solid var(--neutral-border-medium)',
@@ -1631,7 +1631,7 @@ export default function ProjectClient({
                                         : connectionStatus === 'not-connected'
                                         ? 'var(--danger-on-background-strong)'
                                         : 'var(--neutral-on-background-strong)',
-                                      fontSize: '0.6875rem',
+                                      fontSize: '1.2rem',
                                       fontWeight: 500,
                                       cursor: connectionStatus === 'checking' ? 'wait' : 'pointer',
                                       transition: 'all 0.15s',
@@ -1669,13 +1669,13 @@ export default function ProjectClient({
                                       marginLeft: 6,
                                       display: 'inline-flex',
                                       alignItems: 'center',
-                                      gap: '0.25rem',
+                                      gap: '0.5rem',
                                       padding: '0.25rem 0.625rem',
                                       borderRadius: '0.375rem',
                                       border: '1px solid var(--neutral-border-medium)',
                                       background: 'var(--surface-background)',
                                       color: 'var(--neutral-on-background-strong)',
-                                      fontSize: '0.6875rem',
+                                      fontSize: '1.2rem',
                                       fontWeight: 500,
                                       cursor: 'pointer',
                                     }}
@@ -1695,9 +1695,9 @@ export default function ProjectClient({
                                     style={{
                                       width: '100%',
                                       background: 'var(--neutral-alpha-weak)',
-                                      fontSize: '0.6875rem',
+                                      fontSize: '1.2rem',
                                       borderRadius: '0.375rem',
-                                      padding: '0.5rem 0.75rem',
+                                      padding: '0.8rem 1.2rem',
                                       fontFamily: 'monospace',
                                       overflow: 'hidden',
                                       textOverflow: 'ellipsis',
@@ -1712,13 +1712,13 @@ export default function ProjectClient({
                                       marginTop: 6,
                                       display: 'inline-flex',
                                       alignItems: 'center',
-                                      gap: '0.25rem',
+                                      gap: '0.5rem',
                                       padding: '0.25rem 0.625rem',
                                       borderRadius: '0.375rem',
                                       border: '1px solid var(--neutral-border-medium)',
                                       background: 'var(--surface-background)',
                                       color: copied ? 'var(--success-on-background-strong)' : 'var(--neutral-on-background-strong)',
-                                      fontSize: '0.6875rem',
+                                      fontSize: '1.2rem',
                                       fontWeight: 500,
                                       cursor: 'pointer',
                                     }}
@@ -1758,7 +1758,7 @@ export default function ProjectClient({
                   </div>
                 </div>
                 {!editing && canEdit && (
-                  <button type="button" onClick={() => setEditing(true)} className="app-btn-secondary" style={{ padding: '0.375rem 0.75rem', fontSize: '0.8125rem', flexShrink: 0 }}>
+                  <button type="button" onClick={() => setEditing(true)} className="app-btn-secondary" style={{ padding: '0.375rem 0.75rem', fontSize: '1.4rem', flexShrink: 0 }}>
                     Editar
                   </button>
                 )}
@@ -1866,7 +1866,7 @@ export default function ProjectClient({
                       void router.push(`/settings/integrations?${q.toString()}`)
                     }}
                     className="app-btn-secondary"
-                    style={{ padding: '0.375rem 0.75rem', fontSize: '0.8125rem', flexShrink: 0 }}
+                    style={{ padding: '0.375rem 0.75rem', fontSize: '1.4rem', flexShrink: 0 }}
                   >
                     Abrir Integrações
                   </button>
@@ -1935,7 +1935,7 @@ export default function ProjectClient({
                                 </div>
                               )}
                             </div>
-                            <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)' }}>
+                            <span style={{ fontSize: '1.4rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)' }}>
                               {s === 'text' ? 'Texto' : 'Ícone'}
                             </span>
                           </div>
@@ -2002,7 +2002,7 @@ export default function ProjectClient({
                           )
                         })}
                       </div>
-                      <span style={{ fontSize: '0.6875rem', color: 'var(--neutral-on-background-weak)', marginTop: 6, display: 'block' }}>
+                      <span style={{ fontSize: '1.2rem', color: 'var(--neutral-on-background-weak)', marginTop: 6, display: 'block' }}>
                         {widgetPosition.replace('top-', 'Superior ').replace('bottom-', 'Inferior ').replace('middle-', 'Meio ').replace('left', 'esquerda').replace('right', 'direita').replace('center', 'centro')}
                       </span>
                     </div>
@@ -2028,7 +2028,7 @@ export default function ProjectClient({
                             }}
                           />
                         ))}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', marginLeft: '0.25rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginLeft: '0.25rem' }}>
                           <input
                             type="color"
                             value={widgetColor}
@@ -2044,7 +2044,7 @@ export default function ProjectClient({
                               padding: '0.375rem 0.5rem',
                               borderRadius: '0.375rem',
                               border: '1px solid var(--neutral-border-medium)',
-                              fontSize: '0.75rem',
+                              fontSize: '1.2rem',
                               fontFamily: 'monospace',
                               color: 'var(--neutral-on-background-strong)',
                               background: 'var(--surface-background)',
@@ -2066,7 +2066,7 @@ export default function ProjectClient({
                     }}>
                       {/* Mock browser bar */}
                       <div style={{
-                        padding: '0.5rem 0.75rem',
+                        padding: '0.8rem 1.2rem',
                         background: 'var(--neutral-alpha-weak)',
                         borderBottom: '1px solid var(--neutral-border-medium)',
                         display: 'flex',
@@ -2083,7 +2083,7 @@ export default function ProjectClient({
                           padding: '0.25rem 0.5rem',
                           borderRadius: '0.25rem',
                           background: 'var(--surface-background)',
-                          fontSize: '0.625rem',
+                          fontSize: '1.2rem',
                           color: 'var(--neutral-on-background-weak)',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
@@ -2216,7 +2216,7 @@ export default function ProjectClient({
                   <div className="project-settings-inline-field__input" title={viewerUrl}>
                     {viewerUrl}
                   </div>
-                  <button type="button" onClick={copyViewerUrl} className="app-btn-secondary" style={{ padding: '0.375rem 0.75rem', fontSize: '0.8125rem', flexShrink: 0 }}>
+                  <button type="button" onClick={copyViewerUrl} className="app-btn-secondary" style={{ padding: '0.375rem 0.75rem', fontSize: '1.4rem', flexShrink: 0 }}>
                     {copied ? 'Copiado!' : 'Copiar'}
                   </button>
                 </div>
@@ -2231,7 +2231,7 @@ export default function ProjectClient({
                     <div className="project-settings-card-header__text">
                       <h3 className="project-settings-heading">Script no site</h3>
                       <p className="project-settings-lede" style={{ marginTop: 0 }}>
-                        Cole antes de <code style={{ fontSize: '0.75rem' }}>&lt;/body&gt;</code>.
+                        Cole antes de <code style={{ fontSize: '1.2rem' }}>&lt;/body&gt;</code>.
                       </p>
                     </div>
                   </div>
@@ -2242,7 +2242,7 @@ export default function ProjectClient({
                       width: '100%',
                       background: 'var(--neutral-solid-strong)',
                       color: '#4ade80',
-                      fontSize: '0.75rem',
+                      fontSize: '1.2rem',
                       borderRadius: '0.5rem',
                       padding: '1rem',
                       overflow: 'auto',
@@ -2256,7 +2256,7 @@ export default function ProjectClient({
                     {embedSnippet}
                   </pre>
                   <div>
-                    <button type="button" onClick={copyEmbedSnippet} className="app-btn-secondary" style={{ padding: '0.375rem 0.75rem', fontSize: '0.8125rem' }}>
+                    <button type="button" onClick={copyEmbedSnippet} className="app-btn-secondary" style={{ padding: '0.375rem 0.75rem', fontSize: '1.4rem' }}>
                       {copiedEmbed ? 'Copiado!' : 'Copiar'}
                     </button>
                   </div>
@@ -2283,7 +2283,7 @@ export default function ProjectClient({
                     onClick={toggleEmbedPause}
                     disabled={!canEdit}
                     className="app-btn-primary"
-                    style={{ padding: '0.375rem 0.875rem', fontSize: '0.8125rem', flexShrink: 0 }}
+                    style={{ padding: '0.375rem 0.875rem', fontSize: '1.4rem', flexShrink: 0 }}
                   >
                     {pauseToggling ? (embedPaused ? 'Retomando...' : 'Pausando...') : (embedPaused ? 'Retomar' : 'Pausar')}
                   </button>
@@ -2310,7 +2310,7 @@ export default function ProjectClient({
                     onClick={() => setShowDeleteConfirm(true)}
                     disabled={!canEdit}
                     className="app-btn-secondary"
-                    style={{ padding: '0.375rem 0.75rem', fontSize: '0.8125rem', flexShrink: 0 }}
+                    style={{ padding: '0.375rem 0.75rem', fontSize: '1.4rem', flexShrink: 0 }}
                   >
                     Arquivar projeto
                   </button>
@@ -2323,7 +2323,7 @@ export default function ProjectClient({
                   >
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                       <span style={{ fontWeight: 500, color: 'var(--neutral-on-background-strong)' }}>
-                        Tem certeza que deseja arquivar o projeto <code style={{ background: 'var(--warning-alpha-medium)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.75rem' }}>{project?.name}</code>?
+                        Tem certeza que deseja arquivar o projeto <code style={{ background: 'var(--warning-alpha-medium)', padding: '2px 6px', borderRadius: '4px', fontSize: '1.2rem' }}>{project?.name}</code>?
                       </span>
                       {deleteError && (
                         <Alert>{deleteError}</Alert>
@@ -2393,15 +2393,15 @@ export default function ProjectClient({
                       {/* Content */}
                       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0.125rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                          <span style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--neutral-on-background-strong)' }}>
+                          <span style={{ fontWeight: 600, fontSize: '1.4rem', color: 'var(--neutral-on-background-strong)' }}>
                             {getActionLabel(entry.action)}
                           </span>
-                          <span style={{ fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)' }}>
+                          <span style={{ fontSize: '1.4rem', color: 'var(--neutral-on-background-weak)' }}>
                             {formatDate(entry.createdAt)}
                           </span>
                         </div>
                         {entry.userEmail && (
-                          <span style={{ fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)' }}>
+                          <span style={{ fontSize: '1.4rem', color: 'var(--neutral-on-background-weak)' }}>
                             por {entry.userEmail}
                           </span>
                         )}
@@ -2463,10 +2463,10 @@ export default function ProjectClient({
               </AppIcon>
             </button>
 
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--neutral-on-background-strong)', margin: '0 0 0.5rem' }}>
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--neutral-on-background-strong)', margin: '0 0 0.5rem' }}>
               Como instalar o widget
             </h2>
-            <p style={{ fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)', margin: '0 0 1.5rem', lineHeight: 1.5 }}>
+            <p style={{ fontSize: '1.4rem', color: 'var(--neutral-on-background-weak)', margin: '0 0 1.5rem', lineHeight: 1.5 }}>
               Siga os passos abaixo para adicionar o widget de feedback ao seu site.
             </p>
 
@@ -2513,23 +2513,23 @@ export default function ProjectClient({
                     width: 24, height: 24, borderRadius: '50%',
                     background: 'var(--brand-solid-strong)', color: '#fff',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '0.75rem', fontWeight: 700, flexShrink: 0,
+                    fontSize: '1.2rem', fontWeight: 700, flexShrink: 0,
                   }}>
                     {item.step}
                   </span>
-                  <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)' }}>
+                  <span style={{ fontSize: '1.4rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)' }}>
                     {item.title}
                   </span>
                 </div>
                 <div style={{ marginLeft: 36 }}>
-                  <p style={{ fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)', margin: '0 0 0.5rem', lineHeight: 1.5 }}>
+                  <p style={{ fontSize: '1.4rem', color: 'var(--neutral-on-background-weak)', margin: '0 0 0.5rem', lineHeight: 1.5 }}>
                     {item.description}
                   </p>
                   {item.code && (
                     <pre style={{
                       background: 'var(--neutral-solid-strong)',
                       color: '#4ade80',
-                      fontSize: '0.6875rem',
+                      fontSize: '1.2rem',
                       borderRadius: '0.5rem',
                       padding: '0.75rem',
                       overflow: 'auto',
@@ -2546,15 +2546,15 @@ export default function ProjectClient({
                       background: 'var(--brand-alpha-weak)',
                       borderRadius: '0.5rem',
                       padding: '0.625rem 0.75rem',
-                      fontSize: '0.75rem',
+                      fontSize: '1.2rem',
                       color: 'var(--neutral-on-background-strong)',
                       lineHeight: 1.6,
                     }}>
                       <span style={{ fontWeight: 600, display: 'block', marginBottom: 4 }}>Onde colar em cada framework:</span>
                       {item.tips.map((tip) => (
-                        <div key={tip} style={{ display: 'flex', gap: '0.375rem', alignItems: 'flex-start' }}>
+                        <div key={tip} style={{ display: 'flex', gap: '0.6rem', alignItems: 'flex-start' }}>
                           <span style={{ color: 'var(--brand-on-background-strong)', flexShrink: 0 }}>•</span>
-                          <span style={{ fontFamily: 'monospace', fontSize: '0.6875rem' }}>{tip}</span>
+                          <span style={{ fontFamily: 'monospace', fontSize: '1.2rem' }}>{tip}</span>
                         </div>
                       ))}
                     </div>
@@ -2569,7 +2569,7 @@ export default function ProjectClient({
               borderRadius: '0.5rem',
               background: 'var(--success-alpha-weak)',
               border: '1px solid var(--success-border-medium)',
-              fontSize: '0.8125rem',
+              fontSize: '1.4rem',
               color: 'var(--success-on-background-strong)',
               lineHeight: 1.5,
             }}>
@@ -2698,8 +2698,8 @@ export default function ProjectClient({
                               disabled={feedbackCommentSaving}
                             />
                             <div>
-                              <button onClick={() => setFeedbackEditingComment(false)} disabled={feedbackCommentSaving} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)', background: 'var(--surface-background)', color: 'var(--neutral-on-background-strong)', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>Cancelar</button>
-                              <button onClick={handleFeedbackCommentSave} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', background: 'var(--brand-solid-strong)', color: '#fff', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>Salvar</button>
+                              <button onClick={() => setFeedbackEditingComment(false)} disabled={feedbackCommentSaving} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)', background: 'var(--surface-background)', color: 'var(--neutral-on-background-strong)', fontSize: '1.4rem', fontWeight: 600, cursor: 'pointer' }}>Cancelar</button>
+                              <button onClick={handleFeedbackCommentSave} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', background: 'var(--brand-solid-strong)', color: '#fff', fontSize: '1.4rem', fontWeight: 600, cursor: 'pointer' }}>Salvar</button>
                             </div>
                           </div>
                         ) : (
@@ -2750,9 +2750,9 @@ export default function ProjectClient({
                               {selectedFeedback.networkLogs!.map((log, i) => (
                                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderTop: '1px solid var(--neutral-border-medium)' }}>
                                   <span style={{ display: "inline-flex", alignItems: "center", padding: "0.125rem 0.5rem", borderRadius: "999px", fontSize: "0.75rem", fontWeight: 600, background: "var(--neutral-alpha-weak)", color: "var(--neutral-on-background-weak)" }}></span>
-                                  <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '0.75rem', flexShrink: 0 }}>{log.method}</span>
-                                  <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }} title={log.url}>{log.url}</span>
-                                  {log.duration != null && <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', flexShrink: 0 }}>{log.duration}ms</span>}
+                                  <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '1.2rem', flexShrink: 0 }}>{log.method}</span>
+                                  <span style={{ fontFamily: 'monospace', fontSize: '1.2rem', color: 'var(--neutral-on-background-weak)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }} title={log.url}>{log.url}</span>
+                                  {log.duration != null && <span style={{ fontFamily: 'monospace', fontSize: '1.2rem', color: 'var(--neutral-on-background-weak)', flexShrink: 0 }}>{log.duration}ms</span>}
                                 </div>
                               ))}
                             </div>
@@ -2780,7 +2780,7 @@ export default function ProjectClient({
                                 return (
                                   <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', padding: '0.5rem 1rem', borderTop: '1px solid var(--neutral-border-medium)' }}>
                                     <span style={{ display: "inline-flex", alignItems: "center", padding: "0.125rem 0.5rem", borderRadius: "999px", fontSize: "0.75rem", fontWeight: 600, background: "var(--neutral-alpha-weak)", color: "var(--neutral-on-background-weak)" }}></span>
-                                    <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', wordBreak: 'break-word', flex: 1, minWidth: 0 }}>{log.message}</span>
+                                    <span style={{ fontFamily: 'monospace', fontSize: '1.2rem', color: 'var(--neutral-on-background-weak)', wordBreak: 'break-word', flex: 1, minWidth: 0 }}>{log.message}</span>
                                   </div>
                                 )
                               })}
@@ -2846,7 +2846,7 @@ export default function ProjectClient({
                         )}
                         {(userRole === 'OWNER' || userRole === 'ADMIN') && (
                           <div style={{ position: 'relative' }}>
-                            <button onClick={() => setShowFeedbackAssignDropdown(!showFeedbackAssignDropdown)} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', background: 'transparent', color: 'var(--neutral-on-background-weak)', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>+ Atribuir</button>
+                            <button onClick={() => setShowFeedbackAssignDropdown(!showFeedbackAssignDropdown)} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', background: 'transparent', color: 'var(--neutral-on-background-weak)', fontSize: '1.4rem', fontWeight: 600, cursor: 'pointer' }}>+ Atribuir</button>
                             {showFeedbackAssignDropdown && (
                               <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4, background: 'var(--surface-background)', border: '1px solid var(--neutral-border-medium)', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 10, maxHeight: 180, overflowY: 'auto' }}>
                                 {modalOrgMembers.filter(m => !feedbackAssignees.some(a => a.userId === m.id)).map(m => (
@@ -2899,14 +2899,14 @@ export default function ProjectClient({
                               target="_blank"
                               rel="noopener noreferrer"
                               style={{
-                                fontSize: '0.75rem',
+                                fontSize: '1.2rem',
                                 wordBreak: 'break-all',
                                 color: 'var(--brand-on-background-strong)',
                                 textDecoration: 'underline',
                                 textUnderlineOffset: '2px',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '0.25rem',
+                                gap: '0.5rem',
                               }}
                             >
                               {selectedFeedback.pageUrl}

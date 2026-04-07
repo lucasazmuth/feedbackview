@@ -160,7 +160,7 @@ function UpgradeContent() {
             <span>
               Apenas o proprietário da organização pode alterar o plano.
             </span>
-            <button onClick={() => router.push('/plans')} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)', background: 'var(--surface-background)', color: 'var(--neutral-on-background-strong)', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>Voltar para Planos</button>
+            <button onClick={() => router.push('/plans')} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)', background: 'var(--surface-background)', color: 'var(--neutral-on-background-strong)', fontSize: '1.4rem', fontWeight: 600, cursor: 'pointer' }}>Voltar para Planos</button>
           </div>
         </div>
       </AppLayout>
@@ -172,9 +172,9 @@ function UpgradeContent() {
       <div className="app-page">
         {/* Header */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <button onClick={() => router.push('/plans')} className="app-btn-secondary" style={{ alignSelf: 'flex-start', padding: '0.375rem 0.75rem', fontSize: '0.8125rem' }}>← Voltar para Planos</button>
+          <button onClick={() => router.push('/plans')} className="app-btn-secondary" style={{ alignSelf: 'flex-start', padding: '0.375rem 0.75rem', fontSize: '1.4rem' }}>← Voltar para Planos</button>
           <div style={{ textAlign: 'center' }}>
-            <h2 className="app-section-title" style={{ fontSize: '1.5rem' }}>Escolha seu plano</h2>
+            <h2 className="app-section-title" style={{ fontSize: '1.6rem' }}>Escolha seu plano</h2>
             <p className="app-section-sub" style={{ maxWidth: '42rem', margin: '0.5rem auto 0' }}>
               Faça upgrade ou downgrade a qualquer momento. Pro e Business liberam API, webhooks, integração ClickUp e exportação filtrada (CSV/Excel) enquanto a assinatura estiver ativa.
             </p>
@@ -223,15 +223,15 @@ function UpgradeContent() {
                 {/* Plan name + badges */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--neutral-on-background-strong)' }}>{plan.name}</span>
+                    <span style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--neutral-on-background-strong)' }}>{plan.name}</span>
                     {plan.highlight && <span className="app-badge" style={{ background: 'var(--brand-alpha-weak)', color: 'var(--brand-on-background-strong)' }}>Popular</span>}
                     {isCurrentPlan && <span className="app-badge" style={{ background: 'var(--success-alpha-weak)', color: 'var(--success-on-background-strong)' }}>Atual</span>}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
                     <span style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--neutral-on-background-strong)', lineHeight: 1 }}>{prices[plan.key].monthlyFormatted}</span>
-                    <span style={{ fontSize: '0.875rem', color: 'var(--neutral-on-background-weak)' }}>{plan.period}</span>
+                    <span style={{ fontSize: '1.4rem', color: 'var(--neutral-on-background-weak)' }}>{plan.period}</span>
                   </div>
-                  <span style={{ fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)', lineHeight: 1.4 }}>
+                  <span style={{ fontSize: '1.4rem', color: 'var(--neutral-on-background-weak)', lineHeight: 1.4 }}>
                     {plan.description}
                   </span>
                 </div>
@@ -242,8 +242,8 @@ function UpgradeContent() {
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   {plan.features.map((feature) => (
                     <div key={feature} style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
-                      <span style={{ flexShrink: 0, width: '1.125rem', height: '1.125rem', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', fontSize: '0.625rem', fontWeight: 700, background: 'var(--brand-alpha-weak)', color: 'var(--brand-on-background-strong)', marginTop: '0.125rem' }}>✓</span>
-                      <span style={{ fontSize: '0.8125rem', color: 'var(--neutral-on-background-strong)', lineHeight: 1.4 }}>{feature}</span>
+                      <span style={{ flexShrink: 0, width: '1.125rem', height: '1.125rem', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', fontSize: '1.2rem', fontWeight: 700, background: 'var(--brand-alpha-weak)', color: 'var(--brand-on-background-strong)', marginTop: '0.125rem' }}>✓</span>
+                      <span style={{ fontSize: '1.4rem', color: 'var(--neutral-on-background-strong)', lineHeight: 1.4 }}>{feature}</span>
                     </div>
                   ))}
                 </div>
@@ -251,19 +251,19 @@ function UpgradeContent() {
                 {/* CTA */}
                 <div style={{ marginTop: 'auto', paddingTop: '0.5rem' }}>
                   {isCurrentPlan && stripeSubscriptionId ? (
-                    <button onClick={handleManageSubscription} disabled={portalLoading} className="app-btn-secondary" style={{ width: '100%', padding: '0.75rem', borderRadius: '0.75rem', fontSize: '0.875rem', textAlign: 'center' }}>
+                    <button onClick={handleManageSubscription} disabled={portalLoading} className="app-btn-secondary" style={{ width: '100%', padding: '0.75rem', borderRadius: '0.75rem', fontSize: '1.4rem', textAlign: 'center' }}>
                       {portalLoading ? 'Abrindo...' : 'Gerenciar assinatura'}
                     </button>
                   ) : isCurrentPlan ? (
-                    <div style={{ width: '100%', padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid var(--success-border-strong)', background: 'var(--success-alpha-weak)', color: 'var(--success-on-background-strong)', textAlign: 'center', fontWeight: 600, fontSize: '0.875rem' }}>
+                    <div style={{ width: '100%', padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid var(--success-border-strong)', background: 'var(--success-alpha-weak)', color: 'var(--success-on-background-strong)', textAlign: 'center', fontWeight: 600, fontSize: '1.4rem' }}>
                       Plano atual
                     </div>
                   ) : canChange ? (
-                    <button onClick={() => handleUpgrade(plan.key)} disabled={!!upgradeLoading} className={isDowngrade ? 'app-btn-secondary' : 'app-btn-primary'} style={{ width: '100%', padding: '0.75rem', borderRadius: '0.75rem', fontSize: '0.875rem', textAlign: 'center' }}>
+                    <button onClick={() => handleUpgrade(plan.key)} disabled={!!upgradeLoading} className={isDowngrade ? 'app-btn-secondary' : 'app-btn-primary'} style={{ width: '100%', padding: '0.75rem', borderRadius: '0.75rem', fontSize: '1.4rem', textAlign: 'center' }}>
                       {upgradeLoading === plan.key ? 'Processando...' : isUpgrade ? `Upgrade para ${plan.name}` : `Downgrade para ${plan.name}`}
                     </button>
                   ) : (
-                    <div style={{ width: '100%', padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid var(--neutral-border-medium)', background: 'transparent', color: 'var(--neutral-on-background-weak)', textAlign: 'center', fontWeight: 600, fontSize: '0.875rem' }}>
+                    <div style={{ width: '100%', padding: '0.75rem', borderRadius: '0.75rem', border: '1px solid var(--neutral-border-medium)', background: 'transparent', color: 'var(--neutral-on-background-weak)', textAlign: 'center', fontWeight: 600, fontSize: '1.4rem' }}>
                       Plano gratuito
                     </div>
                   )}
@@ -275,9 +275,9 @@ function UpgradeContent() {
 
         {/* Comparison table */}
         <div className="app-card" style={{ marginTop: '0.5rem' }}>
-          <h3 className="app-section-title" style={{ fontSize: '1rem' }}>Comparativo de recursos</h3>
+          <h3 className="app-section-title" style={{ fontSize: '1.6rem' }}>Comparativo de recursos</h3>
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '1.4rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--neutral-border-medium)' }}>
                   <th style={{ textAlign: 'left', padding: '0.75rem 0.5rem', color: 'var(--neutral-on-background-strong)' }}>Recurso</th>

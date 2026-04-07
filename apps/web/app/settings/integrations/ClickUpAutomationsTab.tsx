@@ -39,14 +39,14 @@ const selectStyle: React.CSSProperties = {
   border: '1px solid var(--neutral-border-medium)',
   background: 'var(--surface-background)',
   color: 'var(--neutral-on-background-strong)',
-  fontSize: '0.875rem',
+  fontSize: '1.4rem',
   outline: 'none',
   cursor: 'pointer',
   appearance: 'auto' as any,
 }
 
 const fieldLabelStyle: React.CSSProperties = {
-  fontSize: '0.7rem',
+  fontSize: '1.2rem',
   fontWeight: 600,
   color: 'var(--neutral-on-background-weak)',
   display: 'block',
@@ -63,7 +63,7 @@ const projectFilterInputStyle: React.CSSProperties = {
   border: '1px solid var(--neutral-border-medium)',
   background: 'var(--surface-background)',
   color: 'var(--neutral-on-background-strong)',
-  fontSize: '0.8125rem',
+  fontSize: '1.4rem',
   outline: 'none',
 }
 
@@ -203,7 +203,7 @@ export default function ClickUpAutomationsTab({
         }}
       >
         <Spinner size="md" />
-        <span style={{ fontSize: '0.875rem', color: 'var(--neutral-on-background-weak)', textAlign: 'center' }}>
+        <span style={{ fontSize: '1.4rem', color: 'var(--neutral-on-background-weak)', textAlign: 'center' }}>
           Carregando automações…
         </span>
       </div>
@@ -232,7 +232,7 @@ export default function ClickUpAutomationsTab({
           >
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
               <span
-                style={{ lineHeight: 1.6, wordBreak: 'break-word', fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)' }}
+                style={{ lineHeight: 1.6, wordBreak: 'break-word', fontSize: '1.4rem', color: 'var(--neutral-on-background-weak)' }}
               >
                 Cada automação envia reports de um projeto Buug para uma lista no ClickUp. O mesmo projeto não pode estar em duas automações ao mesmo tempo.
               </span>
@@ -252,7 +252,7 @@ export default function ClickUpAutomationsTab({
                   border: '1px solid var(--neutral-border-medium)',
                 }}
               >
-                <span style={{ fontSize: '0.8125rem', lineHeight: 1.55, color: 'var(--neutral-on-background-weak)' }}>
+                <span style={{ fontSize: '1.4rem', lineHeight: 1.55, color: 'var(--neutral-on-background-weak)' }}>
                   Nenhuma automação ainda. Adicione uma para escolher workspace, espaço, lista e projeto Buug.
                 </span>
               </div>
@@ -262,10 +262,10 @@ export default function ClickUpAutomationsTab({
                 <div key={a.id} style={{ border: '1px solid var(--neutral-border-medium)', borderRadius: '0.75rem', padding: '1rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem' }}>
                     <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                      <span style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--neutral-on-background-strong)' }}>
+                      <span style={{ fontWeight: 600, fontSize: '1.4rem', color: 'var(--neutral-on-background-strong)' }}>
                         {a.name || 'Automação sem nome'}
                       </span>
-                      <span style={{ fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)' }}>
+                      <span style={{ fontSize: '1.4rem', color: 'var(--neutral-on-background-weak)' }}>
                         {a.listPath || a.clickupListId}
                         {' · '}
                         {a.projects.length === 0
@@ -275,12 +275,12 @@ export default function ClickUpAutomationsTab({
                             : `${a.projects.length} projetos (legado): ${a.projects.map(p => p.name).join(', ')}`}
                       </span>
                       {!a.enabled && (
-                        <span style={{ fontSize: '0.75rem', color: 'var(--warning-on-background-strong)' }}>Desativada</span>
+                        <span style={{ fontSize: '1.2rem', color: 'var(--warning-on-background-strong)' }}>Desativada</span>
                       )}
                     </div>
                     <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
-                      <button onClick={() => setModal({ type: 'edit', automation: a })} className="app-btn-secondary" style={{ padding: '0.375rem 0.75rem', fontSize: '0.8125rem' }}>Editar</button>
-                      <button onClick={() => setAutomationPendingDelete(a)} className="app-btn-danger" style={{ padding: '0.375rem 0.75rem', fontSize: '0.8125rem' }}>Excluir</button>
+                      <button onClick={() => setModal({ type: 'edit', automation: a })} className="app-btn-secondary" style={{ padding: '0.375rem 0.75rem', fontSize: '1.4rem' }}>Editar</button>
+                      <button onClick={() => setAutomationPendingDelete(a)} className="app-btn-danger" style={{ padding: '0.375rem 0.75rem', fontSize: '1.4rem' }}>Excluir</button>
                     </div>
                   </div>
                 </div>
@@ -299,8 +299,8 @@ export default function ClickUpAutomationsTab({
                 gap: '0.5rem',
               }}
             >
-              <span style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--neutral-on-background-strong)' }}>Como funciona</span>
-              <ul style={{ margin: 0, paddingLeft: '1.25rem', fontSize: '0.8125rem', lineHeight: 1.65, color: 'var(--neutral-on-background-weak)' }}>
+              <span style={{ fontWeight: 600, fontSize: '1.4rem', color: 'var(--neutral-on-background-strong)' }}>Como funciona</span>
+              <ul style={{ margin: 0, paddingLeft: '1.25rem', fontSize: '1.4rem', lineHeight: 1.65, color: 'var(--neutral-on-background-weak)' }}>
                 <li>Novo report em um projeto Buug vinculado vira tarefa na lista ClickUp da automação.</li>
                 <li>Prioridade e prazo seguem para o ClickUp quando existirem.</li>
                 <li>Status sincroniza com webhook configurado no ClickUp.</li>
@@ -364,10 +364,10 @@ export default function ClickUpAutomationsTab({
             onClick={(e: React.MouseEvent) => e.stopPropagation()}
           >
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <h3 id="clickup-delete-automation-title" style={{ margin: 0, fontSize: '1.0625rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)' }}>
+              <h3 id="clickup-delete-automation-title" style={{ margin: 0, fontSize: '1.6rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)' }}>
                 Excluir automação
               </h3>
-              <span style={{ fontSize: '0.875rem', color: 'var(--neutral-on-background-weak)', lineHeight: 1.55 }}>
+              <span style={{ fontSize: '1.4rem', color: 'var(--neutral-on-background-weak)', lineHeight: 1.55 }}>
                 Tem certeza que deseja excluir <strong style={{ color: 'var(--neutral-on-background-strong)' }}>{automationPendingDelete.name || 'esta automação'}</strong>? Os projetos Buug vinculados poderão ser associados a outra regra depois. Esta ação não pode ser desfeita.
               </span>
             </div>
@@ -739,7 +739,7 @@ function AutomationWizardInline({
                   style={{
                     color: 'var(--neutral-on-background-weak)',
                     fontWeight: 500,
-                    fontSize: '0.8125rem',
+                    fontSize: '1.4rem',
                     marginRight: '0.5rem',
                   }}
                 >
@@ -747,7 +747,7 @@ function AutomationWizardInline({
                 </span>
                 {WIZARD_STEPS[step].label}
                 {editing ? (
-                  <span style={{ color: 'var(--neutral-on-background-weak)', fontWeight: 500, fontSize: '0.8125rem' }}>
+                  <span style={{ color: 'var(--neutral-on-background-weak)', fontWeight: 500, fontSize: '1.4rem' }}>
                     {' '}
                     · edição
                   </span>
@@ -757,11 +757,11 @@ function AutomationWizardInline({
           </header>
 
           {step === 0 ? (
-            <span style={{ margin: 0, lineHeight: 1.5, fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)' }}>
+            <span style={{ margin: 0, lineHeight: 1.5, fontSize: '1.4rem', color: 'var(--neutral-on-background-weak)' }}>
               Os três passos são obrigatórios, um de cada vez: primeiro o <strong style={{ color: 'var(--neutral-on-background-strong)' }}>workspace</strong>; em seguida aparece o <strong style={{ color: 'var(--neutral-on-background-strong)' }}>espaço</strong>; depois a <strong style={{ color: 'var(--neutral-on-background-strong)' }}>lista</strong> do ClickUp onde os reports viram tarefas.
             </span>
           ) : (
-            <span style={{ margin: 0, lineHeight: 1.5, fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)' }}>
+            <span style={{ margin: 0, lineHeight: 1.5, fontSize: '1.4rem', color: 'var(--neutral-on-background-weak)' }}>
               Um <strong style={{ color: 'var(--neutral-on-background-strong)' }}>projeto Buug</strong> por automação — os reports dele viram tarefas na lista do passo 1. O nome acima é opcional, só para identificar esta regra.
             </span>
           )}
@@ -1013,7 +1013,7 @@ function AutomationWizardInline({
                                   style={{
                                     flex: 1,
                                     minWidth: 0,
-                                    fontSize: '0.875rem',
+                                    fontSize: '1.4rem',
                                     lineHeight: 1.35,
                                     color: 'var(--neutral-on-background-strong)',
                                     overflow: 'hidden',

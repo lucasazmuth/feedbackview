@@ -1,11 +1,14 @@
 'use client'
 
 import { OrgProvider } from '@/contexts/OrgContext'
+import { TooltipProvider } from '@/components/ui/tooltip'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <OrgProvider>
-      {children}
+      <TooltipProvider delayDuration={100}>
+        {children}
+      </TooltipProvider>
     </OrgProvider>
   )
 }

@@ -13,7 +13,7 @@ function Stars({ count }: { count: number }) {
           key={i}
           className={clsx(
             'text-sm leading-none',
-            i < count ? 'text-amber-400' : 'text-white/15'
+            i < count ? 'text-amber-400' : 'text-black/10'
           )}
         >
           ★

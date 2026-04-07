@@ -70,7 +70,7 @@ export default function KanbanCard({ feedback, assignees, onClick }: KanbanCardP
       onClick={() => onClick(feedback.id)}
     >
       {/* Tags row */}
-      <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
         <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: getTagColors(feedback.type).bg, color: getTagColors(feedback.type).color }}>{getTypeLabel(feedback.type)}</span>
         {feedback.severity && (
           <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: getTagColors(feedback.severity).bg, color: getTagColors(feedback.severity).color }}>{getSeverityLabel(feedback.severity)}</span>
@@ -102,7 +102,7 @@ export default function KanbanCard({ feedback, assignees, onClick }: KanbanCardP
         )}
         <span
           className={`text-xs flex-shrink-0 flex items-center gap-0.5 ${isOverdue ? 'text-red-400' : 'text-gray'}`}
-          style={{ fontSize: '0.6875rem' }}
+          style={{ fontSize: '1.2rem' }}
         >
           {hasDueDate && (
             <AppIcon size={10} strokeWidth={ICON_STROKE.emphasis}>

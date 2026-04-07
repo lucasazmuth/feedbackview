@@ -1,10 +1,17 @@
 import Script from 'next/script'
 import type { Metadata, Viewport } from 'next'
-import { Space_Grotesk } from 'next/font/google'
+import { Inter, Space_Grotesk } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
+import { Toaster } from '@/components/ui/sonner'
 import { ConditionalEmbed } from '@/components/ConditionalEmbed'
 import { landingMeta } from '@/content/landing.pt-BR'
+
+const inter = Inter({
+  subsets: ['latin', 'latin-ext'],
+  variable: '--font-inter',
+  display: 'swap',
+})
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin', 'latin-ext'],
@@ -16,7 +23,7 @@ const spaceGrotesk = Space_Grotesk({
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#000212',
+  themeColor: '#ffffff',
 }
 
 const SITE_URL = 'https://buug.io'
@@ -67,9 +74,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning className={spaceGrotesk.variable}>
+    <html lang="pt-BR" suppressHydrationWarning className={`${inter.variable} ${spaceGrotesk.variable}`}>
       <body>
         <Providers>{children}</Providers>
+        <Toaster />
         <ConditionalEmbed />
         {/* Google Analytics 4 — set NEXT_PUBLIC_GA_ID in .env to activate */}
         {process.env.NEXT_PUBLIC_GA_ID && (

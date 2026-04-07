@@ -103,7 +103,7 @@ export default function Sidebar() {
     },
   ]
 
-  const SIDEBAR_WIDTH = '15rem'
+  const SIDEBAR_WIDTH = '18rem'
 
   const bottomNavItems = [
     {
@@ -158,7 +158,7 @@ export default function Sidebar() {
             borderRadius: 8,
             background: '#ef4444',
             color: '#fff',
-            fontSize: '1rem',
+            fontSize: '1.2rem',
             fontWeight: 700,
             display: 'flex',
             alignItems: 'center',
@@ -320,7 +320,7 @@ export default function Sidebar() {
           {/* Name + plan */}
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{
-              fontSize: '1.3rem',
+              fontSize: '1.4rem',
               fontWeight: 600,
               color: 'var(--neutral-on-background-strong)',
               overflow: 'hidden',
@@ -330,7 +330,7 @@ export default function Sidebar() {
               {currentOrg?.name || 'Workspace'}
             </div>
             <div style={{
-              fontSize: '1.1rem',
+              fontSize: '1.2rem',
               color: 'var(--neutral-on-background-weak)',
               marginTop: 1,
             }}>
@@ -394,7 +394,7 @@ export default function Sidebar() {
                     border: 'none',
                     background: 'transparent',
                     outline: 'none',
-                    fontSize: '1.3rem',
+                    fontSize: '1.4rem',
                     color: 'var(--neutral-on-background-strong)',
                     width: '100%',
                   }}
@@ -419,7 +419,7 @@ export default function Sidebar() {
                       alignItems: 'center',
                       gap: '0.625rem',
                       width: '100%',
-                      padding: '0.5rem 0.75rem',
+                      padding: '0.6rem 1rem',
                       border: 'none',
                       background: active ? 'var(--neutral-alpha-weak)' : 'transparent',
                       cursor: 'pointer',
@@ -442,7 +442,7 @@ export default function Sidebar() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: '1.1rem',
+                      fontSize: '1.2rem',
                       fontWeight: 700,
                       flexShrink: 0,
                     }}>
@@ -450,7 +450,7 @@ export default function Sidebar() {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{
-                        fontSize: '1.3rem',
+                        fontSize: '1.4rem',
                         fontWeight: active ? 600 : 400,
                         color: 'var(--neutral-on-background-strong)',
                         overflow: 'hidden',
@@ -460,7 +460,7 @@ export default function Sidebar() {
                         {org.name}
                       </div>
                       <div style={{
-                        fontSize: '1.1rem',
+                        fontSize: '1.2rem',
                         color: 'var(--neutral-on-background-weak)',
                       }}>
                         {org.plan || 'Free'}
@@ -493,7 +493,7 @@ export default function Sidebar() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem',
-                padding: '0.5rem 0.75rem',
+                padding: '0.6rem 1rem',
                 borderRadius: '0.5rem',
                 border: 'none',
                 background: active ? 'var(--neutral-alpha-weak)' : 'transparent',
@@ -533,11 +533,11 @@ export default function Sidebar() {
               style={{ cursor: 'pointer', padding: '0.5rem 0.625rem', borderRadius: '0.5rem', background: 'var(--neutral-alpha-weak)' }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                <span style={{ fontSize: '1.1rem', color: 'var(--neutral-on-background-weak)', fontWeight: 500 }}>
+                <span style={{ fontSize: '1.2rem', color: 'var(--neutral-on-background-weak)', fontWeight: 500 }}>
                   Reports
                 </span>
                 <span style={{
-                  fontSize: '1.1rem',
+                  fontSize: '1.2rem',
                   fontWeight: 600,
                   color: isAt ? 'var(--danger-on-background-strong)' : isNear ? 'var(--warning-on-background-strong)' : 'var(--neutral-on-background-medium)',
                 }}>
@@ -576,7 +576,7 @@ export default function Sidebar() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.5rem',
-                padding: '0.5rem 0.75rem',
+                padding: '0.6rem 1rem',
                 borderRadius: '0.5rem',
                 border: 'none',
                 background: active ? 'var(--neutral-alpha-weak)' : 'transparent',
@@ -609,7 +609,7 @@ export default function Sidebar() {
             display: 'flex',
             alignItems: 'center',
             gap: '0.5rem',
-            padding: '0.5rem 0.75rem',
+            padding: '0.6rem 1rem',
             borderRadius: '0.5rem',
             border: 'none',
             background: 'transparent',

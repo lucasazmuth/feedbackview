@@ -40,7 +40,7 @@ interface Props {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', padding: '0.625rem 0' }}>
-      <span style={{ fontSize: '0.6875rem', fontWeight: 500, color: 'var(--neutral-on-background-weak)', width: 72, flexShrink: 0, paddingTop: 2 }}>{label}</span>
+      <span style={{ fontSize: '1.2rem', fontWeight: 500, color: 'var(--neutral-on-background-weak)', width: 72, flexShrink: 0, paddingTop: 2 }}>{label}</span>
       <div style={{ flex: 1, minWidth: 0 }}>{children}</div>
     </div>
   )
@@ -66,7 +66,7 @@ function AssignDropdown({ feedbackId, teamMembers, assignedIds, onAssign }: { fe
       {open && available.length > 0 && (
         <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 4, minWidth: 180, maxHeight: 200, overflowY: 'auto', background: 'var(--surface-background)', border: '1px solid var(--neutral-border-medium)', borderRadius: '0.5rem', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 300, padding: '0.25rem' }}>
           {available.map(m => (
-            <button key={m.id} onClick={() => { onAssign(feedbackId, [m.id]); setOpen(false) }} style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', padding: '0.375rem 0.5rem', borderRadius: '0.375rem', border: 'none', background: 'transparent', cursor: 'pointer', width: '100%', textAlign: 'left', fontSize: '0.6875rem', color: 'var(--neutral-on-background-strong)', transition: 'background 0.1s' }}>
+            <button key={m.id} onClick={() => { onAssign(feedbackId, [m.id]); setOpen(false) }} style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', padding: '0.375rem 0.5rem', borderRadius: '0.375rem', border: 'none', background: 'transparent', cursor: 'pointer', width: '100%', textAlign: 'left', fontSize: '1.2rem', color: 'var(--neutral-on-background-strong)', transition: 'background 0.1s' }}>
               <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#111', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, fontWeight: 700, flexShrink: 0 }}>{(m.name || m.email).charAt(0).toUpperCase()}</div>
               {m.name || m.email.split('@')[0]}
             </button>
@@ -104,7 +104,7 @@ function DateChip({ value, placeholder, onChange, isDue }: { value?: string | nu
         display: 'flex', alignItems: 'center', gap: '0.1875rem', padding: '0.125rem 0.375rem', borderRadius: '0.25rem',
         border: display ? (isOverdue ? '1px solid var(--danger-border-medium)' : '1px solid var(--neutral-border-medium)') : '1px dashed var(--neutral-border-medium)',
         background: isOverdue ? 'var(--danger-alpha-weak)' : 'transparent',
-        cursor: onChange ? 'pointer' : 'default', fontSize: '0.625rem', fontWeight: 500,
+        cursor: onChange ? 'pointer' : 'default', fontSize: '1.2rem', fontWeight: 500,
         color: isOverdue ? 'var(--danger-on-background-strong)' : display ? 'var(--neutral-on-background-strong)' : 'var(--neutral-on-background-weak)',
       }}>
         <AppIcon size={10} strokeWidth={ICON_STROKE.emphasis}><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></AppIcon>
@@ -113,10 +113,10 @@ function DateChip({ value, placeholder, onChange, isDue }: { value?: string | nu
       {open && onChange && (
         <div style={{ position: 'fixed', zIndex: 9999, background: 'var(--surface-background)', border: '1px solid var(--neutral-border-medium)', borderRadius: '0.5rem', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: 140 }}>
           {[{ l: 'Hoje', v: today }, { l: 'Amanhã', v: tomorrow }, { l: '+3d', v: in3d }, { l: '+7d', v: in7d }].map(o => (
-            <button key={o.l} onClick={() => setDate(o.v)} style={{ padding: '0.25rem 0.5rem', borderRadius: '0.25rem', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '0.625rem', textAlign: 'left', color: 'var(--neutral-on-background-strong)' }}>{o.l}</button>
+            <button key={o.l} onClick={() => setDate(o.v)} style={{ padding: '0.25rem 0.5rem', borderRadius: '0.25rem', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.2rem', textAlign: 'left', color: 'var(--neutral-on-background-strong)' }}>{o.l}</button>
           ))}
           <div style={{ height: 1, background: 'var(--neutral-border-medium)', margin: '0.125rem 0' }} />
-          <input type="date" value={value || ''} onChange={e => setDate(e.target.value || null)} style={{ fontSize: '0.625rem', padding: '0.25rem', border: '1px solid var(--neutral-border-medium)', borderRadius: '0.25rem', background: 'var(--surface-background)', color: 'var(--neutral-on-background-strong)' }} />
+          <input type="date" value={value || ''} onChange={e => setDate(e.target.value || null)} style={{ fontSize: '1.2rem', padding: '0.25rem', border: '1px solid var(--neutral-border-medium)', borderRadius: '0.25rem', background: 'var(--surface-background)', color: 'var(--neutral-on-background-strong)' }} />
           {value && <button onClick={() => setDate(null)} style={{ padding: '0.25rem', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '0.5625rem', color: 'var(--danger-on-background-strong)' }}>Limpar</button>}
         </div>
       )}
@@ -386,10 +386,10 @@ export default function FeedbackDetailModal({ isOpen, onClose, feedbackId, teamM
                     {/* Media tabs */}
                     {hasReplay && fb.screenshotUrl && (
                       <div style={{ display: 'flex', gap: 0, padding: '0 1.25rem', borderBottom: '1px solid var(--neutral-border-medium)', background: 'var(--surface-background)' }}>
-                        <button type="button" onClick={() => setMediaTab('replay')} style={{ padding: '0.625rem 1rem', fontSize: '1.3rem', fontWeight: 500, border: 'none', cursor: 'pointer', borderBottom: mediaTab === 'replay' ? '2px solid var(--brand-solid-strong)' : '2px solid transparent', color: mediaTab === 'replay' ? 'var(--neutral-on-background-strong)' : 'var(--neutral-on-background-weak)', background: 'transparent', marginBottom: -1 }}>
+                        <button type="button" onClick={() => setMediaTab('replay')} style={{ padding: '0.625rem 1rem', fontSize: '1.4rem', fontWeight: 500, border: 'none', cursor: 'pointer', borderBottom: mediaTab === 'replay' ? '2px solid var(--brand-solid-strong)' : '2px solid transparent', color: mediaTab === 'replay' ? 'var(--neutral-on-background-strong)' : 'var(--neutral-on-background-weak)', background: 'transparent', marginBottom: -1 }}>
                           Replay
                         </button>
-                        <button type="button" onClick={() => setMediaTab('screenshot')} style={{ padding: '0.625rem 1rem', fontSize: '1.3rem', fontWeight: 500, border: 'none', cursor: 'pointer', borderBottom: mediaTab === 'screenshot' ? '2px solid var(--brand-solid-strong)' : '2px solid transparent', color: mediaTab === 'screenshot' ? 'var(--neutral-on-background-strong)' : 'var(--neutral-on-background-weak)', background: 'transparent', marginBottom: -1 }}>
+                        <button type="button" onClick={() => setMediaTab('screenshot')} style={{ padding: '0.625rem 1rem', fontSize: '1.4rem', fontWeight: 500, border: 'none', cursor: 'pointer', borderBottom: mediaTab === 'screenshot' ? '2px solid var(--brand-solid-strong)' : '2px solid transparent', color: mediaTab === 'screenshot' ? 'var(--neutral-on-background-strong)' : 'var(--neutral-on-background-weak)', background: 'transparent', marginBottom: -1 }}>
                           Screenshot
                         </button>
                       </div>
@@ -411,7 +411,7 @@ export default function FeedbackDetailModal({ isOpen, onClose, feedbackId, teamM
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
                     <span className="text-md font-semibold text-off-white">Descrição</span>
                     {!editing && (
-                      <button onClick={() => { setDraft(fb.comment); setEditing(true) }} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.6875rem', fontWeight: 500, color: 'var(--brand-on-background-strong)' }}>Editar</button>
+                      <button onClick={() => { setDraft(fb.comment); setEditing(true) }} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 500, color: 'var(--brand-on-background-strong)' }}>Editar</button>
                     )}
                   </div>
                   {editing ? (
@@ -430,13 +430,13 @@ export default function FeedbackDetailModal({ isOpen, onClose, feedbackId, teamM
                   {(fb.metadata?.stepsToReproduce || fb.metadata?.expectedResult || fb.metadata?.actualResult) && (
                     <div style={{ marginTop: '1.25rem', padding: '1rem', borderRadius: '0.5rem', background: 'var(--neutral-alpha-weak)', display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
                       {fb.metadata?.stepsToReproduce && (
-                        <div><span style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--neutral-on-background-weak)', display: 'block', marginBottom: '0.25rem' }}>Passos para reproduzir</span><p className="text-sm text-primary-text" style={{ whiteSpace: 'pre-wrap' }}>{fb.metadata.stepsToReproduce}</p></div>
+                        <div><span style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--neutral-on-background-weak)', display: 'block', marginBottom: '0.25rem' }}>Passos para reproduzir</span><p className="text-sm text-primary-text" style={{ whiteSpace: 'pre-wrap' }}>{fb.metadata.stepsToReproduce}</p></div>
                       )}
                       {fb.metadata?.expectedResult && (
-                        <div><span style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--neutral-on-background-weak)', display: 'block', marginBottom: '0.25rem' }}>Esperado</span><p className="text-sm text-primary-text" style={{ whiteSpace: 'pre-wrap' }}>{fb.metadata.expectedResult}</p></div>
+                        <div><span style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--neutral-on-background-weak)', display: 'block', marginBottom: '0.25rem' }}>Esperado</span><p className="text-sm text-primary-text" style={{ whiteSpace: 'pre-wrap' }}>{fb.metadata.expectedResult}</p></div>
                       )}
                       {fb.metadata?.actualResult && (
-                        <div><span style={{ fontSize: '0.6875rem', fontWeight: 600, color: 'var(--neutral-on-background-weak)', display: 'block', marginBottom: '0.25rem' }}>Resultado real</span><p className="text-sm text-primary-text" style={{ whiteSpace: 'pre-wrap' }}>{fb.metadata.actualResult}</p></div>
+                        <div><span style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--neutral-on-background-weak)', display: 'block', marginBottom: '0.25rem' }}>Resultado real</span><p className="text-sm text-primary-text" style={{ whiteSpace: 'pre-wrap' }}>{fb.metadata.actualResult}</p></div>
                       )}
                     </div>
                   )}
@@ -445,8 +445,8 @@ export default function FeedbackDetailModal({ isOpen, onClose, feedbackId, teamM
                   {logs.length > 0 && (
                     <div style={{ marginTop: '1.25rem', borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)', overflow: 'hidden' }}>
                       <div style={{ display: 'flex', alignItems: 'stretch' }}>
-                        <button type="button" onClick={() => setConsoleOpen(!consoleOpen)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.625rem 0.75rem', border: 'none', background: 'var(--surface-background)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)', minWidth: 0 }}>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>Console Logs <span style={{ fontSize: '0.625rem', fontWeight: 600, padding: '0.0625rem 0.375rem', borderRadius: '2rem', background: errs > 0 ? 'var(--danger-alpha-weak)' : 'var(--neutral-alpha-medium)', color: errs > 0 ? 'var(--danger-on-background-strong)' : 'var(--neutral-on-background-weak)' }}>{logs.length}</span></span>
+                        <button type="button" onClick={() => setConsoleOpen(!consoleOpen)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.625rem 0.75rem', border: 'none', background: 'var(--surface-background)', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)', minWidth: 0 }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>Console Logs <span style={{ fontSize: '1.2rem', fontWeight: 600, padding: '0.0625rem 0.375rem', borderRadius: '2rem', background: errs > 0 ? 'var(--danger-alpha-weak)' : 'var(--neutral-alpha-medium)', color: errs > 0 ? 'var(--danger-on-background-strong)' : 'var(--neutral-on-background-weak)' }}>{logs.length}</span></span>
                           <AppIcon size="xs" strokeWidth={ICON_STROKE.emphasis} style={{ transform: consoleOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.15s', flexShrink: 0 }}><polyline points="6 9 12 15 18 9" /></AppIcon>
                         </button>
                         <button
@@ -471,7 +471,7 @@ export default function FeedbackDetailModal({ isOpen, onClose, feedbackId, teamM
                             return (
                               <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', padding: '0.5rem 0.75rem', borderTop: '1px solid var(--neutral-border-medium)', background: isErr ? 'var(--danger-alpha-weak)' : isW ? 'var(--warning-alpha-weak)' : 'transparent' }}>
                                 <span style={{ flexShrink: 0, padding: '0.0625rem 0.375rem', borderRadius: '0.25rem', fontSize: '0.5625rem', fontWeight: 700, fontFamily: 'ui-monospace,monospace', background: isErr ? 'var(--danger-solid-strong)' : isW ? 'var(--warning-solid-strong)' : 'var(--info-solid-strong)', color: '#fff' }}>{lv}</span>
-                                <span style={{ fontFamily: 'ui-monospace,monospace', fontSize: '0.6875rem', color: 'var(--neutral-on-background-strong)', wordBreak: 'break-word', flex: 1, lineHeight: 1.4 }}>{l.message}</span>
+                                <span style={{ fontFamily: 'ui-monospace,monospace', fontSize: '1.2rem', color: 'var(--neutral-on-background-strong)', wordBreak: 'break-word', flex: 1, lineHeight: 1.4 }}>{l.message}</span>
                               </div>
                             )
                           })}
@@ -484,8 +484,8 @@ export default function FeedbackDetailModal({ isOpen, onClose, feedbackId, teamM
                   {nets.length > 0 && (
                     <div style={{ marginTop: '0.625rem', borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)', overflow: 'hidden' }}>
                       <div style={{ display: 'flex', alignItems: 'stretch' }}>
-                        <button type="button" onClick={() => setNetworkOpen(!networkOpen)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.625rem 0.75rem', border: 'none', background: 'var(--surface-background)', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)', minWidth: 0 }}>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>Network <span style={{ fontSize: '0.625rem', fontWeight: 600, padding: '0.0625rem 0.375rem', borderRadius: '2rem', background: fails > 0 ? 'var(--danger-alpha-weak)' : 'var(--neutral-alpha-medium)', color: fails > 0 ? 'var(--danger-on-background-strong)' : 'var(--neutral-on-background-weak)' }}>{nets.length}</span></span>
+                        <button type="button" onClick={() => setNetworkOpen(!networkOpen)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.625rem 0.75rem', border: 'none', background: 'var(--surface-background)', cursor: 'pointer', fontSize: '1.2rem', fontWeight: 600, color: 'var(--neutral-on-background-strong)', minWidth: 0 }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>Network <span style={{ fontSize: '1.2rem', fontWeight: 600, padding: '0.0625rem 0.375rem', borderRadius: '2rem', background: fails > 0 ? 'var(--danger-alpha-weak)' : 'var(--neutral-alpha-medium)', color: fails > 0 ? 'var(--danger-on-background-strong)' : 'var(--neutral-on-background-weak)' }}>{nets.length}</span></span>
                           <AppIcon size="xs" strokeWidth={ICON_STROKE.emphasis} style={{ transform: networkOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.15s', flexShrink: 0 }}><polyline points="6 9 12 15 18 9" /></AppIcon>
                         </button>
                         <button
@@ -509,9 +509,9 @@ export default function FeedbackDetailModal({ isOpen, onClose, feedbackId, teamM
                             return (
                               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', borderTop: '1px solid var(--neutral-border-medium)', background: f ? 'var(--danger-alpha-weak)' : 'transparent' }}>
                                 <span style={{ flexShrink: 0, padding: '0.0625rem 0.375rem', borderRadius: '0.25rem', fontSize: '0.5625rem', fontWeight: 700, fontFamily: 'ui-monospace,monospace', background: f ? 'var(--danger-solid-strong)' : 'var(--success-solid-strong)', color: '#fff' }}>{l.status ?? '—'}</span>
-                                <span style={{ fontFamily: 'ui-monospace,monospace', fontWeight: 600, fontSize: '0.625rem', flexShrink: 0 }}>{l.method}</span>
-                                <span style={{ fontFamily: 'ui-monospace,monospace', fontSize: '0.625rem', color: 'var(--neutral-on-background-weak)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }} title={l.url}>{l.url}</span>
-                                {l.duration != null && <span style={{ fontFamily: 'ui-monospace,monospace', fontSize: '0.625rem', color: 'var(--neutral-on-background-weak)', flexShrink: 0 }}>{l.duration}ms</span>}
+                                <span style={{ fontFamily: 'ui-monospace,monospace', fontWeight: 600, fontSize: '1.2rem', flexShrink: 0 }}>{l.method}</span>
+                                <span style={{ fontFamily: 'ui-monospace,monospace', fontSize: '1.2rem', color: 'var(--neutral-on-background-weak)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }} title={l.url}>{l.url}</span>
+                                {l.duration != null && <span style={{ fontFamily: 'ui-monospace,monospace', fontSize: '1.2rem', color: 'var(--neutral-on-background-weak)', flexShrink: 0 }}>{l.duration}ms</span>}
                               </div>
                             )
                           })}
@@ -531,7 +531,7 @@ export default function FeedbackDetailModal({ isOpen, onClose, feedbackId, teamM
                       const a = fb.status === o.value
                       return (
                         <button key={o.value} onClick={() => handleStatus(o.value)} disabled={statusSaving} style={{
-                          padding: '0.1875rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.625rem', fontWeight: a ? 600 : 400,
+                          padding: '0.1875rem 0.5rem', borderRadius: '0.25rem', fontSize: '1.2rem', fontWeight: a ? 600 : 400,
                           cursor: statusSaving ? 'wait' : 'pointer',
                           border: a ? `1.5px solid ${sc(o.value)}` : '1px solid var(--neutral-border-medium)',
                           background: a ? `color-mix(in srgb, ${sc(o.value)} 12%, transparent)` : 'transparent',
@@ -549,7 +549,7 @@ export default function FeedbackDetailModal({ isOpen, onClose, feedbackId, teamM
                 <Field label="Resp.">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', flexWrap: 'wrap' }}>
                     {assignees.length > 0 ? assignees.map(a => (
-                      <div key={a.userId} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.125rem 0.375rem', borderRadius: '0.25rem', background: 'var(--brand-alpha-weak)', fontSize: '0.625rem', fontWeight: 500, color: 'var(--neutral-on-background-strong)' }}>
+                      <div key={a.userId} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.125rem 0.375rem', borderRadius: '0.25rem', background: 'var(--brand-alpha-weak)', fontSize: '1.2rem', fontWeight: 500, color: 'var(--neutral-on-background-strong)' }}>
                         <div style={{ width: 14, height: 14, borderRadius: '50%', background: 'var(--brand-solid-strong)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 7, fontWeight: 700 }}>
                           {(a.name || a.email).charAt(0).toUpperCase()}
                         </div>
@@ -559,7 +559,7 @@ export default function FeedbackDetailModal({ isOpen, onClose, feedbackId, teamM
                         )}
                       </div>
                     )) : (
-                      <span style={{ fontSize: '0.625rem', color: 'var(--neutral-on-background-weak)', fontStyle: 'italic' }}>Não atribuído</span>
+                      <span style={{ fontSize: '1.2rem', color: 'var(--neutral-on-background-weak)', fontStyle: 'italic' }}>Não atribuído</span>
                     )}
                     {onAssign && teamMembers.length > 0 && (
                       <AssignDropdown feedbackId={fb.id} teamMembers={teamMembers} assignedIds={assignees.map(a => a.userId)} onAssign={onAssign} />
@@ -569,7 +569,7 @@ export default function FeedbackDetailModal({ isOpen, onClose, feedbackId, teamM
 
                 {/* Prazo (editable) */}
                 <Field label="Prazo">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.6875rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '1.2rem' }}>
                     <DateChip
                       value={fb.startDate}
                       placeholder="Início"
@@ -589,7 +589,7 @@ export default function FeedbackDetailModal({ isOpen, onClose, feedbackId, teamM
 
                 {fb.Project?.name && (
                   <Field label="Projeto">
-                    <span style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-strong)' }}>{fb.Project.name}</span>
+                    <span style={{ fontSize: '1.2rem', color: 'var(--neutral-on-background-strong)' }}>{fb.Project.name}</span>
                   </Field>
                 )}
 
@@ -607,22 +607,22 @@ export default function FeedbackDetailModal({ isOpen, onClose, feedbackId, teamM
 
                 {ua && (
                   <Field label="Navegador">
-                    <span style={{ fontSize: '0.6875rem', color: 'var(--neutral-on-background-strong)' }}>{ua.browser}</span>
+                    <span style={{ fontSize: '1.2rem', color: 'var(--neutral-on-background-strong)' }}>{ua.browser}</span>
                   </Field>
                 )}
                 {ua && (
                   <Field label="OS">
-                    <span style={{ fontSize: '0.6875rem', color: 'var(--neutral-on-background-strong)' }}>{ua.os}</span>
+                    <span style={{ fontSize: '1.2rem', color: 'var(--neutral-on-background-strong)' }}>{ua.os}</span>
                   </Field>
                 )}
                 {fb.metadata?.viewport && (
                   <Field label="Viewport">
-                    <span style={{ fontSize: '0.6875rem', color: 'var(--neutral-on-background-strong)' }}>{fb.metadata.viewport}</span>
+                    <span style={{ fontSize: '1.2rem', color: 'var(--neutral-on-background-strong)' }}>{fb.metadata.viewport}</span>
                   </Field>
                 )}
                 {fb.metadata?.source && (
                   <Field label="Origem">
-                    <span style={{ fontSize: '0.6875rem', color: 'var(--neutral-on-background-strong)' }}>{fb.metadata.source === 'shared-url' ? 'URL compartilhada' : 'Widget embed'}</span>
+                    <span style={{ fontSize: '1.2rem', color: 'var(--neutral-on-background-strong)' }}>{fb.metadata.source === 'shared-url' ? 'URL compartilhada' : 'Widget embed'}</span>
                   </Field>
                 )}
 
@@ -640,12 +640,12 @@ export default function FeedbackDetailModal({ isOpen, onClose, feedbackId, teamM
                 {/* Summary stats */}
                 <div style={{ height: 1, background: 'var(--neutral-border-medium)', margin: '0.25rem 0' }} />
                 <Field label="Console">
-                  <span style={{ fontSize: '0.6875rem', color: errs > 0 ? 'var(--danger-on-background-strong)' : 'var(--neutral-on-background-weak)' }}>
+                  <span style={{ fontSize: '1.2rem', color: errs > 0 ? 'var(--danger-on-background-strong)' : 'var(--neutral-on-background-weak)' }}>
                     {logs.length} logs{errs > 0 && ` (${errs} erros)`}
                   </span>
                 </Field>
                 <Field label="Network">
-                  <span style={{ fontSize: '0.6875rem', color: fails > 0 ? 'var(--danger-on-background-strong)' : 'var(--neutral-on-background-weak)' }}>
+                  <span style={{ fontSize: '1.2rem', color: fails > 0 ? 'var(--danger-on-background-strong)' : 'var(--neutral-on-background-weak)' }}>
                     {nets.length} req.{fails > 0 && ` (${fails} falhas)`}
                   </span>
                 </Field>

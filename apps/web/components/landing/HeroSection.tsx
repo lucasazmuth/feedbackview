@@ -63,7 +63,7 @@ export function HeroSection({ isLoggedIn }: HeroSectionProps) {
             href={isLoggedIn ? '/dashboard' : '/auth/register'}
             className={clsx(
               'inline-flex items-center justify-center rounded-full',
-              'bg-primary-gradient px-6 py-3 text-md font-medium text-off-white',
+              'bg-primary-gradient px-6 py-3 text-md font-medium text-white',
               'shadow-primary transition-opacity hover:opacity-90'
             )}
           >

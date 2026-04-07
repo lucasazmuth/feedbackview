@@ -293,7 +293,7 @@ export default function ProjectFeedbacksTab({
               width: '100%', padding: '0.5rem 0.75rem 0.5rem 2.25rem',
               borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)',
               background: 'var(--surface-background)', color: 'var(--neutral-on-background-strong)',
-              fontSize: '0.875rem', outline: 'none', height: 40,
+              fontSize: '1.4rem', outline: 'none', height: 40,
             }}
             onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--brand-solid-strong)' }}
             onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--neutral-border-medium)' }}
@@ -397,7 +397,7 @@ export default function ProjectFeedbacksTab({
             <div style={{ width: '3rem', height: '3rem', borderRadius: '50%', background: 'var(--neutral-alpha-weak)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <AppIcon size="xl" strokeWidth={ICON_STROKE.emphasis} style={{ color: 'var(--neutral-on-background-weak)' }}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></AppIcon>
             </div>
-            <span style={{ fontSize: '0.875rem', color: 'var(--neutral-on-background-weak)' }}>
+            <span style={{ fontSize: '1.4rem', color: 'var(--neutral-on-background-weak)' }}>
               {feedbacks.length === 0
                 ? 'Nenhum report ainda. Compartilhe a URL do visualizador!'
                 : 'Nenhum report com os filtros selecionados.'}
@@ -496,14 +496,14 @@ export default function ProjectFeedbacksTab({
                 <h2 id="project-export-format-title" style={{ margin: 0, fontWeight: 600, color: 'var(--neutral-on-background-strong)' }}>
                   Exportar filtrado
                 </h2>
-                <span style={{ fontSize: '0.875rem', color: 'var(--neutral-on-background-weak)' }}>
+                <span style={{ fontSize: '1.4rem', color: 'var(--neutral-on-background-weak)' }}>
                   Escolha o formato do ficheiro: CSV (texto) ou Excel (.xlsx).
                 </span>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  <button onClick={() => runFilteredExport('csv')} style={{ padding: '0.375rem 0.75rem', borderRadius: '0.5rem', border: 'none', background: 'var(--brand-solid-strong)', color: '#fff', fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer' }}>CSV</button>
-                  <button onClick={() => runFilteredExport('xlsx')} style={{ padding: '0.375rem 0.75rem', borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)', background: 'var(--surface-background)', color: 'var(--neutral-on-background-strong)', fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer' }}>Excel (.xlsx)</button>
+                  <button onClick={() => runFilteredExport('csv')} style={{ padding: '0.375rem 0.75rem', borderRadius: '0.5rem', border: 'none', background: 'var(--brand-solid-strong)', color: '#fff', fontSize: '1.4rem', fontWeight: 600, cursor: 'pointer' }}>CSV</button>
+                  <button onClick={() => runFilteredExport('xlsx')} style={{ padding: '0.375rem 0.75rem', borderRadius: '0.5rem', border: '1px solid var(--neutral-border-medium)', background: 'var(--surface-background)', color: 'var(--neutral-on-background-strong)', fontSize: '1.4rem', fontWeight: 600, cursor: 'pointer' }}>Excel (.xlsx)</button>
                 </div>
-                <button onClick={() => setExportFormatOpen(false)} style={{ padding: '0.375rem 0.75rem', borderRadius: '0.5rem', border: 'none', background: 'transparent', color: 'var(--neutral-on-background-weak)', fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer' }}>Cancelar</button>
+                <button onClick={() => setExportFormatOpen(false)} style={{ padding: '0.375rem 0.75rem', borderRadius: '0.5rem', border: 'none', background: 'transparent', color: 'var(--neutral-on-background-weak)', fontSize: '1.4rem', fontWeight: 600, cursor: 'pointer' }}>Cancelar</button>
               </div>
             </div>
           </div>,

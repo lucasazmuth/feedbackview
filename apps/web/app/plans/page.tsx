@@ -18,8 +18,8 @@ function UsageBar({ label, current, max }: { label: string; current: number; max
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: '0.875rem', color: 'var(--neutral-on-background-strong)' }}>{label}</span>
-        <span style={{ fontSize: '0.875rem', fontWeight: 600, color: isAtLimit ? 'var(--danger-on-background-strong)' : isNearLimit ? 'var(--warning-on-background-strong)' : 'var(--neutral-on-background-medium)' }}>
+        <span style={{ fontSize: '1.4rem', color: 'var(--neutral-on-background-strong)' }}>{label}</span>
+        <span style={{ fontSize: '1.4rem', fontWeight: 600, color: isAtLimit ? 'var(--danger-on-background-strong)' : isNearLimit ? 'var(--warning-on-background-strong)' : 'var(--neutral-on-background-medium)' }}>
           {isUnlimited ? `${current} / Ilimitado` : `${current} / ${max}`}
         </span>
       </div>
@@ -178,7 +178,7 @@ function PlansContent() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <h3 className="app-section-title" style={{ fontSize: '1rem' }}>Plano atual</h3>
+                <h3 className="app-section-title" style={{ fontSize: '1.6rem' }}>Plano atual</h3>
                 <span
                   className="app-badge"
                   style={{ background: PLAN_BADGE_COLORS[currentPlan]?.bg, color: PLAN_BADGE_COLORS[currentPlan]?.color }}
@@ -187,8 +187,8 @@ function PlansContent() {
                 </span>
               </div>
               {isOwner && (
-                <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--neutral-on-background-strong)' }}>
-                  {prices[currentPlan].monthlyFormatted}<span style={{ fontSize: '0.875rem', fontWeight: 400, color: 'var(--neutral-on-background-weak)' }}>/mês</span>
+                <span style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--neutral-on-background-strong)' }}>
+                  {prices[currentPlan].monthlyFormatted}<span style={{ fontSize: '1.4rem', fontWeight: 400, color: 'var(--neutral-on-background-weak)' }}>/mês</span>
                 </span>
               )}
             </div>
@@ -216,7 +216,7 @@ function PlansContent() {
 
         {/* Usage */}
         <div className="app-card">
-          <h3 className="app-section-title" style={{ fontSize: '1rem' }}>Uso atual</h3>
+          <h3 className="app-section-title" style={{ fontSize: '1.6rem' }}>Uso atual</h3>
           <UsageBar
             label={org.isLifetimeLimit ? 'Reports (total)' : 'Reports este mês'}
             current={usage.reportsUsed}
@@ -227,12 +227,12 @@ function PlansContent() {
         {/* Features */}
         <div className="app-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 className="app-section-title" style={{ fontSize: '1rem' }}>Recursos do plano</h3>
+            <h3 className="app-section-title" style={{ fontSize: '1.6rem' }}>Recursos do plano</h3>
             {isOwner && (
               <button
                 onClick={() => router.push('/plans/upgrade')}
                 className="app-btn-secondary"
-                style={{ padding: '0.375rem 0.75rem', fontSize: '0.8125rem' }}
+                style={{ padding: '0.375rem 0.75rem', fontSize: '1.4rem' }}
               >
                 Ver todos os planos
               </button>
@@ -263,7 +263,7 @@ function PlansContent() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     borderRadius: '50%',
-                    fontSize: '0.75rem',
+                    fontSize: '1.2rem',
                     fontWeight: 700,
                     background: feature.available ? 'var(--brand-alpha-weak)' : 'var(--neutral-alpha-weak)',
                     color: feature.available ? 'var(--brand-on-background-strong)' : 'var(--neutral-on-background-weak)',
@@ -273,7 +273,7 @@ function PlansContent() {
                 </span>
                 <span
                   style={{
-                    fontSize: '0.875rem',
+                    fontSize: '1.4rem',
                     textDecoration: feature.available ? 'none' : 'line-through',
                     color: feature.available ? 'var(--neutral-on-background-strong)' : 'var(--neutral-on-background-weak)',
                   }}

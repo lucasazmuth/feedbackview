@@ -63,7 +63,7 @@ function MethodBadge({ method }: { method: keyof typeof METHOD_STYLES }) {
         minWidth: '3.25rem',
         padding: '0.2rem 0.5rem',
         borderRadius: '0.35rem',
-        fontSize: '0.6875rem',
+        fontSize: '1.2rem',
         fontWeight: 800,
         letterSpacing: '0.04em',
         fontFamily: 'ui-monospace, monospace',
@@ -95,7 +95,7 @@ function EndpointLine({ method, fullUrl }: { method: keyof typeof METHOD_STYLES;
       <code
         style={{
           flex: '1 1 12rem',
-          fontSize: '0.8125rem',
+          fontSize: '1.4rem',
           fontFamily: 'ui-monospace, monospace',
           wordBreak: 'break-all',
           color: 'var(--neutral-on-background-strong)',
@@ -113,7 +113,7 @@ function SectionLabel({ children }: { children: ReactNode }) {
       style={{
         textTransform: 'uppercase',
         letterSpacing: '0.08em',
-        fontSize: '0.6875rem',
+        fontSize: '1.2rem',
         opacity: 0.85,
       }}
     >
@@ -123,7 +123,7 @@ function SectionLabel({ children }: { children: ReactNode }) {
 }
 
 const codeBox: React.CSSProperties = {
-  fontSize: '0.75rem',
+  fontSize: '1.2rem',
   fontFamily: 'ui-monospace, monospace',
   display: 'block',
   padding: '0.85rem 1rem',
@@ -139,7 +139,7 @@ function CodeBlock({ code, onCopy, copied }: { code: string; onCopy: () => void;
   return (
     <div>
       <div>
-        <button onClick={onCopy} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', background: 'transparent', color: 'var(--neutral-on-background-weak)', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}>{copied ? 'Copiado' : 'Copiar'}</button>
+        <button onClick={onCopy} style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', background: 'transparent', color: 'var(--neutral-on-background-weak)', fontSize: '1.4rem', fontWeight: 600, cursor: 'pointer' }}>{copied ? 'Copiado' : 'Copiar'}</button>
       </div>
       <code style={codeBox}>{code}</code>
     </div>
@@ -157,7 +157,7 @@ function ResponseTable({
 }) {
   return (
     <div style={{ overflowX: 'auto', border: '1px solid var(--neutral-border-medium)', borderRadius: '0.5rem' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '1.4rem' }}>
         <thead>
           <tr style={{ background: 'var(--neutral-alpha-weak)', textAlign: 'left' }}>
             <th style={{ padding: '0.5rem 0.75rem', minWidth: '6rem' }}>{firstColumnHeader}</th>
@@ -171,7 +171,7 @@ function ResponseTable({
               <td style={{ padding: '0.5rem 0.75rem' }}>
                 {r.title}
                 {r.body && (
-                  <code style={{ display: 'block', marginTop: '0.35rem', fontSize: '0.72rem', opacity: 0.9 }}>{r.body}</code>
+                  <code style={{ display: 'block', marginTop: '0.35rem', fontSize: '1.2rem', opacity: 0.9 }}>{r.body}</code>
                 )}
               </td>
             </tr>
@@ -241,7 +241,7 @@ export function IntegrationsDocsReference({
           border: 'none',
           background: active ? 'var(--brand-alpha-weak)' : 'transparent',
           color: active ? 'var(--brand-on-background-strong)' : 'var(--neutral-on-background-weak)',
-          fontSize: '0.8125rem',
+          fontSize: '1.4rem',
           fontWeight: active ? 600 : 500,
           cursor: 'pointer',
           lineHeight: 1.35,
@@ -310,7 +310,7 @@ export function IntegrationsDocsReference({
           {DOC_NAV_GROUPS.map(section => (
             <div key={section.group} style={{ marginBottom: '1.25rem' }}>
               <span
-                style={{ display: 'block', marginBottom: '0.35rem', fontSize: '0.6875rem', letterSpacing: '0.06em' }}
+                style={{ display: 'block', marginBottom: '0.35rem', fontSize: '1.2rem', letterSpacing: '0.06em' }}
               >
                 {section.group}
               </span>
@@ -350,7 +350,7 @@ export function IntegrationsDocsReference({
                 </span>
                 <SectionLabel>Índice de endpoints</SectionLabel>
                 <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '1.4rem' }}>
                     <thead>
                       <tr style={{ borderBottom: '1px solid var(--neutral-border-medium)', textAlign: 'left' }}>
                         <th style={{ padding: '0.5rem 0.5rem 0.5rem 0' }}>Método</th>
@@ -605,7 +605,7 @@ Content-Type: application/json
                   + hexadecimal).
                 </span>
                 <SectionLabel>Passos</SectionLabel>
-                <ol style={{ margin: 0, paddingLeft: '1.25rem', fontSize: '0.875rem', lineHeight: 1.65, color: 'var(--neutral-on-background-weak)' }}>
+                <ol style={{ margin: 0, paddingLeft: '1.25rem', fontSize: '1.4rem', lineHeight: 1.65, color: 'var(--neutral-on-background-weak)' }}>
                   <li>Leia o corpo da requisição como texto antes do parse JSON.</li>
                   <li>Calcule HMAC-SHA256(secret, rawBody) em hexadecimal.</li>
                   <li>Compare com o valor do cabeçalho (comparação em tempo constante recomendada).</li>

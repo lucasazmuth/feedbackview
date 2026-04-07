@@ -6,7 +6,7 @@ import { AppIcon } from '@/components/ui/AppIcon'
 
 /** Tipografia do cabeçalho — alinhada ao modal ClickUp / IntegrationsClient. */
 export const systemModalTitleStyle: CSSProperties = {
-  fontSize: '1.125rem',
+  fontSize: '1.8rem',
   fontWeight: 700,
   color: 'var(--neutral-on-background-strong)',
   margin: 0,
@@ -14,7 +14,7 @@ export const systemModalTitleStyle: CSSProperties = {
 }
 
 export const systemModalDescStyle: CSSProperties = {
-  fontSize: '0.8125rem',
+  fontSize: '1.4rem',
   color: 'var(--neutral-on-background-weak)',
   margin: '0.375rem 0 0',
   lineHeight: 1.45,
@@ -22,7 +22,7 @@ export const systemModalDescStyle: CSSProperties = {
 
 export const systemModalLabelStyle: CSSProperties = {
   display: 'block',
-  fontSize: '0.75rem',
+  fontSize: '1.2rem',
   fontWeight: 600,
   color: 'var(--neutral-on-background-weak)',
   marginBottom: '0.25rem',
@@ -152,7 +152,7 @@ export function SystemModal({
           inset: 0,
           zIndex: 0,
           cursor: 'pointer',
-          background: 'rgba(0,0,0,0.45)',
+          background: 'rgba(0,0,0,0.3)',
         }}
       />
       <div

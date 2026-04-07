@@ -319,7 +319,7 @@ export default function NotificationsPage() {
     <AppLayout>
       <div className="app-page" style={{ maxWidth: '100%' }}>
         <div>
-          <h2 className="app-section-title" style={{ fontSize: '1.5rem' }}>Notificações</h2>
+          <h2 className="app-section-title" style={{ fontSize: '2rem' }}>Notificações</h2>
           <p className="app-section-sub">
             Convites e atividade da plataforma
           </p>
@@ -338,7 +338,7 @@ export default function NotificationsPage() {
             {/* Invites section */}
             {invites.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <span style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.6875rem', fontWeight: 700, color: 'var(--neutral-on-background-weak)' }}>
+                <span style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '1.2rem', fontWeight: 700, color: 'var(--neutral-on-background-weak)' }}>
                   Convites pendentes
                 </span>
                 {invites.map((invite) => (
@@ -353,16 +353,16 @@ export default function NotificationsPage() {
                             width: 32, height: 32, borderRadius: 8,
                             background: 'var(--brand-solid-strong)', color: '#fff',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: '0.8rem', fontWeight: 700, flexShrink: 0,
+                            fontSize: '1.4rem', fontWeight: 700, flexShrink: 0,
                           }}>
                             {(invite.orgName || 'O')[0].toUpperCase()}
                           </div>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem' }}>
-                            <span style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--neutral-on-background-strong)' }}>
+                            <span style={{ fontWeight: 600, fontSize: '1.4rem', color: 'var(--neutral-on-background-strong)' }}>
                               {invite.orgName}
                             </span>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                              <span style={{ fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)' }}>
+                              <span style={{ fontSize: '1.4rem', color: 'var(--neutral-on-background-weak)' }}>
                                 Convite para participar como
                               </span>
                               <span className="app-badge" style={{ background: 'var(--brand-alpha-weak)', color: 'var(--brand-on-background-strong)' }}>{ROLE_LABELS[invite.role || ''] || invite.role}</span>
@@ -384,7 +384,7 @@ export default function NotificationsPage() {
             {/* Activity section */}
             {activityNotifs.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <span style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.6875rem', fontWeight: 700, color: 'var(--neutral-on-background-weak)' }}>
+                <span style={{ textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '1.2rem', fontWeight: 700, color: 'var(--neutral-on-background-weak)' }}>
                   Atividade
                 </span>
                 {activityNotifs.map((notif) => {
@@ -430,7 +430,7 @@ export default function NotificationsPage() {
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                           <span style={{
-                            fontSize: '0.875rem', fontWeight: notif.read ? 400 : 600,
+                            fontSize: '1.4rem', fontWeight: notif.read ? 400 : 600,
                             color: 'var(--neutral-on-background-strong)',
                             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                           }}>
@@ -445,7 +445,7 @@ export default function NotificationsPage() {
                         </div>
                         {notif.message && (
                           <span style={{
-                            fontSize: '0.8125rem', color: 'var(--neutral-on-background-weak)',
+                            fontSize: '1.4rem', color: 'var(--neutral-on-background-weak)',
                             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                             display: 'block',
                           }}>
@@ -456,7 +456,7 @@ export default function NotificationsPage() {
 
                       {/* Time */}
                       {notif.createdAt && (
-                        <span style={{ fontSize: '0.75rem', color: 'var(--neutral-on-background-weak)', flexShrink: 0 }}>
+                        <span style={{ fontSize: '1.2rem', color: 'var(--neutral-on-background-weak)', flexShrink: 0 }}>
                           {timeAgo(notif.createdAt)}
                         </span>
                       )}
