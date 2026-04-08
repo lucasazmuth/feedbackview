@@ -41,30 +41,25 @@ export function AuthBrandPanel({
           <span
             className={clsx(
               'inline-flex items-center rounded-full border border-transparent-white px-3 py-1',
-              'text-xs text-primary-text'
+              'text-xs text-white/70'
             )}
           >
             {tag}
           </span>
         ) : null}
 
-        <div className="flex max-w-[26rem] flex-col gap-3">
-          <h2 className="text-gradient text-2xl font-bold leading-[1.15] tracking-tight md:text-3xl md:leading-[1.12]">
+        <div className="flex max-w-[24rem] flex-col gap-4">
+          <h2 className="text-white text-xl font-bold leading-[1.2] tracking-tight md:text-2xl md:leading-[1.15]">
             {headline}
           </h2>
-          <p className="m-0 text-sm leading-relaxed text-primary-text">{lead}</p>
+          <p className="m-0 text-sm leading-relaxed text-white/60">{lead}</p>
         </div>
 
-        <ul className="m-0 flex max-w-[26rem] list-none flex-col gap-4 p-0">
+        <ul className="m-0 flex max-w-[24rem] list-none flex-col gap-3 p-0">
           {features.map((item) => (
-            <li key={item.title} className="flex items-start gap-3">
+            <li key={item.title} className="flex items-center gap-3">
               <div className="auth-brand-feature-icon text-white">{item.icon}</div>
-              <div className="min-w-0 pt-0.5">
-                <span className="text-sm font-medium text-off-white">{item.title}</span>
-                {item.description ? (
-                  <p className="mt-0.5 text-xs leading-relaxed text-primary-text">{item.description}</p>
-                ) : null}
-              </div>
+              <span className="text-sm font-medium text-white/90">{item.title}</span>
             </li>
           ))}
         </ul>
