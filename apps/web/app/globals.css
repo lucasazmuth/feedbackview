@@ -1244,11 +1244,11 @@ button.create-wizard-rail-node {
   max-width: 36rem;
   flex-shrink: 0;
   margin-block: auto;
-  border-radius: var(--radius-l);
-  border: 1px solid var(--neutral-border-medium);
-  background: var(--neutral-alpha-weak);
-  padding: 2.25rem 2rem;
-  gap: 1.75rem;
+  border-radius: 0;
+  border: none;
+  background: transparent;
+  padding: 0;
+  gap: 2rem;
 }
 
 @media (max-width: 768px) {
