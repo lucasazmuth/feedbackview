@@ -687,6 +687,7 @@ function createWidget(config: WidgetConfig) {
       height: 100%;
       pointer-events: none;
       z-index: 2147483645;
+      font-size: 16px;
       --fv-surface: #ffffff;
       --fv-surface-raised: #f8fafc;
       --fv-border: #e2e8f0;
