@@ -687,26 +687,26 @@ function createWidget(config: WidgetConfig) {
       height: 100%;
       pointer-events: none;
       z-index: 2147483645;
-      --fv-surface: #000212;
-      --fv-surface-raised: #12121a;
-      --fv-border: rgba(255, 255, 255, 0.08);
-      --fv-border-strong: rgba(255, 255, 255, 0.12);
-      --fv-text: #f7f8f8;
-      --fv-text-medium: #b4bcd0;
-      --fv-text-weak: #858699;
-      --fv-muted: rgba(255, 255, 255, 0.04);
-      --fv-brand: rgb(86, 67, 204);
-      --fv-brand-text: rgb(103, 63, 215);
+      --fv-surface: #ffffff;
+      --fv-surface-raised: #f8fafc;
+      --fv-border: #e2e8f0;
+      --fv-border-strong: #cbd5e1;
+      --fv-text: #0f172a;
+      --fv-text-medium: #475569;
+      --fv-text-weak: #64748b;
+      --fv-muted: rgba(0, 0, 0, 0.03);
+      --fv-brand: #1e293b;
+      --fv-brand-text: #1e40af;
       --fv-radius-l: 1rem;
       --fv-radius-m: 0.75rem;
-      --fv-font: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --fv-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       --fv-mono: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
-      --fv-input-bg: #222326;
-      --fv-input-bg-focus: #2a2a3a;
-      --fv-primary-gradient: linear-gradient(92.88deg, rgb(69, 94, 181) 9.16%, rgb(86, 67, 204) 43.89%, rgb(103, 63, 215) 64.72%);
+      --fv-input-bg: #f1f5f9;
+      --fv-input-bg-focus: #ffffff;
+      --fv-primary-gradient: linear-gradient(92.88deg, #1e293b 9.16%, #1e40af 43.89%, #3b82f6 64.72%);
     }
     .fv-media-shell {
-      background: rgba(255, 255, 255, 0.03);
+      background: rgba(0, 0, 0, 0.02);
       border-bottom: 1px solid var(--fv-border);
     }
     .fv-tabs-row {
@@ -714,7 +714,7 @@ function createWidget(config: WidgetConfig) {
       gap: 0.25rem;
       padding: 0 1.25rem;
       border-bottom: 1px solid var(--fv-border);
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, transparent 100%);
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0.03) 0%, transparent 100%);
     }
     .fv-tab {
       padding: 0.65rem 1rem;
@@ -771,8 +771,8 @@ function createWidget(config: WidgetConfig) {
       cursor: pointer;
       font-family: inherit;
       transition: border-color 0.15s, background 0.15s, color 0.15s, box-shadow 0.15s;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      background: rgba(0, 0, 0, 0.02);
       color: var(--fv-text-medium);
       display: inline-flex;
       align-items: center;
@@ -780,8 +780,8 @@ function createWidget(config: WidgetConfig) {
       gap: 0.35rem;
     }
     .fv-choice-btn:hover {
-      border-color: rgba(255, 255, 255, 0.16);
-      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(0, 0, 0, 0.12);
+      background: rgba(0, 0, 0, 0.04);
     }
     .fv-media-pad {
       padding: 1.25rem 1.75rem;
@@ -844,7 +844,7 @@ function createWidget(config: WidgetConfig) {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(0,0,0,0.15) 100%);
+      background: linear-gradient(180deg, rgba(0,0,0,0.03) 0%, rgba(0,0,0,0.06) 100%);
       padding: 0.5rem 0.75rem;
       border-top: 1px solid var(--fv-border);
     }
@@ -861,11 +861,11 @@ function createWidget(config: WidgetConfig) {
       font-family: inherit;
       transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
       border: 1px solid var(--fv-border);
-      background: rgba(255, 255, 255, 0.04);
+      background: rgba(0, 0, 0, 0.03);
       color: var(--fv-text-medium);
     }
     .fv-ss-btn:hover {
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(0, 0, 0, 0.06);
       color: var(--fv-text);
     }
     .fv-ss-btn-danger {
@@ -882,7 +882,7 @@ function createWidget(config: WidgetConfig) {
       font-size: 0.8125rem;
       font-weight: 500;
       color: var(--fv-text-weak);
-      background: rgba(255, 255, 255, 0.03);
+      background: rgba(0, 0, 0, 0.02);
       border-radius: var(--fv-radius-m);
       border: 1px solid var(--fv-border);
     }
@@ -899,7 +899,7 @@ function createWidget(config: WidgetConfig) {
       display: flex;
       flex-direction: column;
       gap: 0.625rem;
-      background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(0,0,0,0.2) 100%);
+      background: linear-gradient(180deg, rgba(0,0,0,0.03) 0%, rgba(0,0,0,0.06) 100%);
       padding: 0.75rem 1rem;
       border-top: 1px solid var(--fv-border);
     }
@@ -924,7 +924,7 @@ function createWidget(config: WidgetConfig) {
       height: 15px;
       border-radius: 50%;
       transform: translate(-50%, -50%);
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
       border: 2px solid var(--fv-surface);
     }
     .fv-replay-play {
@@ -949,14 +949,14 @@ function createWidget(config: WidgetConfig) {
       white-space: nowrap;
     }
     .fv-speed-pill {
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(0, 0, 0, 0.06);
       cursor: pointer;
       padding: 0.25rem 0.5rem;
       border-radius: 9999px;
       font-size: 0.6875rem;
       font-weight: 500;
       transition: all 0.15s ease;
-      background: rgba(255, 255, 255, 0.03);
+      background: rgba(0, 0, 0, 0.02);
       color: var(--fv-text-weak);
     }
     .fv-replay-bottom {
@@ -1094,7 +1094,7 @@ function createWidget(config: WidgetConfig) {
     .fv-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(0, 2, 18, 0.72);
+      background: rgba(0, 0, 0, 0.4);
       z-index: 2147483646;
       opacity: 0;
       transition: opacity 0.3s ease;
@@ -1114,12 +1114,12 @@ function createWidget(config: WidgetConfig) {
       min-height: clamp(28rem, 82vh, 100rem);
       height: auto;
       background-color: var(--fv-surface);
-      background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(120, 119, 198, 0.22), transparent);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.08), transparent);
+      border: 1px solid #e2e8f0;
       z-index: 2147483647;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), rgba(80, 63, 205, 0.5) 0px 1px 40px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), rgba(30, 41, 59, 0.15) 0px 1px 40px;
       border-radius: var(--fv-radius-l);
       transform: translate(-50%, 16px);
       opacity: 0;
@@ -1139,15 +1139,15 @@ function createWidget(config: WidgetConfig) {
       padding: 1.125rem 1.75rem;
       border-bottom: 1px solid var(--fv-border);
       flex-shrink: 0;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, transparent 100%);
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0.04) 0%, transparent 100%);
     }
     .fv-header h2 { font-size: 16px; font-weight: 600; color: var(--fv-text); }
     .fv-close {
       width: 36px;
       height: 36px;
       border-radius: 9999px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      background: linear-gradient(rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.05) 100%);
+      border: 1px solid #e2e8f0;
+      background: linear-gradient(rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.04) 100%);
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -1156,7 +1156,7 @@ function createWidget(config: WidgetConfig) {
       transition: background 0.15s, color 0.15s;
       flex-shrink: 0;
     }
-    .fv-close:hover { background: rgba(255, 255, 255, 0.08); color: var(--fv-text); }
+    .fv-close:hover { background: rgba(0, 0, 0, 0.06); color: var(--fv-text); }
     .fv-close svg { width: 18px; height: 18px; }
 
     .fv-body {
@@ -1368,7 +1368,7 @@ function createWidget(config: WidgetConfig) {
       top: calc(100% + 8px);
       left: 50%;
       transform: translateX(-50%);
-      background: #222326;
+      background: #f1f5f9;
       color: var(--fv-text-medium);
       font-size: 0.6875rem;
       font-weight: 400;
@@ -1377,7 +1377,7 @@ function createWidget(config: WidgetConfig) {
       border-radius: var(--fv-radius-m);
       border: 1px solid var(--fv-border);
       width: 240px;
-      box-shadow: var(--shadow-m, 0 8px 24px rgba(0,0,0,0.5));
+      box-shadow: var(--shadow-m, 0 8px 24px rgba(0,0,0,0.12));
       z-index: 10;
       pointer-events: none;
     }
@@ -1388,7 +1388,7 @@ function createWidget(config: WidgetConfig) {
       left: 50%;
       transform: translateX(-50%);
       border: 5px solid transparent;
-      border-bottom-color: #222326;
+      border-bottom-color: #f1f5f9;
     }
     .fv-replay-info:hover .fv-replay-tooltip {
       display: block;
@@ -1410,7 +1410,7 @@ function createWidget(config: WidgetConfig) {
       border: none;
       background: linear-gradient(180deg, #0d0d14 0%, #08080f 100%);
       overflow: hidden;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
     }
     .fv-replay-card iframe,
     .fv-replay-card .replayer-wrapper {
@@ -1517,12 +1517,12 @@ function createWidget(config: WidgetConfig) {
       box-shadow: 0 0 0 3px ${hexToRgba(color, 0.12)};
     }
     .fv-attach-drop {
-      border: 1px dashed rgba(255, 255, 255, 0.14);
+      border: 1px dashed rgba(0, 0, 0, 0.12);
       border-radius: var(--fv-radius-m);
       padding: 0.875rem 1rem;
       text-align: center;
       cursor: pointer;
-      background: rgba(255, 255, 255, 0.02);
+      background: rgba(0, 0, 0, 0.01);
       transition: border-color 0.2s ease, background 0.2s ease;
     }
     .fv-attach-drop:hover {
@@ -1568,7 +1568,7 @@ function createWidget(config: WidgetConfig) {
       transition: background 0.15s;
       user-select: none;
     }
-    .fv-logs-header:hover { background: rgba(255,255,255,0.07); }
+    .fv-logs-header:hover { background: rgba(0,0,0,0.05); }
     .fv-logs-header span { font-size: 13px; font-weight: 500; color: var(--fv-text-medium); }
     .fv-logs-header svg { width: 16px; height: 16px; color: var(--fv-text-weak); transition: transform 0.2s; }
     .fv-logs-header.open svg { transform: rotate(180deg); }
@@ -1648,7 +1648,7 @@ function createWidget(config: WidgetConfig) {
       padding: 1.125rem 1.75rem 1.5rem;
       border-top: 1px solid var(--fv-border);
       flex-shrink: 0;
-      background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.02) 100%);
+      background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.02) 100%);
     }
 
     .fv-submit {
@@ -1667,9 +1667,9 @@ function createWidget(config: WidgetConfig) {
       align-items: center;
       justify-content: center;
       gap: 0.5rem;
-      box-shadow: rgba(80, 63, 205, 0.45) 0px 1px 36px;
+      box-shadow: rgba(30, 41, 59, 0.15) 0px 1px 36px;
     }
-    .fv-submit:hover { filter: brightness(1.08); box-shadow: rgba(80, 63, 205, 0.55) 0px 4px 48px; }
+    .fv-submit:hover { filter: brightness(1.08); box-shadow: rgba(30, 41, 59, 0.2) 0px 4px 48px; }
     .fv-submit:active { transform: scale(0.99); }
     .fv-submit:disabled { background: ${colorDisabled}; opacity: 0.55; cursor: not-allowed; box-shadow: none; }
 
@@ -1928,15 +1928,15 @@ function createWidget(config: WidgetConfig) {
           <line x1="10" y1="15" x2="10" y2="9"/>
           <line x1="14" y1="15" x2="14" y2="9"/>
         </svg>
-        <div style="font-size:15px;font-weight:600;color:#f7f8f8;">Widget pausado</div>
-        <div style="font-size:13px;color:#858699;line-height:1.6;max-width:280px;">
+        <div style="font-size:15px;font-weight:600;color:#0f172a;">Widget pausado</div>
+        <div style="font-size:13px;color:#64748b;line-height:1.6;max-width:280px;">
           O envio de reports está temporariamente pausado pelo administrador do projeto.
         </div>
       `
       panel.appendChild(pausedMsg)
       const pausedFooter = document.createElement('div')
-      pausedFooter.style.cssText = 'padding:12px 16px;text-align:center;font-size:11px;color:#858699;border-top:1px solid rgba(255,255,255,0.08);'
-      pausedFooter.innerHTML = 'Powered by <strong style="color:#b4bcd0;">Buug</strong>'
+      pausedFooter.style.cssText = 'padding:12px 16px;text-align:center;font-size:11px;color:#64748b;border-top:1px solid #e2e8f0;'
+      pausedFooter.innerHTML = 'Powered by <strong style="color:#475569;">Buug</strong>'
       panel.appendChild(pausedFooter)
       return
     }
@@ -1950,15 +1950,15 @@ function createWidget(config: WidgetConfig) {
           <path d="M12 8v4"/>
           <path d="M12 16h.01"/>
         </svg>
-        <div style="font-size:15px;font-weight:600;color:#f7f8f8;">Limite de reports atingido</div>
-        <div style="font-size:13px;color:#858699;line-height:1.6;max-width:280px;">
+        <div style="font-size:15px;font-weight:600;color:#0f172a;">Limite de reports atingido</div>
+        <div style="font-size:13px;color:#64748b;line-height:1.6;max-width:280px;">
           O limite de reports deste projeto foi atingido este mês. Entre em contato com o responsável pelo site para continuar reportando.
         </div>
       `
       panel.appendChild(limitMsg)
       const limitFooter = document.createElement('div')
-      limitFooter.style.cssText = 'padding:12px 16px;text-align:center;font-size:11px;color:#858699;border-top:1px solid rgba(255,255,255,0.08);'
-      limitFooter.innerHTML = 'Powered by <strong style="color:#b4bcd0;">Buug</strong>'
+      limitFooter.style.cssText = 'padding:12px 16px;text-align:center;font-size:11px;color:#64748b;border-top:1px solid #e2e8f0;'
+      limitFooter.innerHTML = 'Powered by <strong style="color:#475569;">Buug</strong>'
       panel.appendChild(limitFooter)
       return
     }
@@ -1978,7 +1978,7 @@ function createWidget(config: WidgetConfig) {
     // Right column — tipo, prioridade, system info
     const sidebar = document.createElement('div')
     sidebar.className = 'fv-sidebar'
-    sidebar.style.cssText = 'width:clamp(22rem, 28vw, 44rem);flex-shrink:0;display:flex;flex-direction:column;overflow-y:auto;padding:1rem 1.5rem 1.5rem;gap:4px;border-left:1px solid rgba(255,255,255,0.08);background:linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 40%);'
+    sidebar.style.cssText = 'width:clamp(22rem, 28vw, 44rem);flex-shrink:0;display:flex;flex-direction:column;overflow-y:auto;padding:1rem 1.5rem 1.5rem;gap:4px;border-left:1px solid #e2e8f0;background:linear-gradient(180deg, rgba(0,0,0,0.03) 0%, transparent 40%);'
     body.appendChild(sidebar)
 
     // Pre-create replay container (referenced before preview panel is built)
@@ -2175,10 +2175,10 @@ function createWidget(config: WidgetConfig) {
               b.style.borderColor = 'transparent'
               b.style.boxShadow = `0 0 12px ${hexToRgba(color, 0.25)}`
             } else {
-              b.style.background = 'rgba(255,255,255,0.03)'
+              b.style.background = 'rgba(0,0,0,0.02)'
               b.style.color = 'var(--fv-text-weak)'
               b.style.fontWeight = '500'
-              b.style.borderColor = 'rgba(255,255,255,0.1)'
+              b.style.borderColor = 'rgba(0,0,0,0.06)'
               b.style.boxShadow = 'none'
             }
           })
@@ -2232,10 +2232,10 @@ function createWidget(config: WidgetConfig) {
         }
         progressTimer = setInterval(updateProgress, 100)
       } catch (err) {
-        playerContainer.innerHTML = '<div style="padding:20px;text-align:center;color:#858699;font-size:13px;">Gravando sessão...</div>'
+        playerContainer.innerHTML = '<div style="padding:20px;text-align:center;color:#64748b;font-size:13px;">Gravando sessão...</div>'
       }
     } else {
-      playerContainer.innerHTML = '<div style="padding:20px;text-align:center;color:#858699;font-size:13px;">Gravando sessão...</div>'
+      playerContainer.innerHTML = '<div style="padding:20px;text-align:center;color:#64748b;font-size:13px;">Gravando sessão...</div>'
     }
 
     replaySection.appendChild(replayCard)
@@ -2554,7 +2554,7 @@ function createWidget(config: WidgetConfig) {
     attachField.innerHTML = `<label class="fv-label">Anexos</label>`
     const attachDrop = document.createElement('div')
     attachDrop.className = 'fv-attach-drop'
-    attachDrop.innerHTML = `<span style="font-size:12px;color:#858699;">Clique para anexar arquivos (máx. 5)</span>`
+    attachDrop.innerHTML = `<span style="font-size:12px;color:#64748b;">Clique para anexar arquivos (máx. 5)</span>`
     const attachList = document.createElement('div')
     attachList.className = 'fv-attach-list'
     embedAttachments.length = 0 // reset on re-render
@@ -2584,12 +2584,12 @@ function createWidget(config: WidgetConfig) {
       attachList.innerHTML = ''
       embedAttachments.forEach((att, i) => {
         const row = document.createElement('div')
-        row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:4px 8px;background:rgba(255,255,255,0.06);border-radius:6px;font-size:12px;margin-top:4px;'
+        row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:4px 8px;background:rgba(0,0,0,0.04);border-radius:6px;font-size:12px;margin-top:4px;'
         const name = document.createElement('span')
-        name.style.cssText = 'color:#b4bcd0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;'
+        name.style.cssText = 'color:#475569;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;'
         name.textContent = att.name
         const removeBtn = document.createElement('button')
-        removeBtn.style.cssText = 'background:none;border:none;cursor:pointer;color:#858699;padding:0 4px;font-size:14px;line-height:1;'
+        removeBtn.style.cssText = 'background:none;border:none;cursor:pointer;color:#64748b;padding:0 4px;font-size:14px;line-height:1;'
         removeBtn.textContent = '×'
         removeBtn.addEventListener('click', (e) => {
           e.stopPropagation()
@@ -2925,7 +2925,7 @@ function createWidget(config: WidgetConfig) {
     panel.appendChild(success)
 
     // Add confetti particles
-    const colors = ['rgb(86, 67, 204)', '#4ade80', '#fbbf24', '#f87171', 'rgb(103, 63, 215)', '#93c5fd']
+    const colors = ['#1e293b', '#4ade80', '#fbbf24', '#f87171', '#1e40af', '#3b82f6']
     for (let i = 0; i < 12; i++) {
       const particle = document.createElement('div')
       particle.className = 'fv-confetti-particle'
